@@ -1,10 +1,10 @@
-import {plugins} from './plugins.js?v=32';
-import {mountNavigation} from './admin-navigation.js?v=34';
-import {mountCatalogEditor} from '../dyws/catalog-editor.js?v=33';
-import {mountDriverAdmin,mountPasswordAdmin} from '../dyws/account-editor.js?v=32';
+import {plugins} from './plugins.js?v=35';
+import {mountNavigation} from './admin-navigation.js?v=35';
+import {mountCatalogEditor} from '../dyws/catalog-editor.js?v=35';
+import {mountDriverAdmin,mountPasswordAdmin} from '../dyws/account-editor.js?v=35';
 import {api} from './api.js';
-import {mountPluginAdmin} from '../dyws/plugin-admin.js?v=32';
-import {mountGeneralSettings} from '../dyws/general-settings.js?v=33';
+import {mountPluginAdmin} from '../dyws/plugin-admin.js?v=35';
+import {mountGeneralSettings} from '../dyws/general-settings.js?v=35';
 import {loadRole,applyRoleLabels} from '../dyws/role-labels.js';
 const role=await loadRole(api);
 applyRoleLabels(document.body,role);
@@ -14,15 +14,15 @@ mountNavigation(current,role);
 const mounts={catalog:mountCatalogEditor,drivers:mountDriverAdmin,password:mountPasswordAdmin,settings:mountGeneralSettings,plugins:mountPluginAdmin};
 await mounts[current]?.({root:document.body,api,role,createLocationRenderer:()=>plugins.createLocationRenderer({api,defaultCenter:{lat:53.61665,lng:-113.39804}}),onSave:settings=>mountNavigation(current,settings.driverRole)});
 
-if(current==='settings'&&sessionStorage.getItem('starlit-go-manager'))await plugins.runAction('admin:settings',{root:document.body,api});
+if(current==='settings'&&sessionStorage.getItem('dyws-manager'))await plugins.runAction('admin:settings',{root:document.body,api});
 if(plugins.errors.length)document.querySelector('[data-admin-error]').textContent=plugins.errors.join(' ');
-const operator=sessionStorage.getItem('starlit-go-manager');
+const operator=sessionStorage.getItem('dyws-manager');
 if(operator){
  let previous;
  const routes={catalog:'/manager/catalog',drivers:'/manager/drivers',settings:'/manager/settings',plugins:'/manager/plugins'};
  if(routes[current]){try{previous=JSON.stringify(await api(routes[current],{token:operator}));}catch{}}
  api.watch({scope:'operator',token:operator,interval:15000},async event=>{
-  if(event.type==='auth-error'&&[401,403].includes(event.status)){sessionStorage.removeItem('starlit-go-manager');document.querySelector('[data-admin-content]').hidden=true;document.querySelector('[data-admin-login]').hidden=false;document.querySelector('[data-admin-logout]').hidden=true;return;}
+  if(event.type==='auth-error'&&[401,403].includes(event.status)){sessionStorage.removeItem('dyws-manager');document.querySelector('[data-admin-content]').hidden=true;document.querySelector('[data-admin-login]').hidden=false;document.querySelector('[data-admin-logout]').hidden=true;return;}
   const settings=await api('/settings');mountNavigation(current,settings.driverRole);
   if(!routes[current])return;
   const data=await api(routes[current],{token:operator});const signature=JSON.stringify(data);

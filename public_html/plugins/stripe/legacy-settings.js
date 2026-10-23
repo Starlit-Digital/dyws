@@ -1,4 +1,4 @@
-export async function mountSettings({root=document,api,storageKey='starlit-go-manager'}) {
+export async function mountSettings({root=document,api,storageKey='dyws-manager'}) {
  if(typeof api!=='function')throw new TypeError('A DYWS API client is required.');
 const token=sessionStorage.getItem(storageKey);
 const error=root.querySelector('#settings-error');

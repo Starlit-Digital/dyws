@@ -2,7 +2,7 @@
 declare(strict_types=1);
 require __DIR__.'/../modules/dyws/php/module.php';
 require __DIR__.'/../modules/dyws/php/MapsSettings.php';
-use StarlitGo\{MapsSettings,ApiError};
+use dyws\{MapsSettings,ApiError};
 $dir=sys_get_temp_dir().'/dyws-maps-'.bin2hex(random_bytes(6));mkdir($dir,0700);$checks=0;
 function check($ok,$message){global $checks;if(!$ok)throw new RuntimeException($message);$checks++;}
 function denied(callable $fn,int $code=422){try{$fn();throw new RuntimeException('Expected rejection');}catch(ApiError $e){check($e->http===$code,'Unexpected error '.$e->getMessage());}}

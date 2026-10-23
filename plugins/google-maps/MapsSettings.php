@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
-namespace StarlitGo\Plugins\GoogleMaps;
-use StarlitGo\{Catalog,Store,ApiError};
+namespace dyws\Plugins\GoogleMaps;
+use dyws\{Catalog,Store,ApiError};
 
 /** Browser API keys are public by design. Restrict them to the site's origin in Google Cloud. */
 final class MapsSettings {

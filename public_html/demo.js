@@ -1,5 +1,5 @@
-import {plugins} from './platform/plugins.js?v=32';
-import {mountStorefront} from './dyws/index.js?v=32';
+import {plugins} from './platform/plugins.js?v=35';
+import {mountStorefront} from './dyws/index.js?v=35';
 import {api} from './platform/api.js';
 import {loadRole,applyRoleLabels} from './dyws/role-labels.js';
 const role=await loadRole(api);
@@ -9,7 +9,7 @@ mountStorefront({
  container:[...document.querySelectorAll('[data-dyws-rendered],#menu')],
  navigation:document.querySelector('nav[aria-label="Menu categories"]'),
  loading:document.querySelector('#loading'),api,hydrate:true,plugins,
- onOrderComplete:receipt=>{if(receipt.trackingToken)location.assign('tracking.html#'+encodeURIComponent(receipt.id)+'.'+encodeURIComponent(receipt.trackingToken));}
+ onOrderComplete:receipt=>{if(receipt.trackingToken)location.assign(new URL('./tracking/',import.meta.url).href+'#'+encodeURIComponent(receipt.id)+'.'+encodeURIComponent(receipt.trackingToken));}
 });
 
 let publicState=JSON.stringify(await api('/catalog'));

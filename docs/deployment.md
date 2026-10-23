@@ -15,11 +15,11 @@ Setup creates `var/config.json` and `var/LOCAL-ACCESS.txt`, both private and ign
 
 ## Hosted example
 
-The existing https://sltd.ca/diner/ demo now uses the backend. Customer menu, manager.html and driver.html share its API. Public deploy files live under `domains/sltd.ca/public_html/diner/` on pct-hostinger. Private application code and SQLite state live under `domains/sltd.ca/private/starlit-go/` outside the web root. Config is private and the SQLite database is never copied into public_html.
+The existing https://sltd.ca/diner/ demo now uses the backend. Customer menu, reports/ and driver/ share its API. Public deploy files live under `domains/sltd.ca/public_html/diner/` on pct-hostinger. Private application code and SQLite state live under `domains/sltd.ca/private/starlit-go/` outside the web root. Config is private and the SQLite database is never copied into public_html.
 
-The ignored `public_html/api/bootstrap-path.php` file returns the private bootstrap path. On this host, set `STARLIT_GO_CONFIG` in a private bootstrap wrapper or use the private install’s default `var/config.json`. Local and hosted configurations are separate. Deployed catalog paths must reference the deployed catalog, not a Mac path.
+The ignored `public_html/api/bootstrap-path.php` file returns the private bootstrap path. On this host, set `DYWS_CONFIG` in a private bootstrap wrapper or use the private install’s default `var/config.json`. Local and hosted configurations are separate. Deployed catalog paths must reference the deployed catalog, not a Mac path.
 
-Hosted demo access is saved locally at `var/HOSTED-DEMO-ACCESS.txt`, permissions 0600. Passwords and session tokens are not committed or embedded in JavaScript. This is the file the owner should use to sign in at manager.html and driver.html.
+Hosted demo access is saved locally at `var/HOSTED-DEMO-ACCESS.txt`, permissions 0600. Passwords and session tokens are not committed or embedded in JavaScript. This is the file the owner should use to sign in at reports/ and driver/.
 
 A backup of the prior static diner was made at `domains/sltd.ca/private/deploy-backups/starlit-go-backend-20261023/`. Restoring that public directory returns the original frontend demonstration; do not delete the private database during a frontend rollback.
 
@@ -45,7 +45,7 @@ Four JavaScript cart tests, 28 PHP service checks and 14 HTTP boundary checks pa
 
 Deploy `server/` and Composer `vendor/` to the private installation, never public_html. Run `php server/migrate-catalog.php /absolute/private/var/config.json https://sltd.ca/diner` once to move the existing configured catalog into private JSON without overwriting credentials. The runtime catalog is not overwritten by future code deployments. New local setup copies the diner seed from examples into private var.
 
-Then deploy public_html, including settings.html, and retain the existing private bootstrap path. The old static ordering/catalog.json can be removed after its private migration and backup. The SDK uses its pinned default API version. Configure sandbox credentials and the webhook in admin settings; no Stripe account is configured by deployment itself.
+Then deploy public_html, including settings/, and retain the existing private bootstrap path. The old static ordering/catalog.json can be removed after its private migration and backup. The SDK uses its pinned default API version. Configure sandbox credentials and the webhook in admin settings; no Stripe account is configured by deployment itself.
 
 October 23 catalog and Stripe upgrade validation: 98 checks pass, comprising five cart tests, 28 backend checks, 26 HTTP checks and 39 catalog and Stripe checks. Hosted browser verification saved the private catalog and placed order SG-6547CD1FE1B9 through the migrated storefront. The Stripe SDK was audited with no reported dependency advisories. Stripe credentials remain unset; no external Stripe sandbox payment was performed. Backup: domains/sltd.ca/private/deploy-backups/starlit-go-catalog-stripe-20261023/.
 
@@ -59,7 +59,7 @@ October 23 validation: all 98 existing checks passed. Browser checks covered des
 
 ## dyws JavaScript and PHP modules
 
-The homepage is now index.php. Preserve the DirectoryIndex setting and existing security headers in public_html/.htaccess. Move the old index.html out of the public folder after backing it up, so the PHP homepage is the sole entry point.
+The homepage is home.php, served at the installation root through DirectoryIndex. All subpages use page.php inside their named directory.
 
 Deploy modules/dyws/php to the private installation's modules/dyws/php folder first, then deploy server compatibility adapters, then public_html. The public api/bootstrap-path.php remains unchanged and private credentials, runtime catalog and SQLite state are not part of the upload. No database migration or catalog replacement is needed. The Composer autoloader remains in private vendor and is loaded by the server adapter. A new host can include module.php and dispatch dyws_serve_api with its own private configuration path.
 
@@ -75,7 +75,7 @@ Hosted verification after deployment confirmed five PHP category panels, 35 prod
 
 Deploy modules/dyws/php first, then public_html. The five admin pages use dyws browser package version 0.3.0. Existing credentials are unchanged. Account overrides are created only when an administrator saves driver settings or changes the admin password. Keep accounts-*.json private, and never overwrite these files during code deployments. No database or catalog migration is needed.
 
-The catalog editor loads the runtime JSON and saves through the existing revision checked API. Tests use temporary data rather than the hosted business catalog. The old settings.html address redirects to catalog-admin.html, while Stripe settings are on stripe-admin.html.
+The catalog editor loads the runtime JSON and saves through the existing revision checked API. Tests use temporary data rather than the hosted business catalog. Catalog items are edited at catalog/, while Stripe settings are at settings/#plugin-stripe.
 
 October 23 admin upgrade validation: 144 checks passed, including account creation, duplicate ID rejection, password verification and session revocation, disabled driver access, assignment rules, stale revisions and catalog decimal conversion. Browser testing used a separate temporary backend and saved edited item fields, new categories, new items and option prices back to JSON, then updated a driver name. Reports, catalog, drivers, Stripe and password navigation were checked. Password changes were tested against isolated backend fixtures; deployment does not change the owner's passwords.
 
@@ -83,7 +83,7 @@ Backup: domains/sltd.ca/private/deploy-backups/dyws-admin-20261023/. Restore the
 
 ## General Settings page
 
-`settings-admin.html` adds the Settings tab. The old `settings.html` shortcut now opens this page. Role labels default to Driver and Drivers until explicitly saved. Saves create `settings-<tenant hash>.json` beside the private database, with mode 0600. Preserve this file during deployments and backups alongside account overrides. Deploy `modules/dyws/php/Settings.php` with the other private modules. No database migration or credential reset is needed.
+`settings/` adds the Settings tab. The page uses the clean `settings/` URL. Role labels default to Driver and Drivers until explicitly saved. Saves create `settings-<tenant hash>.json` beside the private database, with mode 0600. Preserve this file during deployments and backups alongside account overrides. Deploy `modules/dyws/php/Settings.php` with the other private modules. No database migration or credential reset is needed.
 
 ## GPS, maps and optional realtime upgrade
 
@@ -99,7 +99,7 @@ Final GPS, maps and routing validation: 239 automated checks passed across the c
 
 ## dyws rename and compact administration
 
-The private repository is now Starlit-Digital/dyws. The existing hosted private path, environment aliases, session storage keys, API URLs and diner URL remain compatible. The storefront is still the Starlit Diner example.
+The private repository is now Starlit-Digital/dyws. The hosted private storage directory retains its existing infrastructure path. Application identifiers now use dyws and page URLs use directory paths. The storefront is still the Starlit Diner example.
 
 Deploy the updated public files and the private Catalog.php and api.php modules. Keep api/bootstrap-path.php and all private runtime files. Update only the catalog platformName through its revision checked manager API to adopt the dyws name; never replace a merchant catalog with the example seed.
 
@@ -161,4 +161,20 @@ Adds compact admin orders and the timezone preference. Deploy PHP, both changed 
 
 Version 0.8.1 moves Business details from Catalog to Settings. Deploy the affected admin HTML, platform/admin.js and the catalog, general and new business settings modules. The affected imports use version 33. No data migration is needed, and both editors retain the existing catalog revision guard.
 
-Version 0.8.2 separates Orders from Reports. Deploy orders-admin.html, platform/orders.js, dyws/orders.js, the revised reporting controller and the shared navigation entrypoints together. The new page uses the existing manager session and API permissions. No storage or API migration is required. Rebuild dyws.zip with the new modules staged.
+Version 0.8.2 separates Orders from Reports. Deploy orders/, platform/orders.js, dyws/orders.js, the revised reporting controller and the shared navigation entrypoints together. The new page uses the existing manager session and API permissions. No storage or API migration is required. Rebuild dyws.zip with the new modules staged.
+
+## Version 0.9, clean PHP pages
+
+This is a development route change. There are no legacy HTML redirects. Each subpage is a directory with page.php, served through DirectoryIndex. The storefront uses home.php, the API uses api/endpoint.php at api/, and setup uses setup/install.php at setup/. Public source contains no .html or index.php files. Update all saved bookmarks and any configured webhook or relay backend URLs to api/.
+
+Deploy the PHP modules, plugins and public assets together. Remove the previous root HTML files, root index.php, api/index.php and plugin settings.html fragments after backing them up. Retain api/bootstrap-path.php, private var state and merchant data, and exclude setup from an existing installation. DirectoryIndex must be honored by the host. For PHP's development server use server/router.php, which serves only known PHP entrypoints and preserves trailing slashes.
+
+Admin entry is orders/. Reports, catalog, drivers, password, settings and plugins are sibling paths. Driver sign in is driver/ and customer tracking is tracking/, with its private token still in the fragment. Orders defaults to active and the server selects active orders before recent finished history. Status, assignment, payment and tracking APIs keep their existing authorization rules.
+
+## Internal naming, 0.9.0
+
+PHP classes use the lowercase `dyws` namespace, with `dyws_config_path()` and `dyws_app_bootstrap()` in the host adapter. Only `DYWS_CONFIG` and `DYWS_BOOTSTRAP` are supported environment overrides. Browser storage uses dyws names, so users sign in again and start a new local cart after this update. The component exports `DYWSOrdering` and registers `<dyws-ordering>`. New order references use `DYWS-`. Existing references remain valid stored business data. Diner branding and package publisher identity remain unchanged.
+
+Stripe credential encryption now derives its key using the `dyws-stripe:` context. Before replacing an existing installation with encrypted Stripe settings, decrypt them with the running version and reencrypt with the new context under a private backup. Do not overwrite the catalog, config, SQLite database or other saved settings. This demo had no saved Stripe credential file at the naming update.
+
+The 0.9.0 live update passed the full test suite, relay integration and all 42 extracted installer checks. Live backup: `domains/sltd.ca/private/deploy-backups/dyws-clean-php-20261023/`. The deployed PHP 8.1 code passed syntax and bootstrap checks. Before and after digests matched for orders, accounts, payments and private JSON settings.

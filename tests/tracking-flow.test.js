@@ -10,7 +10,7 @@ test('Customer observes driver completion, clears map and estimate, stops pollin
  const renderer=(_,role,options)=>{mapCallback=options.onEstimate;return element();};renderer.clear=()=>clears++;
  const tracker=createTracking({api,container,plugins:{runAction:(name,payload)=>hooks.push({name,payload})},renderLocation:renderer,shopPage:'./',document:{createElement:element},now:()=>now});
  try{
-  tracker.show('SG-000000000001','test-token');await settle();const panel=container.children[0];
+  tracker.show('DYWS-000000000001','test-token');await settle();const panel=container.children[0];
   mapCallback({durationMillis:600000,calculatedAt:now});assert.equal(panel.querySelector('.dyws-arrival-value').textContent,'About 10 min');
   const oldCallback=mapCallback;
   data={...data,status:'delivered',location:null,events:[{status:'delivered',created_at:now/1000}]};notify();await settle();

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {renderStripePayment} from '../public_html/plugins/stripe/payment.js';
 import {createPluginHost} from '../public_html/dyws/plugins.js';
 const doc={createElement:()=>({}),head:{append(){}}};
-const order={id:'SG-000000000001',paymentProvider:'stripe',paymentStatus:'unpaid',status:'placed'};
+const order={id:'DYWS-000000000001',paymentProvider:'stripe',paymentStatus:'unpaid',status:'placed'};
 test('Stripe plugin uses scoped checkout and permits only its hosted payment URL',async()=>{
  let button,request,navigation,error;
  const render=(url)=>renderStripePayment({document:doc,order,container:{append:n=>button=n},trackingToken:'private-token',onError:value=>error=value,navigate:url=>navigation=url,api:async(...args)=>{request=args;return {url};}});

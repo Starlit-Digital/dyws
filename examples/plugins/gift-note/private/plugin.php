@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-use StarlitGo\{PluginContext,ApiError};
+use dyws\{PluginContext,ApiError};
 return static function(PluginContext $plugin):void {
  $plugin->addValidator('order.validating',static function(array $order):void {
   $note=$order['pluginData']['gift-note']['message']??'';

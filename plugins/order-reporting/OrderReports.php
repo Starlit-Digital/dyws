@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
-namespace StarlitGo\Plugins\OrderReporting;
+namespace dyws\Plugins\OrderReporting;
 use DateTimeImmutable;
 use DateTimeZone;
-use StarlitGo\{Store,ApiError};
+use dyws\{Store,ApiError};
 
 /** Aggregate private order snapshots and ledger events, without contacts or location data. */
 final class OrderReports {

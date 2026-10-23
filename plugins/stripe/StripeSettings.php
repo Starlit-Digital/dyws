@@ -1,12 +1,12 @@
 <?php
 declare(strict_types=1);
-namespace StarlitGo\Plugins\Stripe;
-use StarlitGo\{Store,Catalog,ApiError};
+namespace dyws\Plugins\Stripe;
+use dyws\{Store,Catalog,ApiError};
 
 /** Private encrypted credential storage for the shared hosting demo. */
 final class StripeSettings {
  private string $path; private string $key;
- public function __construct(private array $config){$this->path=dirname($config['database']).'/stripe.json';$this->key=hash_hkdf('sha256',$config['tracking_secret'],32,'starlit-go-stripe:'.$config['tenant']);}
+ public function __construct(private array $config){$this->path=dirname($config['database']).'/stripe.json';$this->key=hash_hkdf('sha256',$config['tracking_secret'],32,'dyws-stripe:'.$config['tenant']);}
  public function read():array {
   if(!is_file($this->path))return ['enabled'=>false,'apiKey'=>'','webhookSecret'=>''];
   $d=json_decode(file_get_contents($this->path),true,32,JSON_THROW_ON_ERROR);
@@ -14,7 +14,7 @@ final class StripeSettings {
   if($plain===false)throw new ApiError('Payment configuration could not be opened.',503);
   return json_decode($plain,true,32,JSON_THROW_ON_ERROR);
  }
- public function summary():array {$s=$this->read();return ['enabled'=>$s['enabled'],'mode'=>'test','hasApiKey'=>$s['apiKey']!=='','hasWebhookSecret'=>$s['webhookSecret']!=='','webhookUrl'=>($this->config['public_base_url']??'').'/api/index.php?route=/stripe/webhook'];}
+ public function summary():array {$s=$this->read();return ['enabled'=>$s['enabled'],'mode'=>'test','hasApiKey'=>$s['apiKey']!=='','hasWebhookSecret'=>$s['webhookSecret']!=='','webhookUrl'=>($this->config['public_base_url']??'').'/api/?route=/stripe/webhook'];}
  public function save(array $body):array {
   $lock=fopen($this->path.'.lock','c');if(!$lock||!flock($lock,LOCK_EX))throw new ApiError('Payment settings are busy.',503);
   try{$s=$this->read();

@@ -1,9 +1,9 @@
 import {formatTime} from './date-time.js';
-import {pluginSlot} from './plugin-ui.js?v=32';
+import {pluginSlot} from './plugin-ui.js?v=35';
 import {statusText,escapeHTML} from './api.js';
 import {defaultRole} from './role-labels.js';
-import {deliveryStatus,terminalStatuses} from './delivery-status.js?v=32';
-export function createTracking({api,container,role=defaultRole,trackingPage,renderLocation,renderPayment,plugins,shopPage,storageKey='starlit-go-tracking',panelId='customer-tracking',document:doc=globalThis.document,now=Date.now}) {
+import {deliveryStatus,terminalStatuses} from './delivery-status.js?v=35';
+export function createTracking({api,container,role=defaultRole,trackingPage,renderLocation,renderPayment,plugins,shopPage,storageKey='dyws-tracking',panelId='customer-tracking',document:doc=globalThis.document,now=Date.now}) {
  if(typeof api!=='function'||!container)throw new TypeError('dyws tracking requires an API client and container.');
  let timer,clock,active,panel,unwatch=null,polling=false,again=false,lastData,estimate,unavailable=false,lastChecked=0;
  const time=value=>formatTime(value);

@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-namespace StarlitGo;
+namespace dyws;
 use DateTimeZone;
 
 /** Display preferences only. Internal authorization roles never change. */

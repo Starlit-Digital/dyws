@@ -54,7 +54,7 @@ The account code also imports automatically on first access for compatibility, b
 
 ```sh
 composer install --no-dev
-php -S 127.0.0.1:8097 -t public_html
+php -S 127.0.0.1:8097 -t public_html server/router.php
 ```
 
 Visit `http://127.0.0.1:8097/setup/`. Localhost is the only HTTP exception. Browser setup removes the checkout's setup directory; test installations should use a disposable clone or extracted ZIP. The tracked files can be restored from Git when needed for development, but existing config still blocks reinstalling.

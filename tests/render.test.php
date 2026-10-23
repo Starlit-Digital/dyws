@@ -22,7 +22,7 @@ $escaped=dyws_render_menu($catalog,['id'=>'" onmouseover="bad']);
 verify(!str_contains($escaped,'<script>')&&!str_contains($escaped,'<img src=x')&&str_contains($escaped,'&lt;script&gt;'),'Catalog content is escaped');
 verify(str_contains($escaped,'id="&quot; onmouseover=&quot;bad"'),'Host attributes are escaped');
 $catalog['categories'][0]['image']['src']='javascript:alert(1)';
-try{dyws_render_menu($catalog);throw new RuntimeException('Unsafe image rendered');}catch(\StarlitGo\ApiError $e){verify(true,'Invalid image URL rejected');}
+try{dyws_render_menu($catalog);throw new RuntimeException('Unsafe image rendered');}catch(\dyws\ApiError $e){verify(true,'Invalid image URL rejected');}
 $shop=dyws_load_catalog(__DIR__.'/../examples/general-store/catalog.json');$shop['currency']='USD';$shop['categories'][0]['items'][1]['variants'][0]['price']=2050;
 verify(str_contains(dyws_render_item($shop,'tote'),'US$20.50'),'Initial price uses selected variant and catalog currency');
 verify(!str_contains(dyws_render_menu($shop),'tracking_secret'),'Rendered catalog does not contain private config');

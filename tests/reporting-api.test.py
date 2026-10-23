@@ -6,13 +6,13 @@ with tempfile.TemporaryDirectory(prefix='dyws-report-api-') as temp:
  config=json.loads((work/'config.json').read_text());config['plugins_path']=str(work/'plugins');(work/'config.json').write_text(json.dumps(config));shutil.copytree(root/'plugins',work/'plugins')
  access=(work/'LOCAL-ACCESS.txt').read_text().splitlines();password=lambda key:next(x.split(': ',1)[1]for x in access if x.startswith(key+':'))
  with socket.socket() as sock:sock.bind(('127.0.0.1',0));port=sock.getsockname()[1]
- proc=subprocess.Popen(['php','-S',f'127.0.0.1:{port}','-t',str(root/'public_html')],env={**os.environ,'STARLIT_GO_CONFIG':str(work/'config.json')},stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+ proc=subprocess.Popen(['php','-S',f'127.0.0.1:{port}','-t',str(root/'public_html'),str(root/'server/router.php')],env={**os.environ,'DYWS_CONFIG':str(work/'config.json')},stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
  checks=0
  def request(route,body=None,token=None,status=200,query=''):
   global checks
   headers={'Content-Type':'application/json'}
   if token:headers['Authorization']='Bearer '+token
-  req=urllib.request.Request(f'http://127.0.0.1:{port}/api/index.php?route='+urllib.parse.quote(route,safe='/')+query,headers=headers,data=None if body is None else json.dumps(body).encode())
+  req=urllib.request.Request(f'http://127.0.0.1:{port}/api/?route='+urllib.parse.quote(route,safe='/')+query,headers=headers,data=None if body is None else json.dumps(body).encode())
   try:
    with urllib.request.urlopen(req,timeout=5) as r:code=r.status;data=json.load(r)
   except urllib.error.HTTPError as e:code=e.code;data=json.load(e)

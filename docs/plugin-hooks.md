@@ -4,7 +4,7 @@ dyws 0.7 includes 32 built in hook features. The names below are live integratio
 
 ## Server hooks
 
-Register these in a private plugin's PHP entry with addAction, addFilter or addValidator. Arrays are passed by value. Filters return the replacement array; actions ignore their return value. Validators return normally to allow the operation, return false to reject it, or throw StarlitGo\ApiError with a useful message. Unexpected validation errors return 503, never a successful order.
+Register these in a private plugin's PHP entry with addAction, addFilter or addValidator. Arrays are passed by value. Filters return the replacement array; actions ignore their return value. Validators return normally to allow the operation, return false to reject it, or throw dyws\ApiError with a useful message. Unexpected validation errors return 503, never a successful order.
 
 | # | Hook | Kind | Callback arguments and purpose |
 |---|---|---|---|
@@ -56,11 +56,11 @@ The context supplies document, api, addAction, addFilter, addValidator, their co
 The request accepts pluginData as an object keyed by plugin ID. Each plugin value must be an object or array; the whole bag is limited to 20 plugins and 8192 encoded bytes. It is included in the order's idempotency fingerprint and stored in SQLite. Managers and assigned drivers receive it as pluginData; customer tracking omits it unless a plugin explicitly adds a safe projection. Do not put credentials or unrelated sensitive information in this bag. It is not saved in browser cart storage.
 
 ```php
-return static function (StarlitGo\PluginContext $plugin): void {
+return static function (dyws\PluginContext $plugin): void {
     $plugin->addValidator('order.validating', function (array $order): void {
         $note = $order['pluginData']['gift-note']['message'] ?? '';
         if (!is_string($note) || strlen($note) > 200) {
-            throw new StarlitGo\ApiError('Keep the gift note within 200 bytes.');
+            throw new dyws\ApiError('Keep the gift note within 200 bytes.');
         }
     });
     $plugin->addFilter('reports.summary', function (array $report): array {

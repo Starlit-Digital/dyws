@@ -1,8 +1,8 @@
 <?php
 declare(strict_types=1);
 require __DIR__.'/../server/Store.php';
-use StarlitGo\Store;use StarlitGo\ApiError;
-$path=tempnam(sys_get_temp_dir(),'starlit-test-');$catalog=json_decode(file_get_contents(__DIR__.'/../examples/starlit-diner/catalog.json'),true);$GLOBALS['starlit_config']=['tracking_secret'=>str_repeat('a',64)];$store=new Store($path,$catalog);$checks=0;
+use dyws\Store;use dyws\ApiError;
+$path=tempnam(sys_get_temp_dir(),'dyws-test-');$catalog=json_decode(file_get_contents(__DIR__.'/../examples/starlit-diner/catalog.json'),true);$GLOBALS['dyws_config']=['tracking_secret'=>str_repeat('a',64)];$store=new Store($path,$catalog);$checks=0;
 function check($condition,$message){global $checks;if(!$condition)throw new RuntimeException($message);$checks++;}
 function rejects(callable $f,int $code){try{$f();throw new RuntimeException('Expected rejection');}catch(ApiError $e){check($e->http===$code,'Wrong error '.$e->getMessage());}}
 function order(array $changes=[]):array{return array_replace_recursive(['idempotencyKey'=>bin2hex(random_bytes(16)),'customer'=>['name'=>'Test Guest','phone'=>'7805550142'],'lines'=>[['id'=>'breakfast0','variant'=>'','quantity'=>2,'price'=>1]],'fulfillment'=>'delivery','address'=>'15320 Fictional Lane, Edmonton','notes'=>'Test only'],$changes);}
@@ -32,5 +32,9 @@ try {
  $store->payment($id,'refund');rejects(fn()=>$store->payment($id,'refund'),409);check($store->reports(time()-60,time()+60)['netCollected']===0,'Refund reduces collection once');
  $other=new Store($path,$catalog,'other-restaurant');check(count($other->orders())===0,'Tenant order isolation');rejects(fn()=>$other->get($id),404);rejects(fn()=>$other->tracking($id,$token),404);check($other->reports(time()-60,time()+60)['orderCount']===0,'Tenant report isolation');
  $store->execute('UPDATE orders SET tracking_expires=? WHERE id=?',[time()-1,$id]);rejects(fn()=>$store->tracking($id,$token),404);
+ $pending=$store->create(order());$store->execute('UPDATE orders SET created_at=1 WHERE id=?',[$pending['id']]);
+ for($n=0;$n<201;$n++){$history=$store->create(order());$store->execute("UPDATE orders SET status='cancelled' WHERE id=?",[$history['id']]);}
+ $board=$store->orders();check(count($board)===200,'Order board remains bounded');check($board[0]['id']===$pending['id'],'An older active order remains ahead of more than 200 newer finished orders');
+ check(count($other->orders())===0,'Active first selection remains tenant scoped');
  echo "Backend: $checks checks passed.\n";
 }finally {unset($other,$store);foreach([$path,$path.'-wal',$path.'-shm']as $f)if(is_file($f))unlink($f);}

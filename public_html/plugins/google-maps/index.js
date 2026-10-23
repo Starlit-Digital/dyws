@@ -6,7 +6,7 @@ export function register(plugin){
  })}));
  plugin.addAction('admin:settings',async({root,api})=>{
   const container=root.querySelector('[data-dyws-plugin-settings]');if(!container)return;
-  const response=await fetch(new URL('./settings.html',import.meta.url));if(!response.ok)throw new Error('Plugin settings unavailable.');
+  const response=await fetch(new URL('./settings.php',import.meta.url));if(!response.ok)throw new Error('Plugin settings unavailable.');
   container.insertAdjacentHTML('beforeend',await response.text());
   const origin=container.querySelector('[data-dyws-site-origin]');if(origin)origin.textContent=location.origin+'/*';
   await mountMapsSettings({root,api});

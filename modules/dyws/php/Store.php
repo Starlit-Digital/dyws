@@ -1,13 +1,13 @@
 <?php
 declare(strict_types=1);
-namespace StarlitGo;
+namespace dyws;
 use PDO;
 use RuntimeException;
 final class ApiError extends RuntimeException {public int $http; public function __construct(string $message,int $http=422){parent::__construct($message);$this->http=$http;}}
 final class Store {
  public PDO $db; private array $catalog; public string $tenant; public ?Plugins $plugins=null;
- public function __construct(string $path,array $catalog,string $tenant='starlit-diner') {
-  if(strlen($GLOBALS['starlit_config']['tracking_secret']??'')<32)throw new RuntimeException('Tracking secret must be configured.');$this->catalog=$catalog;$this->tenant=$tenant;
+ public function __construct(string $path,array $catalog,string $tenant='dyws-diner') {
+  if(strlen($GLOBALS['dyws_config']['tracking_secret']??'')<32)throw new RuntimeException('Tracking secret must be configured.');$this->catalog=$catalog;$this->tenant=$tenant;
   $this->db=new PDO('sqlite:'.$path,null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
   $this->db->exec('PRAGMA foreign_keys=ON; PRAGMA busy_timeout=5000; PRAGMA journal_mode=WAL;');
   // Rename the old provider tables atomically before creating the neutral ledger schema.
@@ -47,14 +47,14 @@ final class Store {
    $existing=$this->query('SELECT * FROM orders WHERE tenant=? AND request_key=?',[$this->tenant,$key]);
    if($existing){if(!hash_equals($existing[0]['fingerprint'],$fingerprint))throw new ApiError('Request key was already used for a different order.',409);return $this->receipt($existing[0],$key);}
    $this->plugins?->validate('order.validating',$canonical,['subtotal'=>$subtotal,'tax'=>$tax,'deliveryFee'=>$fee,'total'=>$total,'currency'=>$this->catalog['currency']]);
-   $id='SG-'.strtoupper(bin2hex(random_bytes(6)));$token=hash_hmac('sha256',$id.'|'.$key,$GLOBALS['starlit_config']['tracking_secret']);
+   $id='DYWS-'.strtoupper(bin2hex(random_bytes(6)));$token=hash_hmac('sha256',$id.'|'.$key,$GLOBALS['dyws_config']['tracking_secret']);
    $now=time();$this->execute('INSERT INTO orders(id,tenant,request_key,fingerprint,tracking_hash,tracking_expires,status,payment_status,fulfillment,customer_name,customer_phone,address,notes,lines_json,subtotal,tax,delivery_fee,total,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',[$id,$this->tenant,$key,$fingerprint,hash('sha256',$token),$now+86400,'placed','unpaid',$canonical['fulfillment'],$canonical['customer']['name'],$canonical['customer']['phone'],$canonical['address'],$canonical['notes'],json_encode($canonical['lines']),$subtotal,$tax,$fee,$total,$now,$now]);
    $this->execute('UPDATE orders SET currency=?,payment_provider=?,address_json=? WHERE tenant=? AND id=?',[$this->catalog['currency'],$paymentProvider,json_encode($canonical['addressDetails']??new \stdClass()),$this->tenant,$id]);
    $this->execute('UPDATE orders SET plugin_data_json=? WHERE tenant=? AND id=?',[json_encode($canonical['pluginData']??new \stdClass()),$this->tenant,$id]);
    $this->event($id,'placed','customer');return $this->receipt($this->get($id),$key);
   });
  }
- private function receipt(array $order,string $key):array{return ['id'=>$order['id'],'demo'=>true,'total'=>(int)$order['total'],'paymentProvider'=>$order['payment_provider'],'currency'=>$order['currency'],'trackingToken'=>hash_hmac('sha256',$order['id'].'|'.$key,$GLOBALS['starlit_config']['tracking_secret'])];}
+ private function receipt(array $order,string $key):array{return ['id'=>$order['id'],'demo'=>true,'total'=>(int)$order['total'],'paymentProvider'=>$order['payment_provider'],'currency'=>$order['currency'],'trackingToken'=>hash_hmac('sha256',$order['id'].'|'.$key,$GLOBALS['dyws_config']['tracking_secret'])];}
  public function get(string $id):array{$rows=$this->query('SELECT * FROM orders WHERE tenant=? AND id=?',[$this->tenant,$id]);if(!$rows)throw new ApiError('Order not found.',404);return $rows[0];}
  public function event(string $id,string $status,string $actor):void{$this->execute('INSERT INTO events(tenant,order_id,status,actor,created_at) VALUES(?,?,?,?,?)',[$this->tenant,$id,$status,$actor,time()]);}
  public function change(string $id,string $status,string $actor,?string $driver=null):array{return $this->transaction(function()use($id,$status,$actor,$driver){
@@ -143,7 +143,7 @@ final class Store {
  public function tracking(string $id,string $token):array{$rows=$this->query('SELECT * FROM orders WHERE tenant=? AND id=? AND tracking_hash=? AND tracking_expires>?',[$this->tenant,$id,hash('sha256',$token),time()]);if(!$rows)throw new ApiError('Tracking link is unavailable or expired.',404);$o=$rows[0];$location=null;if($o['status']==='out_for_delivery'){$locations=$this->query('SELECT latitude,longitude,accuracy,recorded_at FROM locations WHERE tenant=? AND order_id=? AND recorded_at>?',[$this->tenant,$id,time()-900]);$location=$locations[0]??null;}
  return ['id'=>$id,'demo'=>true,'status'=>$o['status'],'paymentStatus'=>$o['payment_status'],'paymentProvider'=>$o['payment_provider'],'checkoutStatus'=>$this->query('SELECT status FROM payment_attempts WHERE tenant=? AND order_id=?',[$this->tenant,$id])[0]['status']??null,'fulfillment'=>$o['fulfillment'],'deliveryAddress'=>$o['address'],'updatedAt'=>(int)$o['updated_at'],'events'=>$this->query('SELECT status,created_at FROM events WHERE tenant=? AND order_id=? ORDER BY id',[$this->tenant,$id]),'location'=>$location,'locationSource'=>$this->locationSummary($id)['source'],'gpsStale'=>$location?time()-(int)$location['recorded_at']>60:true];}
  public function safeOrder(array $o):array{$o['pluginData']=json_decode($o['plugin_data_json']??'{}',true);unset($o['plugin_data_json']);$o['addressDetails']=json_decode($o['address_json']??'{}',true);unset($o['address_json']);$o['gps']=$this->locationSummary($o['id']);unset($o['request_key'],$o['fingerprint'],$o['tracking_hash'],$o['tracking_expires']);$o['lines']=json_decode($o['lines_json'],true);unset($o['lines_json']);return $o;}
- public function orders(?string $driver=null):array{$args=[$this->tenant];$sql='SELECT * FROM orders WHERE tenant=?';if($driver!==null){$sql.=' AND driver_id=? AND status IN (\'ready\',\'out_for_delivery\')';$args[]=$driver;}$sql.=' ORDER BY created_at DESC LIMIT 200';return array_map(fn($o)=>$this->safeOrder($o),$this->query($sql,$args));}
+ public function orders(?string $driver=null):array{$args=[$this->tenant];$sql='SELECT * FROM orders WHERE tenant=?';if($driver!==null){$sql.=' AND driver_id=? AND status IN (\'ready\',\'out_for_delivery\')';$args[]=$driver;}$sql.=" ORDER BY CASE WHEN status IN ('completed','delivered','cancelled') THEN 1 ELSE 0 END, created_at DESC, id LIMIT 200";return array_map(fn($o)=>$this->safeOrder($o),$this->query($sql,$args));}
  public function reports(int $from,int $to):array{
   $o=$this->query('SELECT count(*) AS orderCount,coalesce(sum(total),0) AS orderedValue,coalesce(sum(CASE WHEN status NOT IN (\'completed\',\'delivered\',\'cancelled\') THEN 1 ELSE 0 END),0) AS activeOrders,coalesce(sum(CASE WHEN status=\'cancelled\' THEN 1 ELSE 0 END),0) AS cancelledOrders FROM orders WHERE tenant=? AND created_at>=? AND created_at<?',[$this->tenant,$from,$to])[0];
   $ledger=$this->query('SELECT p.kind,p.amount,o.subtotal,o.tax,o.delivery_fee FROM payments p JOIN orders o ON p.order_id=o.id AND p.tenant=o.tenant WHERE p.tenant=? AND p.created_at>=? AND p.created_at<? AND NOT (p.kind=\'refund\' AND EXISTS (SELECT 1 FROM payment_refund_deltas d WHERE d.tenant=p.tenant AND d.order_id=p.order_id))',[$this->tenant,$from,$to]);

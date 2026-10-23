@@ -1,8 +1,8 @@
 import {formatTime} from './date-time.js';
-import {pluginSlot} from './plugin-ui.js?v=32';
+import {pluginSlot} from './plugin-ui.js?v=35';
 import {escapeHTML as esc,money,statusText} from './api.js';
 import {createDriverGPS} from './driver-gps.js';
-export function mountDriver({root=document,api,storageKey='starlit-go-driver',renderLocation,simulatePosition,testLocationName='Configured test origin',plugins}) {
+export function mountDriver({root=document,api,storageKey='dyws-driver',renderLocation,simulatePosition,testLocationName='Configured test origin',plugins}) {
  if(typeof api!=='function')throw new TypeError('A DYWS API client is required.');
  let token=sessionStorage.getItem(storageKey),loading=false,changing=false,unwatch=null,watchedToken=null,attemptedOrder=null,retryAfter=0,permission,currentDelivery=null,latestPosition=null,reloadPending=false,revision=0;
  const feedback=root.querySelector('#delivery-feedback');

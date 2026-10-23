@@ -1,14 +1,14 @@
 <?php
 declare(strict_types=1);
 require __DIR__.'/../modules/dyws/php/module.php';
-use StarlitGo\{AdminAccounts,Store,Catalog,ApiError};
+use dyws\{AdminAccounts,Store,Catalog,ApiError};
 $dir=sys_get_temp_dir().'/dyws-accounts-'.bin2hex(random_bytes(6));mkdir($dir,0700);$checks=0;
 function check($ok,$message){global $checks;if(!$ok)throw new RuntimeException($message);$checks++;}
 function denied(callable $fn,int $code=422){try{$fn();throw new RuntimeException('Expected rejection');}catch(ApiError $e){check($e->http===$code,'Unexpected error '.$e->getMessage());}}
 try{
  $catalog=Catalog::load(__DIR__.'/../examples/general-store/catalog.json');
  $config=['database'=>$dir.'/orders.sqlite','tenant'=>'test-shop','tracking_secret'=>str_repeat('x',40),'manager_password_hash'=>password_hash('original-manager-password',PASSWORD_DEFAULT),'drivers'=>['original'=>['name'=>'Original Driver','password_hash'=>password_hash('original-driver-password',PASSWORD_DEFAULT)]]];
- $GLOBALS['starlit_config']=$config;$store=new Store($config['database'],$catalog,$config['tenant']);$accounts=new AdminAccounts($config);
+ $GLOBALS['dyws_config']=$config;$store=new Store($config['database'],$catalog,$config['tenant']);$accounts=new AdminAccounts($config);
  $summary=$accounts->summary($store);check($summary['drivers'][0]['active']===true,'Existing drivers remain active');check(!str_contains(json_encode($summary),'password'),'Summary has no credentials');
  $driver=['id'=>'new-driver','name'=>'New Driver','active'=>true,'password'=>'new-driver-password','revision'=>$summary['revision']];
  $summary=$accounts->saveDriver($store,$driver);check(count($summary['drivers'])===2,'Driver persisted');

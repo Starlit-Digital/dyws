@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
-namespace StarlitGo\Plugins\Stripe;
-use StarlitGo\{Store,Catalog,ApiError};
+namespace dyws\Plugins\Stripe;
+use dyws\{Store,Catalog,ApiError};
 
 final class StripePayments {
  public function __construct(private Store $store,private array $config,private StripeSettings $settings,private $createSession=null){}
@@ -42,7 +42,7 @@ final class StripePayments {
   $items=[];foreach(json_decode($order['lines_json'],true) as $line)$items[]=['quantity'=>$line['quantity'],'price_data'=>['currency'=>strtolower($order['currency']),'unit_amount'=>$line['price'],'product_data'=>['name'=>trim($line['name'].' '.$line['option'])]]];
   foreach(['delivery_fee'=>'Delivery','tax'=>'Configured tax'] as $field=>$name)if($order[$field]>0)$items[]=['quantity'=>1,'price_data'=>['currency'=>strtolower($order['currency']),'unit_amount'=>$order[$field],'product_data'=>['name'=>$name]]];
   $suffix='';foreach(str_split(substr($attempt['nonce'],0,8)) as $c)$suffix.=chr(97+hexdec($c));
-  return ['mode'=>'payment','adaptive_pricing'=>['enabled'=>false],'client_reference_id'=>$order['id'],'metadata'=>$meta,'payment_intent_data'=>['metadata'=>$meta],'line_items'=>$items,'success_url'=>$base.'/?payment=returned#customer-tracking','cancel_url'=>$base.'/?payment=cancelled#customer-tracking','integration_identifier'=>'starlit_go_'.$suffix];
+  return ['mode'=>'payment','adaptive_pricing'=>['enabled'=>false],'client_reference_id'=>$order['id'],'metadata'=>$meta,'payment_intent_data'=>['metadata'=>$meta],'line_items'=>$items,'success_url'=>$base.'/?payment=returned#customer-tracking','cancel_url'=>$base.'/?payment=cancelled#customer-tracking','integration_identifier'=>'dyws_'.$suffix];
  }
  public function webhook(string $raw,string $signature):array {
   $this->sdk();$secret=$this->settings->read()['webhookSecret'];if(!$secret)throw new ApiError('Webhook is not configured.',503);

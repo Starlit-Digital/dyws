@@ -18,10 +18,10 @@ test('WebSocket RPC, scoped live updates, HTTP polling fallback and safe mutatio
  try{
   execFileSync('php',[join(root,'server/setup.php'),work]);
   const probe=net.createServer();await new Promise(r=>probe.listen(0,'127.0.0.1',r));const port=probe.address().port;await new Promise(r=>probe.close(r));
-  const endpoint=`http://127.0.0.1:${port}/api/index.php`,secret='test-secret-'.repeat(4),origin='http://127.0.0.1';
+  const endpoint=`http://127.0.0.1:${port}/api/`,secret='test-secret-'.repeat(4),origin='http://127.0.0.1';
   service=createRealtimeServer({backend:endpoint,secret,origins:[origin],port:0});await service.listen();const socketURL=`ws://127.0.0.1:${service.server.address().port}/dyws`;
   const config=JSON.parse(await readFile(join(work,'config.json')));config.realtime={url:socketURL,secret,publishUrl:`http://127.0.0.1:${service.server.address().port}/publish`};await writeFile(join(work,'config.json'),JSON.stringify(config));
-  php=spawn('php',['-S',`127.0.0.1:${port}`,'-t',join(root,'public_html')],{env:{...process.env,DYWS_CONFIG:join(work,'config.json')},stdio:'ignore'});
+  php=spawn('php',['-S',`127.0.0.1:${port}`,'-t',join(root,'public_html'),join(root,'server/router.php')],{env:{...process.env,DYWS_CONFIG:join(work,'config.json')},stdio:'ignore'});
   await until(async()=>{try{return (await fetch(endpoint+'?route=/health')).ok;}catch{return false;}});
   class BrowserSocket extends WebSocket{constructor(url){super(url,{origin});}}
   api=createRealtimeAPI(endpoint,{WebSocket:BrowserSocket,connectTimeout:200,requestTimeout:1000});await until(()=>api.transport==='websocket');

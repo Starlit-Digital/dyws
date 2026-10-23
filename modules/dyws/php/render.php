@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 /** Read product JSON without starting sessions, opening a database or exposing config. */
-function dyws_load_catalog(string $path):array {return \StarlitGo\Catalog::publicData(\StarlitGo\Catalog::load($path));}
+function dyws_load_catalog(string $path):array {return \dyws\Catalog::publicData(\dyws\Catalog::load($path));}
 function dyws_catalog_from_config(string $configPath):array {
  $config=json_decode(file_get_contents($configPath),true,64,JSON_THROW_ON_ERROR);
  return dyws_load_catalog($config['catalog']);
@@ -17,7 +17,7 @@ function dyws_render_navigation(array $catalog):string {return (new DYWSRenderer
 
 final class DYWSRenderer {
  private array $catalog;
- public function __construct(array $catalog){$this->catalog=\StarlitGo\Catalog::publicData(\StarlitGo\Catalog::validate($catalog));}
+ public function __construct(array $catalog){$this->catalog=\dyws\Catalog::publicData(\dyws\Catalog::validate($catalog));}
  private function wrap(string $html,array $options):string {
   $id=isset($options['id'])?' id="'.dyws_escape((string)$options['id']).'"':'';
   return '<div'.$id.' class="dyws-catalog" data-dyws-rendered tabindex="-1">'.$html.'</div>';

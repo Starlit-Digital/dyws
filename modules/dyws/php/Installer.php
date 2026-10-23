@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-namespace StarlitGo;
+namespace dyws;
 
 /** First installation only. Runtime credentials and data never enter the web root. */
 final class Installer {
@@ -52,7 +52,7 @@ final class Installer {
    $config=['site_template'=>$kind==='diner'?'diner':'shop','public_base_url'=>$url,'tenant'=>'business-'.bin2hex(random_bytes(8)),'catalog'=>$private.'/catalog.json','database'=>$private.'/orders.sqlite','tracking_secret'=>bin2hex(random_bytes(32))];
    // Seed the administrator in SQLite; the configuration contains no account passwords.
    $seed=$config;$seed['database']=$stage.'/orders.sqlite';$seed['manager_password_hash']=password_hash($password,PASSWORD_DEFAULT);
-   $GLOBALS['starlit_config']=$seed;
+   $GLOBALS['dyws_config']=$seed;
    $store=new Store($seed['database'],$catalog,$seed['tenant']);
    $accounts=new AdminAccounts($seed);$effective=$accounts->effective();
    if(!password_verify($password,$effective['manager_password_hash']))throw new ApiError('Could not create the administrator.',503);
@@ -65,13 +65,13 @@ final class Installer {
    @unlink($private.'/setup-key.txt');
    return ['businessName'=>$name,'removed'=>$this->removeSetup()];
   }catch(\Throwable $e){if(!is_file($this->configPath))foreach($published as $file)@unlink($file);throw $e;}
-  finally{if($stage&&is_dir($stage)){foreach(glob($stage.'/*')as $file)if(is_file($file))unlink($file);rmdir($stage);}flock($lock,LOCK_UN);fclose($lock);unset($GLOBALS['starlit_config']);}
+  finally{if($stage&&is_dir($stage)){foreach(glob($stage.'/*')as $file)if(is_file($file))unlink($file);rmdir($stage);}flock($lock,LOCK_UN);fclose($lock);unset($GLOBALS['dyws_config']);}
  }
  private function removeSetup():bool {
   $path=$this->publicRoot.'/setup';
   // Only remove our known installer files. Never recurse through user files or symlinks.
   if(is_link($path)||!is_dir($path))return false;
-  foreach(['index.php','setup.css','.htaccess'] as $file)if(is_file($path.'/'.$file)&&!is_link($path.'/'.$file))@unlink($path.'/'.$file);
+  foreach(['install.php','setup.css','.htaccess'] as $file)if(is_file($path.'/'.$file)&&!is_link($path.'/'.$file))@unlink($path.'/'.$file);
   return @rmdir($path);
  }
 }

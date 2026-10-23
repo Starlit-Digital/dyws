@@ -1,9 +1,9 @@
-import {mountOrderList} from './order-list.js?v=32';
+import {mountOrderList} from './order-list.js?v=35';
 import {formatTime,formatDateTime} from './date-time.js';
-import {pluginSlot} from './plugin-ui.js?v=32';
+import {pluginSlot} from './plugin-ui.js?v=35';
 import {money as formatMoney,escapeHTML as esc,statusText} from './api.js';
 import {defaultRole} from './role-labels.js';
-export function mountOrders({root=document,api,role=defaultRole,storageKey='starlit-go-manager',renderLocation,plugins}) {
+export function mountOrders({root=document,api,role=defaultRole,storageKey='dyws-manager',renderLocation,plugins}) {
  if(typeof api!=='function')throw new TypeError('A DYWS API client is required.');
 let token=sessionStorage.getItem(storageKey),busy=false,loading=false,loadAgain=false,unwatch=null,watchedToken=null,orders=[];
 const mapPanel=document.createElement('section');mapPanel.hidden=true;mapPanel.innerHTML='<h2>Deliveries</h2><label>Order <select class="dyws-map-order"></select></label><p class="dyws-map-message"></p><div class="dyws-manager-map"></div>';root.querySelector('#orders').parentElement.after(mapPanel);

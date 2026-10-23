@@ -1,8 +1,8 @@
 <?php
 declare(strict_types=1);
 require __DIR__.'/../server/Store.php';require __DIR__.'/../server/Catalog.php';require __DIR__.'/../server/StripeSettings.php';require __DIR__.'/../server/StripePayments.php';require __DIR__.'/../vendor/autoload.php';
-use StarlitGo\{Store,Catalog,StripeSettings,StripePayments,ApiError};
-$dir=sys_get_temp_dir().'/starlit-products-'.bin2hex(random_bytes(6));mkdir($dir,0700);$checks=0;
+use dyws\{Store,Catalog,StripeSettings,StripePayments,ApiError};
+$dir=sys_get_temp_dir().'/dyws-products-'.bin2hex(random_bytes(6));mkdir($dir,0700);$checks=0;
 function check($condition,$message){global $checks;if(!$condition)throw new RuntimeException($message);$checks++;}
 function rejects(callable $fn,int $code=422){try{$fn();throw new RuntimeException('Expected rejection');}catch(ApiError $e){check($e->http===$code,'Wrong error: '.$e->getMessage());}}
 function orderBody($id='notebook'):array{return ['idempotencyKey'=>bin2hex(random_bytes(16)),'customer'=>['name'=>'Example Customer','phone'=>'7805550142'],'lines'=>[['id'=>$id,'variant'=>'','quantity'=>1,'price'=>1]],'fulfillment'=>'delivery','address'=>'100 Example Avenue'];}
@@ -14,7 +14,7 @@ try{
  $bad=$catalog;$bad['categories'][0]['items'][]=$bad['categories'][0]['items'][0];rejects(fn()=>Catalog::validate($bad));
  $changed=$catalog;$changed['categories'][0]['items'][0]['active']=false;Catalog::save($dir.'/catalog.json',$changed,Catalog::revision($catalog));
  check(count(Catalog::publicData(Catalog::load($dir.'/catalog.json'))['categories'][0]['items'])===1,'Inactive products omitted publicly');rejects(fn()=>Catalog::save($dir.'/catalog.json',$catalog,Catalog::revision($catalog)),409);
- $config=['tracking_secret'=>bin2hex(random_bytes(32)),'database'=>$dir.'/orders.sqlite','tenant'=>'example-shop','public_base_url'=>'https://example.test/shop','payment_provider'=>'stripe'];$GLOBALS['starlit_config']=$config;
+ $config=['tracking_secret'=>bin2hex(random_bytes(32)),'database'=>$dir.'/orders.sqlite','tenant'=>'example-shop','public_base_url'=>'https://example.test/shop','payment_provider'=>'stripe'];$GLOBALS['dyws_config']=$config;
  $disabledStore=new Store($config['database'],$changed,$config['tenant']);rejects(fn()=>$disabledStore->create(orderBody()));unset($disabledStore);
  $store=new Store($config['database'],$catalog,$config['tenant']);$settings=new StripeSettings($config);
  check(!$settings->summary()['enabled'],'Stripe starts disabled');

@@ -1,5 +1,6 @@
-DirectoryIndex index.php
+DirectoryIndex page.php home.php
 Options -Indexes
+
 <IfModule mod_headers.c>
 Header set Cache-Control "no-store"
 # Override the parent site's policy only within this demo. Google Maps needs its SDK, tiles and inline styles.

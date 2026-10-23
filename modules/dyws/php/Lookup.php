@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-namespace StarlitGo;
+namespace dyws;
 /** Manager only lookup. SQL, order ownership and credentials never come from plugins or queries. */
 final class Lookup {
  public static function search(Store $store,array $catalog,array $drivers,string $query,string $kind='all'):array {

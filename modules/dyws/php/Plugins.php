@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-namespace StarlitGo;
+namespace dyws;
 
 /** Plugins are trusted installed PHP code, not sandboxed or uploaded through HTTP. */
 final class PluginContext {

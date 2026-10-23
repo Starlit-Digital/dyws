@@ -18,7 +18,7 @@ The dyws implementation is purpose built for its order ledger. It uses four lead
 
 Dates use the timezone selected in Settings, America/Edmonton by default, including daylight saving changes. Both input dates are inclusive; database bounds use an exclusive midnight after the end date. Maximum range is 366 calendar days. Default is the last 30 days including today. Today may be incomplete. Previous period means the same number of calendar days immediately before the selected range. It is not a forecast or a comparison of equal elapsed working hours.
 
-Each report uses one currency and optionally pickup or delivery. Historic currency comes from the order snapshot. Currency selection never converts or adds different currencies. Filters apply to charts, cards, tables and exports. The separate Orders page shows the latest 200 orders, independent of report filters.
+Each report uses one currency and optionally pickup or delivery. Historic currency comes from the order snapshot. Currency selection never converts or adds different currencies. Filters apply to charts, cards, tables and exports. The separate Orders page shows the first 200 orders, active before finished, independent of report filters.
 
 | Measure | Definition |
 |---|---|
@@ -67,7 +67,7 @@ Future plugins can mark a semantic table with data-dyws-report-table and call ad
 
 ## Compact orders, version 0.8.0
 
-The order board now uses the bundled DataTables plugin with ten rows per page, column sorting, search and Status, Type and Payment filters. The order number opens a single detail panel containing the existing status, assignment and test payment actions. Search and filters cover the latest 200 orders, independent of the period selected on Reports. The scope is visible beside the table. Prices and placed times sort using integer values, not their formatted strings. Each order retains its own currency.
+The order board now uses the bundled DataTables plugin with ten rows per page, column sorting, search and Status, Type and Payment filters. The order number opens a single detail panel containing the existing status, assignment and test payment actions. Search and filters cover the first 200 orders, active before finished, independent of the period selected on Reports. The scope is visible beside the table. Prices and placed times sort using integer values, not their formatted strings. Each order retains its own currency.
 
 Live changes retain search, filters, sorting and pagination in memory. No customer search terms or contacts are saved in browser storage. Focused fields are left intact until the next refresh after focus leaves. The semantic table and basic search and filters remain available when DataTables is disabled. Full order history search beyond 200 orders is not part of this board.
 
@@ -77,4 +77,6 @@ DataTables integration follows the official [search API](https://datatables.net/
 
 ## Separate admin pages, version 0.8.2
 
-Reports remains at manager.html and loads only reporting data, charts and exports. Orders is at orders-admin.html, with the same session, searchable table, filters and detail actions. Active delivery maps appear below the order table only when deliveries are on the way. The Orders page makes no reporting requests. The existing admin:order hook runs there; admin:dashboard and reporting hooks remain on Reports.
+Reports remains at reports/ and loads only reporting data, charts and exports. Orders is at orders/, with the same session, searchable table, filters and detail actions. Active delivery maps appear below the order table only when deliveries are on the way. The Orders page makes no reporting requests. The existing admin:order hook runs there; admin:dashboard and reporting hooks remain on Reports.
+
+Version 0.9 defaults to Active. Completed includes delivered and collected orders; Cancelled and All remain available. Active orders sort before completed and cancelled orders even when viewing All. The database applies this priority before its 200 order cap, so old pending orders are not pushed out by newer finished history. Within each group, newest orders appear first unless the operator selects another column sort.

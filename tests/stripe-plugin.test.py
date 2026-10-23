@@ -9,7 +9,7 @@ with tempfile.TemporaryDirectory(prefix='dyws-stripe-plugin-') as work:
  manager=next(x.split(': ',1)[1] for x in access if x.startswith('Manager password:'))
  driver=next(x.split(': ',1)[1] for x in access if x.startswith('Driver password:'))
  with socket.socket() as sock:sock.bind(('127.0.0.1',0));port=sock.getsockname()[1]
- server=subprocess.Popen(['php','-S',f'127.0.0.1:{port}','-t',str(root/'public_html')],env={**os.environ,'STARLIT_GO_CONFIG':str(work/'config.json')},stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+ server=subprocess.Popen(['php','-S',f'127.0.0.1:{port}','-t',str(root/'public_html'),str(root/'server/router.php')],env={**os.environ,'DYWS_CONFIG':str(work/'config.json')},stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
  checks=0
  def request(route,body=None,token=None,tracking=None,status=200,signature=None,raw=None):
   global checks
@@ -18,7 +18,7 @@ with tempfile.TemporaryDirectory(prefix='dyws-stripe-plugin-') as work:
   if token:headers['Authorization']='Bearer '+token
   if tracking:headers['X-Tracking-Token']=tracking
   if signature:headers['Stripe-Signature']=signature
-  req=urllib.request.Request(f'http://127.0.0.1:{port}/api/index.php?route='+urllib.parse.quote(route,safe='/'),data=raw if raw is not None else None if body is None else json.dumps(body).encode(),headers=headers)
+  req=urllib.request.Request(f'http://127.0.0.1:{port}/api/?route='+urllib.parse.quote(route,safe='/'),data=raw if raw is not None else None if body is None else json.dumps(body).encode(),headers=headers)
   try:
    with urllib.request.urlopen(req,timeout=5) as r:code=r.status;data=json.load(r)
   except urllib.error.HTTPError as e:code=e.code;data=json.load(e)

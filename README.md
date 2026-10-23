@@ -50,7 +50,7 @@ The repository was renamed from restaurant-ordering, then starlit-go, to dyws wh
 
 ## Product catalogs and payments
 
-dyws now supports general products, services sold in whole units and food. Open [Catalog and payments](https://sltd.ca/diner/settings.html) from the business admin. The private server JSON supplies the storefront and authoritative prices. See [catalog and Stripe setup](docs/catalog-and-payments.md) and the [general store example](examples/general-store/catalog.json).
+dyws now supports general products, services sold in whole units and food. Open [Catalog and payments](https://sltd.ca/diner/settings/) from the business admin. The private server JSON supplies the storefront and authoritative prices. See [catalog and Stripe setup](docs/catalog-and-payments.md) and the [general store example](examples/general-store/catalog.json).
 
 Run `composer install` before setup or tests. The Stripe connector uses hosted Checkout and signed payment webhooks. Sandbox credentials are entered in admin settings; live keys are intentionally unavailable in this demonstration. Payments are disabled until configured. The product display name is configurable; “Do You Want Something?” is the expanded name of dyws.
 
@@ -58,7 +58,7 @@ The current demo uses `<dyws-ordering>`. The older element names remain compatib
 
 ## Administration
 
-Open [Reports](https://sltd.ca/diner/manager.html) and use the shared navigation for Reports, Catalog, Drivers, Password, Settings and Plugins. The catalog editor provides category and item fields with a Save catalog action backed by the private JSON file. Drivers can be added, renamed, reset or deactivated. Password changes require the current admin password and sign out admin sessions. Images currently use existing paths or HTTPS URLs.
+Open [Orders](https://sltd.ca/diner/orders/) and use the shared navigation for Orders, Reports, Catalog, Drivers, Password, Settings and Plugins. The catalog editor provides category and item fields with a Save catalog action backed by the private JSON file. Drivers can be added, renamed, reset or deactivated. Password changes require the current admin password and sign out admin sessions. Images currently use existing paths or HTTPS URLs.
 
 The admin Settings tab lets businesses rename the assignment role using singular and plural display names. Driver and Drivers remain the defaults. Custom labels also appear in the team console and customer tracking; authorization stays unchanged.
 

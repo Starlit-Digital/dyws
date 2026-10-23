@@ -38,7 +38,7 @@ The ID must match its directory, using lowercase letters, digits and hyphens, be
 
 ```php
 <?php
-use StarlitGo\PluginContext;
+use dyws\PluginContext;
 return static function (PluginContext $plugin): void {
     $plugin->route('GET', '/plugins/sample/hello', 'public',
         fn () => ['message' => 'Hello']);
@@ -106,7 +106,7 @@ Plugins execute trusted PHP and JavaScript with the site's authority. Activation
 
 Stripe's PHP settings, encrypted credential storage, Checkout integration, webhook verification and reconciliation, browser payment controls, and settings form live in plugins/stripe and public_html/plugins/stripe. Core no longer imports Stripe services or dispatches Stripe routes. The old PHP classes and browser exports are compatibility includes.
 
-Admin → Plugins → Stripe → Settings opens its form in Settings. The former stripe-admin.html URL redirects there. The saved encrypted private stripe.json path and encryption context remain unchanged, so keys do not need reentry. Blank secret inputs preserve saved values. Stripe remains sandbox only. The existing pinned Composer SDK is included in the ZIP.
+Admin → Plugins → Stripe → Settings opens its form in Settings. The form is available at settings/#plugin-stripe. The saved encrypted private stripe.json path and encryption context remain unchanged, so keys do not need reentry. Blank secret inputs preserve saved values. Stripe remains sandbox only. The existing pinned Composer SDK is included in the ZIP.
 
 The bundled plugin is active by default, but checkout stays off until its saved settings enable it. The explicit upgrade default adopts Stripe on installations that saved plugin state before Stripe became a plugin. Saving plugin state records known IDs so later deactivation is respected. This never enables checkout by itself or changes saved credentials. Additional plugins remain inactive until a manager activates them.
 
@@ -144,6 +144,6 @@ Example source in examples/plugins/gift-note includes a checkout field, browser 
 
 ## Order Reporting and DataTables
 
-Version 0.7 bundles Order Reporting and DataTables as independent optional plugins. New installations activate both. Existing installations adopt them once through upgradeDefaults; later deactivation persists. Reports stay at manager.html. Disabling Order Reporting restores core summaries and keeps the order board. Disabling DataTables leaves semantic tables with CSV exports and SVG charts. DataTables loads its local library only when a marked admin table needs it, with no CDN request, analytics, stored search state or commercial add ons.
+Version 0.7 bundles Order Reporting and DataTables as independent optional plugins. New installations activate both. Existing installations adopt them once through upgradeDefaults; later deactivation persists. Reports stay at reports/. Disabling Order Reporting restores core summaries while Orders remains on its own page. Disabling DataTables leaves semantic tables with CSV exports and SVG charts. DataTables loads its local library only when a marked admin table needs it, with no CDN request, analytics, stored search state or commercial add ons.
 
 See [reporting definitions and PayCal research](order-reporting.md) and [hook contracts](plugin-hooks.md). No runtime order migration or external reporting service is required.

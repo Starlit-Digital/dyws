@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-namespace StarlitGo;
+namespace dyws;
 
 /** SQLite accounts, with a one-time import of legacy private JSON credentials. */
 final class AdminAccounts {

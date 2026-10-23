@@ -7,7 +7,7 @@ PHP 8.1 or newer with PDO SQLite, compatible with the current shared host. No se
 - `public_html/` is the Starlit Diner example and its customer, manager and driver web surfaces.
 - `public_html/ordering/` is the reusable menu ordering component.
 - `public_html/platform/` connects the example surfaces to the API.
-- `public_html/api/index.php` is the HTTP boundary.
+- `public_html/api/` is the HTTP boundary.
 - `server/` is private application code, schema, setup and cleanup tooling.
 - `var/` holds ignored local config, access details and runtime database files.
 - `examples/starlit-diner/README.md` describes the reference integration.
@@ -68,4 +68,4 @@ No production checkout, payment processing, inventory, driver payouts, push deli
 
 ## Generic catalog and payment connector
 
-The private JSON catalog and Stripe connector extend this foundation. See catalog-and-payments.md for the current product schema, sandbox payment workflow, reconciliation definitions and secret storage. Stripe is optional per new order. Historical orders retain their original provider and currency. The diner is a branded example of the generic starlit-ordering component.
+The private JSON catalog and Stripe connector extend this foundation. See catalog-and-payments.md for the current product schema, sandbox payment workflow, reconciliation definitions and secret storage. Stripe is optional per new order. Historical orders retain their original provider and currency. The diner is a branded example of the generic dyws-ordering component.

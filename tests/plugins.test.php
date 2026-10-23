@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 require __DIR__.'/../modules/dyws/php/module.php';
-use StarlitGo\{Plugins,ApiError};
+use dyws\{Plugins,ApiError};
 $work=sys_get_temp_dir().'/dyws-plugins-'.bin2hex(random_bytes(5));mkdir($work,0700);mkdir($work.'/plugins');mkdir($work.'/plugins/sample');$checks=0;
 function check($value,$label){global $checks;if(!$value)throw new RuntimeException($label);$checks++;}
 function denied($fn,$status){try{$fn();throw new RuntimeException('Expected error');}catch(ApiError $e){check($e->http===$status,'Expected status');}}

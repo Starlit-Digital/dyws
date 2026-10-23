@@ -10,7 +10,7 @@ with tempfile.TemporaryDirectory(prefix='dyws-hooks-') as temporary:
  manifest={'id':'fixture','name':'Fixture','description':'Test hooks','version':'1.0','apiVersion':1,'entry':'plugin.php','capabilities':['validation']}
  (fixture/'plugin.json').write_text(json.dumps(manifest))
  (fixture/'plugin.php').write_text('''<?php
-use StarlitGo\\ApiError;
+use dyws\\ApiError;
 return function($plugin){
  $log=function($name)use($plugin){file_put_contents(dirname($plugin->config['database']).'/hooks.log',$name."\\n",FILE_APPEND);};
  foreach(['plugin.activated','plugin.deactivated','catalog.saved','order.created','order.status_changed','order.assigned','api.respond','reports.generated'] as $name)$plugin->addAction($name,fn()=>$log($name));
@@ -23,7 +23,7 @@ return function($plugin){
  observer=work/'plugins/observer';observer.mkdir();(observer/'plugin.json').write_text(json.dumps({**manifest,'id':'observer','capabilities':[]}));(observer/'plugin.php').write_text("<?php return function($p){};")
  access=(work/'LOCAL-ACCESS.txt').read_text().splitlines();manager=next(x.split(': ',1)[1] for x in access if x.startswith('Manager password:'));driver=next(x.split(': ',1)[1] for x in access if x.startswith('Driver password:'))
  with socket.socket() as sock:sock.bind(('127.0.0.1',0));port=sock.getsockname()[1]
- server=subprocess.Popen(['php','-S',f'127.0.0.1:{port}','-t',str(root/'public_html')],env={**os.environ,'STARLIT_GO_CONFIG':str(work/'config.json')},stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+ server=subprocess.Popen(['php','-S',f'127.0.0.1:{port}','-t',str(root/'public_html'),str(root/'server/router.php')],env={**os.environ,'DYWS_CONFIG':str(work/'config.json')},stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
  checks=0
  def check(value):
   global checks
@@ -34,7 +34,7 @@ return function($plugin){
   if body is not None:headers['Content-Type']='application/json'
   if token:headers['Authorization']='Bearer '+token
   if tracking:headers['X-Tracking-Token']=tracking
-  req=urllib.request.Request(f'http://127.0.0.1:{port}/api/index.php?route='+urllib.parse.quote(route,safe='/')+query,data=None if body is None else json.dumps(body).encode(),headers=headers)
+  req=urllib.request.Request(f'http://127.0.0.1:{port}/api/?route='+urllib.parse.quote(route,safe='/')+query,data=None if body is None else json.dumps(body).encode(),headers=headers)
   try:
    with urllib.request.urlopen(req,timeout=4)as r:code=r.status;data=json.load(r)
   except urllib.error.HTTPError as e:code=e.code;data=json.load(e)

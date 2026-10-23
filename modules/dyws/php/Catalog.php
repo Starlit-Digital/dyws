@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-namespace StarlitGo;
+namespace dyws;
 
 /** Product data is JSON. Prices are integer minor units, never floating point. */
 final class Catalog {

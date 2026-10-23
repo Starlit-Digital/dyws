@@ -4,7 +4,7 @@ The product can be called anything. dyws is the working repository name. “Do Y
 
 ## Catalog
 
-The authoritative catalog is `var/catalog.json`, outside the web root. Initial examples live in `examples/starlit-diner/catalog.json` and `examples/general-store/catalog.json`. `GET /catalog` returns validated active products to the storefront. The generic `<starlit-ordering>` component consumes that endpoint. The original `<restaurant-ordering>` tag remains compatible.
+The authoritative catalog is `var/catalog.json`, outside the web root. Initial examples live in `examples/starlit-diner/catalog.json` and `examples/general-store/catalog.json`. `GET /catalog` returns validated active products to the storefront. The generic `<dyws-ordering>` component consumes that endpoint.
 
 | Field | Meaning |
 | --- | --- |
@@ -27,7 +27,7 @@ The authoritative catalog is `var/catalog.json`, outside the web root. Initial e
 
 All quantities are whole units. Availability is a switch, not stock reservation. Images are URLs or relative paths, not uploaded binaries. Supported currencies use two decimal places. Real inventory, shipping calculations, digital fulfillment and jurisdiction based tax rules are separate work.
 
-Admin opens `settings.html`, edits JSON and saves. The API validates before replacing the private file atomically. Revision checks prevent a stale editor from overwriting another save. Order lines snapshot names, descriptions, SKUs, images, options and prices; later edits do not rewrite old orders. A new order always uses the private server prices and delivery fee.
+Admin opens `catalog/`, edits categories and items and saves. The API validates before replacing the private file atomically. Revision checks prevent a stale editor from overwriting another save. Order lines snapshot names, descriptions, SKUs, images, options and prices; later edits do not rewrite old orders. A new order always uses the private server prices and delivery fee.
 
 ## Payment setup
 
@@ -58,4 +58,4 @@ Automated tests use the official SDK signature verifier and a fake session trans
 
 References: [Checkout Sessions](https://docs.stripe.com/api/checkout/sessions/create), [payment fulfillment](https://docs.stripe.com/checkout/fulfillment), [webhook verification](https://docs.stripe.com/events/manage-webhook-endpoints), [API keys](https://docs.stripe.com/keys).
 
-As of 0.6, use Admin → Plugins → Stripe → Settings for payment configuration. Stripe is bundled and active by default but does not enable checkout until configured. Its settings, Checkout and webhook implementation are owned by the plugin. The old /manager/stripe routes and stripe-admin.html link remain compatible. See [plugin documentation](plugins.md) for deactivation, preserved encrypted credentials and pending payment callbacks.
+As of 0.6, use Admin → Plugins → Stripe → Settings for payment configuration. Stripe is bundled and active by default but does not enable checkout until configured. Its settings, Checkout and webhook implementation are owned by the plugin. The plugin form is available at settings/#plugin-stripe. See [plugin documentation](plugins.md) for deactivation, preserved encrypted credentials and pending payment callbacks.

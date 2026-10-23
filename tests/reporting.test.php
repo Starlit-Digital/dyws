@@ -2,8 +2,8 @@
 declare(strict_types=1);
 require __DIR__.'/../server/Store.php';
 require __DIR__.'/../plugins/order-reporting/OrderReports.php';
-use StarlitGo\Store;use StarlitGo\ApiError;use StarlitGo\Plugins\OrderReporting\OrderReports;
-$path=tempnam(sys_get_temp_dir(),'dyws-reports-');$catalog=json_decode(file_get_contents(__DIR__.'/../examples/starlit-diner/catalog.json'),true);$GLOBALS['starlit_config']=['tracking_secret'=>str_repeat('r',64)];$s=new Store($path,$catalog);$checks=0;
+use dyws\Store;use dyws\ApiError;use dyws\Plugins\OrderReporting\OrderReports;
+$path=tempnam(sys_get_temp_dir(),'dyws-reports-');$catalog=json_decode(file_get_contents(__DIR__.'/../examples/starlit-diner/catalog.json'),true);$GLOBALS['dyws_config']=['tracking_secret'=>str_repeat('r',64)];$s=new Store($path,$catalog);$checks=0;
 function check($ok,$message){global $checks;if(!$ok)throw new RuntimeException($message);$checks++;}
 function stamp($day){return (new DateTimeImmutable($day,new DateTimeZone(OrderReports::TIMEZONE)))->getTimestamp();}
 function seed($store,$date,$status='placed',$currency='CAD',$fulfillment='pickup'){

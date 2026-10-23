@@ -1,4 +1,4 @@
-import {adminPage} from '../../dyws/admin-navigation.js?v=32';
+import {adminPage} from '../../dyws/admin-navigation.js?v=35';
 export async function mountMapsSettings({root=document,api,storageKey}){
  const page=adminPage({root,api,storageKey});if(!page.token)return;
  const form=root.querySelector('#maps-form'),message=root.querySelector('#maps-message');let revision;

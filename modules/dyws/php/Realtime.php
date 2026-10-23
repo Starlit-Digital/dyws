@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-namespace StarlitGo;
+namespace dyws;
 final class Realtime {
  private array $emitted=[];
  public function __construct(private array $config,private Store $store){}
@@ -32,8 +32,8 @@ final class Realtime {
   if(in_array($route,['/realtime/access','/login'],true))return;
   $prefix=$this->store->tenant.':';$channels=[$prefix.'operators'];
   if(in_array($route,['/manager/catalog','/manager/settings','/manager/plugins'],true)||str_starts_with($route,'/manager/plugins/'))$channels[]=$prefix.'public';
-  if(preg_match('~/(SG-[A-F0-9]{12})(?:/|$)~',$route,$m))$channels[]=$prefix.'order:'.$m[1];
-  elseif(isset($result['id'])&&preg_match('/^SG-[A-F0-9]{12}$/',$result['id']))$channels[]=$prefix.'order:'.$result['id'];
+  if(preg_match('~/([A-Z]{2,7}-[A-F0-9]{12})(?:/|$)~',$route,$m))$channels[]=$prefix.'order:'.$m[1];
+  elseif(isset($result['id'])&&preg_match('/^[A-Z]{2,7}-[A-F0-9]{12}$/',$result['id']))$channels[]=$prefix.'order:'.$result['id'];
   $this->changed($channels);
  }
 }

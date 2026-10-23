@@ -1,6 +1,6 @@
 # HTTP API
 
-Entry point: `/diner/api/index.php?route=/health`. Routes below are values of the `route` query parameter, not separate rewritten paths. Send JSON for POST requests. Responses use JSON, no store caching and meaningful 4xx status codes. Request body limit: 32 KiB. State is scoped to the configured restaurant tenant.
+Entry point: `/diner/api/?route=/health`. Routes below are values of the `route` query parameter, not separate rewritten paths. Send JSON for POST requests. Responses use JSON, no store caching and meaningful 4xx status codes. Request body limit: 32 KiB. State is scoped to the configured restaurant tenant.
 
 | Method | Route | Access | Purpose |
 | --- | --- | --- | --- |
@@ -62,7 +62,7 @@ No CORS wildcard is provided. The existing example operates on the same origin. 
 | GET, POST | /manager/catalog | Manager, save `{catalog, revision}` with revision from GET |
 | GET, POST | /manager/stripe | Manager, redacted summary or write `{apiKey, webhookSecret, enabled}` |
 | POST | /manager/stripe/verify | Manager, checks saved sandbox key |
-| POST | /orders/SG-ID/checkout | Order tracking token in X-Tracking-Token header |
+| POST | /orders/DYWS-ID/checkout | Order tracking token in X-Tracking-Token header |
 | POST | /stripe/webhook | Stripe signature over the raw JSON request |
 
 Order receipts include paymentProvider and currency. Tracking adds paymentProvider and checkoutStatus. Stripe order payments are webhook controlled. See catalog-and-payments.md for schema and reconciliation rules.
@@ -89,7 +89,7 @@ GET /maps/config exposes only the enabled browser map configuration. GET /manage
 
 GET /realtime/config returns the optional public WebSocket URL and fallback: polling. POST /realtime/access takes scope public, operator or tracking, with orderId for tracking. Operator uses bearer authentication; tracking uses X-Tracking-Token. The result includes authorized channels, revision and expiresAt. This grants notifications only; data requests still require their normal credentials. Notifications contain no order or GPS data.
 
-Manager and driver order responses include gps: {sharing, source, recordedAt, accuracy, stale, location}. Public tracking adds locationSource and retains its existing location and gpsStale fields. Demo checkout now navigates to tracking.html#ORDER_ID.TOKEN immediately after order creation. The fragment keeps the private token out of server request URLs and referrer headers.
+Manager and driver order responses include gps: {sharing, source, recordedAt, accuracy, stale, location}. Public tracking adds locationSource and retains its existing location and gpsStale fields. Demo checkout now navigates to tracking/#ORDER_ID.TOKEN immediately after order creation. The fragment keeps the private token out of server request URLs and referrer headers.
 
 GET /manager/driver-locations requires manager authentication and returns active delivery entries containing driverId, orderId and gps. It powers the per driver map cards without returning customer contact details.
 

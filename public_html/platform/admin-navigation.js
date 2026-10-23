@@ -1,7 +1,7 @@
-import {plugins} from './plugins.js?v=32';
-import {mountAdminNavigation} from '../dyws/admin-navigation.js?v=32';
+import {plugins} from './plugins.js?v=35';
+import {mountAdminNavigation} from '../dyws/admin-navigation.js?v=35';
 import {defaultRole} from '../dyws/role-labels.js';
-const pages=[['orders','Orders','orders-admin.html'],['reports','Reports','manager.html'],['catalog','Catalog','catalog-admin.html'],['drivers','Drivers','drivers-admin.html'],['password','Password','password-admin.html'],['settings','Settings','settings-admin.html'],['plugins','Plugins','plugins-admin.html']];
+const pages=[['orders','Orders',new URL('../orders/',import.meta.url).href],['reports','Reports',new URL('../reports/',import.meta.url).href],['catalog','Catalog',new URL('../catalog/',import.meta.url).href],['drivers','Drivers',new URL('../drivers/',import.meta.url).href],['password','Password',new URL('../password/',import.meta.url).href],['settings','Settings',new URL('../settings/',import.meta.url).href],['plugins','Plugins',new URL('../plugins/',import.meta.url).href]];
 let revision=0;
 export async function mountNavigation(current,role=defaultRole){
  const request=++revision;

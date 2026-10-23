@@ -1,6 +1,6 @@
-import {mountBusinessSettings} from './business-settings.js?v=33';
+import {mountBusinessSettings} from './business-settings.js?v=35';
 import {configureTimeZone} from './date-time.js';
-import {adminPage} from './admin-navigation.js?v=32';
+import {adminPage} from './admin-navigation.js?v=35';
 export async function mountGeneralSettings({root=document,api,storageKey,onSave=()=>{}}){
  const page=adminPage({root,api,storageKey});if(!page.token)return;
  const form=root.querySelector('#settings-form'),message=root.querySelector('#settings-message');

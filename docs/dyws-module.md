@@ -6,7 +6,7 @@ dyws owns the reusable JavaScript, CSS and PHP backend. The diner is a host appl
 
 * `public_html/dyws/`: browser ES modules and scoped CSS, package `@starlit-digital/dyws` version 0.2.0. Copy this folder to a public assets location. Its imports and shadow styles resolve within that folder.
 * `modules/dyws/php/`: private PHP library, including catalog validation and rendering, order storage, schema, API dispatch and plugin hooks. Copy this folder outside the web root. Include `module.php` once. Merely including it performs no output, database work or API dispatch.
-* `server/`: existing deployment configuration and CLI adapters. Compatibility includes preserve the existing StarlitGo class names. Setup and cleanup remain deployment commands, not public routes.
+* `server/`: existing deployment configuration and CLI adapters. Compatibility includes preserve the existing dyws class names. Setup and cleanup remain deployment commands, not public routes.
 * `public_html/demo.js`, `demo-map.js` and `platform/*.js`: small host adapters. The diner images, map projection, simulation coordinates, display preferences and HTML page content belong to the website.
 
 Neither package is published to a public registry. The PHP library requires PHP 8.1 or later and PDO SQLite for order storage. Stripe requires the Composer autoloader and the existing pinned SDK dependency. Load that autoloader before dispatching payment requests.
@@ -58,7 +58,7 @@ const app = mountStorefront({
 
 `mountManager`, `mountOrders`, `mountDriver` and `mountSettings` are explicit exports from their respective JS modules. They accept a supplied `api`, a DOM `root` matching the existing admin form markup, and a configurable session storage key. Importing these modules does not start them or inspect the page. The driver simulation requires a supplied position function; it does not begin GPS sharing on import. These controllers still use the current admin markup contract. Standalone native driver apps and an installer are separate future work.
 
-Existing restaurant-ordering and starlit-ordering elements, cart and session keys, events and API contracts remain compatible. The old ordering JS paths forward to the package. The CSS package is now part of `@starlit-digital/dyws`; styles are explicitly exported at `./dyws.css`.
+The public element is `<dyws-ordering>` and its JavaScript class is `DYWSOrdering`. PHP services use the lowercase `dyws` namespace. Browser cart, session and tracking keys use the dyws prefix. Configure `DYWS_CONFIG` and `DYWS_BOOTSTRAP` when overriding private paths. Older names are removed. The CSS package is now part of `@starlit-digital/dyws`; styles are explicitly exported at `./dyws.css`.
 
 ## Backend endpoint
 
@@ -80,12 +80,12 @@ The admin host has separate pages for reports, catalog, drivers, password, setti
 
 The browser exports catalog-editor.js, account-editor.js, stripe-editor.js and admin-navigation.js. They initialize against a supplied root and API client. The catalog editor clones the loaded JSON into an in-memory draft and edits categories, names, descriptions, image URLs and descriptions, prices, SKU, unit, availability and option names/prices. Category, item and option creation, removal and ordering preserve existing IDs. Hidden metadata is retained. Save uses the existing revision guarded catalog endpoint and server validation. Money is entered in dollars and converted to integer cents. Image uploads are not implemented; use existing relative paths or HTTPS URLs.
 
-Drivers can be added, renamed, have a password reset, or be deactivated. The admin password page requires the current password and confirms the new password. New account persistence lives in AdminAccounts.php. Stripe owns its settings form in the Settings page. stripe-admin.html and settings.html are compatibility redirects to Settings. The old mountSettings export remains for existing integrations.
+Drivers can be added, renamed, have a password reset, or be deactivated. The admin password page requires the current password and confirms the new password. New account persistence lives in AdminAccounts.php. Stripe owns its settings form in the Settings page. The settings/ PHP page contains the Stripe plugin form. The old mountSettings export remains for existing integrations.
 
 ## Configurable team role labels
 
 The public `role-labels.js` module provides `loadRole(api)`, `defaultRole` and `applyRoleLabels(root, role)`. Mark host text elements with `data-dyws-role-text` templates containing `{role}` or `{roles}`. These are text substitutions, never HTML. Inject the loaded `role` into `mountManager`, `mountDriverAdmin` and `createTracking`. Map renderers receive it as their second argument. Labels refresh on page load; other open tabs should reload after a rename.
 
-`mountGeneralSettings({root, api, storageKey, onSave})` in `general-settings.js` mounts the authenticated Settings editor. The PHP `StarlitGo\Settings` class persists tenant scoped labels independently of accounts and the catalog. This is a display name for the existing assignment role, not a permissions editor or multiple custom roles.
+`mountGeneralSettings({root, api, storageKey, onSave})` in `general-settings.js` mounts the authenticated Settings editor. The PHP `dyws\Settings` class persists tenant scoped labels independently of accounts and the catalog. This is a display name for the existing assignment role, not a permissions editor or multiple custom roles.
 
 `mountManager` now mounts only the Reports dashboard. `mountOrders` from orders.js mounts the order table, detail actions and active deliveries using the same manager session storage key. Both support direct sign in and independently refreshed data.

@@ -16,12 +16,12 @@ export function mountAdminNavigation({root=document,current,pages}) {
   document.addEventListener('click',event=>{if(!wide.matches&&!menu.contains(event.target))menu.open=false;});
  }
 }
-export function adminPage({root=document,api,storageKey='starlit-go-manager'}) {
+export function adminPage({root=document,api,storageKey='dyws-manager'}) {
  const token=sessionStorage.getItem(storageKey),content=root.querySelector('[data-admin-content]'),login=root.querySelector('[data-admin-login]'),error=root.querySelector('[data-admin-error]');
  const logout=root.querySelector('[data-admin-logout]');
  const signOut=()=>{sessionStorage.removeItem(storageKey);if(content)content.hidden=true;if(login)login.hidden=false;if(logout)logout.hidden=true;};
  if(!token)signOut();else{if(content)content.hidden=false;if(login)login.hidden=true;}
- if(logout){logout.hidden=!token;logout.onclick=async()=>{logout.disabled=true;try{await api('/logout',{method:'POST',body:{},token});}catch{}signOut();location.href='manager.html';};}
+ if(logout){logout.hidden=!token;logout.onclick=async()=>{logout.disabled=true;try{await api('/logout',{method:'POST',body:{},token});}catch{}signOut();location.href=new URL('../orders/',import.meta.url).href;};}
  const request=async(route,options={})=>{try{return await api(route,{...options,token});}catch(e){if(e.status===401)signOut();throw e;}};
  const action=async(button,fn)=>{button.disabled=true;error.textContent='';try{await fn();}catch(e){error.textContent=e.message;}finally{button.disabled=false;}};
  return {token,request,action,error,signOut};

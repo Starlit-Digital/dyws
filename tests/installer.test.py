@@ -20,8 +20,8 @@ with tempfile.TemporaryDirectory(prefix='dyws-install-') as tmp:
   (base/'var').mkdir(mode=0o700)
  with socket.socket() as sock:sock.bind(('127.0.0.1',0));port=sock.getsockname()[1]
  url=f'http://127.0.0.1:{port}'
- env={k:v for k,v in os.environ.items() if k not in ['DYWS_CONFIG','STARLIT_GO_CONFIG','STARLIT_GO_BOOTSTRAP']}
- server=subprocess.Popen(['php','-S',f'127.0.0.1:{port}','-t',str(base/'public_html')],env=env,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+ env={k:v for k,v in os.environ.items() if k not in ['DYWS_CONFIG','DYWS_BOOTSTRAP']}
+ server=subprocess.Popen(['php','-S',f'127.0.0.1:{port}','-t',str(base/'public_html'),str(base/'server/router.php')],env=env,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
  client=urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
  def request(path,body=None,status=200,headers=None):
   req=urllib.request.Request(url+path,data=urllib.parse.urlencode(body).encode() if body is not None else None,headers=headers or {})
@@ -68,14 +68,14 @@ with tempfile.TemporaryDirectory(prefix='dyws-install-') as tmp:
   def api(route,body,token=None,status=200):
    headers={'Content-Type':'application/json'}
    if token:headers['Authorization']='Bearer '+token
-   req=urllib.request.Request(url+'/api/index.php?route='+route,data=json.dumps(body).encode(),headers=headers)
+   req=urllib.request.Request(url+'/api/?route='+route,data=json.dumps(body).encode(),headers=headers)
    try:
     with client.open(req,timeout=8) as r:code,data=r.status,json.load(r)
    except urllib.error.HTTPError as e:code,data=e.code,json.load(e)
    check(code==status,(route,code,data));return data
   session=api('/login',{'role':'manager','password':fields['password']})
   token=session['token']
-  req=urllib.request.Request(url+'/api/index.php?route=/manager/drivers',headers={'Authorization':'Bearer '+token})
+  req=urllib.request.Request(url+'/api/?route=/manager/drivers',headers={'Authorization':'Bearer '+token})
   with client.open(req) as r:drivers=json.load(r)
   api('/manager/drivers',{'id':'courier','name':'Example courier','password':'courier-password-234','active':True,'revision':drivers['revision'],'create':True},token)
   api('/login',{'role':'driver','driverId':'courier','password':'courier-password-234'})
@@ -86,7 +86,7 @@ with tempfile.TemporaryDirectory(prefix='dyws-install-') as tmp:
   for path in ['/var/config.json','/var/orders.sqlite','/server/setup.php','/.git/config']:
    request(path,status=404)
   def get_api(route):
-   req=urllib.request.Request(url+'/api/index.php?route='+route,headers={'Authorization':'Bearer '+token})
+   req=urllib.request.Request(url+'/api/?route='+route,headers={'Authorization':'Bearer '+token})
    with client.open(req) as r:return json.load(r)
   plugin_manifest=get_api('/plugins')
   check(sorted(p['id'] for p in plugin_manifest['plugins'])==['datatables','google-maps','order-reporting','stripe'],'All bundled plugins discovered after fresh install')

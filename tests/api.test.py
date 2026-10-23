@@ -1,14 +1,14 @@
 """Exercise the actual HTTP entry point against an isolated temporary database."""
 import contextlib,json,os,pathlib,socket,subprocess,tempfile,time,urllib.request,urllib.error,uuid
 root=pathlib.Path(__file__).resolve().parents[1]
-with tempfile.TemporaryDirectory(prefix='starlit-api-') as work:
+with tempfile.TemporaryDirectory(prefix='dyws-api-') as work:
  subprocess.run(['php',str(root/'server/setup.php'),work],check=True,capture_output=True)
  access=(pathlib.Path(work)/'LOCAL-ACCESS.txt').read_text().splitlines()
  manager=next(x.split(': ',1)[1] for x in access if x.startswith('Manager password:'))
  driver=next(x.split(': ',1)[1] for x in access if x.startswith('Driver password:'))
  with socket.socket() as sock:sock.bind(('127.0.0.1',0));port=sock.getsockname()[1]
- env={**os.environ,'STARLIT_GO_CONFIG':work+'/config.json'}
- server=subprocess.Popen(['php','-S',f'127.0.0.1:{port}','-t',str(root/'public_html')],env=env,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+ env={**os.environ,'DYWS_CONFIG':work+'/config.json'}
+ server=subprocess.Popen(['php','-S',f'127.0.0.1:{port}','-t',str(root/'public_html'),str(root/'server/router.php')],env=env,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
  checks=0
  def request(route,body=None,token=None,tracking=None,status=200):
   global checks
@@ -16,7 +16,7 @@ with tempfile.TemporaryDirectory(prefix='starlit-api-') as work:
   if body is not None:headers['Content-Type']='application/json'
   if token:headers['Authorization']='Bearer '+token
   if tracking:headers['X-Tracking-Token']=tracking
-  req=urllib.request.Request(f'http://127.0.0.1:{port}/api/index.php?route='+urllib.parse.quote(route,safe='/'),data=None if body is None else json.dumps(body).encode(),headers=headers)
+  req=urllib.request.Request(f'http://127.0.0.1:{port}/api/?route='+urllib.parse.quote(route,safe='/'),data=None if body is None else json.dumps(body).encode(),headers=headers)
   try:
    with urllib.request.urlopen(req,timeout=4)as r:code=r.status;data=json.load(r)
   except urllib.error.HTTPError as e:code=e.code;data=json.load(e)
@@ -26,11 +26,19 @@ with tempfile.TemporaryDirectory(prefix='starlit-api-') as work:
    try:request('/health');break
    except (OSError,urllib.error.URLError):time.sleep(.05)
   else:raise AssertionError('Server failed to start')
-  with urllib.request.urlopen(f'http://127.0.0.1:{port}/index.php',timeout=4) as page:
+  with urllib.request.urlopen(f'http://127.0.0.1:{port}/home.php',timeout=4) as page:
    html=page.read().decode()
    assert html.count('class="dyws-category"')==5 and html.count('class="dyws-product"')==35
    assert 'Sunrise Breakfast' in html and 'data-dyws-rendered' in html and '<?php' not in html
    checks+=1
+  for page in ['orders','reports','catalog','drivers','password','settings','plugins','driver','tracking']:
+   with urllib.request.urlopen(f'http://127.0.0.1:{port}/{page}/',timeout=4) as response:
+    html=response.read().decode();assert response.status==200 and '<html' in html and '<?php' not in html
+    assert '.html' not in html and 'index.php' not in html
+    checks+=1
+  assert not list((root/'public_html').rglob('*.html'))
+  with urllib.request.urlopen(f'http://127.0.0.1:{port}/orders',timeout=4) as response:
+   assert response.url.endswith('/orders/');checks+=1
   request('/manager/orders',status=401)
   request('/login',{'role':'manager','password':'wrong'},status=401)
   manager_token=request('/login',{'role':'manager','password':manager})['token']

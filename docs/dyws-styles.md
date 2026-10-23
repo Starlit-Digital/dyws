@@ -11,7 +11,7 @@ All classes use lowercase `dyws-`, including `dyws-catalog`, `dyws-category`, `d
 ```html
 <link rel="stylesheet" href="dyws/dyws.css">
 <div class="dyws-catalog"><!-- Render categorized products here. --></div>
-<dyws-ordering catalog="api/index.php?route=/catalog"></dyws-ordering>
+<dyws-ordering catalog="api/?route=/catalog"></dyws-ordering>
 <script type="module" src="dyws/index.js"></script>
 ```
 

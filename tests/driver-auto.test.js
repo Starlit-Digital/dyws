@@ -11,7 +11,7 @@ test('Signed in drivers automatically share on an active delivery, keep their ac
  for(const [key,value]of Object.entries(props))Object.defineProperty(globalThis,key,{value,configurable:true,writable:true});
  let driver;
  try{
-  const api=async(route,options)=>{calls.push({route,options});if(route==='/driver/orders')return {orders:[{id:'SG-000000000001',status:'out_for_delivery',total:100,address:'Fictional delivery address',customer_name:'Test',customer_phone:'7805550142',notes:''}]};if(route.endsWith('/start'))return {sharingToken:'test-share'};return {ok:true};};
+  const api=async(route,options)=>{calls.push({route,options});if(route==='/driver/orders')return {orders:[{id:'DYWS-000000000001',status:'out_for_delivery',total:100,address:'Fictional delivery address',customer_name:'Test',customer_phone:'7805550142',notes:''}]};if(route.endsWith('/start'))return {sharingToken:'test-share'};return {ok:true};};
   driver=mountDriver({root,api});await settle();assert.equal(watches,1);assert.ok(nodes.get('#deliveries').innerHTML.includes('Fictional delivery address'));assert.ok(!nodes.get('#deliveries').innerHTML.includes('data-gps'));
   document.hidden=true;listeners.get('visibilitychange')();await settle();assert.equal(clears,0);assert.ok(!calls.some(c=>c.route.endsWith('/stop')));
   document.hidden=false;listeners.get('visibilitychange')();await settle();assert.equal(watches,1);

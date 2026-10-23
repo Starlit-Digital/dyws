@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
-use StarlitGo\PluginContext;
-use StarlitGo\Plugins\GoogleMaps\MapsSettings;
+use dyws\PluginContext;
+use dyws\Plugins\GoogleMaps\MapsSettings;
 require_once __DIR__.'/MapsSettings.php';
 return static function(PluginContext $plugin):void {
  $settings=new MapsSettings($plugin->config);

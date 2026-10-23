@@ -4,7 +4,7 @@ Implemented October 23, 2026. These are demonstration orders and browser GPS, no
 
 ## Driver workflow
 
-The driver signs in at driver.html and sees assigned orders with their addresses. GPS starts automatically for an assigned order whose status is out_for_delivery. There are no sharing or simulation buttons. Picking up a ready order also starts GPS. If several deliveries are active, this prototype keeps the currently tracked order, or selects the first active order returned by the API. Batch delivery tracking is not implemented.
+The driver signs in at driver/ and sees assigned orders with their addresses. GPS starts automatically for an assigned order whose status is out_for_delivery. There are no sharing or simulation buttons. Picking up a ready order also starts GPS. If several deliveries are active, this prototype keeps the currently tracked order, or selects the first active order returned by the API. Batch delivery tracking is not implemented.
 
 The browser requires HTTPS and location permission. A blocked permission is explained on screen; allowing permission in browser settings resumes capture. The page must stay visible. The browser may pause position acquisition when hidden. The app keeps the active delivery session alive without changing the last measurement timestamp, and resumes when the browser provides a fix. Signing out or completing the delivery stops capture. Login alone does not upload positions without an active delivery. The venue's employment policies are outside this prototype.
 
@@ -48,7 +48,7 @@ Run on the future server with Node 22 or newer:
 cd modules/dyws/realtime
 npm ci --omit=dev
 # Set these using the host's private environment configuration:
-# DYWS_BACKEND_URL=https://sltd.ca/diner/api/index.php
+# DYWS_BACKEND_URL=https://sltd.ca/diner/api/
 # DYWS_REALTIME_SECRET=<at least 32 random characters, shared with PHP>
 # DYWS_ORIGINS=https://sltd.ca
 # HOST=127.0.0.1

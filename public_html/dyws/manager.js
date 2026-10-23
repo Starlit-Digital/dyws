@@ -1,14 +1,14 @@
 import {dateKey} from './date-time.js';
-import {pluginSlot} from './plugin-ui.js?v=32';
+import {pluginSlot} from './plugin-ui.js?v=35';
 import {money as formatMoney,escapeHTML as esc} from './api.js';
 import {defaultRole} from './role-labels.js';
-export function mountManager({root=document,api,role=defaultRole,storageKey='starlit-go-manager',plugins}) {
+export function mountManager({root=document,api,role=defaultRole,storageKey='dyws-manager',loginPage,plugins}) {
  if(typeof api!=='function')throw new TypeError('A DYWS API client is required.');
 let token=sessionStorage.getItem(storageKey),report,loading=false,loadAgain=false,unwatch=null,watchedToken=null;
 const money=n=>formatMoney(n,report?.currency||'CAD');
 const error=root.querySelector('#error');
 const day=dateKey();const first=new Date(day+'T12:00:00Z');first.setUTCDate(first.getUTCDate()-29);root.querySelector('#from').value=first.toISOString().slice(0,10);root.querySelector('#to').value=day;
-function display(){if(token!==watchedToken){unwatch?.();watchedToken=token;unwatch=token?api.watch?.({scope:'operator',token,interval:10000},load):null;}root.querySelector('#login').hidden=!!token;root.querySelector('#dashboard').hidden=!token;root.querySelector('#logout').hidden=!token;}
+function display(){if(!token&&loginPage){location.replace(loginPage);return;}if(token!==watchedToken){unwatch?.();watchedToken=token;unwatch=token?api.watch?.({scope:'operator',token,interval:10000},load):null;}root.querySelector('#login').hidden=!!token;root.querySelector('#dashboard').hidden=!token;root.querySelector('#logout').hidden=!token;}
 root.querySelector('#login-form').onsubmit=async e=>{e.preventDefault();try{const data=await api('/login',{method:'POST',body:{role:'manager',password:new FormData(e.target).get('password')}});token=data.token;sessionStorage.setItem(storageKey,token);e.target.reset();display();await load();}catch(e){error.textContent=e.message;}};
 root.querySelector('#logout').onclick=async()=>{try{await api('/logout',{method:'POST',body:{},token});}catch{}token=null;sessionStorage.removeItem(storageKey);display();};
 async function load(){if(!token)return;if(loading){loadAgain=true;return;}loading=true;try{
