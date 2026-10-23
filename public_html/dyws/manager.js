@@ -1,58 +1,32 @@
-import {mountOrderList} from './order-list.js?v=32';
-import {formatTime,formatDateTime,dateKey} from './date-time.js';
+import {dateKey} from './date-time.js';
 import {pluginSlot} from './plugin-ui.js?v=32';
-import {money as formatMoney,escapeHTML as esc,statusText} from './api.js';
+import {money as formatMoney,escapeHTML as esc} from './api.js';
 import {defaultRole} from './role-labels.js';
-export function mountManager({root=document,api,role=defaultRole,storageKey='starlit-go-manager',onCatalog=()=>{},renderLocation,plugins}) {
+export function mountManager({root=document,api,role=defaultRole,storageKey='starlit-go-manager',plugins}) {
  if(typeof api!=='function')throw new TypeError('A DYWS API client is required.');
-let token=sessionStorage.getItem(storageKey),report,busy=false,loading=false,loadAgain=false,unwatch=null,watchedToken=null,orders=[];
-const mapPanel=document.createElement('section');mapPanel.innerHTML='<h2>Deliveries</h2><label>Order <select class="dyws-map-order"></select></label><p class="dyws-map-message"></p><div class="dyws-manager-map"></div>';root.querySelector('#orders').parentElement.before(mapPanel);
-const mapOrder=mapPanel.querySelector('select'),mapMessage=mapPanel.querySelector('.dyws-map-message'),mapContainer=mapPanel.querySelector('.dyws-manager-map');
-function updateMap(){const order=orders.find(o=>o.id===mapOrder.value),gps=order?.gps;mapMessage.textContent=gps?.location?(gps.source==='simulated'?'Simulated GPS test':'Device GPS')+' · '+formatTime(gps.recordedAt):order?'Waiting for a GPS fix.':'No deliveries on the way.';const node=renderLocation?.(gps?.location||null,role,{destinationAddress:order?.address});if(node&&!mapContainer.contains(node))mapContainer.replaceChildren(node);}
-mapOrder.onchange=()=>{renderLocation?.clear?.();updateMap();};
+let token=sessionStorage.getItem(storageKey),report,loading=false,loadAgain=false,unwatch=null,watchedToken=null;
 const money=n=>formatMoney(n,report?.currency||'CAD');
 const error=root.querySelector('#error');
 const day=dateKey();const first=new Date(day+'T12:00:00Z');first.setUTCDate(first.getUTCDate()-29);root.querySelector('#from').value=first.toISOString().slice(0,10);root.querySelector('#to').value=day;
-const orderList=mountOrderList({root:root.querySelector('#orders'),plugins,renderOrder});
-function display(){if(!token){renderLocation?.clear?.();orders=[];void orderList.clear();}if(token!==watchedToken){unwatch?.();watchedToken=token;unwatch=token?api.watch?.({scope:'operator',token,interval:10000},()=>{if(!busy)return load();}):null;}root.querySelector('#login').hidden=!!token;root.querySelector('#dashboard').hidden=!token;root.querySelector('#logout').hidden=!token;}
+function display(){if(token!==watchedToken){unwatch?.();watchedToken=token;unwatch=token?api.watch?.({scope:'operator',token,interval:10000},load):null;}root.querySelector('#login').hidden=!!token;root.querySelector('#dashboard').hidden=!token;root.querySelector('#logout').hidden=!token;}
 root.querySelector('#login-form').onsubmit=async e=>{e.preventDefault();try{const data=await api('/login',{method:'POST',body:{role:'manager',password:new FormData(e.target).get('password')}});token=data.token;sessionStorage.setItem(storageKey,token);e.target.reset();display();await load();}catch(e){error.textContent=e.message;}};
 root.querySelector('#logout').onclick=async()=>{try{await api('/logout',{method:'POST',body:{},token});}catch{}token=null;sessionStorage.removeItem(storageKey);display();};
-const statuses={placed:['accepted','cancelled'],accepted:['preparing','cancelled'],preparing:['ready','cancelled'],ready:['completed','out_for_delivery','cancelled'],out_for_delivery:['delivered']};
-async function mutate(route,body){if(busy)return;busy=true;root.querySelectorAll('#orders [data-order-content] button').forEach(b=>b.disabled=true);try{await api(route,{method:'POST',body,token});await load();}catch(e){error.textContent=e.message;}finally{busy=false;root.querySelectorAll('#orders [data-order-content] button').forEach(b=>b.disabled=false);}}
-
-function renderOrder(o,data,container){
-  const money=n=>formatMoney(n,o.currency);
-  const next=(statuses[o.status]||[]).filter(s=>!(s==='completed'&&o.fulfillment!=='pickup')&&!(s==='out_for_delivery'&&o.fulfillment!=='delivery'));
-  container.innerHTML=`<article data-order="${o.id}"><h3>${o.id} · ${money(o.total)}</h3><p>${esc(statusText(o.status))} · ${esc(o.fulfillment)} · payment ${esc(o.payment_status)}</p><p>${esc(o.customer_name)} · ${esc(o.customer_phone)}<br>${esc(o.address)}</p><ul>${o.lines.map(l=>`<li>${l.quantity} × ${esc(l.name)} ${esc(l.option)} · ${money(l.price*l.quantity)}</li>`).join('')}</ul>${o.notes?`<p>Notes: ${esc(o.notes)}</p>`:''}<p><small>${formatDateTime(o.created_at)} · ${esc(role.singular)}: ${esc(o.driver_id||'Not assigned')}</small></p><div class="dyws-order-gps"></div><div class="dyws-actions">${next.map(s=>`<button data-status="${s}">${esc(statusText(s))}</button>`).join('')}${o.payment_provider==='demo'&&o.payment_status==='unpaid'&&o.status!=='cancelled'?'<button data-payment="capture">Record test payment</button>':''}${o.payment_provider==='demo'&&o.payment_status==='paid'?'<button data-payment="refund">Record full test refund</button>':''}</div>${o.payment_provider!=='demo'?'<p>Online test payment. Manage refunds with the payment provider.</p>':''}${o.fulfillment==='delivery'&&!['out_for_delivery','delivered','cancelled'].includes(o.status)?`<label>${esc(role.singular)} <select class="dyws-driver-select">${data.drivers.map(d=>`<option value="${esc(d.id)}" ${d.id===o.driver_id?'selected':''}>${esc(d.name)}</option>`).join('')}</select></label><button data-assign>Assign ${esc(role.singular)}</button>`:''}</article>`;
-
- container.querySelectorAll('article[data-order]').forEach(card=>{
-  const gps=data.orders.find(o=>o.id===card.dataset.order)?.gps,block=card.querySelector('.dyws-order-gps');
-  if(gps?.sharing){const label=document.createElement('p');label.textContent=(gps.source==='simulated'?'Simulated GPS test':'Device GPS')+' · '+(gps.recordedAt?(gps.stale?'Last known position':'Location received')+' · '+formatTime(gps.recordedAt)+' · accuracy '+Math.round(gps.accuracy)+' m':'Waiting for a location fix');block.append(label);if(gps.location){const coordinates=document.createElement('p');coordinates.textContent=gps.location.latitude.toFixed(5)+', '+gps.location.longitude.toFixed(5);block.append(coordinates);}}
-  else if(data.orders.find(o=>o.id===card.dataset.order)?.fulfillment==='delivery')block.textContent='GPS is off.';
- });
- container.querySelectorAll('article[data-order]').forEach(card=>{const base='/manager/orders/'+card.dataset.order;card.querySelectorAll('[data-status]').forEach(b=>b.onclick=()=>mutate(base+'/status',{status:b.dataset.status}));card.querySelectorAll('[data-payment]').forEach(b=>b.onclick=()=>mutate(base+'/payment',{kind:b.dataset.payment}));card.querySelector('[data-assign]')?.addEventListener('click',()=>mutate(base+'/assign',{driverId:card.querySelector('select').value}));});
-
- const card=container.querySelector('article');if(plugins&&card)void plugins.runAction('admin:order',{root:pluginSlot(card,'order'),order:o});
-}
 async function load(){if(!token)return;if(loading){loadAgain=true;return;}loading=true;try{
  let query={from:root.querySelector('#from').value,to:root.querySelector('#to').value};if(plugins)query=await plugins.applyFilters('reports:query',query);const params=new URLSearchParams(query);
- const [r,data,catalog]=await Promise.all([api(`/manager/reports?${params}`,{token}),api('/manager/orders',{token}),api('/catalog')]);onCatalog(catalog);report=r;error.textContent='';
+ const r=await api(`/manager/reports?${params}`,{token});report=r;error.textContent='';
  const stats=[['Orders',r.orderCount],['Active orders',r.activeOrders],['Cancelled',r.cancelledOrders],['Ordered value',money(r.orderedValue)],['Average order',money(r.averageOrderValue)],['Test payments',money(r.captured)],['Test refunds',money(r.refunded)],['Net test payments',money(r.netCollected)],['Product sales before tax',money(r.netSales)],['Net delivery fees',money(r.netDeliveryFees)],['Net tax',money(r.netTax)],['Average preparation',r.averagePreparationSeconds===null?'No data':Math.round(r.averagePreparationSeconds/60)+' min'],['Average delivery',r.averageDeliverySeconds===null?'No data':Math.round(r.averageDeliverySeconds/60)+' min']];
  root.querySelector('#stats').innerHTML=stats.map(([name,value])=>`<div class="dyws-stat">${esc(name)}<strong>${esc(value)}</strong></div>`).join('');
  root.querySelector('#top-items').innerHTML='<table><thead><tr><th>Item</th><th>Quantity</th><th>Ordered subtotal</th></tr></thead><tbody>'+r.topItems.map(i=>`<tr><td>${esc(i.name)} ${esc(i.option)}</td><td>${i.quantity}</td><td>${money(i.orderedSubtotal)}</td></tr>`).join('')+'</tbody></table>';
  const reportRoot=root.querySelector('#report-plugin');if(reportRoot){const rendered=await plugins?.renderReports?.({root:reportRoot,report:r});reportRoot.hidden=!rendered;root.querySelectorAll('[data-report-fallback]').forEach(n=>n.hidden=!!rendered);}
- await orderList.update(data,{force:busy});
- orders=data.orders.filter(o=>o.status==='out_for_delivery');const selected=mapOrder.value;mapOrder.innerHTML=orders.map(o=>`<option value="${o.id}">${o.id} · ${esc(o.driver_id||role.singular)}</option>`).join('');if(orders.some(o=>o.id===selected))mapOrder.value=selected;mapOrder.disabled=!orders.length;updateMap();
  if(plugins){
   void plugins.runAction('admin:dashboard',{root:pluginSlot(root.querySelector('#dashboard'),'dashboard'),report:r});
  }
- root.querySelectorAll('#orders [data-order-content] button').forEach(b=>b.disabled=busy);
  }catch(e){if(e.status===401){token=null;sessionStorage.removeItem(storageKey);display();}error.textContent=e.message;}finally{loading=false;if(loadAgain){loadAgain=false;queueMicrotask(load);}}}
 root.querySelector('#refresh').onclick=load;
 root.querySelector('#export').onclick=async()=>{if(!report)return;const fields=['orderCount','activeOrders','cancelledOrders','orderedValue','captured','refunded','netCollected','netSales','netDeliveryFees','netTax','averageOrderValue'];const rows=['metric,value,currency,units',...fields.map(k=>`${k},${report[k]},${report.currency},${k.includes('Orders')||k==='orderCount'?'count':'cents'}`)];const exported=plugins?await plugins.applyFilters('reports:export',rows.map(row=>row.split(',')),{key:'summary',report}):rows.map(row=>row.split(','));const csv=exported.map(row=>row.map(value=>'\"'+(typeof value==='string'?value.replace(/^[\s]*[=+@\-]/,"'$&"):String(value??'')).replaceAll('\"','\"\"')+'\"').join(',')).join('\r\n');const url=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));const a=document.createElement('a');a.href=url;a.download='dyws-report.csv';a.click();URL.revokeObjectURL(url);};
 void plugins?.runAction('admin:report-controls',{root:root.querySelector('.dyws-toolbar'),refresh:load});
-display();if(token)load();const refreshTimer=setInterval(()=>{if(!api.watch&&token&&!document.hidden&&!busy&&!root.querySelector('#orders')?.contains(document.activeElement))load();},10000);
+display();if(token)load();const refreshTimer=setInterval(()=>{if(!api.watch&&token&&!document.hidden)load();},10000);
 
-return {refresh:load,destroy(){void orderList.destroy();renderLocation?.clear?.();clearInterval(refreshTimer);unwatch?.();}};
+return {refresh:load,destroy(){clearInterval(refreshTimer);unwatch?.();}};
 
 }

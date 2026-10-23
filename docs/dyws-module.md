@@ -56,7 +56,7 @@ const app = mountStorefront({
 
 `mountCatalog`, `createTracking`, cart helpers and `createAPIClient` are also exported separately. `mountStorefront` returns a destroy method that detaches its event handlers and tracking polling. Tracking accepts an optional `trackingPage` URL and `renderLocation(location)` callback returning a DOM node; without a map adapter it displays the GPS coordinates and status. No diner map or coordinates are inside the package.
 
-`mountManager`, `mountDriver` and `mountSettings` are explicit exports from their respective JS modules. They accept a supplied `api`, a DOM `root` matching the existing admin form markup, and a configurable session storage key. Importing these modules does not start them or inspect the page. The driver simulation requires a supplied position function; it does not begin GPS sharing on import. These controllers still use the current admin markup contract. Standalone native driver apps and an installer are separate future work.
+`mountManager`, `mountOrders`, `mountDriver` and `mountSettings` are explicit exports from their respective JS modules. They accept a supplied `api`, a DOM `root` matching the existing admin form markup, and a configurable session storage key. Importing these modules does not start them or inspect the page. The driver simulation requires a supplied position function; it does not begin GPS sharing on import. These controllers still use the current admin markup contract. Standalone native driver apps and an installer are separate future work.
 
 Existing restaurant-ordering and starlit-ordering elements, cart and session keys, events and API contracts remain compatible. The old ordering JS paths forward to the package. The CSS package is now part of `@starlit-digital/dyws`; styles are explicitly exported at `./dyws.css`.
 
@@ -87,3 +87,5 @@ Drivers can be added, renamed, have a password reset, or be deactivated. The adm
 The public `role-labels.js` module provides `loadRole(api)`, `defaultRole` and `applyRoleLabels(root, role)`. Mark host text elements with `data-dyws-role-text` templates containing `{role}` or `{roles}`. These are text substitutions, never HTML. Inject the loaded `role` into `mountManager`, `mountDriverAdmin` and `createTracking`. Map renderers receive it as their second argument. Labels refresh on page load; other open tabs should reload after a rename.
 
 `mountGeneralSettings({root, api, storageKey, onSave})` in `general-settings.js` mounts the authenticated Settings editor. The PHP `StarlitGo\Settings` class persists tenant scoped labels independently of accounts and the catalog. This is a display name for the existing assignment role, not a permissions editor or multiple custom roles.
+
+`mountManager` now mounts only the Reports dashboard. `mountOrders` from orders.js mounts the order table, detail actions and active deliveries using the same manager session storage key. Both support direct sign in and independently refreshed data.

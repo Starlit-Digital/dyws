@@ -1,5 +1,5 @@
 import {plugins} from './plugins.js?v=32';
-import {mountNavigation} from './admin-navigation.js?v=32';
+import {mountNavigation} from './admin-navigation.js?v=34';
 import {mountCatalogEditor} from '../dyws/catalog-editor.js?v=33';
 import {mountDriverAdmin,mountPasswordAdmin} from '../dyws/account-editor.js?v=32';
 import {api} from './api.js';

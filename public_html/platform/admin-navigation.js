@@ -1,7 +1,7 @@
 import {plugins} from './plugins.js?v=32';
 import {mountAdminNavigation} from '../dyws/admin-navigation.js?v=32';
 import {defaultRole} from '../dyws/role-labels.js';
-const pages=[['reports','Reports','manager.html'],['catalog','Catalog','catalog-admin.html'],['drivers','Drivers','drivers-admin.html'],['password','Password','password-admin.html'],['settings','Settings','settings-admin.html'],['plugins','Plugins','plugins-admin.html']];
+const pages=[['orders','Orders','orders-admin.html'],['reports','Reports','manager.html'],['catalog','Catalog','catalog-admin.html'],['drivers','Drivers','drivers-admin.html'],['password','Password','password-admin.html'],['settings','Settings','settings-admin.html'],['plugins','Plugins','plugins-admin.html']];
 let revision=0;
 export async function mountNavigation(current,role=defaultRole){
  const request=++revision;

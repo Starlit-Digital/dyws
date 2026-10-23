@@ -18,7 +18,7 @@ The dyws implementation is purpose built for its order ledger. It uses four lead
 
 Dates use the timezone selected in Settings, America/Edmonton by default, including daylight saving changes. Both input dates are inclusive; database bounds use an exclusive midnight after the end date. Maximum range is 366 calendar days. Default is the last 30 days including today. Today may be incomplete. Previous period means the same number of calendar days immediately before the selected range. It is not a forecast or a comparison of equal elapsed working hours.
 
-Each report uses one currency and optionally pickup or delivery. Historic currency comes from the order snapshot. Currency selection never converts or adds different currencies. Filters apply to charts, cards, tables and exports. The operational order board below the report remains the latest 200 orders regardless of report filters.
+Each report uses one currency and optionally pickup or delivery. Historic currency comes from the order snapshot. Currency selection never converts or adds different currencies. Filters apply to charts, cards, tables and exports. The separate Orders page shows the latest 200 orders, independent of report filters.
 
 | Measure | Definition |
 |---|---|
@@ -67,10 +67,14 @@ Future plugins can mark a semantic table with data-dyws-report-table and call ad
 
 ## Compact orders, version 0.8.0
 
-The order board now uses the bundled DataTables plugin with ten rows per page, column sorting, search and Status, Type and Payment filters. The order number opens a single detail panel containing the existing status, assignment and test payment actions. Search and filters cover the latest 200 orders, independent of the aggregate report period above. The scope is visible beside the table. Prices and placed times sort using integer values, not their formatted strings. Each order retains its own currency.
+The order board now uses the bundled DataTables plugin with ten rows per page, column sorting, search and Status, Type and Payment filters. The order number opens a single detail panel containing the existing status, assignment and test payment actions. Search and filters cover the latest 200 orders, independent of the period selected on Reports. The scope is visible beside the table. Prices and placed times sort using integer values, not their formatted strings. Each order retains its own currency.
 
 Live changes retain search, filters, sorting and pagination in memory. No customer search terms or contacts are saved in browser storage. Focused fields are left intact until the next refresh after focus leaves. The semantic table and basic search and filters remain available when DataTables is disabled. Full order history search beyond 200 orders is not part of this board.
 
 Settings now controls the timezone used by reports, daily and hourly grouping, order dates, driver GPS timestamps, customer tracking completion times and arrival estimates. CSV exports identify the selected timezone. UTC timestamps and elapsed durations do not change. Calendar date bounds account for both 23 hour and 25 hour daylight saving days.
 
 DataTables integration follows the official [search API](https://datatables.net/reference/api/search()) and [column search API](https://datatables.net/reference/api/column().search()).
+
+## Separate admin pages, version 0.8.2
+
+Reports remains at manager.html and loads only reporting data, charts and exports. Orders is at orders-admin.html, with the same session, searchable table, filters and detail actions. Active delivery maps appear below the order table only when deliveries are on the way. The Orders page makes no reporting requests. The existing admin:order hook runs there; admin:dashboard and reporting hooks remain on Reports.
