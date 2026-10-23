@@ -1,6 +1,6 @@
-# Starlit Go project instructions
+# dyws project instructions
 
-Starlit Go is the platform. Starlit Diner is its fictional reference restaurant. Keep this repository separate from the original Cravings & Delight website. Preserve the existing diner visuals and accessibility preferences.
+dyws is the platform. Starlit Diner is its fictional reference restaurant. Keep this repository separate from the original Cravings & Delight website. Preserve the existing diner visuals and accessibility preferences.
 
 All current orders, payment records and driver routes are demonstrations. Do not describe test payment ledger actions as real charges or refunds. Do not claim native apps or production dispatch exist. Use fictional customer details for tests.
 
@@ -12,4 +12,4 @@ Product data is generic. Keep the runtime catalog in private var/catalog.json, w
 
 Reusable presentation belongs in public_html/dyws. Prefix component classes and theme variables with dyws. Keep diner branding, hero, display controls and palette mapping in demo.css. Preserve the legacy element aliases, API routes, cart storage keys and tracking URLs during style refactors.
 
-Reusable JavaScript belongs in public_html/dyws and PHP implementations in modules/dyws/php. Website scripts and server files are adapters or compatibility includes. Keep all package asset imports internal and inject website endpoints, DOM roots and map adapters. The homepage uses DYWS PHP rendering functions; hydrate its existing panels without duplicating or replacing a host selected subset. Preserve escaped rendering and validate catalogs before producing HTML.
+Reusable JavaScript belongs in public_html/dyws and PHP implementations in modules/dyws/php. Website scripts and server files are adapters or compatibility includes. Keep all package asset imports internal and inject website endpoints, DOM roots and map adapters. The homepage uses dyws PHP rendering functions; hydrate its existing panels without duplicating or replacing a host selected subset. Preserve escaped rendering and validate catalogs before producing HTML.

@@ -6,7 +6,7 @@ namespace StarlitGo;
 final class Catalog {
  public static function load(string $path):array { return self::validate(json_decode(file_get_contents($path),true,64,JSON_THROW_ON_ERROR)); }
  public static function validate(array $data):array {
-  $out=['schemaVersion'=>2,'businessName'=>Store::text($data['businessName']??$data['restaurant']??null,120),'platformName'=>Store::text($data['platformName']??'Starlit Go',100),'currency'=>$data['currency']??'CAD','taxBasisPoints'=>$data['taxBasisPoints']??0,'deliveryFee'=>$data['deliveryFee']??395,'pickupAddress'=>Store::text($data['pickupAddress']??'',240,false),'categories'=>[]];
+  $out=['schemaVersion'=>2,'businessName'=>Store::text($data['businessName']??$data['restaurant']??null,120),'platformName'=>Store::text($data['platformName']??'dyws',100),'currency'=>$data['currency']??'CAD','taxBasisPoints'=>$data['taxBasisPoints']??0,'deliveryFee'=>$data['deliveryFee']??395,'pickupAddress'=>Store::text($data['pickupAddress']??'',240,false),'categories'=>[]];
   if(!in_array($out['currency'],['CAD','USD'],true))throw new ApiError('Use CAD or USD. Other currency decimal rules are not supported yet.');
   self::integer($out['taxBasisPoints'],0,10000);self::integer($out['deliveryFee'],0,100000);
   if(!isset($data['categories'])||!is_array($data['categories'])||!array_is_list($data['categories'])||count($data['categories'])>50)throw new ApiError('Use up to 50 categories.');

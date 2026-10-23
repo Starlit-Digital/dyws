@@ -2,7 +2,7 @@
   "require": {
     "stripe/stripe-php": "^22.0"
   },
-  "name": "starlit-digital/starlit-go",
+  "name": "starlit-digital/dyws",
   "description": "Generic ordering and delivery demo platform",
   "license": "proprietary",
   "config": {

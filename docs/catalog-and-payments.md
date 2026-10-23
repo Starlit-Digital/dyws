@@ -1,6 +1,6 @@
 # Generic catalog and Stripe connector
 
-The product can be called anything. Starlit Go is the working repository name. “Do You Want Something?” is the owner's novelty name candidate. `platformName` configures the product display label and `businessName` identifies the business. The fictional diner keeps its own branding.
+The product can be called anything. dyws is the working repository name. “Do You Want Something?” is the owner's novelty name candidate. `platformName` configures the product display label and `businessName` identifies the business. The fictional diner keeps its own branding.
 
 ## Catalog
 

@@ -18,7 +18,7 @@ try {
   $body=json_decode($raw,true,64,JSON_THROW_ON_ERROR);if(!is_array($body))throw new \StarlitGo\ApiError('Invalid request.',400);
  }else $body=[];
  $result=null;
- if($method==='GET'&&$route==='/health')$result=['service'=>'Starlit Go','demo'=>true];
+ if($method==='GET'&&$route==='/health')$result=['service'=>'dyws','demo'=>true];
  elseif($method==='GET'&&$route==='/realtime/config')$result=$realtime->publicConfig();
  elseif($method==='POST'&&$route==='/realtime/access'){
   $scope=$body['scope']??'public';$session=null;$order=null;
@@ -77,7 +77,7 @@ try {
  echo json_encode($result,JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES);
 }catch(\StarlitGo\ApiError $e){http_response_code($e->http);echo json_encode(['error'=>$e->getMessage()]);}
 catch(JsonException $e){http_response_code(400);echo json_encode(['error'=>'Invalid JSON request.']);}
-catch(Throwable $e){error_log('Starlit Go API failure: '.$e->getMessage());http_response_code(500);echo json_encode(['error'=>'The order service is temporarily unavailable.']);}
+catch(Throwable $e){error_log('dyws API failure: '.$e->getMessage());http_response_code(500);echo json_encode(['error'=>'The order service is temporarily unavailable.']);}
 
 }
  function dyws_limit_requests($store,$config,string $name,int $max,int $seconds):void{

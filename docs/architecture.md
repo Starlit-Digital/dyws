@@ -14,7 +14,7 @@ PHP 8.1 or newer with PDO SQLite, compatible with the current shared host. No se
 
 ```mermaid
 flowchart LR
- C[Restaurant website and cart] --> API[Starlit Go API]
+ C[Restaurant website and cart] --> API[dyws API]
  M[Restaurant manager] --> API
  D[Driver console or future native app] --> API
  API --> DB[(Orders, events, payments, latest location)]

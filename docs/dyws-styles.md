@@ -1,12 +1,12 @@
-# DYWS style package
+# dyws style package
 
-DYWS means Do You Want Something. The reusable CSS lives in `public_html/dyws/`, independently of the fictional diner theme. Its package name is `@starlit-digital/dyws`. It is private and has not been published to a registry.
+dyws means Do You Want Something. The reusable CSS lives in `public_html/dyws/`, independently of the fictional diner theme. Its package name is `@starlit-digital/dyws`. It is private and has not been published to a registry.
 
 ## Entry points
 
 Load `dyws/dyws.css` for the catalog, business admin, settings, driver console and inline tracking. It imports tokens and the catalog, admin and tracking modules. For a smaller page, load `tokens.css` plus only the needed module. The ordering element loads `dyws/ordering.css` inside its shadow root; that file imports its own tokens.
 
-All classes use lowercase `dyws-`, including `dyws-catalog`, `dyws-category`, `dyws-product`, `dyws-item-stepper`, `dyws-ordering`, `dyws-shell` and `dyws-tracking-panel`. Every document selector is scoped to a DYWS root. The package sets no global body, root, button or typography rules. It has no reference to the diner palette variables, diner images or demo.css.
+All classes use lowercase `dyws-`, including `dyws-catalog`, `dyws-category`, `dyws-product`, `dyws-item-stepper`, `dyws-ordering`, `dyws-shell` and `dyws-tracking-panel`. Every document selector is scoped to a dyws root. The package sets no global body, root, button or typography rules. It has no reference to the diner palette variables, diner images or demo.css.
 
 ```html
 <link rel="stylesheet" href="dyws/dyws.css">
@@ -15,7 +15,7 @@ All classes use lowercase `dyws-`, including `dyws-catalog`, `dyws-category`, `d
 <script type="module" src="dyws/index.js"></script>
 ```
 
-The JavaScript now lives alongside these styles in the DYWS package. PHP rendering and backend services live in the private modules/dyws/php library. See [module integration](dyws-module.md). The older element names and CSS URLs remain compatibility entry points.
+The JavaScript now lives alongside these styles in the dyws package. PHP rendering and backend services live in the private modules/dyws/php library. See [module integration](dyws-module.md). The older element names and CSS URLs remain compatibility entry points.
 
 ## Theme interface
 

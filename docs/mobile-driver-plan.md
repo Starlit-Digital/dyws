@@ -1,4 +1,4 @@
-# Starlit Go driver apps
+# dyws driver apps
 
 Plan recorded October 23, 2026. These apps are planned, not built or submitted.
 

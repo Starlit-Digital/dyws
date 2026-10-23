@@ -1,6 +1,6 @@
-# DYWS module integration
+# dyws module integration
 
-DYWS owns the reusable JavaScript, CSS and PHP backend. The diner is a host application that supplies placement, configuration, branding and its reference map.
+dyws owns the reusable JavaScript, CSS and PHP backend. The diner is a host application that supplies placement, configuration, branding and its reference map.
 
 ## Package locations
 

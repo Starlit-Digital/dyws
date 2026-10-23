@@ -1,6 +1,6 @@
 {
   "name": "starlit-digital/dyws-backend",
-  "description": "DYWS catalog rendering and ordering backend",
+  "description": "dyws catalog rendering and ordering backend",
   "type": "library",
   "license": "proprietary",
   "require": {

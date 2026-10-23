@@ -51,13 +51,13 @@ October 23 catalog and Stripe upgrade validation: 98 checks pass, comprising fiv
 
 For a local checkout where the old tracked catalog has already moved, pass the seed explicitly as the third migration argument: `php server/migrate-catalog.php var/config.json http://127.0.0.1:8097 examples/starlit-diner/catalog.json`. Do not replace a modified merchant catalog with that seed.
 
-## DYWS CSS extraction
+## dyws CSS extraction
 
 The demo loads `dyws/dyws.css?v=19`, and the cart loads `dyws/ordering.css?v=19` inside its shadow root. Deploy the entire dyws folder together with the updated HTML and JavaScript. The former CSS URLs forward to these files. No runtime catalog or database migration is needed. The catalog migration CLI now resolves relative config paths before storing an absolute catalog path, preventing local preview failures.
 
-October 23 validation: all 98 existing checks passed. Browser checks covered desktop and mobile catalog/cart layouts, light and dark cart themes, 48px quantity buttons, admin styling and a plain host page using only DYWS CSS. The isolated page confirmed that unrelated host controls keep their native styles. Frontend backup: domains/sltd.ca/private/deploy-backups/starlit-go-dyws-css-20261023/public-diner/.
+October 23 validation: all 98 existing checks passed. Browser checks covered desktop and mobile catalog/cart layouts, light and dark cart themes, 48px quantity buttons, admin styling and a plain host page using only dyws CSS. The isolated page confirmed that unrelated host controls keep their native styles. Frontend backup: domains/sltd.ca/private/deploy-backups/starlit-go-dyws-css-20261023/public-diner/.
 
-## DYWS JavaScript and PHP modules
+## dyws JavaScript and PHP modules
 
 The homepage is now index.php. Preserve the DirectoryIndex setting and existing security headers in public_html/.htaccess. Move the old index.html out of the public folder after backing it up, so the PHP homepage is the sole entry point.
 
@@ -73,7 +73,7 @@ Hosted verification after deployment confirmed five PHP category panels, 35 prod
 
 ## Admin tabs and catalog editor
 
-Deploy modules/dyws/php first, then public_html. The five admin pages use DYWS browser package version 0.3.0. Existing credentials are unchanged. Account overrides are created only when an administrator saves driver settings or changes the admin password. Keep accounts-*.json private, and never overwrite these files during code deployments. No database or catalog migration is needed.
+Deploy modules/dyws/php first, then public_html. The five admin pages use dyws browser package version 0.3.0. Existing credentials are unchanged. Account overrides are created only when an administrator saves driver settings or changes the admin password. Keep accounts-*.json private, and never overwrite these files during code deployments. No database or catalog migration is needed.
 
 The catalog editor loads the runtime JSON and saves through the existing revision checked API. Tests use temporary data rather than the hosted business catalog. The old settings.html address redirects to catalog-admin.html, while Stripe settings are on stripe-admin.html.
 
@@ -96,3 +96,13 @@ Rollback backup: domains/sltd.ca/private/deploy-backups/dyws-gps-maps-20261023/.
 The destination upgrade also adds orders.address_json idempotently. Preserve driver_test_location in this test deployment until the owner requests real device GPS again. It is a private test setting, not a default for other installations. The driver page no longer artificially stops an active session when visibility changes; browser permission and background limits still apply.
 
 Final GPS, maps and routing validation: 239 automated checks passed across the core and relay suites. Browser verification confirmed a Google map and route on the live Drivers tab and customer order page, and a full structured address checkout with its private page redirect. Source changes and the hosted key remain separate.
+
+## dyws rename and compact administration
+
+The private repository is now Starlit-Digital/dyws. The existing hosted private path, environment aliases, session storage keys, API URLs and diner URL remain compatible. The storefront is still the Starlit Diner example.
+
+Deploy the updated public files and the private Catalog.php and api.php modules. Keep api/bootstrap-path.php and all private runtime files. Update only the catalog platformName through its revision checked manager API to adopt the dyws name; never replace a merchant catalog with the example seed.
+
+All six admin pages share the same compact header, current page navigation and sign out. On narrow screens navigation uses an expandable menu with keyboard dismissal. Detailed report definitions and connection instructions remain available in disclosures. The driver editor opens only on Add or Edit. The logo derives from the approved Community Central SVG family with a D monogram; the editable SVG and 2048px PNG master are in public_html/assets.
+
+Validation: 238 automated checks passed. Browser checks covered all six pages, the driver editor, sign out, mobile navigation at 320px and 390px, Escape dismissal, and the live Google map and route. The release backup is domains/sltd.ca/private/deploy-backups/dyws-admin-simple-20261023/.

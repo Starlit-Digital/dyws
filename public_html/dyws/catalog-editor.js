@@ -1,5 +1,5 @@
 import {escapeHTML as esc} from './api.js';
-import {adminPage} from './admin-navigation.js';
+import {adminPage} from './admin-navigation.js?v=26';
 
 export function decimalToMinor(value) {
  if(!/^\d+(\.\d{1,2})?$/.test(String(value)))throw new Error('Enter an amount with up to two decimal places.');
@@ -30,7 +30,7 @@ export async function mountCatalogEditor({root=document,api,storageKey}) {
  function renderCategory(){
   const category=draft.categories[selected];if(!category){editor.innerHTML='<p>Add a category to start building your catalog.</p>';return;}
   const path=`categories.${selected}`;
-  editor.innerHTML=`<div class="dyws-editor-heading"><h2>Category</h2><div class="dyws-actions"><button type="button" data-action="category-up" ${selected===0?'disabled':''}>Move up</button><button type="button" data-action="category-down" ${selected===draft.categories.length-1?'disabled':''}>Move down</button><button type="button" data-action="category-remove" class="dyws-secondary">Remove category</button></div></div><div class="dyws-field-grid">${field('Category name',path+'.name',{required:true})}${imageFields(path+'.image')}</div><div class="dyws-editor-heading"><h2>Items</h2><button type="button" data-action="item-add">Add item</button></div><div id="item-list"></div>`;
+  editor.innerHTML=`<div class="dyws-editor-heading"><h2>Category details</h2><div class="dyws-actions"><button type="button" data-action="category-up" ${selected===0?'disabled':''}>Move up</button><button type="button" data-action="category-down" ${selected===draft.categories.length-1?'disabled':''}>Move down</button><button type="button" data-action="category-remove" class="dyws-secondary">Remove category</button></div></div><div class="dyws-field-grid">${field('Category name',path+'.name',{required:true})}${imageFields(path+'.image')}</div><div class="dyws-editor-heading"><h2>Items</h2><button type="button" data-action="item-add">Add item</button></div><div id="item-list"></div>`;
   const items=editor.querySelector('#item-list');
   for(const [index,item] of category.items.entries()){
    const p=path+`.items.${index}`,card=document.createElement('details');card.className='dyws-item-editor';card.dataset.itemIndex=index;
@@ -46,7 +46,7 @@ export async function mountCatalogEditor({root=document,api,storageKey}) {
   for(const c of result.categories){if(!c.image?.src?.trim())delete c.image;for(const i of c.items){if(!i.image?.src?.trim())delete i.image;if(!i.variants?.length){delete i.variants;delete i.optionLabel;}else if(!i.optionLabel?.trim())i.optionLabel='Option';}}
   return result;
  }
- async function load(){const data=await page.request('/manager/catalog');draft=createCatalogDraft(data.catalog);revision=data.revision;selected=Math.min(selected,Math.max(0,draft.categories.length-1));dirty=false;render();message.textContent='Catalog loaded from the server.';}
+ async function load(){const data=await page.request('/manager/catalog');draft=createCatalogDraft(data.catalog);revision=data.revision;selected=Math.min(selected,Math.max(0,draft.categories.length-1));dirty=false;render();message.textContent='';}
  form.addEventListener('input',event=>{
   const input=event.target;if(!input.dataset.field)return;
   mark();

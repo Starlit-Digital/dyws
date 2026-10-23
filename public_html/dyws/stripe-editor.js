@@ -1,4 +1,4 @@
-import {adminPage} from './admin-navigation.js';
+import {adminPage} from './admin-navigation.js?v=26';
 export async function mountStripeAdmin({root=document,api,storageKey}) {
  const page=adminPage({root,api,storageKey});if(!page.token)return;
  const form=root.querySelector('#stripe-form');
