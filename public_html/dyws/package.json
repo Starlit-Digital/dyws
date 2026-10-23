@@ -1,6 +1,6 @@
 {
   "name": "@starlit-digital/dyws",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "private": true,
   "description": "Reusable Do You Want Something ordering JavaScript and scoped CSS",
   "style": "dyws.css",
@@ -36,7 +36,8 @@
     "./plugins.js": "./plugins.js",
     "./plugin-admin.js": "./plugin-admin.js",
     "./date-time.js": "./date-time.js",
-    "./order-list.js": "./order-list.js"
+    "./order-list.js": "./order-list.js",
+    "./business-settings.js": "./business-settings.js"
   },
   "files": [
     "*.js",

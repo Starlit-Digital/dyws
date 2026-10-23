@@ -158,3 +158,5 @@ Deploy private plugins/order-reporting, plugins/datatables, the updated bundled.
 ## Version 0.8.0
 
 Adds compact admin orders and the timezone preference. Deploy PHP, both changed plugins and browser assets together, preserving private configuration, catalogs, SQLite and settings JSON. Assets use cache version 32. Existing optional WebSocket relay deployments should also update server.js so timezone metadata is forwarded. The hosted demo continues to use HTTPS polling. No database migration or timestamp conversion is needed. Existing installations default to America/Edmonton until an admin saves another timezone. Back up public files, private PHP and plugins, settings JSON and a consistent SQLite snapshot before replacing files. Build and verify the installation ZIP after staging the new date-time.js and order-list.js modules.
+
+Version 0.8.1 moves Business details from Catalog to Settings. Deploy the affected admin HTML, platform/admin.js and the catalog, general and new business settings modules. The affected imports use version 33. No data migration is needed, and both editors retain the existing catalog revision guard.

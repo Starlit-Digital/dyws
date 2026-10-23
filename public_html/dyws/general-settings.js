@@ -1,3 +1,4 @@
+import {mountBusinessSettings} from './business-settings.js?v=33';
 import {configureTimeZone} from './date-time.js';
 import {adminPage} from './admin-navigation.js?v=32';
 export async function mountGeneralSettings({root=document,api,storageKey,onSave=()=>{}}){
@@ -11,5 +12,5 @@ export async function mountGeneralSettings({root=document,api,storageKey,onSave=
   const data=await page.request('/manager/settings',{method:'POST',body:{revision,settings:{timeZone:form.elements.timeZone.value,driverRole:{singular:form.elements.singular.value,plural:form.elements.plural.value}}}});
   display(data);onSave(data.settings);message.textContent='Saved.';
  });};
- try{await reload();}catch(e){page.error.textContent=e.message;}
+ try{await Promise.all([reload(),mountBusinessSettings({root,page})]);}catch(e){page.error.textContent=e.message;}
 }

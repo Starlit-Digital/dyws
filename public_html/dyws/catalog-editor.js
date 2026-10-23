@@ -21,9 +21,6 @@ export async function mountCatalogEditor({root=document,api,storageKey}) {
  };
  const check=(label,path)=>`<label class="dyws-checkbox"><input type="checkbox" data-field="${path}" ${get(path)?'checked':''}> ${esc(label)}</label>`;
  function imageFields(path){return field('Image URL',path+'.src',{max:1000})+field('Image description',path+'.alt',{max:250});}
- function renderBusiness(){
-  root.querySelector('#business-fields').innerHTML=field('Business name','businessName',{required:true})+field('Ordering system name','platformName',{required:true,max:100})+field('Pickup address','pickupAddress',{max:240})+`<label>Currency<input value="${esc(draft.currency)}" disabled></label>`+field('Tax rate (%)','taxBasisPoints',{type:'number',money:true,required:true})+field('Delivery fee','deliveryFee',{type:'number',money:true,required:true});
- }
  function renderCategories(){
   list.replaceChildren(...draft.categories.map((c,index)=>{const b=document.createElement('button');b.type='button';b.textContent=c.name||'Untitled category';b.setAttribute('aria-pressed',String(index===selected));b.onclick=()=>{if(!form.reportValidity())return;selected=index;renderCategories();renderCategory();};return b;}));
  }
@@ -40,7 +37,7 @@ export async function mountCatalogEditor({root=document,api,storageKey}) {
    items.append(card);
   }
  }
- function render(){renderBusiness();renderCategories();renderCategory();}
+ function render(){renderCategories();renderCategory();}
  function cleaned(){
   const result=createCatalogDraft(draft);
   for(const c of result.categories){if(!c.image?.src?.trim())delete c.image;for(const i of c.items){if(!i.image?.src?.trim())delete i.image;if(!i.variants?.length){delete i.variants;delete i.optionLabel;}else if(!i.optionLabel?.trim())i.optionLabel='Option';}}
