@@ -1,7 +1,7 @@
 import {markReady} from './diagnostics.js';
-import {redirectToAuth} from './admin-session.js?v=38';
+import {redirectToAuth} from './admin-session.js?v=39';
 import {dateKey} from './date-time.js';
-import {pluginSlot} from './plugin-ui.js?v=38';
+import {pluginSlot} from './plugin-ui.js?v=39';
 import {money as formatMoney,escapeHTML as esc} from './api.js';
 import {defaultRole} from './role-labels.js';
 export function mountManager({root=document,api,role=defaultRole,storageKey='dyws-manager',plugins}) {

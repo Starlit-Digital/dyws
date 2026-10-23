@@ -1,5 +1,6 @@
-import {plugins} from './platform/plugins.js?v=38';
-import {mountStorefront} from './dyws/index.js?v=38';
+import {markReady} from './dyws/diagnostics.js';
+import {plugins} from './platform/plugins.js?v=39';
+import {mountStorefront} from './dyws/storefront.js?v=39';
 import {api} from './platform/api.js';
 import {loadRole,applyRoleLabels} from './dyws/role-labels.js';
 const role=await loadRole(api);
@@ -12,6 +13,7 @@ mountStorefront({
  onOrderComplete:receipt=>{if(receipt.trackingToken)location.assign(new URL('./tracking/',import.meta.url).href+'#'+encodeURIComponent(receipt.id)+'.'+encodeURIComponent(receipt.trackingToken));}
 });
 
+const ordering=document.querySelector('dyws-ordering');if(ordering.catalog)markReady();else ordering.addEventListener('ordering-ready',()=>markReady(),{once:true});
 let publicState=JSON.stringify(await api('/catalog'));
 api.watch({scope:'public',interval:15000},async()=>{
  const [catalog,settings]=await Promise.all([api('/catalog'),api('/settings')]);

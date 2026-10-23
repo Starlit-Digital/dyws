@@ -1,3 +1,4 @@
+import {readCatalog} from './catalog-data.js';
 import {lineKey,resolveItem,restoreCart,totals} from './cart.js';
 const escapeHTML = value => String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export class DYWSOrdering extends HTMLElement {
@@ -5,9 +6,7 @@ export class DYWSOrdering extends HTMLElement {
   async connectedCallback(){
     this.shadowRoot.innerHTML='<p role="status">Loading ordering…</p>';
     try {
-      const response=await fetch(this.getAttribute('catalog'),{cache:'no-store'});
-      if(!response.ok) throw new Error('Catalog unavailable');
-      this.catalog=await response.json();
+      this.catalog=await readCatalog(this);
       if(!Array.isArray(this.catalog.categories)) throw new Error('Catalog unavailable');
       this.money=new Intl.NumberFormat('en-CA',{style:'currency',currency:this.catalog.currency});
       try {this.lines=restoreCart(this.catalog,JSON.parse(localStorage.getItem(this.key)||'[]'));}catch{}
@@ -35,7 +34,7 @@ export class DYWSOrdering extends HTMLElement {
   }
   announce(text){this.shadowRoot.querySelector('[role="status"]').textContent=text;}
   render(){
-    this.shadowRoot.innerHTML=`<link rel="stylesheet" href="${new URL('./ordering.css?v=38',import.meta.url).href}"><div class="dyws-ordering"><button class="dyws-cart-launch" type="button">Your order</button><p id="dyws-status" role="status" aria-live="polite"></p><dialog aria-labelledby="dyws-order-title"><header><h2 id="dyws-order-title">Your order</h2><small>${escapeHTML(this.catalog.platformName || 'DYWS')}</small><button type="button" class="dyws-muted dyws-close" aria-label="Close order">Close</button></header><div class="dyws-content"></div></dialog></div>`;
+    this.shadowRoot.innerHTML=`<link rel="stylesheet" href="${new URL('./ordering.css?v=39',import.meta.url).href}"><div class="dyws-ordering"><button class="dyws-cart-launch" type="button">Your order</button><p id="dyws-status" role="status" aria-live="polite"></p><dialog aria-labelledby="dyws-order-title"><header><h2 id="dyws-order-title">Your order</h2><small>${escapeHTML(this.catalog.platformName || 'DYWS')}</small><button type="button" class="dyws-muted dyws-close" aria-label="Close order">Close</button></header><div class="dyws-content"></div></dialog></div>`;
     this.dialog=this.shadowRoot.querySelector('dialog');
     this.shadowRoot.querySelector('.dyws-cart-launch').onclick=()=>this.open();
     this.shadowRoot.querySelector('.dyws-close').onclick=()=>this.dialog.close();
@@ -45,7 +44,7 @@ export class DYWSOrdering extends HTMLElement {
   open(){this.showCart();this.dialog.showModal();}
   showCart(){
     const content=this.shadowRoot.querySelector('.dyws-content');const t=totals(this.lines,this.catalog.taxBasisPoints);
-    content.innerHTML=this.lines.length?this.lines.map((l,n)=>`<div class="dyws-line"><strong>${escapeHTML(l.name)}</strong>${escapeHTML(l.option)} <span>${this.amount(l.price*l.quantity)}</span><div class="dyws-quantity"><button data-change="${n}" data-delta="-1" aria-label="Remove one ${escapeHTML(l.name)}">−</button><span aria-label="Quantity">${l.quantity}</span><button data-change="${n}" data-delta="1" aria-label="Add one ${escapeHTML(l.name)}" ${l.quantity>=99?'disabled':''}>+</button><button class="dyws-muted" data-remove="${n}" aria-label="Remove ${escapeHTML(l.name)}">Remove</button></div></div>`).join('')+`<dl class="dyws-summary"><dt>Subtotal</dt><dd>${this.amount(t.subtotal)}</dd><dt>Tax (${this.catalog.taxBasisPoints/100}%)</dt><dd>${this.amount(t.tax)}</dd><dt>Total</dt><dd>${this.amount(t.total)}</dd></dl><p class="dyws-note">Choose pickup or delivery at checkout. Test orders are saved to the demo backend. No real payment or delivery.</p><button class="dyws-checkout" type="button">Continue to checkout</button>`:'<p>Your order is empty. Add something from the catalog.</p>';
+    content.innerHTML=this.lines.length?this.lines.map((l,n)=>`<div class="dyws-line"><strong>${escapeHTML(l.name)}</strong>${escapeHTML(l.option)} <span>${this.amount(l.price*l.quantity)}</span><div class="dyws-quantity"><button data-change="${n}" data-delta="-1" aria-label="Remove one ${escapeHTML(l.name)}">−</button><span aria-label="Quantity">${l.quantity}</span><button data-change="${n}" data-delta="1" aria-label="Add one ${escapeHTML(l.name)}" ${l.quantity>=99?'disabled':''}>+</button><button class="dyws-muted dyws-remove" data-remove="${n}" aria-label="Remove ${escapeHTML(l.name)}" title="Remove ${escapeHTML(l.name)}"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M9 6V4h6v2M5 6l1 14h12l1-14M10 10v6M14 10v6"/></svg></button></div></div>`).join('')+`<dl class="dyws-summary"><dt>Subtotal</dt><dd>${this.amount(t.subtotal)}</dd><dt>Tax (${this.catalog.taxBasisPoints/100}%)</dt><dd>${this.amount(t.tax)}</dd><dt>Total</dt><dd>${this.amount(t.total)}</dd></dl><p class="dyws-note">Choose pickup or delivery at checkout. Test orders are saved to the demo backend. No real payment or delivery.</p><button class="dyws-checkout" type="button">Continue to checkout</button>`:'<p>Your order is empty. Add something from the catalog.</p>';
     content.querySelectorAll('[data-change]').forEach(b=>b.onclick=()=>{const n=Number(b.dataset.change);this.lines[n].quantity+=Number(b.dataset.delta);this.lines=this.lines.filter(l=>l.quantity>0);this.persist();this.showCart();});
     content.querySelectorAll('[data-remove]').forEach(b=>b.onclick=()=>{this.lines.splice(Number(b.dataset.remove),1);this.persist();this.showCart();});
     content.querySelector('.dyws-checkout')?.addEventListener('click',()=>this.checkout());

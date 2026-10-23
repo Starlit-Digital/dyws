@@ -1,3 +1,3 @@
 <?php
 declare(strict_types=1);
-return static function(\dyws\PluginContext $plugin):void {};
+return #[\dyws\Provides('admin:tables')] static function(\dyws\PluginContext $plugin):void {};

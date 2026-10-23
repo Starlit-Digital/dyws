@@ -126,7 +126,7 @@ Core owns durable provider neutral payment attempts, event deduplication and ref
 - POST `/plugins/stripe/webhook`, raw body signature verified.
 - Legacy `/manager/stripe`, `/manager/stripe/verify`, `/orders/{orderId}/checkout` and `/stripe/webhook` remain compatible.
 
-The public browser capability is `payment.renderer.stripe`. The core tracker injects an active provider's renderer through `plugins.renderPayment`. Missing plugins show a payment unavailable or pending message, with no manual capture shortcut. Payment links are accepted only on Stripe's HTTPS Checkout host.
+The public browser capability is `payment.renderer`. The core tracker injects an active provider's renderer through `plugins.renderPayment`. Missing plugins show a payment unavailable or pending message, with no manual capture shortcut. Payment links are accepted only on Stripe's HTTPS Checkout host.
 
 Plugin route callbacks receive `(body, session, request)`. Request contains `raw`, the exact request bytes, `params` for named path segments, and `server` for request headers. Use `{name}` for one alphanumeric, underscore or hyphen path segment, then validate the resource ID in the handler. Route options accept `maxBody` up to 262144 bytes and `rateLimit: [bucket, count, seconds]`. Authentication happens before handler invocation and rate limiting. Only the trusted bundled manifest can allow old route aliases and retained callbacks.
 
@@ -147,3 +147,31 @@ Example source in examples/plugins/gift-note includes a checkout field, browser 
 Version 0.7 bundles Order Reporting and DataTables as independent optional plugins. New installations activate both. Existing installations adopt them once through upgradeDefaults; later deactivation persists. Reports stay at reports/. Disabling Order Reporting restores core summaries while Orders remains on its own page. Disabling DataTables leaves semantic tables with CSV exports and SVG charts. DataTables loads its local library only when a marked admin table needs it, with no CDN request, analytics, stored search state or commercial add ons.
 
 See [reporting definitions and PayCal research](order-reporting.md) and [hook contracts](plugin-hooks.md). No runtime order migration or external reporting service is required.
+
+## Page feature manifests
+
+Browser loading is resolved by PHP. A plugin registration closure can declare the features its browser module provides with a native PHP attribute:
+
+```php
+return #[\dyws\Provides('location.renderer', 'admin:settings')]
+static function(\dyws\PluginContext $plugin): void {
+    // Register server routes and hooks as usual.
+};
+```
+
+`Provides` is the source of truth. `Plugins::publicManifest()` reflects it into the public manifest's `provides` array. `PageManifest` in `modules/dyws/php/Features.php` declares each page consumer with `#[Requires(...)]`. `PageManifest::forPage()` emits `{page, requires}`. PHP pages expose this in `meta[name="dyws-page-manifest"]`; their initial plugin manifest also contains `page`, `requires` and the selected plugin records.
+
+`Plugins::publicManifest($page)` selects active browser plugins whose provided features intersect the page's required features. This selection controls JavaScript preloads, stylesheets and client registration. It never disables backend routes, payment verification, server hooks or lifecycle behavior. Disabled plugins stay disabled and optional provider features retain core fallbacks. Manifest order and hook priority remain unchanged.
+
+Plugins without a `Provides` declaration continue to load on all pages. Plugins marked with the existing `validation` capability are always included, even if their declared features do not match, so a loading optimization cannot bypass required validation. Feature names are validated names rather than request supplied filesystem paths. Unknown pages are rejected. Embedded consumers that call `/plugins` without page context still receive the full active manifest.
+
+Bundled features:
+
+| Plugin | Provides |
+| --- | --- |
+| Google Maps | `location.renderer`, `admin:settings` |
+| Stripe | `payment.renderer`, `admin:settings` |
+| DataTables | `admin:tables` |
+| Order Reporting | `reports.renderer`, `admin:report-controls`, `reports:query`, `reports:export` |
+
+The storefront consumes catalog, cart and checkout hooks. Orders consumes tables, order details and maps. Reports consumes reporting and table hooks. Drivers and the driver console consume location features. Tracking consumes location, payment and tracking hooks. Settings consumes settings hooks. Other admin pages consume navigation hooks. Auth, admin entry and setup have empty browser requirements. To add a feature, update its provider declaration and the consumers that use it, then regenerate preload graphs and run the feature manifest tests.

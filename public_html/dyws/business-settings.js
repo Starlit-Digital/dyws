@@ -1,4 +1,4 @@
-import {decimalToMinor,createCatalogDraft} from './catalog-editor.js?v=38';
+import {decimalToMinor,createCatalogDraft} from './catalog-editor.js?v=39';
 
 /** Business fields share the catalog revision so concurrent edits cannot overwrite items. */
 export async function mountBusinessSettings({root,page}){

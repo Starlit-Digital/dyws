@@ -3,7 +3,7 @@ declare(strict_types=1);
 use dyws\PluginContext;
 use dyws\Plugins\OrderReporting\OrderReports;
 require_once __DIR__.'/OrderReports.php';
-return static function(PluginContext $plugin):void {
+return #[\dyws\Provides('reports.renderer','admin:report-controls','reports:query','reports:export')] static function(PluginContext $plugin):void {
  $zone=static fn()=>(new \dyws\Settings($plugin->config))->read()['timeZone'];
  $service=static fn()=>new OrderReports($plugin->store,$zone());
  $currency=static fn()=>\dyws\Catalog::load($plugin->config['catalog'])['currency'];

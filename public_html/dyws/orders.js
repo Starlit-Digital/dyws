@@ -1,8 +1,8 @@
 import {markReady,traceLoad} from './diagnostics.js';
-import {redirectToAuth} from './admin-session.js?v=38';
-import {mountOrderList} from './order-list.js?v=38';
+import {redirectToAuth} from './admin-session.js?v=39';
+import {mountOrderList} from './order-list.js?v=39';
 import {formatTime,formatDateTime} from './date-time.js';
-import {pluginSlot} from './plugin-ui.js?v=38';
+import {pluginSlot} from './plugin-ui.js?v=39';
 import {money as formatMoney,escapeHTML as esc,statusText} from './api.js';
 import {defaultRole} from './role-labels.js';
 export function mountOrders({root=document,api,role=defaultRole,storageKey='dyws-manager',renderLocation,plugins}) {

@@ -17,7 +17,7 @@ function dyws_admin_report(array $config,\dyws\Store $store,\dyws\Plugins $plugi
 function dyws_admin_data(array $config,\dyws\Store $store,string $page):array {
  $started=microtime(true);$plugins=new \dyws\Plugins($config,$config['plugins_path']??null,$store);$store->plugins=$plugins;
  $settings=(new \dyws\Settings($config))->read();
- $boot=['page'=>$page,'responses'=>['/settings'=>$settings,'/plugins'=>$plugins->publicManifest()],'realtime'=>(new \dyws\Realtime($config,$store))->publicConfig()];
+ $boot=['page'=>$page,'responses'=>['/settings'=>$settings,'/plugins'=>$plugins->publicManifest($page)],'realtime'=>(new \dyws\Realtime($config,$store))->publicConfig()];
  if($page==='orders')$boot['responses']['/manager/orders']=dyws_admin_orders($config,$store);
  if(in_array($page,['catalog','settings'],true)){$catalog=\dyws\Catalog::load($config['catalog']);$boot['responses']['/manager/catalog']=['catalog'=>$catalog,'revision'=>\dyws\Catalog::revision($catalog)];}
  if($page==='settings')$boot['responses']['/manager/settings']=(new \dyws\Settings($config))->summary();
@@ -40,12 +40,17 @@ function dyws_admin_data(array $config,\dyws\Store $store,string $page):array {
  header('Server-Timing: app;dur='.round((microtime(true)-($_SERVER['REQUEST_TIME_FLOAT']??microtime(true)))*1000,2).', initial_data;dur='.round((microtime(true)-$started)*1000,2));
  return $boot;
 }
-function dyws_admin_initial_head(array $boot,string $publicRoot):string {
+function dyws_admin_initial_head(array $boot,string $publicRoot,string $prefix='../'):string {
  $html='<meta name="dyws-admin-data" content="'.htmlspecialchars(json_encode($boot,JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES),ENT_QUOTES,'UTF-8').'">';
+ $html.=dyws_requires_meta($boot['page']);
+ $html.=dyws_style_preloads($prefix);
+ foreach($boot['responses']['/plugins']['plugins'] as $plugin)if($plugin['stylesheet']??null)$html.='<link rel="stylesheet" data-dyws-plugin-style="'.htmlspecialchars($plugin['id'],ENT_QUOTES,'UTF-8').'" href="'.$prefix.'plugins/'.htmlspecialchars($plugin['id'].'/'.$plugin['stylesheet'].'?v='.$plugin['version'],ENT_QUOTES,'UTF-8').'">';
  $file=$publicRoot.'/platform/preloads.json';if(!is_file($file))return $html;
  $preloads=json_decode(file_get_contents($file),true,64,JSON_THROW_ON_ERROR);$urls=$preloads['pages'][$boot['page']]??[];
  foreach($boot['responses']['/plugins']['plugins'] as $plugin)$urls=array_merge($urls,$preloads['plugins'][$plugin['id']]??[]);
- foreach(array_unique($urls) as $url)$html.='<link rel="modulepreload" href="../'.htmlspecialchars($url,ENT_QUOTES,'UTF-8').'">';
+ foreach($boot['responses']['/plugins']['plugins'] as $plugin)foreach($preloads['styles'][$plugin['id']]??[] as $url)$html.='<link rel="preload" as="style" href="'.$prefix.htmlspecialchars($url,ENT_QUOTES,'UTF-8').'">';
+ if($boot['page']==='storefront')$html.='<link rel="preload" as="style" href="'.$prefix.'dyws/ordering.css?v=39">';
+ foreach(array_unique($urls) as $url)$html.='<link rel="modulepreload" href="'.$prefix.htmlspecialchars($url,ENT_QUOTES,'UTF-8').'">';
  return $html;
 }
 function dyws_admin_navigation(array $config,array $boot):string {
@@ -70,4 +75,12 @@ function dyws_admin_preview(array $boot):string {
  if($page==='drivers')foreach($boot['responses']['/manager/drivers']['drivers'] as $driver)$html.='<article><h2>'.$escape($driver['name']).'</h2><p>'.($driver['active']?'Active':'Inactive').' · '.(int)$driver['activeOrders'].' active orders</p></article>';
  if($page==='plugins')foreach($boot['responses']['/manager/plugins']['plugins'] as $plugin)$html.='<p><strong>'.$escape($plugin['name']).'</strong> · '.($plugin['active']?'Enabled':'Disabled').'</p>';
  return $html!==''?'<section data-dyws-initial-preview>'.$html.'</section>':'';
+}
+
+function dyws_style_preloads(string $prefix='../'):string {
+ $html='';foreach(['tokens.css?v=21','catalog.css?v=21','admin.css?v=28','tracking.css?v=28'] as $css)$html.='<link rel="preload" as="style" href="'.$prefix.'dyws/'.$css.'">';return $html;
+}
+
+function dyws_requires_meta(string $page):string {
+ return '<meta name="dyws-page-manifest" content="'.htmlspecialchars(json_encode(\dyws\PageManifest::forPage($page),JSON_THROW_ON_ERROR),ENT_QUOTES,'UTF-8').'">';
 }

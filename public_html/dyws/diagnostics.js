@@ -2,8 +2,9 @@
 export function safeTimingPath(value,base='https://example.invalid/') {
  try{return new URL(value,base).pathname.replace(/\/[A-Z]{2,7}-[A-F0-9]{12}(?=\/|$)/g,'/:order');}catch{return '(invalid path)';}
 }
-const enabled=typeof document!=='undefined'&&(document.body?.classList.contains('dyws-admin')||document.querySelector?.('meta[name="dyws-page-data"]'))&&new URL(location.href).searchParams.get('diagnostics')==='1';
-const entries=[],ready=new Set();let panel;
+const enabled=typeof document!=='undefined'&&new URL(location.href).searchParams.get('diagnostics')==='1';
+const entries=[],ready=new Set();let panel,lcp=null;
+if(enabled&&typeof PerformanceObserver!=='undefined')try{new PerformanceObserver(list=>{const last=list.getEntries().at(-1);if(last)lcp=Math.round(last.startTime*10)/10;render();}).observe({type:'largest-contentful-paint',buffered:true});}catch{}
 const round=n=>Math.round(n*10)/10;
 export async function traceLoad(name,task){
  if(!enabled)return task();
@@ -17,7 +18,7 @@ export function markReady(name='Page ready'){
 function snapshot(){
  const n=performance.getEntriesByType('navigation')[0];
  const resources=performance.getEntriesByType('resource').filter(r=>new URL(r.name).origin===location.origin).map(r=>({path:safeTimingPath(r.name,location.href),kind:r.initiatorType,start:round(r.startTime),duration:round(r.duration),ttfb:round(r.responseStart-r.requestStart),bytes:r.transferSize,cached:r.transferSize===0,server:r.serverTiming?.map(t=>({name:t.name,duration:round(t.duration)}))||[]}));
- return {page:location.pathname,navigation:n?{ttfb:round(n.responseStart-n.requestStart),domReady:round(n.domContentLoadedEventEnd),load:round(n.loadEventEnd),server:n.serverTiming?.map(t=>({name:t.name,duration:round(t.duration)}))||[]}:null,phases:[...entries],resources};
+ return {page:location.pathname,paint:{firstContentful:performance.getEntriesByName('first-contentful-paint')[0]?.startTime??null,largestContentful:lcp},navigation:n?{ttfb:round(n.responseStart-n.requestStart),domReady:round(n.domContentLoadedEventEnd),load:round(n.loadEventEnd),server:n.serverTiming?.map(t=>({name:t.name,duration:round(t.duration)}))||[]}:null,phases:[...entries],resources};
 }
 function render(){
  if(!panel)return;const data=snapshot(),page=data.phases.find(p=>p.name==='Page ready');
@@ -31,4 +32,5 @@ if(enabled){
  document.body.append(panel);panel.querySelector('[data-load-refresh]').onclick=render;
  panel.querySelector('[data-load-download]').onclick=()=>{const url=URL.createObjectURL(new Blob([JSON.stringify(snapshot(),null,2)],{type:'application/json'}));const link=document.createElement('a');link.href=url;link.download='dyws-load-diagnostics.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
  window.addEventListener('load',()=>setTimeout(render,0));render();
+ if(document.body.hasAttribute('data-dyws-static-page'))markReady();
 }

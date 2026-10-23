@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 namespace dyws;
+require_once __DIR__.'/Features.php';
 
 /** Plugins are trusted installed PHP code, not sandboxed or uploaded through HTTP. */
 final class PluginContext {
@@ -63,6 +64,8 @@ final class Plugins {
   $context=new PluginContext($id,$this->config,$this->aliases[$id]??[],$this->store);
   $register=require $this->root.'/'.$id.'/'.$this->installed[$id]['entry'];
   if(!is_callable($register))throw new \RuntimeException('Plugin must return a registration function.');
+   $attributes=(new \ReflectionFunction(\Closure::fromCallable($register)))->getAttributes(Provides::class);
+  if($attributes)$this->installed[$id]['provides']=$attributes[0]->newInstance()->features;
   $register($context);return $this->loaded[$id]=$context;
  }
  public function boot():void {
@@ -76,12 +79,12 @@ final class Plugins {
   foreach($this->errors as $id=>$error)if(!isset($this->installed[$id]))$plugins[]=['id'=>$id,'name'=>$id,'version'=>'','description'=>'','active'=>false,'error'=>$error];
   return ['plugins'=>$plugins,'revision'=>$this->revision(),'warning'=>isset($state['invalid'])?'Plugin settings could not be read. Plugins are disabled until saved again.':null];
  }
- public function publicManifest():array {
-  $this->boot();$out=[];
+ public function publicManifest(?string $page=null):array {
+  $this->boot();$out=[];$consumer=$page!==null?PageManifest::forPage($page):null;
   foreach($this->state()['active'] as $id)if(isset($this->loaded[$id])&&!isset($this->errors[$id])){
-   $m=$this->installed[$id];$out[]=['id'=>$id,'version'=>$m['version'],'apiVersion'=>1,'browserModule'=>$m['browserModule']??null,'stylesheet'=>$m['stylesheet']??null,'capabilities'=>$m['capabilities']??[]];
+   $m=$this->installed[$id];if($consumer&&!PageManifest::consumes($m,$consumer['requires']))continue;$out[]=['id'=>$id,'version'=>$m['version'],'apiVersion'=>1,'browserModule'=>$m['browserModule']??null,'stylesheet'=>$m['stylesheet']??null,'capabilities'=>$m['capabilities']??[],'provides'=>$m['provides']??null];
   }
-  return ['apiVersion'=>1,'plugins'=>$out,'hooks'=>$this->readJSON(__DIR__.'/hooks.json')];
+  return ['apiVersion'=>1,'page'=>$consumer['page']??null,'requires'=>$consumer['requires']??null,'plugins'=>$out,'hooks'=>$this->readJSON(__DIR__.'/hooks.json')];
  }
  public function save(array $body):array {
   $id=Store::text($body['id']??null,60);$active=$body['active']??null;

@@ -44,19 +44,20 @@ function dyws_tracking_access(array $config,\dyws\Store $store):?array {
 }
 function dyws_page_data(array $config,\dyws\Store $store,string $page,array $access):array {
  $started=microtime(true);$plugins=new \dyws\Plugins($config,$config['plugins_path']??null,$store);$store->plugins=$plugins;
- $boot=['page'=>$page,'responses'=>['/settings'=>(new \dyws\Settings($config))->read(),'/plugins'=>$plugins->publicManifest()],'realtime'=>(new \dyws\Realtime($config,$store))->publicConfig()];
+ $boot=['page'=>$page,'responses'=>['/settings'=>(new \dyws\Settings($config))->read(),'/plugins'=>$plugins->publicManifest($page)],'realtime'=>(new \dyws\Realtime($config,$store))->publicConfig()];
  if($page==='driver'){
   $boot['driverToken']=$access['token'];$boot['responses']['/driver/orders']=dyws_driver_orders($config,$store,$access);$boot['responses']['/driver/gps-config']=['testLocation'=>$config['driver_test_location']??null];
- }else{
+ }elseif($page==='tracking'){
   $boot['tracking']=['id'=>$access['id'],'token'=>$access['token']];$boot['responses']['/tracking/'.$access['id']]=$plugins->applyFilters('tracking.public',$access['data']);
  }
+ if($page==='storefront')$boot['responses']['/catalog']=$plugins->applyFilters('catalog.public',\dyws\Catalog::publicData(\dyws\Catalog::load($config['catalog'])));
  $route='/plugins/google-maps/config';$matched=$plugins->match('GET',$route);
- if($matched&&$matched['access']==='public')try{$boot['responses'][$route]=($matched['handler'])([],null,['raw'=>'','params'=>$matched['params'],'server'=>$_SERVER]);}catch(\Throwable $e){/* The map provides its own fallback. */}
+ if(in_array('location.renderer',\dyws\PageManifest::forPage($page)['requires'],true)&&$matched&&$matched['access']==='public')try{$boot['responses'][$route]=($matched['handler'])([],null,['raw'=>'','params'=>$matched['params'],'server'=>$_SERVER]);}catch(\Throwable $e){/* The map provides its own fallback. */}
  foreach($boot['responses'] as $route=>$data)$boot['responses'][$route]=$plugins->applyFilters('api.response',$data,$route,'GET');
  header('Server-Timing: app;dur='.round((microtime(true)-($_SERVER['REQUEST_TIME_FLOAT']??microtime(true)))*1000,2).', initial_data;dur='.round((microtime(true)-$started)*1000,2));return $boot;
 }
-function dyws_page_initial_head(array $boot,string $publicRoot):string {
- return str_replace('name="dyws-admin-data"','name="dyws-page-data"',dyws_admin_initial_head($boot,$publicRoot));
+function dyws_page_initial_head(array $boot,string $publicRoot,string $prefix='../'):string {
+ return str_replace('name="dyws-admin-data"','name="dyws-page-data"',dyws_admin_initial_head($boot,$publicRoot,$prefix));
 }
 function dyws_loading_skeleton(string $label='Loading controls'):string {
  return '<div class="dyws-skeleton" data-dyws-skeleton role="status" aria-label="'.htmlspecialchars($label,ENT_QUOTES,'UTF-8').'"><span class="dyws-visually-hidden">'.htmlspecialchars($label,ENT_QUOTES,'UTF-8').'…</span><i></i><i></i><i></i></div>';

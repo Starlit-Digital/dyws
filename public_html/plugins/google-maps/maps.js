@@ -1,3 +1,4 @@
+import {traceLoad,markReady} from '../../dyws/diagnostics.js';
 import {createGPSCache} from '../../dyws/gps-cache.js';
 let sdkPromise;
 function googleSDK(key){
@@ -49,7 +50,7 @@ export function createLocationRenderer({api,fallback,defaultCenter,makeMap=makeG
   if(!config.enabled||!config.browserKey){showFallback(p,lastRole);note.textContent=p?'Live map unavailable. Use the location link.':'Waiting for an active delivery.';onEstimate?.(null);return;}
   try{
    const position=p?{lat:p.latitude,lng:p.longitude}:defaultCenter;canvas.hidden=false;
-   if(!map){creating??=makeMap(canvas,config,position,{showMarker:!!p});map=await creating;}skeleton.hidden=true;
+   if(!map){creating??=traceLoad('Google Maps initialization',()=>makeMap(canvas,config,position,{showMarker:!!p}));map=await creating;markReady('Map ready');}skeleton.hidden=true;
    if(current!==version||!visible){if(!visible)map.clear();return;}
    p=cache.get();if(p){const next=p.latitude+','+p.longitude+'|'+lastRole.singular;if(signature!==next){map.update({lat:p.latitude,lng:p.longitude},lastRole.singular+' location');signature=next;}note.textContent=(now()-p.recorded_at*1000>60000?'Last known position. ':'Latest shared position. ')+'Waiting for a driving route.';}
    else if(defaultCenter){map.reset?.(defaultCenter);map.clear();signature=null;note.textContent='Business area reference. Waiting for the driver location.';}

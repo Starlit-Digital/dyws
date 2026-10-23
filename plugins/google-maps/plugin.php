@@ -3,7 +3,7 @@ declare(strict_types=1);
 use dyws\PluginContext;
 use dyws\Plugins\GoogleMaps\MapsSettings;
 require_once __DIR__.'/MapsSettings.php';
-return static function(PluginContext $plugin):void {
+return #[\dyws\Provides('location.renderer','admin:settings')] static function(PluginContext $plugin):void {
  $settings=new MapsSettings($plugin->config);
  foreach(['/maps/config','/plugins/google-maps/config'] as $path)$plugin->route('GET',$path,'public',fn()=>$settings->publicConfig());
  foreach(['/manager/maps','/manager/plugins/google-maps/settings'] as $path){

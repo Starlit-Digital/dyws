@@ -4,7 +4,7 @@ use dyws\{PluginContext,ApiError,Store};
 use dyws\Plugins\Stripe\{StripeSettings,StripePayments};
 require_once __DIR__.'/StripeSettings.php';
 require_once __DIR__.'/StripePayments.php';
-return static function(PluginContext $plugin):void {
+return #[\dyws\Provides('payment.renderer','admin:settings')] static function(PluginContext $plugin):void {
  $settings=new StripeSettings($plugin->config);
  $payments=static function()use($plugin,$settings):StripePayments {
   if(!$plugin->store)throw new ApiError('Payment storage is unavailable.',503);

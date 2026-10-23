@@ -1,6 +1,6 @@
 import {traceLoad,safeTimingPath} from '../dyws/diagnostics.js';
 // Website endpoint configuration and compatibility exports.
-import {initializeAdminSession,redirectToAuth} from '../dyws/admin-session.js?v=38';
+import {initializeAdminSession,redirectToAuth} from '../dyws/admin-session.js?v=39';
 import {createRealtimeAPI} from '../dyws/realtime.js';
 export {money,escapeHTML,statusText} from '../dyws/api.js';
 export const endpoint=new URL('../api/',import.meta.url);

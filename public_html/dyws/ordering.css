@@ -1,4 +1,4 @@
-@import url('./tokens.css?v=19');
+@import url('./tokens.css?v=21');
 /* Loaded inside the ordering element's shadow root. No host page selectors. */
 .dyws-ordering button, .dyws-ordering input, .dyws-ordering textarea, .dyws-ordering select { font: inherit; touch-action: manipulation; }
 .dyws-ordering button { cursor: pointer; min-height: 48px; border: 0; border-radius: 12px; padding: 10px 18px; background: var(--dyws-color-accent); color: var(--dyws-color-button-text); font-weight: 700; }
@@ -12,7 +12,7 @@
 .dyws-ordering .dyws-muted { background: var(--dyws-color-raised); color: var(--dyws-color-text); }
 .dyws-ordering .dyws-line { padding: 20px 0; border-bottom: 1px solid var(--dyws-color-border); }
 .dyws-ordering .dyws-line strong { display: block; }
-.dyws-ordering .dyws-quantity { display: flex; align-items: center; gap: 16px; margin-top: 12px; }
+.dyws-ordering .dyws-quantity { display: flex; justify-content: flex-end; align-items: center; gap: 16px; margin-top: 12px; }
 .dyws-ordering .dyws-quantity button { min-width: 48px; }
 .dyws-ordering .dyws-summary { display: grid; grid-template-columns: 1fr auto; gap: 10px; margin: 24px 0; }
 .dyws-ordering .dyws-summary dd { margin: 0; text-align: right; }
@@ -37,3 +37,5 @@
 .dyws-delivery-address legend{font-weight:700;margin-block:1rem}
 .dyws-delivery-address[hidden]{display:none}
 [data-dyws-checkout-fields]:empty { display: none; }
+
+.dyws-ordering .dyws-remove{display:inline-flex;align-items:center;justify-content:center;padding:12px;min-width:48px;min-height:48px}

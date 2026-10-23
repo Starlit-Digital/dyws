@@ -1,6 +1,6 @@
 import {markReady} from '../dyws/diagnostics.js';
-import {plugins} from './plugins.js?v=38';
-import {mountDriver} from '../dyws/driver.js?v=38';
+import {plugins} from './plugins.js?v=39';
+import {mountDriver} from '../dyws/driver.js?v=39';
 import {api} from './api.js';
 import {loadRole,applyRoleLabels} from '../dyws/role-labels.js';
 const role=await loadRole(api);
