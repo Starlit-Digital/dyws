@@ -186,3 +186,9 @@ Use `/admin/` under the installation URL. Every admin PHP page validates the man
 ## Backend startup and diagnostics, 0.9.2
 
 The authenticated PHP response supplies initial admin data, navigation and readable previews. JavaScript consumes each initial snapshot once and requests current data for refreshes and saves. The skeleton covers interactive controls until initialization finishes. Active plugin code loads concurrently while registration keeps manifest order. Generated module preload graphs avoid serial dependency discovery. Static files use cache revalidation, while HTML and API responses keep `no-store`. See `load-diagnostics.md` for the opt in timing panel and measured results. Live backup: `domains/sltd.ca/private/deploy-backups/dyws-backend-startup-20261023/`.
+
+## Customer and driver startup, 0.9.3
+
+Deploy `PageData.php`, the revised API and module include, both PHP pages, tracking handoff, JavaScript graph and Google Maps plugin 1.1.3 together. Assets use cache version 38. No database or settings migration is needed. Existing driver passwords are unchanged; drivers sign in once through the new PHP form to establish their page session. Private tracking links remain compatible and exchange their fragment token through POST for an order scoped HttpOnly cookie. The redirected URL contains only the order reference. See `load-diagnostics.md` for the access flow and diagnostics.
+
+Preserve runtime JSON, SQLite, credentials and `api/bootstrap-path.php`. Exclude `/setup/` when updating the installed demo. Back up code and private state, lint with the host PHP version, compare business record digests after publishing, and verify the extracted installation ZIP. Live backup: `domains/sltd.ca/private/deploy-backups/dyws-driver-tracking-startup-20261023/`.

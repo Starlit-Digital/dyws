@@ -20,7 +20,7 @@ The Reports page includes the bundled Order Reporting dashboard: period comparis
 
 Orders persist in SQLite. The server validates product IDs, variants and quantities, calculates prices and tax in integer cents, and handles idempotent submissions. Business managers accept and prepare orders, assign drivers and inspect operational reports, test payment totals, refunds, fees, tax, popular items and CSV exports. Drivers see assigned deliveries and can update their status and automatically share browser GPS during active deliveries. A simulated route is included for testing without sharing a real person’s location.
 
-Checkout opens a private order status page. Google Maps shows the driver, destination and driving route. Completed deliveries stop sharing location. The demo currently uses a simulated Manning Town Centre origin. HTTPS polling is active; optional WebSocket plumbing is ready for a separate server.
+Checkout opens a private order status page. PHP renders the first authorized customer and driver views; JavaScript handles live updates, maps and actions, with skeletons while controls initialize. Google Maps shows the driver, destination and driving route. Completed deliveries stop sharing location. The demo currently uses a simulated Manning Town Centre origin. HTTPS polling is active; optional WebSocket plumbing is ready for a separate server.
 
 No real payments are collected and no real deliveries are dispatched. Payments use a manual test ledger or optional Stripe sandbox Checkout. iOS and Android apps are planned in the mobile document, not built yet.
 

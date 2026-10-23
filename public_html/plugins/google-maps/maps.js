@@ -36,19 +36,20 @@ export async function makeGoogleMap(element,config,position,{showMarker=true}={}
 }
 /** One persistent map per view. Google SDK owns all Google content caching. */
 export function createLocationRenderer({api,fallback,defaultCenter,makeMap=makeGoogleMap,document:doc=globalThis.document,now=Date.now,setTimer=setTimeout,clearTimer=clearTimeout}){
- const root=doc.createElement('div'),canvas=doc.createElement('div'),reference=doc.createElement('div'),note=doc.createElement('p');
- root.className='dyws-location-view';canvas.className='dyws-google-map';note.className='dyws-note';root.append(canvas,reference,note);root.hidden=true;canvas.hidden=true;
+ const root=doc.createElement('div'),canvas=doc.createElement('div'),reference=doc.createElement('div'),note=doc.createElement('p'),skeleton=doc.createElement('div');
+ skeleton.className='dyws-skeleton dyws-map-skeleton';skeleton.setAttribute('role','status');skeleton.setAttribute('aria-label','Loading map');skeleton.innerHTML='<span class="dyws-visually-hidden">Loading map…</span><i></i><i></i><i></i>';skeleton.hidden=true;
+ root.className='dyws-location-view';canvas.className='dyws-google-map';note.className='dyws-note';root.append(canvas,skeleton,reference,note);root.hidden=true;canvas.hidden=true;
  const ttl=900000,cache=createGPSCache({now,ttl});let map,creating,configuration,timer,signature,lastRole={singular:'Driver'},fallbackSignature,version=0,visible=false,destinationAddress='',onEstimate=null;
- function clear(){onEstimate?.(null);onEstimate=null;version++;visible=false;cache.clear();clearTimer(timer);map?.clear();root.hidden=true;reference.replaceChildren();signature=null;fallbackSignature=null;}
- function showFallback(p,role){if(p){const next=p.latitude+','+p.longitude+'|'+role.singular;if(next!==fallbackSignature){const node=fallback?.(p,role);reference.replaceChildren(...(node?[node]:[]));fallbackSignature=next;}}else reference.replaceChildren();reference.hidden=false;canvas.hidden=true;}
+ function clear(){onEstimate?.(null);onEstimate=null;version++;visible=false;cache.clear();clearTimer(timer);map?.clear();root.hidden=true;skeleton.hidden=true;reference.replaceChildren();signature=null;fallbackSignature=null;}
+ function showFallback(p,role){skeleton.hidden=true;if(p){const next=p.latitude+','+p.longitude+'|'+role.singular;if(next!==fallbackSignature){const node=fallback?.(p,role);reference.replaceChildren(...(node?[node]:[]));fallbackSignature=next;}}else reference.replaceChildren();reference.hidden=false;canvas.hidden=true;}
  async function refresh(){
-  const current=version;let p=cache.get();if(!visible||(!p&&!defaultCenter)){clear();return;}root.hidden=false;
+  const current=version;let p=cache.get();if(!visible||(!p&&!defaultCenter)){clear();return;}root.hidden=false;skeleton.hidden=!!map;
   configuration??=api('/plugins/google-maps/config').catch(()=>({enabled:false}));const config=await configuration;if(current!==version||!visible)return;
   p=cache.get();if(!p&&!defaultCenter){clear();return;}
   if(!config.enabled||!config.browserKey){showFallback(p,lastRole);note.textContent=p?'Live map unavailable. Use the location link.':'Waiting for an active delivery.';onEstimate?.(null);return;}
   try{
    const position=p?{lat:p.latitude,lng:p.longitude}:defaultCenter;canvas.hidden=false;
-   if(!map){creating??=makeMap(canvas,config,position,{showMarker:!!p});map=await creating;}
+   if(!map){creating??=makeMap(canvas,config,position,{showMarker:!!p});map=await creating;}skeleton.hidden=true;
    if(current!==version||!visible){if(!visible)map.clear();return;}
    p=cache.get();if(p){const next=p.latitude+','+p.longitude+'|'+lastRole.singular;if(signature!==next){map.update({lat:p.latitude,lng:p.longitude},lastRole.singular+' location');signature=next;}note.textContent=(now()-p.recorded_at*1000>60000?'Last known position. ':'Latest shared position. ')+'Waiting for a driving route.';}
    else if(defaultCenter){map.reset?.(defaultCenter);map.clear();signature=null;note.textContent='Business area reference. Waiting for the driver location.';}

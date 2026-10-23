@@ -2,7 +2,7 @@
 export function safeTimingPath(value,base='https://example.invalid/') {
  try{return new URL(value,base).pathname.replace(/\/[A-Z]{2,7}-[A-F0-9]{12}(?=\/|$)/g,'/:order');}catch{return '(invalid path)';}
 }
-const enabled=typeof document!=='undefined'&&document.body?.classList.contains('dyws-admin')&&new URL(location.href).searchParams.get('diagnostics')==='1';
+const enabled=typeof document!=='undefined'&&(document.body?.classList.contains('dyws-admin')||document.querySelector?.('meta[name="dyws-page-data"]'))&&new URL(location.href).searchParams.get('diagnostics')==='1';
 const entries=[],ready=new Set();let panel;
 const round=n=>Math.round(n*10)/10;
 export async function traceLoad(name,task){

@@ -1,9 +1,9 @@
 import {formatTime} from './date-time.js';
-import {pluginSlot} from './plugin-ui.js?v=37';
+import {pluginSlot} from './plugin-ui.js?v=38';
 import {statusText,escapeHTML} from './api.js';
 import {defaultRole} from './role-labels.js';
-import {deliveryStatus,terminalStatuses} from './delivery-status.js?v=37';
-export function createTracking({api,container,role=defaultRole,trackingPage,renderLocation,renderPayment,plugins,shopPage,storageKey='dyws-tracking',panelId='customer-tracking',document:doc=globalThis.document,now=Date.now}) {
+import {deliveryStatus,terminalStatuses} from './delivery-status.js?v=38';
+export function createTracking({api,container,role=defaultRole,trackingPage,renderLocation,renderPayment,plugins,shopPage,storageKey='dyws-tracking',panelId='customer-tracking',document:doc=globalThis.document,now=Date.now,onReady=()=>{}}) {
  if(typeof api!=='function'||!container)throw new TypeError('dyws tracking requires an API client and container.');
  let timer,clock,active,panel,unwatch=null,polling=false,again=false,lastData,estimate,unavailable=false,lastChecked=0;
  const time=value=>formatTime(value);
@@ -58,7 +58,7 @@ export function createTracking({api,container,role=defaultRole,trackingPage,rend
   }catch(e){
    if(active!==current)return;unavailable=true;estimate=undefined;summary();write('.dyws-tracking-error',e.status===404?'This tracking link is unavailable or has expired.':'Connection interrupted. Your last update is shown. Retrying automatically.');
    if(e.status===404){active=null;lastData=null;renderLocation?.clear?.();panel?.querySelector('.dyws-tracking-map').replaceChildren();if(panel)panel.querySelector('.dyws-tracking-arrival').hidden=true;write('.dyws-tracking-status','Tracking unavailable');clearInterval(clock);unwatch?.();unwatch=null;again=false;return;}
-  }finally{polling=false;if(again){again=false;queueMicrotask(poll);}}
+  }finally{polling=false;onReady();if(again){again=false;queueMicrotask(poll);}}
   if(!api.watch&&active===current)timer=setTimeout(poll,doc.hidden?30000:5000);
  }
  function destroy(){active=null;lastData=null;renderLocation?.clear?.();clearTimeout(timer);clearInterval(clock);unwatch?.();unwatch=null;panel?.remove();panel=null;}

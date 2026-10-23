@@ -1,6 +1,6 @@
-import {plugins} from './plugins.js?v=37';
-import {mountNavigation} from './admin-navigation.js?v=37';
-import {mountManager} from '../dyws/manager.js?v=37';
+import {plugins} from './plugins.js?v=38';
+import {mountNavigation} from './admin-navigation.js?v=38';
+import {mountManager} from '../dyws/manager.js?v=38';
 import {api} from './api.js';
 import {loadRole} from '../dyws/role-labels.js';
 const role=await loadRole(api);

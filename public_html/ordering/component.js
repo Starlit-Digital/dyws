@@ -1,2 +1,2 @@
 // Compatibility entry point. Implementation lives in DYWS.
-export * from '../dyws/component.js?v=37';
+export * from '../dyws/component.js?v=38';

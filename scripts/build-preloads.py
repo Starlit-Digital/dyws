@@ -15,7 +15,7 @@ def graph(entry):
    resolved=posixpath.normpath(posixpath.join(posixpath.dirname(path),target))
    if not resolved.startswith('../'):visit(resolved)
  visit(entry);return sorted(seen)
-pages={page:graph('platform/'+script+'.js?v=37') for page,script in [('orders','orders'),('reports','manager'),('catalog','admin'),('drivers','admin'),('settings','admin'),('password','admin'),('plugins','admin')]}
+pages={page:graph('platform/'+script+'.js?v=38') for page,script in [('driver','driver'),('tracking','tracking'),('orders','orders'),('reports','manager'),('catalog','admin'),('drivers','admin'),('settings','admin'),('password','admin'),('plugins','admin')]}
 plugins={}
 for file in (root/'plugins').glob('*/plugin.json'):
  manifest=json.loads(file.read_text());entry=manifest.get('browserModule')

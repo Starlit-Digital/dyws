@@ -17,3 +17,5 @@
 
 .dyws-skeleton{display:grid;gap:14px;padding:24px;background:var(--dyws-color-surface);border-radius:16px;margin-bottom:20px}.dyws-skeleton i{display:block;height:22px;border-radius:8px;background:var(--dyws-color-raised);animation:dyws-pulse 1.4s ease-in-out infinite alternate}.dyws-skeleton i:first-of-type{width:40%}.dyws-skeleton i:last-of-type{width:75%}@keyframes dyws-pulse{to{opacity:.4}}@media(prefers-reduced-motion:reduce){.dyws-skeleton i{animation:none}}
 @media(min-width:1000px){.dyws-admin-menu:not([open])>nav{display:flex}}
+
+.dyws-location-view{position:relative}.dyws-map-skeleton{min-height:280px;display:grid;align-content:center;padding:1.5rem}.dyws-map-skeleton:not([hidden])+.dyws-note{visibility:hidden}.dyws-location-view:has(.dyws-map-skeleton:not([hidden]))>.dyws-google-map{position:absolute;inset:0;opacity:0;pointer-events:none}
