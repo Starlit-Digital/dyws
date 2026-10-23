@@ -35,7 +35,7 @@ export class RestaurantOrdering extends HTMLElement {
   }
   announce(text){this.shadowRoot.querySelector('[role="status"]').textContent=text;}
   render(){
-    this.shadowRoot.innerHTML=`<link rel="stylesheet" href="${new URL('./component.css?v=4',import.meta.url).href}"><button class="cart-launch" type="button">Your order</button><p id="status" role="status" aria-live="polite"></p><dialog aria-labelledby="order-title"><header><h2 id="order-title">Your order</h2><button type="button" class="muted close" aria-label="Close order">Close</button></header><div class="content"></div></dialog>`;
+    this.shadowRoot.innerHTML=`<link rel="stylesheet" href="${new URL('./component.css?v=10',import.meta.url).href}"><button class="cart-launch" type="button">Your order</button><p id="status" role="status" aria-live="polite"></p><dialog aria-labelledby="order-title"><header><h2 id="order-title">Your order</h2><button type="button" class="muted close" aria-label="Close order">Close</button></header><div class="content"></div></dialog>`;
     this.dialog=this.shadowRoot.querySelector('dialog');
     this.shadowRoot.querySelector('.cart-launch').onclick=()=>this.open();
     this.shadowRoot.querySelector('.close').onclick=()=>this.dialog.close();
