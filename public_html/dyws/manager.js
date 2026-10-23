@@ -1,0 +1,32 @@
+import {money as formatMoney,escapeHTML as esc,statusText} from './api.js';
+export function mountManager({root=document,api,storageKey='starlit-go-manager',timeZone='America/Edmonton',onCatalog=()=>{}}) {
+ if(typeof api!=='function')throw new TypeError('A DYWS API client is required.');
+let token=sessionStorage.getItem(storageKey),report,busy=false;
+const money=n=>formatMoney(n,report?.currency||'CAD');
+const error=root.querySelector('#error');
+const day=new Intl.DateTimeFormat('en-CA',{timeZone,year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());root.querySelector('#from').value=day;root.querySelector('#to').value=day;
+function display(){root.querySelector('#login').hidden=!!token;root.querySelector('#dashboard').hidden=!token;}
+root.querySelector('#login-form').onsubmit=async e=>{e.preventDefault();try{const data=await api('/login',{method:'POST',body:{role:'manager',password:new FormData(e.target).get('password')}});token=data.token;sessionStorage.setItem(storageKey,token);e.target.reset();display();await load();}catch(e){error.textContent=e.message;}};
+root.querySelector('#logout').onclick=async()=>{try{await api('/logout',{method:'POST',body:{},token});}catch{}token=null;sessionStorage.removeItem(storageKey);display();};
+const statuses={placed:['accepted','cancelled'],accepted:['preparing','cancelled'],preparing:['ready','cancelled'],ready:['completed','out_for_delivery','cancelled'],out_for_delivery:['delivered']};
+async function mutate(route,body){if(busy)return;busy=true;root.querySelectorAll('#orders button').forEach(b=>b.disabled=true);try{await api(route,{method:'POST',body,token});await load();}catch(e){error.textContent=e.message;}finally{busy=false;root.querySelectorAll('#orders button').forEach(b=>b.disabled=false);}}
+async function load(){if(!token)return;try{
+ const from=root.querySelector('#from').value,to=root.querySelector('#to').value;
+ const [r,data,catalog]=await Promise.all([api(`/manager/reports?from=${from}&to=${to}`,{token}),api('/manager/orders',{token}),api('/catalog')]);root.querySelector('h1').textContent=catalog.platformName+' · Business admin';onCatalog(catalog);report=r;error.textContent='';
+ const stats=[['Orders',r.orderCount],['Active orders',r.activeOrders],['Cancelled',r.cancelledOrders],['Ordered value',money(r.orderedValue)],['Average order',money(r.averageOrderValue)],['Test payments recorded',money(r.captured)],['Test refunds recorded',money(r.refunded)],['Net test collections',money(r.netCollected)],['Net product sales, before tax',money(r.netSales)],['Net delivery fees',money(r.netDeliveryFees)],['Net tax',money(r.netTax)],['Average preparation',r.averagePreparationSeconds===null?'No completed samples':Math.round(r.averagePreparationSeconds/60)+' min'],['Average delivery',r.averageDeliverySeconds===null?'No completed samples':Math.round(r.averageDeliverySeconds/60)+' min']];
+ root.querySelector('#stats').innerHTML=stats.map(([name,value])=>`<div class="dyws-stat">${esc(name)}<strong>${esc(value)}</strong></div>`).join('');
+ root.querySelector('#top-items').innerHTML='<table><thead><tr><th>Item</th><th>Quantity</th><th>Ordered subtotal</th></tr></thead><tbody>'+r.topItems.map(i=>`<tr><td>${esc(i.name)} ${esc(i.option)}</td><td>${i.quantity}</td><td>${money(i.orderedSubtotal)}</td></tr>`).join('')+'</tbody></table>';
+ root.querySelector('#orders').innerHTML=data.orders.length?data.orders.map(o=>{
+  const next=(statuses[o.status]||[]).filter(s=>!(s==='completed'&&o.fulfillment!=='pickup')&&!(s==='out_for_delivery'&&o.fulfillment!=='delivery'));
+  return `<article data-order="${o.id}"><h3>${o.id} · ${money(o.total)}</h3><p>${esc(statusText(o.status))} · ${esc(o.fulfillment)} · payment ${esc(o.payment_status)}</p><p>${esc(o.customer_name)} · ${esc(o.customer_phone)}<br>${esc(o.address)}</p><ul>${o.lines.map(l=>`<li>${l.quantity} × ${esc(l.name)} ${esc(l.option)} · ${money(l.price*l.quantity)}</li>`).join('')}</ul>${o.notes?`<p>Notes: ${esc(o.notes)}</p>`:''}<p><small>${new Date(o.created_at*1000).toLocaleString()} · Driver: ${esc(o.driver_id||'Not assigned')}</small></p><div class="dyws-actions">${next.map(s=>`<button data-status="${s}">${esc(statusText(s))}</button>`).join('')}${o.payment_provider!=='stripe'&&o.payment_status==='unpaid'&&o.status!=='cancelled'?'<button data-payment="capture">Record test payment</button>':''}${o.payment_provider!=='stripe'&&o.payment_status==='paid'?'<button data-payment="refund">Record full test refund</button>':''}</div>${o.payment_provider==='stripe'?'<p>Stripe sandbox payment. Manage any refund in your Stripe dashboard.</p>':''}${o.fulfillment==='delivery'&&!['out_for_delivery','delivered','cancelled'].includes(o.status)?`<label>Driver <select class="dyws-driver-select">${data.drivers.map(d=>`<option value="${esc(d.id)}" ${d.id===o.driver_id?'selected':''}>${esc(d.name)}</option>`).join('')}</select></label><button data-assign>Assign driver</button>`:''}</article>`;
+ }).join(''):'<p>No orders yet. Place a test order in the catalog.</p>';
+ root.querySelectorAll('[data-order]').forEach(card=>{const base='/manager/orders/'+card.dataset.order;card.querySelectorAll('[data-status]').forEach(b=>b.onclick=()=>mutate(base+'/status',{status:b.dataset.status}));card.querySelectorAll('[data-payment]').forEach(b=>b.onclick=()=>mutate(base+'/payment',{kind:b.dataset.payment}));card.querySelector('[data-assign]')?.addEventListener('click',()=>mutate(base+'/assign',{driverId:card.querySelector('select').value}));});
+ root.querySelectorAll('#orders button').forEach(b=>b.disabled=busy);
+ }catch(e){error.textContent=e.message;}}
+root.querySelector('#refresh').onclick=load;
+root.querySelector('#export').onclick=()=>{if(!report)return;const fields=['orderCount','activeOrders','cancelledOrders','orderedValue','captured','refunded','netCollected','netSales','netDeliveryFees','netTax','averageOrderValue'];const rows=['metric,value,currency,units',...fields.map(k=>`${k},${report[k]},${report.currency},${k.includes('Orders')||k==='orderCount'?'count':'cents'}`)];const url=URL.createObjectURL(new Blob([rows.join('\n')],{type:'text/csv'}));const a=document.createElement('a');a.href=url;a.download='dyws-report.csv';a.click();URL.revokeObjectURL(url);};
+display();if(token)load();const refreshTimer=setInterval(()=>{if(token&&!document.hidden&&!busy&&!root.querySelector('#orders')?.contains(document.activeElement))load();},10000);
+
+return {refresh:load,destroy(){clearInterval(refreshTimer);}};
+
+}

@@ -1,17 +1,38 @@
 {
-  "name": "@starlit-digital/dyws-styles",
-  "version": "0.1.0",
+  "name": "@starlit-digital/dyws",
+  "version": "0.2.0",
   "private": true,
-  "description": "Scoped styles for Do You Want Something ordering components",
+  "description": "Reusable Do You Want Something ordering JavaScript and scoped CSS",
   "style": "dyws.css",
   "exports": {
-    ".": "./dyws.css",
+    ".": "./index.js",
     "./tokens.css": "./tokens.css",
     "./catalog.css": "./catalog.css",
     "./ordering.css": "./ordering.css",
     "./admin.css": "./admin.css",
-    "./tracking.css": "./tracking.css"
+    "./tracking.css": "./tracking.css",
+    "./index.js": "./index.js",
+    "./component.js": "./component.js",
+    "./cart.js": "./cart.js",
+    "./catalog.js": "./catalog.js",
+    "./api.js": "./api.js",
+    "./tracking.js": "./tracking.js",
+    "./storefront.js": "./storefront.js",
+    "./manager.js": "./manager.js",
+    "./driver.js": "./driver.js",
+    "./settings.js": "./settings.js",
+    "./dyws.css": "./dyws.css"
   },
-  "files": ["*.css"],
-  "sideEffects": ["*.css"]
+  "files": [
+    "*.js",
+    "*.css",
+    "README.md"
+  ],
+  "sideEffects": [
+    "*.css",
+    "./component.js",
+    "./index.js"
+  ],
+  "type": "module",
+  "module": "index.js"
 }

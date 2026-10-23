@@ -52,3 +52,4 @@
   .dyws-catalog .dyws-product-action { white-space: normal; }
   .dyws-catalog .dyws-product h3, .dyws-catalog .dyws-product p { overflow-wrap: anywhere; }
 }
+.dyws-catalog .dyws-category-layout:not(:has(> .dyws-category-photo)) { grid-template-columns: minmax(0,1fr); }

@@ -34,7 +34,7 @@ Open http://127.0.0.1:8097 . PHP 8.1 or newer with PDO SQLite is required. Node.
 - [Local setup, hosted demo and validation](docs/deployment.md)
 - [Starlit Diner example](examples/starlit-diner/README.md)
 
-The reusable custom element is in public_html/ordering. Supply a catalog URL and an order adapter. The diner adapter uses the same origin API; another restaurant integration must provide its own authenticated tenant configuration and narrowly configured origin policy. Styles are a separate DYWS package with scoped dyws classes and --dyws theme variables. See [DYWS styling](docs/dyws-styles.md).
+The reusable browser module is in public_html/dyws, and the private PHP library is in modules/dyws/php. See [module integration and PHP rendering calls](docs/dyws-module.md). Supply a catalog URL and an order adapter. The diner adapter uses the same origin API; another restaurant integration must provide its own authenticated tenant configuration and narrowly configured origin policy. Styles are part of the DYWS package with scoped dyws classes and --dyws theme variables. See [DYWS styling](docs/dyws-styles.md).
 
 The repository was renamed from restaurant-ordering while preserving its Git history. The original Cravings & Delight website remains separately saved at https://github.com/Starlit-Digital/cravingsanddelight.ca .
 

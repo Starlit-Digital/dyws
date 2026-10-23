@@ -56,3 +56,17 @@ For a local checkout where the old tracked catalog has already moved, pass the s
 The demo loads `dyws/dyws.css?v=19`, and the cart loads `dyws/ordering.css?v=19` inside its shadow root. Deploy the entire dyws folder together with the updated HTML and JavaScript. The former CSS URLs forward to these files. No runtime catalog or database migration is needed. The catalog migration CLI now resolves relative config paths before storing an absolute catalog path, preventing local preview failures.
 
 October 23 validation: all 98 existing checks passed. Browser checks covered desktop and mobile catalog/cart layouts, light and dark cart themes, 48px quantity buttons, admin styling and a plain host page using only DYWS CSS. The isolated page confirmed that unrelated host controls keep their native styles. Frontend backup: domains/sltd.ca/private/deploy-backups/starlit-go-dyws-css-20261023/public-diner/.
+
+## DYWS JavaScript and PHP modules
+
+The homepage is now index.php. Preserve the DirectoryIndex setting and existing security headers in public_html/.htaccess. Move the old index.html out of the public folder after backing it up, so the PHP homepage is the sole entry point.
+
+Deploy modules/dyws/php to the private installation's modules/dyws/php folder first, then deploy server compatibility adapters, then public_html. The public api/bootstrap-path.php remains unchanged and private credentials, runtime catalog and SQLite state are not part of the upload. No database migration or catalog replacement is needed. The Composer autoloader remains in private vendor and is loaded by the server adapter. A new host can include module.php and dispatch dyws_serve_api with its own private configuration path.
+
+The browser package is now @starlit-digital/dyws, with ES module entry index.js and the existing CSS subpaths. Website scripts pass endpoint URLs, page elements and diner map functions into the package. A separate shop example is in examples/php-host. All imports in the browser package resolve within its folder.
+
+Validation on October 23: 115 checks passed, comprising eight JavaScript checks, 28 backend checks, 27 HTTP checks, 39 catalog and Stripe checks and 13 PHP rendering checks. The raw HTTP homepage contains five category panels and 35 items before JavaScript. Local browser checkout, variant and quantity controls, tracking, manager status updates, settings and driver login were verified. A second site with copied JavaScript/CSS/PHP packages, separate catalog and separate database successfully placed a test order and synchronized a category panel with a separate featured item. External Stripe payment execution remains untested and disabled without credentials.
+
+Rollback files are in domains/sltd.ca/private/deploy-backups/dyws-modules-20261023/. Restore both public-diner and server together. The new private module folder can remain unused after rollback; preserve the database and catalog.
+
+Hosted verification after deployment confirmed five PHP category panels, 35 products, the package driven cart and order SG-8FBF4C91398D with inline tracking. Only fictional test details were used. No payment was taken.

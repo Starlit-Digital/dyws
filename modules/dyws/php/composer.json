@@ -1,0 +1,17 @@
+{
+  "name": "starlit-digital/dyws-backend",
+  "description": "DYWS catalog rendering and ordering backend",
+  "type": "library",
+  "license": "proprietary",
+  "require": {
+    "php": ">=8.1",
+    "ext-pdo": "*",
+    "ext-pdo_sqlite": "*",
+    "stripe/stripe-php": "^22.0"
+  },
+  "autoload": {
+    "files": [
+      "module.php"
+    ]
+  }
+}

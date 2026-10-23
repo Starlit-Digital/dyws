@@ -1,6 +1,6 @@
 # DYWS style package
 
-DYWS means Do You Want Something. The reusable CSS lives in `public_html/dyws/`, independently of the fictional diner theme. Its package name is `@starlit-digital/dyws-styles`. It is private and has not been published to a registry.
+DYWS means Do You Want Something. The reusable CSS lives in `public_html/dyws/`, independently of the fictional diner theme. Its package name is `@starlit-digital/dyws`. It is private and has not been published to a registry.
 
 ## Entry points
 
@@ -12,10 +12,10 @@ All classes use lowercase `dyws-`, including `dyws-catalog`, `dyws-category`, `d
 <link rel="stylesheet" href="dyws/dyws.css">
 <div class="dyws-catalog"><!-- Render categorized products here. --></div>
 <dyws-ordering catalog="api/index.php?route=/catalog"></dyws-ordering>
-<script type="module" src="ordering/component.js"></script>
+<script type="module" src="dyws/index.js"></script>
 ```
 
-The ordering JavaScript, catalog renderer and backend are still in their existing folders. This change extracts their presentation, not their runtime into new packages. Existing `starlit-ordering` and `restaurant-ordering` element names still work. Events, cart storage, API contracts and public tracking anchors are unchanged. The old CSS URLs are forwarding imports for updated integrations; legacy CSS class overrides should migrate to the DYWS names.
+The JavaScript now lives alongside these styles in the DYWS package. PHP rendering and backend services live in the private modules/dyws/php library. See [module integration](dyws-module.md). The older element names and CSS URLs remain compatibility entry points.
 
 ## Theme interface
 
@@ -37,4 +37,4 @@ Set public tokens on the host page or a containing element. Internal resolved va
 
 The diner maps its existing shade slider palette to these tokens in demo.css. That stylesheet retains only the host page, hero, footer, navigation, display preferences and theme mapping. Product cards, photos, steppers and the cart no longer depend on it. Photo layouts remain full width on mobile, with the category image on the left and under half the available width on desktop. Controls retain their 48px targets and manipulation touch behavior.
 
-The existing admin and driver pages use `dyws-shell` now. Separate driver trip, admin, backend and installer components are future work, as requested; this extraction makes their style boundaries explicit without splitting those runtimes yet.
+The existing admin and driver pages use `dyws-shell` now. Admin, driver and settings controllers now have explicit module entry points. Native driver apps and installer components remain future work.

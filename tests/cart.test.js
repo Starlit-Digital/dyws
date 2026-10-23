@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {resolveItem,restoreCart,totals,lineKey} from '../public_html/ordering/cart.js';
+import {resolveItem,restoreCart,totals,lineKey} from '../public_html/dyws/cart.js';
 const catalog=JSON.parse(readFileSync(new URL('../examples/starlit-diner/catalog.json',import.meta.url)));
 test('currency uses integer cents and rounds tax once',()=>{
  assert.deepEqual(totals([{price:1495,quantity:2},{price:295,quantity:1}],500),{subtotal:3285,tax:164,total:3449});

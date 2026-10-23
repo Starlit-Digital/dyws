@@ -26,6 +26,11 @@ with tempfile.TemporaryDirectory(prefix='starlit-api-') as work:
    try:request('/health');break
    except (OSError,urllib.error.URLError):time.sleep(.05)
   else:raise AssertionError('Server failed to start')
+  with urllib.request.urlopen(f'http://127.0.0.1:{port}/index.php',timeout=4) as page:
+   html=page.read().decode()
+   assert html.count('class="dyws-category"')==5 and html.count('class="dyws-product"')==35
+   assert 'Sunrise Breakfast' in html and 'data-dyws-rendered' in html and '<?php' not in html
+   checks+=1
   request('/manager/orders',status=401)
   request('/login',{'role':'manager','password':'wrong'},status=401)
   manager_token=request('/login',{'role':'manager','password':manager})['token']
