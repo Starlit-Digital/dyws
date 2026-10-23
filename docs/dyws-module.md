@@ -73,3 +73,11 @@ dyws_serve_api('/srv/private/config.json');
 The same private catalog file must be used by rendering and the order API. The API dispatcher retains session authorization, tenant and driver scope, rate limits, server pricing, idempotency, tracking token checks and Stripe signature verification. Existing configuration fields and routes are documented in api.md and deployment.md. `dyws_bootstrap($configPath)` returns the configuration and Store for trusted server integrations. The legacy environment variable remains supported, with DYWS_CONFIG available as an alternative. API dispatch belongs in the endpoint, not in a homepage render call.
 
 See `examples/php-host/` for a separate shop host using one category and one featured product. It was verified using copied packages outside the diner repository, including a test order saved by its own PHP backend.
+
+## Admin editing modules
+
+The admin host now has five separate pages: reports, catalog, drivers, Stripe and password. The tab navigation uses links with aria-current rather than ARIA tabs, because each destination is a separate page. The host passes its URLs into mountAdminNavigation; package modules do not decide where the website's pages live.
+
+The browser exports catalog-editor.js, account-editor.js, stripe-editor.js and admin-navigation.js. They initialize against a supplied root and API client. The catalog editor clones the loaded JSON into an in-memory draft and edits categories, names, descriptions, image URLs and descriptions, prices, SKU, unit, availability and option names/prices. Category, item and option creation, removal and ordering preserve existing IDs. Hidden metadata is retained. Save uses the existing revision guarded catalog endpoint and server validation. Money is entered in dollars and converted to integer cents. Image uploads are not implemented; use existing relative paths or HTTPS URLs.
+
+Drivers can be added, renamed, have a password reset, or be deactivated. The admin password page requires the current password and confirms the new password. New account persistence lives in AdminAccounts.php. The Stripe page reuses the existing sandbox connector. settings.html is now a compatibility redirect to the catalog editor. The old mountSettings export remains for existing integrations.

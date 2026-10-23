@@ -66,3 +66,13 @@ No CORS wildcard is provided. The existing example operates on the same origin. 
 | POST | /stripe/webhook | Stripe signature over the raw JSON request |
 
 Order receipts include paymentProvider and currency. Tracking adds paymentProvider and checkoutStatus. Stripe order payments are webhook controlled. See catalog-and-payments.md for schema and reconciliation rules.
+
+## Administration accounts
+
+All three endpoints require a manager bearer session. Driver sessions receive 403 and anonymous requests receive 401. Account hashes and passwords are never returned.
+
+* GET /manager/drivers returns drivers with id, name, active, activeOrders, and an opaque revision.
+* POST /manager/drivers accepts id, name, active, password and the loaded revision. A new driver needs a password. A blank password on an existing driver keeps the old one. IDs remain stable. A stale revision returns 409. Deactivation is reversible and is blocked while the driver has unfinished assigned orders. Password resets and deactivation revoke that driver's sessions. Inactive drivers cannot sign in or receive new assignments.
+* POST /manager/password accepts currentPassword, newPassword and confirmPassword. The current password must verify. Success returns ok and signInRequired, and revokes all manager sessions. New passwords are limited to 12 through 72 bytes, with the browser also enforcing at least 12 characters. No existing credentials are changed by deployment.
+
+Account changes use a private accounts file identified by the tenant hash alongside the database. It overrides the initial deployment credentials and driver list without rewriting config.json. File locking serializes login, account updates and assignment eligibility checks. Passwords are hashed using PHP password_hash and the file is written atomically with mode 0600. Account changes and password attempts are rate limited. Keep account overrides in private backups together with the database and base configuration.

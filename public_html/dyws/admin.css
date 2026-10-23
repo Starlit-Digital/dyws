@@ -24,3 +24,42 @@
 .dyws-shell code, .dyws-shell p { overflow-wrap: anywhere; }
 .dyws-shell input[type='password'] { display: block; width: 100%; max-width: 36rem; }
 .dyws-shell input[type='checkbox'] { min-height: 24px; min-width: 24px; vertical-align: middle; }
+/* Shared administration navigation and editors. */
+.dyws-shell .dyws-admin-tabs { display:flex; flex-wrap:wrap; gap:8px; margin:24px 0; }
+.dyws-shell .dyws-admin-tabs a { display:flex; align-items:center; justify-content:center; padding:10px 20px; min-height:48px; border-radius:12px; color:var(--dyws-color-text); background:var(--dyws-color-surface); text-decoration:none; font-weight:700; }
+.dyws-shell .dyws-admin-tabs a[aria-current='page'] { background:var(--dyws-color-accent); color:var(--dyws-color-button-text); }
+.dyws-shell .dyws-secondary { background:var(--dyws-color-raised); color:var(--dyws-color-text); }
+.dyws-shell .dyws-field-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px 20px; }
+.dyws-shell .dyws-field-grid input:not([type='checkbox']), .dyws-shell .dyws-field-grid textarea { display:block; width:100%; }
+.dyws-shell .dyws-wide { grid-column:1/-1; }
+.dyws-shell .dyws-field-grid textarea { min-height:100px; }
+.dyws-shell .dyws-checkbox { align-self:center; }
+.dyws-shell .dyws-editor-fields { border:0; padding:0; margin:0; min-width:0; }
+.dyws-shell .dyws-editor-layout { display:grid; grid-template-columns:220px minmax(0,1fr); gap:24px; align-items:start; }
+.dyws-shell .dyws-editor-layout section { margin-top:0; }
+.dyws-shell .dyws-category-list { display:grid; gap:8px; margin-bottom:16px; }
+.dyws-shell .dyws-category-list button { text-align:left; background:var(--dyws-color-surface); color:var(--dyws-color-text); overflow-wrap:anywhere; }
+.dyws-shell .dyws-category-list button[aria-pressed='true'] { background:var(--dyws-color-accent); color:var(--dyws-color-button-text); }
+.dyws-shell .dyws-editor-heading { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:12px; }
+.dyws-shell .dyws-editor-heading .dyws-actions { margin:0; }
+.dyws-shell .dyws-item-editor,.dyws-shell .dyws-business-settings { background:var(--dyws-color-raised); border-radius:12px; padding:16px; margin:16px 0; }
+.dyws-shell summary { cursor:pointer; min-height:48px; padding:8px; font-weight:700; }
+.dyws-shell .dyws-item-editor summary span:last-child { float:right; font-weight:400; padding-left:12px; }
+.dyws-shell .dyws-option-row { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto; gap:12px; align-items:end; margin:16px 0; }
+.dyws-shell .dyws-option-row label { margin:0; }
+.dyws-shell .dyws-option-row input { width:100%; }
+.dyws-shell .dyws-save-bar { position:sticky; bottom:0; display:flex; flex-wrap:wrap; align-items:center; gap:12px; padding:16px; background:var(--dyws-color-bg); border-radius:12px; box-shadow:0 -4px 20px #0003; z-index:2; }
+.dyws-shell .dyws-save-bar p { margin:0; }
+.dyws-shell .dyws-driver-card { display:flex; justify-content:space-between; align-items:center; gap:20px; }
+.dyws-shell .dyws-driver-card p { margin:4px 0; }
+.dyws-shell input[readonly] { opacity:.8; }
+@media(max-width:750px) {
+ .dyws-shell .dyws-editor-layout { grid-template-columns:minmax(0,1fr); gap:12px; }
+ .dyws-shell .dyws-category-list { display:flex; flex-wrap:wrap; }
+ .dyws-shell .dyws-field-grid { grid-template-columns:minmax(0,1fr); }
+ .dyws-shell .dyws-option-row { grid-template-columns:minmax(0,1fr); }
+ .dyws-shell .dyws-item-editor summary span:last-child { float:none; display:block; padding:4px 0 0; }
+ .dyws-shell .dyws-admin-tabs a { flex:1 1 auto; padding:10px 14px; }
+ .dyws-shell .dyws-driver-card { align-items:start; flex-direction:column; }
+ .dyws-shell .dyws-editor-layout section { padding:16px; }
+}

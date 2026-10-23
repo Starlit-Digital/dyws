@@ -70,3 +70,13 @@ Validation on October 23: 115 checks passed, comprising eight JavaScript checks,
 Rollback files are in domains/sltd.ca/private/deploy-backups/dyws-modules-20261023/. Restore both public-diner and server together. The new private module folder can remain unused after rollback; preserve the database and catalog.
 
 Hosted verification after deployment confirmed five PHP category panels, 35 products, the package driven cart and order SG-8FBF4C91398D with inline tracking. Only fictional test details were used. No payment was taken.
+
+## Admin tabs and catalog editor
+
+Deploy modules/dyws/php first, then public_html. The five admin pages use DYWS browser package version 0.3.0. Existing credentials are unchanged. Account overrides are created only when an administrator saves driver settings or changes the admin password. Keep accounts-*.json private, and never overwrite these files during code deployments. No database or catalog migration is needed.
+
+The catalog editor loads the runtime JSON and saves through the existing revision checked API. Tests use temporary data rather than the hosted business catalog. The old settings.html address redirects to catalog-admin.html, while Stripe settings are on stripe-admin.html.
+
+October 23 admin upgrade validation: 144 checks passed, including account creation, duplicate ID rejection, password verification and session revocation, disabled driver access, assignment rules, stale revisions and catalog decimal conversion. Browser testing used a separate temporary backend and saved edited item fields, new categories, new items and option prices back to JSON, then updated a driver name. Reports, catalog, drivers, Stripe and password navigation were checked. Password changes were tested against isolated backend fixtures; deployment does not change the owner's passwords.
+
+Backup: domains/sltd.ca/private/deploy-backups/dyws-admin-20261023/. Restore the public-diner and php code directories together if needed. Preserve runtime accounts files, catalog and SQLite data. Older code will not read account overrides, so reconcile credentials deliberately before rolling back after a password change.

@@ -5,6 +5,7 @@ ini_set('display_errors','0');
 header('Content-Type: application/json; charset=utf-8');header('Cache-Control: no-store');header('X-Content-Type-Options: nosniff');header('Referrer-Policy: no-referrer');
 try {
  [$config,$store]=$bootstrap?$bootstrap():dyws_bootstrap($configPath);
+ $accounts=new \StarlitGo\AdminAccounts($config);
  $stripeSettings=new \StarlitGo\StripeSettings($config);$stripe=new \StarlitGo\StripePayments($store,$config,$stripeSettings);
  $method=$_SERVER['REQUEST_METHOD'];$route=$_GET['route']??'/health';if(!is_string($route)||strlen($route)>180)throw new \StarlitGo\ApiError('Invalid route.',400);
  if($method==='POST'){
@@ -19,6 +20,9 @@ try {
  elseif($method==='GET'&&$route==='/catalog')$result=\StarlitGo\Catalog::publicData(\StarlitGo\Catalog::load($config['catalog']));
  elseif($method==='GET'&&$route==='/manager/catalog'){dyws_authorize($store,['manager']);$catalog=\StarlitGo\Catalog::load($config['catalog']);$result=['catalog'=>$catalog,'revision'=>\StarlitGo\Catalog::revision($catalog)];}
  elseif($method==='POST'&&$route==='/manager/catalog'){dyws_authorize($store,['manager']);if(!is_array($body['catalog']??null))throw new \StarlitGo\ApiError('Provide a catalog object.');$catalog=\StarlitGo\Catalog::save($config['catalog'],$body['catalog'],\StarlitGo\Store::text($body['revision']??null,64));$result=['catalog'=>$catalog,'revision'=>\StarlitGo\Catalog::revision($catalog)];}
+ elseif($method==='GET'&&$route==='/manager/drivers'){dyws_authorize($store,['manager']);$result=$accounts->summary($store);}
+ elseif($method==='POST'&&$route==='/manager/drivers'){dyws_authorize($store,['manager']);dyws_limit_requests($store,$config,'driver-settings',30,900);$result=$accounts->saveDriver($store,$body);}
+ elseif($method==='POST'&&$route==='/manager/password'){dyws_authorize($store,['manager']);dyws_limit_requests($store,$config,'manager-password',10,900);$result=$accounts->changePassword($store,$body);}
  elseif($method==='GET'&&$route==='/manager/stripe'){dyws_authorize($store,['manager']);$result=$stripeSettings->summary();}
  elseif($method==='POST'&&$route==='/manager/stripe'){dyws_authorize($store,['manager']);$result=$stripeSettings->save($body);}
  elseif($method==='POST'&&$route==='/manager/stripe/verify'){dyws_authorize($store,['manager']);dyws_limit_requests($store,$config,'stripe-verify',10,900);$result=$stripe->verifyConnection();}
@@ -26,22 +30,19 @@ try {
  elseif($method==='POST'&&preg_match('~^/orders/(SG-[A-F0-9]{12})/checkout$~',$route,$m)){dyws_limit_requests($store,$config,'checkout',20,900);$result=$stripe->checkout($m[1],$_SERVER['HTTP_X_TRACKING_TOKEN']??'');}
  elseif($method==='POST'&&$route==='/login'){
   dyws_limit_requests($store,$config,'login',10,900);
-  $role=$body['role']??'';$password=$body['password']??'';$subject=$role==='manager'?'manager':($body['driverId']??'');if(!is_string($role)||!is_string($subject))throw new \StarlitGo\ApiError('Incorrect sign in details.',401);
-  $hash=$role==='manager'?($config['manager_password_hash']??''):($config['drivers'][$subject]['password_hash']??'');
-  if(!in_array($role,['manager','driver'],true)||!is_string($password)||strlen($password)>200||!password_verify($password,$hash?:'$2y$10$invalid'))throw new \StarlitGo\ApiError('Incorrect sign in details.',401);
-  $token=bin2hex(random_bytes(32));$store->execute('INSERT INTO sessions(token_hash,tenant,role,subject,expires_at) VALUES(?,?,?,?,?)',[hash('sha256',$token),$store->tenant,$role,$subject,time()+28800]);$store->execute('DELETE FROM sessions WHERE expires_at<?',[time()]);$result=['token'=>$token,'role'=>$role,'subject'=>$subject,'expiresAt'=>time()+28800];
+  $result=$accounts->login($store,$body);
  }
  elseif($method==='POST'&&$route==='/logout'){$s=dyws_authorize($store,['manager','driver']);$store->execute('DELETE FROM sessions WHERE token_hash=?',[$s['token_hash']]);$result=['ok'=>true];}
  elseif($method==='POST'&&$route==='/orders'){dyws_limit_requests($store,$config,'orders',20,3600);if(($body['demoAcknowledged']??false)!==true)throw new \StarlitGo\ApiError('Confirm this is a test order.');$result=$store->create($body);http_response_code(201);}
  elseif($method==='GET'&&preg_match('~^/tracking/(SG-[A-F0-9]{12})$~',$route,$m)){dyws_limit_requests($store,$config,'tracking',120,60);$result=$store->tracking($m[1],$_SERVER['HTTP_X_TRACKING_TOKEN']??'');}
- elseif($method==='GET'&&$route==='/manager/orders'){dyws_authorize($store,['manager']);$result=['orders'=>$store->orders(),'drivers'=>array_map(fn($id,$d)=>['id'=>$id,'name'=>$d['name']],array_keys($config['drivers']),array_values($config['drivers']))];}
+ elseif($method==='GET'&&$route==='/manager/orders'){dyws_authorize($store,['manager']);$result=['orders'=>$store->orders(),'drivers'=>array_map(fn($id,$d)=>['id'=>$id,'name'=>$d['name']],array_keys(array_filter($config['drivers'],fn($d)=>$d['active']??true)),array_values(array_filter($config['drivers'],fn($d)=>$d['active']??true)))];}
  elseif($method==='GET'&&$route==='/manager/reports'){
   dyws_authorize($store,['manager']);$tz=new DateTimeZone('America/Edmonton');$start=$_GET['from']??date('Y-m-d');$end=$_GET['to']??$start;
   $from=DateTimeImmutable::createFromFormat('!Y-m-d',$start,$tz);$to=DateTimeImmutable::createFromFormat('!Y-m-d',$end,$tz);if(!$from||!$to||$from->format('Y-m-d')!==$start||$to->format('Y-m-d')!==$end||$to<$from||$to->getTimestamp()-$from->getTimestamp()>366*86400)throw new \StarlitGo\ApiError('Choose a valid date range up to one year.');$result=$store->reports($from->getTimestamp(),$to->modify('+1 day')->getTimestamp());
  }
  elseif($method==='POST'&&preg_match('~^/manager/orders/(SG-[A-F0-9]{12})/(status|assign|payment)$~',$route,$m)){
   dyws_authorize($store,['manager']);if($m[2]==='status')$result=$store->change($m[1],\StarlitGo\Store::text($body['status']??null,30),'manager');
-  elseif($m[2]==='assign'){$driver=$body['driverId']??'';if(!is_string($driver)||!isset($config['drivers'][$driver]))throw new \StarlitGo\ApiError('Unknown driver.');$store->assign($m[1],$driver);$result=['ok'=>true];}
+  elseif($m[2]==='assign'){$driver=$body['driverId']??'';if(!is_string($driver))throw new \StarlitGo\ApiError('Unknown driver.');$accounts->assign($store,$m[1],$driver);$result=['ok'=>true];}
   else{$store->payment($m[1],\StarlitGo\Store::text($body['kind']??null,20));$result=['ok'=>true];}
  }
  elseif($method==='GET'&&$route==='/driver/orders'){$s=dyws_authorize($store,['driver']);$result=['orders'=>$store->orders($s['subject'])];}

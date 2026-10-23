@@ -43,3 +43,5 @@ The owner requested server JSON products with name, image, description and price
 The owner requested a separate CSS system named DYWS, short for Do You Want Something. Reusable catalog, cart, admin and tracking presentation now lives in public_html/dyws with dyws class names and theme tokens. The diner remains a host example. Driver trip, admin, backend and installer runtime packages are ideas for later, not part of this CSS extraction.
 
 The owner requested JavaScript and PHP extraction into DYWS. Host pages now include the private PHP module and call full menu, category or item render functions. Browser modules add cart behavior to those selected panels. Public assets and private backend code are separated for deployment.
+
+The owner requested administration tabs with separate pages for the reports dashboard, catalog editor, drivers, Stripe settings and admin password changes. The first catalog editor exposes structured fields backed by the existing private JSON, with category/item/option management and a single Save catalog action. The controls and services remain in DYWS modules; the host owns page links and layout.

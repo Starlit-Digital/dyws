@@ -36,6 +36,12 @@ with tempfile.TemporaryDirectory(prefix='starlit-api-') as work:
   manager_token=request('/login',{'role':'manager','password':manager})['token']
   driver_token=request('/login',{'role':'driver','driverId':'demo-driver','password':driver})['token']
   request('/manager/orders',token=driver_token,status=403)
+  for path in ['/manager/drivers','/manager/password']:
+   request(path,{},status=401)
+   request(path,{},token=driver_token,status=403)
+  drivers=request('/manager/drivers',token=manager_token)
+  assert drivers['drivers'][0]['id']=='demo-driver' and 'password_hash' not in str(drivers)
+  request('/manager/password',{'currentPassword':'wrong','newPassword':'fictional-new-password','confirmPassword':'fictional-new-password'},token=manager_token,status=422)
   order={'idempotencyKey':str(uuid.uuid4()),'customer':{'name':'Test Guest','phone':'7805550142'},'lines':[{'id':'breakfast0','variant':'','quantity':1,'price':1}],'demoAcknowledged':True}
   receipt=request('/orders',order,status=201);assert receipt['total']==1570
   assert request('/orders',order,status=201)['id']==receipt['id']

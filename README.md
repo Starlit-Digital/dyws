@@ -45,3 +45,7 @@ Starlit Go now supports general products, services sold in whole units and food.
 Run `composer install` before setup or tests. The Stripe connector uses hosted Checkout and signed payment webhooks. Sandbox credentials are entered in admin settings; live keys are intentionally unavailable in this demonstration. Payments are disabled until configured. The product display name is configurable; “Do You Want Something?” is the current name candidate, not a repository rename.
 
 The current demo uses `<dyws-ordering>`. The older element names remain compatible. CSS entry point: `public_html/dyws/dyws.css`; shadow cart styles: `public_html/dyws/ordering.css`.
+
+## Administration
+
+Open [Reports](https://sltd.ca/diner/manager.html) and use the five tabs for Reports, Catalog, Drivers, Stripe and Password. The catalog editor provides category and item fields with a Save catalog action backed by the private JSON file. Drivers can be added, renamed, reset or deactivated. Password changes require the current admin password and sign out admin sessions. Images currently use existing paths or HTTPS URLs.
