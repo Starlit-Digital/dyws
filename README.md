@@ -6,6 +6,12 @@ Private repository: https://github.com/Starlit-Digital/dyws
 
 Starlit Diner is the fictional example at https://sltd.ca/diner/ . It demonstrates the public menu and cart, a protected restaurant manager board, a driver test console and private customer order tracking.
 
+## Install
+
+Download [dyws.zip](https://github.com/Starlit-Digital/dyws/blob/main/dyws.zip?raw=true), or clone this repo and run `composer install --no-dev`. Serve only public_html, then open `/setup/`. The wizard checks the server, creates your administrator and private storage, and removes itself. See [installation and upgrades](INSTALL.md).
+
+Orders and accounts use SQLite. Overall site settings and the catalog remain JSON. Existing driver credentials migrate without password resets.
+
 ## What works
 
 Orders persist in SQLite. The server validates product IDs, variants and quantities, calculates prices and tax in integer cents, and handles idempotent submissions. Business managers accept and prepare orders, assign drivers and inspect operational reports, test payment totals, refunds, fees, tax, popular items and CSV exports. Drivers see assigned deliveries and can update their status and automatically share browser GPS during active deliveries. A simulated route is included for testing without sharing a real person’s location.

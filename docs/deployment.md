@@ -106,3 +106,13 @@ Deploy the updated public files and the private Catalog.php and api.php modules.
 All six admin pages share the same compact header, current page navigation and sign out. On narrow screens navigation uses an expandable menu with keyboard dismissal. Detailed report definitions and connection instructions remain available in disclosures. The driver editor opens only on Add or Edit. The logo derives from the approved Community Central SVG family with a D monogram; the editable SVG and 2048px PNG master are in public_html/assets.
 
 Validation: 238 automated checks passed. Browser checks covered all six pages, the driver editor, sign out, mobile navigation at 320px and 390px, Escape dismissal, and the live Google map and route. The release backup is domains/sltd.ca/private/deploy-backups/dyws-admin-simple-20261023/.
+
+## Browser installer and SQLite accounts, version 0.4.0
+
+See INSTALL.md for fresh setup. Ship the root dyws.zip built by scripts/build-release.py. It contains tracked application code and locked Composer dependencies, with no runtime var data. The initial storefront redirects to setup when its configuration is absent. A fresh install verifies the environment and private ownership key, creates a SQLite database and JSON site configuration, and removes public_html/setup. Configuration and installed.lock both prevent reinstallation, even after setup is uploaded again.
+
+Existing installations keep their current database filename and tenant. Deploy AdminAccounts.php and accounts.sql together, then run server/migrate-accounts.php with the existing configuration path. The CLI takes a consistent SQLite backup and private JSON backups before importing. It preserves existing passwords, driver IDs, active state, assignments and sessions, then removes credentials from active JSON. New account writes go only to SQLite; site settings and catalog writes remain JSON. Never upload the fresh setup directory over an existing hosted demo or replace its private data.
+
+Public changes include the new setup directory for fresh installations, optional generic storefront template, and an unconfigured homepage redirect. Existing diner configuration still selects its original website.
+
+Validation: 314 automated checks passed, including fresh HTTP installation, installer removal, reinstall protection, private storage boundaries, SQLite account migration, preserved passwords and inactive drivers, JSON business settings, and order persistence. The extracted ZIP also passes the 40 HTTP installation checks. A preupgrade code backup, consistent database snapshot and private JSON backups are in domains/sltd.ca/private/deploy-backups/dyws-installer-20261023/.

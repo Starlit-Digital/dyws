@@ -2,20 +2,44 @@
 declare(strict_types=1);
 namespace StarlitGo;
 
-/** Private account overrides preserve the deployment config and never return hashes. */
+/** SQLite accounts, with a one-time import of legacy private JSON credentials. */
 final class AdminAccounts {
  private string $path;
+ private ?\PDO $db=null;
  public function __construct(private array $config){$this->path=dirname($config['database']).'/accounts-'.substr(hash('sha256',$config['tenant']),0,16).'.json';}
- private function read():array {return is_file($this->path)?json_decode(file_get_contents($this->path),true,64,JSON_THROW_ON_ERROR):['drivers'=>[]];}
+ private function database():\PDO {
+  if($this->db)return $this->db;
+  $db=new \PDO('sqlite:'.$this->config['database'],null,null,[\PDO::ATTR_ERRMODE=>\PDO::ERRMODE_EXCEPTION,\PDO::ATTR_DEFAULT_FETCH_MODE=>\PDO::FETCH_ASSOC]);
+  $db->exec('PRAGMA busy_timeout=5000');$db->exec(file_get_contents(__DIR__.'/accounts.sql'));
+  $db->exec('BEGIN IMMEDIATE');
+  try{
+   $check=$db->prepare('SELECT 1 FROM account_migrations WHERE tenant=?');$check->execute([$this->config['tenant']]);
+   if(!$check->fetchColumn()){
+    $saved=is_file($this->path)?json_decode(file_get_contents($this->path),true,64,JSON_THROW_ON_ERROR):[];
+    $drivers=array_replace($this->config['drivers']??[],$saved['drivers']??[]);
+    $insert=$db->prepare('INSERT INTO drivers(tenant,id,name,password_hash,active) VALUES(?,?,?,?,?)');
+    foreach($drivers as $id=>$driver)$insert->execute([$this->config['tenant'],$id,$driver['name'],$driver['password_hash'],($driver['active']??true)?1:0]);
+    $hash=$saved['manager_password_hash']??$this->config['manager_password_hash']??null;
+    if($hash){$insert=$db->prepare('INSERT INTO admin_credentials(tenant,password_hash) VALUES(?,?)');$insert->execute([$this->config['tenant'],$hash]);}
+    $insert=$db->prepare('INSERT INTO account_migrations(tenant,completed_at) VALUES(?,?)');$insert->execute([$this->config['tenant'],time()]);
+   }
+   $db->exec('COMMIT');
+  }catch(\Throwable $e){$db->exec('ROLLBACK');throw $e;}
+  chmod($this->config['database'],0600);
+  return $this->db=$db;
+ }
  public function effective():array {
-  $saved=$this->read();$config=$this->config;
-  if(isset($saved['manager_password_hash']))$config['manager_password_hash']=$saved['manager_password_hash'];
-  $config['drivers']=array_replace($config['drivers']??[],$saved['drivers']??[]);
+  $db=$this->database();$config=$this->config;$config['drivers']=[];
+  $query=$db->prepare('SELECT id,name,password_hash,active FROM drivers WHERE tenant=? ORDER BY id');$query->execute([$config['tenant']]);
+  foreach($query as $row){$id=$row['id'];unset($row['id']);$row['active']=(bool)$row['active'];$config['drivers'][$id]=$row;}
+  $query=$db->prepare('SELECT password_hash FROM admin_credentials WHERE tenant=?');$query->execute([$config['tenant']]);
+  $config['manager_password_hash']=$query->fetchColumn()?:'';
   return $config;
  }
- private function locked(callable $fn){
+ private function locked(Store $store,callable $fn,bool $transaction=false){
+  // Keep credential changes, session revocation and login serialized.
   $lock=fopen($this->path.'.lock','c');if(!$lock||!flock($lock,LOCK_EX))throw new ApiError('Account settings are busy.',503);
-  try{return $fn();}finally{flock($lock,LOCK_UN);fclose($lock);}
+  try{$this->database();$this->db=$store->db;return $transaction?$store->transaction($fn):$fn();}finally{flock($lock,LOCK_UN);fclose($lock);}
  }
  private static function password($value):string {
   if(!is_string($value)||strlen($value)<12||strlen($value)>72||str_contains($value,"\0"))throw new ApiError('Use a password between 12 and 72 bytes.');
@@ -27,7 +51,7 @@ final class AdminAccounts {
   return ['drivers'=>$out,'revision'=>hash('sha256',json_encode($drivers,JSON_THROW_ON_ERROR))];
  }
  public function saveDriver(Store $store,array $body):array {
-  return $this->locked(function()use($store,$body){
+  return $this->locked($store,function()use($store,$body){
    $summary=$this->summary($store);if(!is_string($body['revision']??null)||!hash_equals($summary['revision'],$body['revision']))throw new ApiError('Drivers changed. Reload the list before saving.',409);
    $id=$body['id']??null;if(!is_string($id)||!preg_match('/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,79}$/',$id))throw new ApiError('Use letters, numbers and underscores for the driver ID.');
    $name=Store::text($body['name']??null,120);$active=$body['active']??null;if(!is_bool($active))throw new ApiError('Choose whether the driver is active.');
@@ -37,30 +61,30 @@ final class AdminAccounts {
    if(!$active&&$store->query("SELECT id FROM orders WHERE tenant=? AND driver_id=? AND status NOT IN ('delivered','completed','cancelled') LIMIT 1",[$store->tenant,$id]))throw new ApiError('Reassign or finish this driver’s active orders before deactivating them.',409);
    $password=$body['password']??'';if(!is_string($password))throw new ApiError('Invalid password.');
    if(!$existing||$password!=='')$hash=password_hash(self::password($password),PASSWORD_DEFAULT);else $hash=$existing['password_hash'];
-   $saved=$this->read();$saved['drivers'][$id]=['name'=>$name,'active'=>$active,'password_hash'=>$hash];Catalog::write($this->path,$saved);
+   $store->execute('INSERT INTO drivers(tenant,id,name,password_hash,active) VALUES(?,?,?,?,?) ON CONFLICT(tenant,id) DO UPDATE SET name=excluded.name,password_hash=excluded.password_hash,active=excluded.active',[$store->tenant,$id,$name,$hash,$active?1:0]);
    if(!$active||$password!=='')$store->execute("DELETE FROM sessions WHERE tenant=? AND role='driver' AND subject=?",[$store->tenant,$id]);
    return $this->summary($store);
-  });
+  },true);
  }
  public function changePassword(Store $store,array $body):array {
-  return $this->locked(function()use($store,$body){
+  return $this->locked($store,function()use($store,$body){
    $current=$body['currentPassword']??'';if(!is_string($current)||strlen($current)>200||!password_verify($current,$this->effective()['manager_password_hash']))throw new ApiError('The current password is incorrect.',422);
    $next=self::password($body['newPassword']??null);if($next!==($body['confirmPassword']??null))throw new ApiError('The new passwords do not match.');
-   $saved=$this->read();$saved['manager_password_hash']=password_hash($next,PASSWORD_DEFAULT);Catalog::write($this->path,$saved);
+   $store->execute('UPDATE admin_credentials SET password_hash=? WHERE tenant=?',[password_hash($next,PASSWORD_DEFAULT),$store->tenant]);
    $store->execute("DELETE FROM sessions WHERE tenant=? AND role='manager'",[$store->tenant]);return ['ok'=>true,'signInRequired'=>true];
-  });
+  },true);
  }
  public function login(Store $store,array $body):array {
-  return $this->locked(function()use($store,$body){
+  return $this->locked($store,function()use($store,$body){
    $config=$this->effective();$role=$body['role']??'';$password=$body['password']??'';$subject=$role==='manager'?'manager':($body['driverId']??'');
    if(!is_string($role)||!is_string($subject))throw new ApiError('Incorrect sign in details.',401);
    $driver=$config['drivers'][$subject]??null;$hash=$role==='manager'?($config['manager_password_hash']??''):($driver['password_hash']??'');
    if(!in_array($role,['manager','driver'],true)||($role==='driver'&&(!$driver||!($driver['active']??true)))||!is_string($password)||strlen($password)>200||!password_verify($password,$hash?:'$2y$10$invalid'))throw new ApiError('Incorrect sign in details.',401);
    $token=bin2hex(random_bytes(32));$store->execute('INSERT INTO sessions(token_hash,tenant,role,subject,expires_at) VALUES(?,?,?,?,?)',[hash('sha256',$token),$store->tenant,$role,$subject,time()+28800]);$store->execute('DELETE FROM sessions WHERE expires_at<?',[time()]);
    return ['token'=>$token,'role'=>$role,'subject'=>$subject,'expiresAt'=>time()+28800];
-  });
+  },true);
  }
  public function assign(Store $store,string $orderId,string $driverId):void {
-  $this->locked(function()use($store,$orderId,$driverId){$driver=$this->effective()['drivers'][$driverId]??null;if(!$driver||!($driver['active']??true))throw new ApiError('Choose an active driver.');$store->assign($orderId,$driverId);});
+  $this->locked($store,function()use($store,$orderId,$driverId){$driver=$this->effective()['drivers'][$driverId]??null;if(!$driver||!($driver['active']??true))throw new ApiError('Choose an active driver.');$store->assign($orderId,$driverId);});
  }
 }

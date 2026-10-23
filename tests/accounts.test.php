@@ -35,7 +35,20 @@ try{
  denied(fn()=>$accounts->login($store,['role'=>'manager','password'=>'original-manager-password']),401);
  check($accounts->login($store,['role'=>'manager','password'=>'replacement-manager-password'])['role']==='manager','Changed admin password works');
  $fresh=new AdminAccounts($config);check(password_verify('replacement-manager-password',$fresh->effective()['manager_password_hash']),'Account override survives a new request');
- $path=glob($dir.'/accounts-*.json')[0];$saved=file_get_contents($path);check(!str_contains($saved,'replacement-manager-password')&&!str_contains($saved,'replacement-driver-password'),'Passwords stored only as hashes');
- check((fileperms($path)&0777)===0600,'Account file is private');
+ $path=$config['database'];$saved=file_get_contents($path);check(!str_contains($saved,'replacement-manager-password')&&!str_contains($saved,'replacement-driver-password'),'Passwords stored only as hashes');
+ check((fileperms($path)&0777)===0600,'Database file is private');
+ check(!glob($dir.'/accounts-*.json'),'New account writes do not create JSON credentials');
+ check(count($store->query('SELECT * FROM drivers WHERE tenant=?',[$config['tenant']]))===2,'Drivers stored in SQLite');
+ // A separate tenant imports overrides once and never resurrects stale config credentials.
+ $legacy=array_replace($config,['tenant'=>'legacy']);
+ $legacyPath=$dir.'/accounts-'.substr(hash('sha256','legacy'),0,16).'.json';
+ Catalog::write($legacyPath,['manager_password_hash'=>password_hash('legacy-admin-password',PASSWORD_DEFAULT),'drivers'=>['original'=>['name'=>'Renamed','active'=>false,'password_hash'=>password_hash('legacy-driver-password',PASSWORD_DEFAULT)]]]);
+ $migration=new AdminAccounts($legacy);$effective=$migration->effective();
+ check($effective['drivers']['original']['name']==='Renamed'&&!$effective['drivers']['original']['active'],'Legacy name and inactive status imported');
+ check(password_verify('legacy-admin-password',$effective['manager_password_hash']),'Legacy admin override preserved');
+ check(password_verify('legacy-driver-password',$effective['drivers']['original']['password_hash']),'Legacy driver password preserved');
+ Catalog::write($legacyPath,['drivers'=>['ghost'=>['name'=>'Stale','password_hash'=>'ignored']]]);
+ check(!isset((new AdminAccounts($legacy))->effective()['drivers']['ghost']),'Migration does not replay stale JSON');
+ check(password_verify('replacement-manager-password',(new AdminAccounts($config))->effective()['manager_password_hash']),'Migration is tenant scoped');
  echo "Admin accounts: $checks checks passed.\n";
 }finally{unset($store);foreach(glob($dir.'/*')as $file)unlink($file);rmdir($dir);}

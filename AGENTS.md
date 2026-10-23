@@ -13,3 +13,5 @@ Product data is generic. Keep the runtime catalog in private var/catalog.json, w
 Reusable presentation belongs in public_html/dyws. Prefix component classes and theme variables with dyws. Keep diner branding, hero, display controls and palette mapping in demo.css. Preserve the legacy element aliases, API routes, cart storage keys and tracking URLs during style refactors.
 
 Reusable JavaScript belongs in public_html/dyws and PHP implementations in modules/dyws/php. Website scripts and server files are adapters or compatibility includes. Keep all package asset imports internal and inject website endpoints, DOM roots and map adapters. The homepage uses dyws PHP rendering functions; hydrate its existing panels without duplicating or replacing a host selected subset. Preserve escaped rendering and validate catalogs before producing HTML.
+
+Orders and account credentials use SQLite. Overall settings and the catalog remain private JSON. The browser installer must never overwrite an existing installation, expose its ownership key, or ship runtime secrets. Build the single dyws.zip with scripts/build-release.py and test the extracted archive before publishing.

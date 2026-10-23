@@ -53,3 +53,7 @@ dyws now has a basic Admin Settings page. Businesses can rename Driver and Drive
 ## Confirmed name and simpler administration
 
 The owner confirmed lowercase dyws on October 23, 2026. The private GitHub repository and package metadata use this name. A compact shared admin header links back to the diner through its D monogram. Repeated introductions are removed, setup guidance is expandable, and all six pages retain accessible labels and full size controls.
+
+## Installer and durable storage
+
+The project ships a single dyws.zip for installation, with Git clone as an alternative. The /setup wizard checks hosting, verifies a private one time ownership key, collects the business name, URL and admin password, creates private storage, then removes itself. Existing configuration blocks repeat setup. Orders already used SQLite and remain there; driver accounts and admin password hashes now use SQLite too. Overall site settings and product catalogs remain JSON. Legacy account migration preserves credentials, driver IDs, assignments, active state and sessions.

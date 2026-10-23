@@ -1,13 +1,17 @@
 <?php
 // The website supplies configuration and placement. DYWS renders all catalog panels.
 ini_set('display_errors','0');
+if(!empty($_SERVER['PATH_INFO'])){http_response_code(404);exit('Not found.');}
 header('Cache-Control: no-store');
 $catalog=null;
 try {
  $bootstrap=getenv('STARLIT_GO_BOOTSTRAP')?:__DIR__.'/../server/bootstrap.php';
  if(is_file(__DIR__.'/api/bootstrap-path.php'))$bootstrap=require __DIR__.'/api/bootstrap-path.php';
  require_once $bootstrap;
+ if(!is_file(starlit_config_path())&&is_dir(__DIR__.'/setup')){header('Location: setup/',true,302);exit;}
  $catalog=dyws_catalog_from_config(starlit_config_path());
+ $siteConfig=json_decode(file_get_contents(starlit_config_path()),true,512,JSON_THROW_ON_ERROR);
+ if(($siteConfig['site_template']??'diner')==='shop'){require __DIR__.'/templates/shop.php';exit;}
 }catch(Throwable $e){http_response_code(503);error_log('DYWS storefront: '.$e->getMessage());}
 ?>
 <!doctype html>

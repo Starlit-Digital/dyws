@@ -12,6 +12,7 @@ const role=await loadRole(api);
 applyRoleLabels(document.body,role);
 if(document.body.dataset.adminPage==='drivers')document.title=role.plural+' | dyws';
 const current=document.body.dataset.adminPage;
+const siteOrigin=document.querySelector('[data-dyws-site-origin]');if(siteOrigin)siteOrigin.textContent=location.origin+'/*';
 mountNavigation(current,role);
 const mounts={catalog:mountCatalogEditor,drivers:mountDriverAdmin,stripe:mountStripeAdmin,password:mountPasswordAdmin,settings:mountGeneralSettings};
 await mounts[current]?.({root:document.body,api,role,createLocationRenderer:()=>createLocationRenderer({api,fallback:renderDinerLocation,defaultCenter:{lat:53.61665,lng:-113.39804}}),onSave:settings=>mountNavigation(current,settings.driverRole)});

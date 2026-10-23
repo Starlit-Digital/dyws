@@ -96,3 +96,7 @@ GET /manager/driver-locations requires manager authentication and returns active
 Full checkout addresses may use addressDetails: {line1, line2, city, region, postalCode, country}. All fields except line2 are required for this shape. Canadian postal codes are validated. The backend assembles address, persists addressDetails and keeps older freeform address requests working. Authorized tracking responses include deliveryAddress so the customer can view their own destination and route. Driver locations include the assigned deliveryAddress for admin routing.
 
 GET /driver/gps-config requires driver authentication. It returns testLocation only when a private deployment explicitly configures a test origin. In this mode, authenticated driver order reads renew the simulated fix for assigned active deliveries. No anonymous endpoint publishes a simulated point or driver coordinates.
+
+## Account storage
+
+Version 0.4.0 stores driver records and admin password hashes in the same private SQLite database as orders. HTTP request and response contracts are unchanged. Credential changes and session revocation commit in the same transaction. Each tenant imports legacy account configuration only once. Business settings, map settings, encrypted Stripe configuration and product catalogs remain private JSON.
