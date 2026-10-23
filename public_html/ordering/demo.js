@@ -45,7 +45,3 @@ ordering.addEventListener('ordering-ready',()=>{
  document.querySelector('#loading').remove();
  updateItemCounts();
 });
-const themeButton=document.querySelector('#theme');
-function applyTheme(light){document.documentElement.dataset.theme=light?'light':'dark';themeButton.textContent=light?'Dark mode':'Light mode';themeButton.setAttribute('aria-pressed',String(light));}
-try{applyTheme(localStorage.getItem('starlit-diner-theme')==='light');}catch{}
-themeButton.onclick=()=>{const light=document.documentElement.dataset.theme!=='light';applyTheme(light);try{localStorage.setItem('starlit-diner-theme',light?'light':'dark');}catch{}};
