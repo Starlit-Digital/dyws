@@ -1,0 +1,13 @@
+{
+  "require": {
+    "stripe/stripe-php": "^22.0"
+  },
+  "name": "starlit-digital/starlit-go",
+  "description": "Generic ordering and delivery demo platform",
+  "license": "proprietary",
+  "config": {
+    "platform": {
+      "php": "8.1.0"
+    }
+  }
+}

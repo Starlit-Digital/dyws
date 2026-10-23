@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 2,
+  "businessName": "The Example Shop",
+  "platformName": "Do You Want Something?",
+  "currency": "CAD",
+  "taxBasisPoints": 500,
+  "deliveryFee": 495,
+  "pickupAddress": "100 Example Avenue, fictional address",
+  "categories": [
+    {
+      "id": "goods",
+      "name": "Useful things",
+      "items": [
+        {
+          "id": "notebook",
+          "sku": "NOTE-A5",
+          "name": "Everyday notebook",
+          "description": "A dotted notebook for ideas and lists.",
+          "price": 1295,
+          "active": true,
+          "unit": "each",
+          "metadata": {
+            "pages": 160,
+            "size": "A5"
+          },
+          "image": {
+            "src": "https://placehold.co/800x600/png?text=Notebook",
+            "alt": "Notebook example placeholder"
+          }
+        },
+        {
+          "id": "tote",
+          "sku": "TOTE-01",
+          "name": "Canvas tote",
+          "description": "A reusable everyday bag.",
+          "price": 1800,
+          "active": true,
+          "unit": "each",
+          "optionLabel": "Colour",
+          "variants": [
+            {
+              "id": "natural",
+              "name": "Natural",
+              "price": 1800
+            },
+            {
+              "id": "navy",
+              "name": "Navy",
+              "price": 1900
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

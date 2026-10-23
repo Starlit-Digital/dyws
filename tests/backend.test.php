@@ -2,7 +2,7 @@
 declare(strict_types=1);
 require __DIR__.'/../server/Store.php';
 use StarlitGo\Store;use StarlitGo\ApiError;
-$path=tempnam(sys_get_temp_dir(),'starlit-test-');$catalog=json_decode(file_get_contents(__DIR__.'/../public_html/ordering/catalog.json'),true);$GLOBALS['starlit_config']=['tracking_secret'=>str_repeat('a',64)];$store=new Store($path,$catalog);$checks=0;
+$path=tempnam(sys_get_temp_dir(),'starlit-test-');$catalog=json_decode(file_get_contents(__DIR__.'/../examples/starlit-diner/catalog.json'),true);$GLOBALS['starlit_config']=['tracking_secret'=>str_repeat('a',64)];$store=new Store($path,$catalog);$checks=0;
 function check($condition,$message){global $checks;if(!$condition)throw new RuntimeException($message);$checks++;}
 function rejects(callable $f,int $code){try{$f();throw new RuntimeException('Expected rejection');}catch(ApiError $e){check($e->http===$code,'Wrong error '.$e->getMessage());}}
 function order(array $changes=[]):array{return array_replace_recursive(['idempotencyKey'=>bin2hex(random_bytes(16)),'customer'=>['name'=>'Test Guest','phone'=>'7805550142'],'lines'=>[['id'=>'breakfast0','variant'=>'','quantity'=>2,'price'=>1]],'fulfillment'=>'delivery','address'=>'15320 Fictional Lane, Edmonton','notes'=>'Test only'],$changes);}

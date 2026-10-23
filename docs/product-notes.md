@@ -33,3 +33,7 @@ Customers choose pickup or delivery in the example checkout. Delivery has a fixe
 5. Platform operations: PostgreSQL migration, queue and outbox, push notifications, dispatch tools, support workflows, backups and restore drills, monitoring, deployment automation and load testing.
 
 Do not call the platform production ready. No actual money is moved and no drivers are dispatched. Native apps are planned, not built in this foundation.
+
+## Generic ordering direction
+
+The owner requested server JSON products with name, image, description and price, suitable for any business, plus admin managed Stripe credentials. The platform now has validated product JSON, SKU, unit, availability, options and public metadata; an authenticated editor; and sandbox Stripe Checkout with signed webhook reconciliation. “Do You Want Something?” is the exact novelty name candidate. Keep the repository name Starlit Go pending a confirmed rename. There is no requested governor feature; that wording meant “just go from there.”

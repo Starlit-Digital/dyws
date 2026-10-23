@@ -8,11 +8,13 @@ try {
  if(is_file(__DIR__.'/bootstrap-path.php'))$bootstrap=require __DIR__.'/bootstrap-path.php';
  require_once $bootstrap;
  [$config,$store]=starlit_bootstrap();
+ $stripeSettings=new \StarlitGo\StripeSettings($config);$stripe=new \StarlitGo\StripePayments($store,$config,$stripeSettings);
  $method=$_SERVER['REQUEST_METHOD'];$route=$_GET['route']??'/health';if(!is_string($route)||strlen($route)>180)throw new \StarlitGo\ApiError('Invalid route.',400);
  if($method==='POST'){
+  $maxBody=$route==='/manager/catalog'?262144:($route==='/stripe/webhook'?262144:32768);
   if(stripos($_SERVER['CONTENT_TYPE']??'','application/json')!==0)throw new \StarlitGo\ApiError('JSON requests are required.',415);
-  if((int)($_SERVER['CONTENT_LENGTH']??0)>32768)throw new \StarlitGo\ApiError('Request is too large.',413);
-  $raw=file_get_contents('php://input',false,null,0,32769);if(strlen($raw)>32768)throw new \StarlitGo\ApiError('Request is too large.',413);
+  if((int)($_SERVER['CONTENT_LENGTH']??0)>$maxBody)throw new \StarlitGo\ApiError('Request is too large.',413);
+  $raw=file_get_contents('php://input',false,null,0,$maxBody+1);if(strlen($raw)>$maxBody)throw new \StarlitGo\ApiError('Request is too large.',413);
   $body=json_decode($raw,true,64,JSON_THROW_ON_ERROR);if(!is_array($body))throw new \StarlitGo\ApiError('Invalid request.',400);
  }else $body=[];
  function limit_requests($store,$config,string $name,int $max,int $seconds):void{
@@ -26,6 +28,14 @@ try {
  }
  $result=null;
  if($method==='GET'&&$route==='/health')$result=['service'=>'Starlit Go','demo'=>true];
+ elseif($method==='GET'&&$route==='/catalog')$result=\StarlitGo\Catalog::publicData(\StarlitGo\Catalog::load($config['catalog']));
+ elseif($method==='GET'&&$route==='/manager/catalog'){authorize($store,['manager']);$catalog=\StarlitGo\Catalog::load($config['catalog']);$result=['catalog'=>$catalog,'revision'=>\StarlitGo\Catalog::revision($catalog)];}
+ elseif($method==='POST'&&$route==='/manager/catalog'){authorize($store,['manager']);if(!is_array($body['catalog']??null))throw new \StarlitGo\ApiError('Provide a catalog object.');$catalog=\StarlitGo\Catalog::save($config['catalog'],$body['catalog'],\StarlitGo\Store::text($body['revision']??null,64));$result=['catalog'=>$catalog,'revision'=>\StarlitGo\Catalog::revision($catalog)];}
+ elseif($method==='GET'&&$route==='/manager/stripe'){authorize($store,['manager']);$result=$stripeSettings->summary();}
+ elseif($method==='POST'&&$route==='/manager/stripe'){authorize($store,['manager']);$result=$stripeSettings->save($body);}
+ elseif($method==='POST'&&$route==='/manager/stripe/verify'){authorize($store,['manager']);limit_requests($store,$config,'stripe-verify',10,900);$result=$stripe->verifyConnection();}
+ elseif($method==='POST'&&$route==='/stripe/webhook')$result=$stripe->webhook($raw,$_SERVER['HTTP_STRIPE_SIGNATURE']??'');
+ elseif($method==='POST'&&preg_match('~^/orders/(SG-[A-F0-9]{12})/checkout$~',$route,$m)){limit_requests($store,$config,'checkout',20,900);$result=$stripe->checkout($m[1],$_SERVER['HTTP_X_TRACKING_TOKEN']??'');}
  elseif($method==='POST'&&$route==='/login'){
   limit_requests($store,$config,'login',10,900);
   $role=$body['role']??'';$password=$body['password']??'';$subject=$role==='manager'?'manager':($body['driverId']??'');if(!is_string($role)||!is_string($subject))throw new \StarlitGo\ApiError('Incorrect sign in details.',401);

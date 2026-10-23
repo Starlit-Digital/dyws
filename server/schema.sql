@@ -12,3 +12,12 @@ CREATE TABLE IF NOT EXISTS payments(id INTEGER PRIMARY KEY,tenant TEXT NOT NULL,
 CREATE TABLE IF NOT EXISTS locations(tenant TEXT NOT NULL,order_id TEXT NOT NULL,driver_id TEXT NOT NULL,latitude REAL NOT NULL,longitude REAL NOT NULL,accuracy REAL NOT NULL,recorded_at INTEGER NOT NULL,PRIMARY KEY(tenant,order_id),FOREIGN KEY(tenant,order_id) REFERENCES orders(tenant,id));
 CREATE TABLE IF NOT EXISTS sessions(token_hash TEXT PRIMARY KEY,tenant TEXT NOT NULL,role TEXT NOT NULL,subject TEXT NOT NULL,expires_at INTEGER NOT NULL);
 CREATE TABLE IF NOT EXISTS limits(bucket TEXT PRIMARY KEY,hits INTEGER NOT NULL,expires_at INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS stripe_attempts (
+ tenant TEXT NOT NULL, order_id TEXT NOT NULL, nonce TEXT NOT NULL, session_id TEXT UNIQUE,
+ payment_intent TEXT, checkout_url TEXT, status TEXT NOT NULL, amount INTEGER NOT NULL, currency TEXT NOT NULL,
+ created_at INTEGER NOT NULL, PRIMARY KEY(tenant,order_id),
+ FOREIGN KEY(tenant,order_id) REFERENCES orders(tenant,id)
+);
+CREATE TABLE IF NOT EXISTS stripe_events (tenant TEXT NOT NULL,event_id TEXT NOT NULL,created_at INTEGER NOT NULL,PRIMARY KEY(tenant,event_id));
+
+CREATE TABLE IF NOT EXISTS stripe_refund_deltas (tenant TEXT NOT NULL,event_id TEXT NOT NULL,order_id TEXT NOT NULL,amount INTEGER NOT NULL CHECK(amount>0),subtotal INTEGER NOT NULL,tax INTEGER NOT NULL,delivery_fee INTEGER NOT NULL,created_at INTEGER NOT NULL,PRIMARY KEY(tenant,event_id),FOREIGN KEY(tenant,order_id) REFERENCES orders(tenant,id));

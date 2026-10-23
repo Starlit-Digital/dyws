@@ -1,5 +1,4 @@
 {
-  "restaurant": "Starlit Diner",
   "currency": "CAD",
   "taxBasisPoints": 500,
   "categories": [
@@ -11,43 +10,68 @@
           "id": "breakfast0",
           "name": "Sunrise Breakfast",
           "description": "Two eggs, bacon, toast and crispy potatoes.",
-          "price": 1495
+          "price": 1495,
+          "sku": "BREAKFAST0",
+          "unit": "each",
+          "active": true,
+          "image": {
+            "src": "images/breakfast.webp",
+            "alt": "Sunny side up eggs with bacon, breakfast potatoes and toast."
+          }
         },
         {
           "id": "breakfast1",
           "name": "Buttermilk Pancakes",
           "description": "Three pancakes with maple syrup.",
-          "price": 1195
+          "price": 1195,
+          "sku": "BREAKFAST1",
+          "unit": "each",
+          "active": true
         },
         {
           "id": "breakfast2",
           "name": "Diner Omelette",
           "description": "Cheddar, peppers and onions with toast.",
-          "price": 1395
+          "price": 1395,
+          "sku": "BREAKFAST2",
+          "unit": "each",
+          "active": true
         },
         {
           "id": "breakfast3",
           "name": "French Toast",
           "description": "Thick slices of cinnamon French toast with maple syrup.",
-          "price": 1295
+          "price": 1295,
+          "sku": "BREAKFAST3",
+          "unit": "each",
+          "active": true
         },
         {
           "id": "breakfast4",
           "name": "Eggs Benedict",
           "description": "Poached eggs, ham and hollandaise on an English muffin with breakfast potatoes.",
-          "price": 1695
+          "price": 1695,
+          "sku": "BREAKFAST4",
+          "unit": "each",
+          "active": true
         },
         {
           "id": "breakfast5",
           "name": "Breakfast Wrap",
           "description": "Scrambled eggs, sausage, cheddar and peppers in a warm tortilla.",
-          "price": 1395
+          "price": 1395,
+          "sku": "BREAKFAST5",
+          "unit": "each",
+          "active": true
         },
         {
           "id": "breakfast6",
           "name": "Steak & Eggs",
           "description": "Grilled steak, two eggs, toast and breakfast potatoes.",
-          "price": 2195
+          "price": 2195,
+          "sku": "BREAKFAST6",
+          "unit": "each",
+          "active": true
         }
       ],
       "image": {
@@ -63,43 +87,68 @@
           "id": "classics0",
           "name": "Starlit Cheeseburger",
           "description": "Beef patty, cheddar, lettuce and house sauce. Served with fries.",
-          "price": 1795
+          "price": 1795,
+          "sku": "CLASSICS0",
+          "unit": "each",
+          "active": true,
+          "image": {
+            "src": "images/classics.webp",
+            "alt": "Cheeseburger with cheddar, lettuce, tomato and golden fries."
+          }
         },
         {
           "id": "classics1",
           "name": "Club Sandwich",
           "description": "Turkey, bacon, lettuce and tomato. Served with fries.",
-          "price": 1695
+          "price": 1695,
+          "sku": "CLASSICS1",
+          "unit": "each",
+          "active": true
         },
         {
           "id": "classics2",
           "name": "Grilled Cheese",
           "description": "Golden sourdough and melted cheddar. Served with fries.",
-          "price": 1195
+          "price": 1195,
+          "sku": "CLASSICS2",
+          "unit": "each",
+          "active": true
         },
         {
           "id": "classics3",
           "name": "Bacon Cheeseburger",
           "description": "Beef patty, crisp bacon and cheddar. Served with fries.",
-          "price": 1895
+          "price": 1895,
+          "sku": "CLASSICS3",
+          "unit": "each",
+          "active": true
         },
         {
           "id": "classics4",
           "name": "Hot Turkey Sandwich",
           "description": "Roast turkey on bread with gravy, mashed potatoes and vegetables.",
-          "price": 1795
+          "price": 1795,
+          "sku": "CLASSICS4",
+          "unit": "each",
+          "active": true
         },
         {
           "id": "classics5",
           "name": "Fish & Chips",
           "description": "Crispy battered fish, fries, coleslaw and tartar sauce.",
-          "price": 1895
+          "price": 1895,
+          "sku": "CLASSICS5",
+          "unit": "each",
+          "active": true
         },
         {
           "id": "classics6",
           "name": "Meatloaf Dinner",
           "description": "Homestyle meatloaf with gravy, mashed potatoes and seasonal vegetables.",
-          "price": 1895
+          "price": 1895,
+          "sku": "CLASSICS6",
+          "unit": "each",
+          "active": true
         }
       ],
       "image": {
@@ -115,43 +164,68 @@
           "id": "soups0",
           "name": "Tomato Soup",
           "description": "Creamy tomato soup served with crackers.",
-          "price": 695
+          "price": 695,
+          "sku": "SOUPS0",
+          "unit": "each",
+          "active": true,
+          "image": {
+            "src": "images/soups.webp",
+            "alt": "Caesar salad with romaine, parmesan and croutons."
+          }
         },
         {
           "id": "soups1",
           "name": "Chicken Noodle Soup",
           "description": "Chicken, noodles and vegetables in a savoury broth.",
-          "price": 795
+          "price": 795,
+          "sku": "SOUPS1",
+          "unit": "each",
+          "active": true
         },
         {
           "id": "soups2",
           "name": "Beef & Bean Chili",
           "description": "Hearty beef and bean chili topped with cheddar.",
-          "price": 995
+          "price": 995,
+          "sku": "SOUPS2",
+          "unit": "each",
+          "active": true
         },
         {
           "id": "soups3",
           "name": "Caesar Salad",
           "description": "Romaine, croutons and parmesan with Caesar dressing.",
-          "price": 1195
+          "price": 1195,
+          "sku": "SOUPS3",
+          "unit": "each",
+          "active": true
         },
         {
           "id": "soups4",
           "name": "Greek Salad",
           "description": "Tomato, cucumber, olives and feta with herb dressing.",
-          "price": 1295
+          "price": 1295,
+          "sku": "SOUPS4",
+          "unit": "each",
+          "active": true
         },
         {
           "id": "soups5",
           "name": "Grilled Chicken Salad",
           "description": "Mixed greens, grilled chicken, tomato and cucumber.",
-          "price": 1595
+          "price": 1595,
+          "sku": "SOUPS5",
+          "unit": "each",
+          "active": true
         },
         {
           "id": "soups6",
           "name": "Soup & Half Sandwich",
           "description": "Tomato soup with a half grilled cheese sandwich.",
-          "price": 1295
+          "price": 1295,
+          "sku": "SOUPS6",
+          "unit": "each",
+          "active": true
         }
       ],
       "image": {
@@ -167,43 +241,68 @@
           "id": "sides0",
           "name": "French Fries",
           "description": "Crispy golden potatoes.",
-          "price": 595
+          "price": 595,
+          "sku": "SIDES0",
+          "unit": "each",
+          "active": true,
+          "image": {
+            "src": "images/sides.webp",
+            "alt": "Golden french fries with a side of ketchup."
+          }
         },
         {
           "id": "sides1",
           "name": "Garden Salad",
           "description": "Mixed greens, tomato and cucumber.",
-          "price": 695
+          "price": 695,
+          "sku": "SIDES1",
+          "unit": "each",
+          "active": true
         },
         {
           "id": "sides2",
           "name": "Onion Rings",
           "description": "Golden battered onion rings with house dip.",
-          "price": 795
+          "price": 795,
+          "sku": "SIDES2",
+          "unit": "each",
+          "active": true
         },
         {
           "id": "sides3",
           "name": "Poutine",
           "description": "French fries topped with cheese curds and gravy.",
-          "price": 995
+          "price": 995,
+          "sku": "SIDES3",
+          "unit": "each",
+          "active": true
         },
         {
           "id": "sides4",
           "name": "Mashed Potatoes",
           "description": "Creamy mashed potatoes with gravy.",
-          "price": 595
+          "price": 595,
+          "sku": "SIDES4",
+          "unit": "each",
+          "active": true
         },
         {
           "id": "sides5",
           "name": "Coleslaw",
           "description": "Crunchy cabbage and carrots in a creamy dressing.",
-          "price": 495
+          "price": 495,
+          "sku": "SIDES5",
+          "unit": "each",
+          "active": true
         },
         {
           "id": "sides6",
           "name": "Garlic Toast",
           "description": "Two slices of toasted bread with garlic butter.",
-          "price": 395
+          "price": 395,
+          "sku": "SIDES6",
+          "unit": "each",
+          "active": true
         }
       ],
       "image": {
@@ -219,7 +318,14 @@
           "id": "sweet0",
           "name": "Apple Pie",
           "description": "A warm slice of the diner classic.",
-          "price": 695
+          "price": 695,
+          "sku": "SWEET0",
+          "unit": "each",
+          "active": true,
+          "image": {
+            "src": "images/sweet.webp",
+            "alt": "Vanilla milkshake topped with whipped cream and a cherry."
+          }
         },
         {
           "id": "sweet1",
@@ -242,37 +348,56 @@
               "name": "Strawberry",
               "price": 795
             }
-          ]
+          ],
+          "sku": "SWEET1",
+          "unit": "each",
+          "active": true,
+          "optionLabel": "Flavour"
         },
         {
           "id": "sweet2",
           "name": "Coffee",
           "description": "Freshly brewed diner coffee.",
-          "price": 295
+          "price": 295,
+          "sku": "SWEET2",
+          "unit": "each",
+          "active": true
         },
         {
           "id": "sweet3",
           "name": "Cherry Pie",
           "description": "A classic cherry pie slice with a golden pastry crust.",
-          "price": 695
+          "price": 695,
+          "sku": "SWEET3",
+          "unit": "each",
+          "active": true
         },
         {
           "id": "sweet4",
           "name": "Chocolate Brownie",
           "description": "Warm chocolate brownie with vanilla ice cream.",
-          "price": 895
+          "price": 895,
+          "sku": "SWEET4",
+          "unit": "each",
+          "active": true
         },
         {
           "id": "sweet5",
           "name": "Hot Chocolate",
           "description": "Rich hot chocolate topped with whipped cream.",
-          "price": 395
+          "price": 395,
+          "sku": "SWEET5",
+          "unit": "each",
+          "active": true
         },
         {
           "id": "sweet6",
           "name": "Lemonade",
           "description": "A refreshing glass of classic lemonade.",
-          "price": 395
+          "price": 395,
+          "sku": "SWEET6",
+          "unit": "each",
+          "active": true
         }
       ],
       "image": {
@@ -281,5 +406,9 @@
       }
     }
   ],
-  "pickupAddress": "15321 Starlit Lane NW, Edmonton, AB (fictional, near Manning Town Centre)"
+  "pickupAddress": "15321 Starlit Lane NW, Edmonton, AB (fictional, near Manning Town Centre)",
+  "schemaVersion": 2,
+  "businessName": "Starlit Diner",
+  "platformName": "Starlit Go",
+  "deliveryFee": 395
 }

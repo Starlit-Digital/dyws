@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {resolveItem,restoreCart,totals,lineKey} from '../public_html/ordering/cart.js';
-const catalog=JSON.parse(readFileSync(new URL('../public_html/ordering/catalog.json',import.meta.url)));
+const catalog=JSON.parse(readFileSync(new URL('../examples/starlit-diner/catalog.json',import.meta.url)));
 test('currency uses integer cents and rounds tax once',()=>{
  assert.deepEqual(totals([{price:1495,quantity:2},{price:295,quantity:1}],500),{subtotal:3285,tax:164,total:3449});
  assert.deepEqual(totals([],500),{subtotal:0,tax:0,total:0});
@@ -20,4 +20,11 @@ test('variants are mandatory and retained as distinct lines',()=>{
 });
 test('menu has five categories with seven items each with unique valid items',()=>{
  assert.equal(catalog.categories.length,5);const ids=new Set();for(const c of catalog.categories){assert.equal(c.items.length,7);for(const i of c.items){assert.ok(!ids.has(i.id));ids.add(i.id);assert.ok(Number.isSafeInteger(i.price)&&i.price>0);}}
+});
+
+test('generic catalogs retain options and discard inactive products and invalid variants', () => {
+ const shop=JSON.parse(readFileSync(new URL('../examples/general-store/catalog.json',import.meta.url)));
+ const restored=restoreCart(shop,[{id:'tote',variant:'navy',quantity:2,price:1},{id:'notebook',variant:'fake',quantity:1}]);
+ assert.equal(restored.length,1);assert.equal(restored[0].price,1900);
+ shop.categories[0].items[1].active=false;assert.deepEqual(restoreCart(shop,restored),[]);
 });

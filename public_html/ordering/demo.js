@@ -1,7 +1,7 @@
-import './component.js?v=17';
+import './component.js?v=18';
 import {api} from '../platform/api.js';
-import {showTracking} from '../platform/tracking.js';
-const ordering=document.querySelector('restaurant-ordering');
+import {showTracking} from '../platform/tracking.js?v=18';
+const ordering=document.querySelector('starlit-ordering,restaurant-ordering');
 ordering.submitOrder=async order=>api('/orders',{method:'POST',body:{...order,demoAcknowledged:true}});
 ordering.addEventListener('order-confirmation-closed',()=>document.querySelector('#customer-tracking')?.scrollIntoView({behavior:'smooth',block:'start'}));
 ordering.addEventListener('order-complete',event=>{if(event.detail.trackingToken)showTracking(event.detail.id,event.detail.trackingToken);});
@@ -25,17 +25,21 @@ ordering.addEventListener('cart-change',updateItemCounts);
 const money=value=>new Intl.NumberFormat('en-CA',{style:'currency',currency:'CAD'}).format(value/100);
 ordering.addEventListener('ordering-ready',()=>{
  const menu=document.querySelector('#menu');
+ const nav=document.querySelector('nav[aria-label="Menu categories"]');nav.replaceChildren();
  for(const category of ordering.catalog.categories){
+  const link=document.createElement('a');link.href='#'+category.id;link.textContent=category.name;nav.append(link);
   const section=document.createElement('section');section.id=category.id;
   const heading=document.createElement('h2');heading.textContent=category.name;section.append(heading);
   const layout=document.createElement('div');layout.className='category-layout';
   if(category.image){const photo=document.createElement('img');photo.className='category-photo';photo.src=category.image.src;photo.alt=category.image.alt;photo.width=1200;photo.height=800;photo.loading='lazy';photo.decoding='async';layout.append(photo);}
   const dishes=document.createElement('div');dishes.className='category-dishes';layout.append(dishes);section.append(layout);
   for(const item of category.items){
+   if(item.active===false)continue;
    const row=document.createElement('article');row.className='dish';
    const info=document.createElement('div');const title=document.createElement('h3');title.textContent=item.name;const description=document.createElement('p');description.textContent=item.description;info.append(title,description);
+   if(item.image&&!category.image){const image=document.createElement('img');image.className='product-image';image.src=item.image.src;image.alt=item.image.alt;image.loading='lazy';info.prepend(image);}
    let select;
-   if(item.variants){const label=document.createElement('label');label.textContent='Flavour ';select=document.createElement('select');select.setAttribute('aria-label',item.name+' flavour');for(const variant of item.variants){const option=document.createElement('option');option.value=variant.id;option.textContent=variant.name;select.append(option);}label.append(select);info.append(label);}
+   if(item.variants){const label=document.createElement('label');label.textContent=(item.optionLabel||'Option')+' ';select=document.createElement('select');select.setAttribute('aria-label',item.name+' option');for(const variant of item.variants){const option=document.createElement('option');option.value=variant.id;option.textContent=variant.name;select.append(option);}label.append(select);info.append(label);}
    const action=document.createElement('div');action.className='dish-action';
    const price=document.createElement('span');price.textContent=money(item.price);
    const controls=document.createElement('div');controls.className='item-controls';controls.dataset.orderItem=item.id;
@@ -45,7 +49,7 @@ ordering.addEventListener('ordering-ready',()=>{
    const quantity=document.createElement('output');quantity.setAttribute('aria-label',item.name+' quantity');quantity.setAttribute('aria-live','polite');quantity.textContent='0';
    const plus=document.createElement('button');plus.type='button';plus.className='item-plus';plus.textContent='+';plus.setAttribute('aria-label','Add one '+item.name);plus.onclick=()=>ordering.add(item.id,select?.value||'');
    stepper.append(minus,quantity,plus);controls.append(add,stepper);action.append(price,controls);row.append(info,action);dishes.append(row);
-   if(select)select.addEventListener('change',updateItemCounts);
+   if(select)select.addEventListener('change',()=>{price.textContent=money(item.variants.find(v=>v.id===select.value).price);updateItemCounts();});
   }
   menu.append(section);
  }

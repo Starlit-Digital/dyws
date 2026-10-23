@@ -53,3 +53,16 @@ Use the current Unix timestamp, not the example value. Accuracy is metres. Only 
 Reports use separate `from` and `to` query parameters, both `YYYY-MM-DD`. The inclusive date range is interpreted in America/Edmonton, up to one year. Responses include the applied Unix boundaries, currency, operational metrics, signed test payment totals, status counts and top items. See architecture.md for metric definitions.
 
 No CORS wildcard is provided. The existing example operates on the same origin. Future website integrations should use a narrowly configured origin policy and restaurant scoped public credentials with server side enforcement.
+
+## Catalog and Stripe endpoints
+
+| Method | Route | Access |
+| --- | --- | --- |
+| GET | /catalog | Public active product catalog |
+| GET, POST | /manager/catalog | Manager, save `{catalog, revision}` with revision from GET |
+| GET, POST | /manager/stripe | Manager, redacted summary or write `{apiKey, webhookSecret, enabled}` |
+| POST | /manager/stripe/verify | Manager, checks saved sandbox key |
+| POST | /orders/SG-ID/checkout | Order tracking token in X-Tracking-Token header |
+| POST | /stripe/webhook | Stripe signature over the raw JSON request |
+
+Order receipts include paymentProvider and currency. Tracking adds paymentProvider and checkoutStatus. Stripe order payments are webhook controlled. See catalog-and-payments.md for schema and reconciliation rules.

@@ -1,9 +1,9 @@
 export function lineKey(id, variant = '') { return JSON.stringify([id, variant]); }
 export function resolveItem(catalog, id, variant = '') {
   const item = catalog.categories.flatMap(c => c.items).find(i => i.id === id);
-  if (!item) throw new Error('Item unavailable');
+  if (!item || item.active === false) throw new Error('Item unavailable');
   const option = item.variants?.find(v => v.id === variant);
-  if (item.variants?.length && !option) throw new Error('Choose an option');
+  if ((item.variants?.length || variant) && !option) throw new Error('Choose an option');
   const price = option?.price ?? item.price;
   if (!Number.isSafeInteger(price) || price < 0) throw new Error('Invalid price');
   return { id, variant, name: item.name, option: option?.name || '', price };

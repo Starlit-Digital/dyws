@@ -2,9 +2,10 @@
 
 ## Local
 
-Requirements: PHP 8.1 or newer with PDO SQLite, Node.js for frontend tests, Python 3 for HTTP tests. There are no Composer or npm dependencies.
+Requirements: PHP 8.1 or newer with PDO SQLite, Node.js for frontend tests, Python 3 for HTTP tests. Install the pinned Stripe PHP SDK with Composer. There are no npm dependencies.
 
 ```sh
+composer install --no-dev
 npm run setup
 npm run serve
 npm test
@@ -39,3 +40,13 @@ Back up SQLite with a coordinated SQLite backup or snapshot procedure, not by co
 ## Validation on October 23, 2026
 
 Four JavaScript cart tests, 28 PHP service checks and 14 HTTP boundary checks passed. Checks cover server pricing, idempotency, role access, tenant isolation, state transitions, assignment, duplicate payments and refunds, reporting reconciliation, GPS authorization, coordinates, timestamps, ordering and removal, and tracking token expiry. Hosted browser testing exercises checkout, manager board, driver assignment, test payment and inline tracking with simulated GPS. Native background location and actual payment processing are not tested or implemented.
+
+## Catalog and Stripe deployment upgrade
+
+Deploy `server/` and Composer `vendor/` to the private installation, never public_html. Run `php server/migrate-catalog.php /absolute/private/var/config.json https://sltd.ca/diner` once to move the existing configured catalog into private JSON without overwriting credentials. The runtime catalog is not overwritten by future code deployments. New local setup copies the diner seed from examples into private var.
+
+Then deploy public_html, including settings.html, and retain the existing private bootstrap path. The old static ordering/catalog.json can be removed after its private migration and backup. The SDK uses its pinned default API version. Configure sandbox credentials and the webhook in admin settings; no Stripe account is configured by deployment itself.
+
+October 23 catalog and Stripe upgrade validation: 98 checks pass, comprising five cart tests, 28 backend checks, 26 HTTP checks and 39 catalog and Stripe checks. Hosted browser verification saved the private catalog and placed order SG-6547CD1FE1B9 through the migrated storefront. The Stripe SDK was audited with no reported dependency advisories. Stripe credentials remain unset; no external Stripe sandbox payment was performed. Backup: domains/sltd.ca/private/deploy-backups/starlit-go-catalog-stripe-20261023/.
+
+For a local checkout where the old tracked catalog has already moved, pass the seed explicitly as the third migration argument: `php server/migrate-catalog.php var/config.json http://127.0.0.1:8097 examples/starlit-diner/catalog.json`. Do not replace a modified merchant catalog with that seed.

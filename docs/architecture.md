@@ -48,7 +48,7 @@ An assigned driver can start or finish only their delivery. Completion requires 
 
 Order count, ordered value, average order value, active count, cancelled count and top items are based on order creation date. Ordered value includes unpaid and cancelled orders and is not revenue. Popular items exclude cancelled orders and count ordered quantities regardless of payment. The dashboard labels these distinctions. Average preparation measures accepted to ready; average delivery measures out for delivery to delivered, using only orders with both events. These are observed event durations, not promises or route ETAs. Fulfillment and status counts are also available in the API.
 
-Payment collections and refunds use payment event date. Net collections equals captures minus refunds. Net food sales, net tax and net delivery fees use the corresponding signed amounts, and their sum reconciles to net collections. These are test operational metrics, not formal accounting statements. The date range is interpreted in America/Edmonton and converted to inclusive start and exclusive end timestamps. All timestamps are stored as Unix seconds.
+Payment collections and refunds use payment event date. Net collections equals captures minus refunds. Net product sales, net tax and net delivery fees use the corresponding signed amounts, and their sum reconciles to net collections. These are test operational metrics, not formal accounting statements. The date range is interpreted in America/Edmonton and converted to inclusive start and exclusive end timestamps. All timestamps are stored as Unix seconds.
 
 ## Access and privacy boundaries
 
@@ -65,3 +65,7 @@ The demo map uses the existing attributed Manning reference image with a Mercato
 ## Deliberate boundaries
 
 No production checkout, payment processing, inventory, driver payouts, push delivery, route optimization, automatic dispatch, customer accounts, POS synchronization or native apps are claimed. SQLite is suitable for this small pilot; migrate to a managed transactional database and event outbox for a busy multi restaurant platform. Database migrations need versioned deployment tooling beyond the current additive schema initialization.
+
+## Generic catalog and payment connector
+
+The private JSON catalog and Stripe connector extend this foundation. See catalog-and-payments.md for the current product schema, sandbox payment workflow, reconciliation definitions and secret storage. Stripe is optional per new order. Historical orders retain their original provider and currency. The diner is a branded example of the generic starlit-ordering component.

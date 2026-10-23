@@ -5,6 +5,6 @@ export async function api(route,{method='GET',body,token,trackingToken}={}){
  const response=await fetch(url,{method,headers,body:body===undefined?undefined:JSON.stringify(body),cache:'no-store',referrerPolicy:'no-referrer'});
  const data=await response.json();if(!response.ok)throw new Error(data.error||'Request failed.');return data;
 }
-export const money=n=>new Intl.NumberFormat('en-CA',{style:'currency',currency:'CAD'}).format(n/100);
+export const money=(n,currency='CAD')=>new Intl.NumberFormat('en-CA',{style:'currency',currency}).format(n/100);
 export const escapeHTML=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export const statusText=s=>s.replaceAll('_',' ');

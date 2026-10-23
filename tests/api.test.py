@@ -38,6 +38,19 @@ with tempfile.TemporaryDirectory(prefix='starlit-api-') as work:
   tracking=request('/tracking/'+receipt['id'],tracking=receipt['trackingToken']);assert tracking['status']=='placed' and 'customer_name' not in tracking
   orders=request('/manager/orders',token=manager_token);assert len(orders['orders'])==1
   assert request('/driver/orders',token=driver_token)['orders']==[]
+  catalog=request('/catalog');assert catalog['businessName']=='Starlit Diner'
+  request('/manager/catalog',status=401)
+  request('/manager/catalog',token=driver_token,status=403)
+  saved=request('/manager/catalog',token=manager_token)
+  saved['catalog']['categories'][0]['items'][0]['price']=1595
+  updated=request('/manager/catalog',saved,token=manager_token)
+  request('/manager/catalog',saved,token=manager_token,status=409)
+  assert request('/catalog')['categories'][0]['items'][0]['price']==1595
+  request('/manager/stripe',status=401)
+  request('/manager/stripe',{'enabled':False},token=driver_token,status=403)
+  stripe=request('/manager/stripe',token=manager_token);assert not stripe['enabled'] and 'apiKey' not in stripe
+  request('/manager/stripe',{'enabled':True,'apiKey':'rk_live_invalid'},token=manager_token,status=422)
+  request('/orders/'+receipt['id']+'/checkout',{},tracking=receipt['trackingToken'],status=409)
   request('/logout',{},token=manager_token)
   request('/manager/orders',token=manager_token,status=401)
   print(f'HTTP API: {checks} checks passed.')
