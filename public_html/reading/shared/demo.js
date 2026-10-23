@@ -1,1 +1,0 @@
-const button=document.querySelector('[data-sample-action]');button?.addEventListener('click',()=>{document.querySelector('[data-sample-status]').textContent='A clear action, with useful feedback. Nothing was sent.';});

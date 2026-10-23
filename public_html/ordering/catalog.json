@@ -1,0 +1,115 @@
+{
+  "restaurant": "Starlit Diner",
+  "currency": "CAD",
+  "taxBasisPoints": 500,
+  "categories": [
+    {
+      "id": "breakfast",
+      "name": "Breakfast",
+      "items": [
+        {
+          "id": "breakfast0",
+          "name": "Sunrise Breakfast",
+          "description": "Two eggs, bacon, toast and crispy potatoes.",
+          "price": 1495
+        },
+        {
+          "id": "breakfast1",
+          "name": "Buttermilk Pancakes",
+          "description": "Three pancakes with maple syrup.",
+          "price": 1195
+        },
+        {
+          "id": "breakfast2",
+          "name": "Diner Omelette",
+          "description": "Cheddar, peppers and onions with toast.",
+          "price": 1395
+        }
+      ]
+    },
+    {
+      "id": "classics",
+      "name": "Diner Classics",
+      "items": [
+        {
+          "id": "classics0",
+          "name": "Starlit Cheeseburger",
+          "description": "Beef patty, cheddar, lettuce and house sauce. Served with fries.",
+          "price": 1795
+        },
+        {
+          "id": "classics1",
+          "name": "Club Sandwich",
+          "description": "Turkey, bacon, lettuce and tomato. Served with fries.",
+          "price": 1695
+        },
+        {
+          "id": "classics2",
+          "name": "Grilled Cheese",
+          "description": "Golden sourdough and melted cheddar. Served with fries.",
+          "price": 1195
+        }
+      ]
+    },
+    {
+      "id": "sides",
+      "name": "Sides",
+      "items": [
+        {
+          "id": "sides0",
+          "name": "French Fries",
+          "description": "Crispy golden potatoes.",
+          "price": 595
+        },
+        {
+          "id": "sides1",
+          "name": "Garden Salad",
+          "description": "Mixed greens, tomato and cucumber.",
+          "price": 695
+        }
+      ]
+    },
+    {
+      "id": "sweet",
+      "name": "Sweets & Drinks",
+      "items": [
+        {
+          "id": "sweet0",
+          "name": "Apple Pie",
+          "description": "A warm slice of the diner classic.",
+          "price": 695
+        },
+        {
+          "id": "sweet1",
+          "name": "Milkshake",
+          "description": "Vanilla, chocolate or strawberry.",
+          "price": 795,
+          "variants": [
+            {
+              "id": "vanilla",
+              "name": "Vanilla",
+              "price": 795
+            },
+            {
+              "id": "chocolate",
+              "name": "Chocolate",
+              "price": 795
+            },
+            {
+              "id": "strawberry",
+              "name": "Strawberry",
+              "price": 795
+            }
+          ]
+        },
+        {
+          "id": "sweet2",
+          "name": "Coffee",
+          "description": "Freshly brewed diner coffee.",
+          "price": 295
+        }
+      ]
+    }
+  ],
+  "pickupAddress": "100 Example Avenue, Starlight, AB (fictional)"
+}

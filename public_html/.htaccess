@@ -1,5 +1,5 @@
 Options -Indexes
 <IfModule mod_headers.c>
-Header always set X-Robots-Tag "noindex, nofollow, noarchive"
-Header always set Cache-Control "no-store"
+Header set Cache-Control "no-store"
+Header set X-Robots-Tag "noindex, nofollow, noarchive"
 </IfModule>
