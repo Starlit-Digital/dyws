@@ -16,7 +16,7 @@ export class RestaurantOrdering extends HTMLElement {
   }
   get key(){return this.getAttribute('storage-key')||'starlit-order-cart';}
   amount(value){return this.money.format(value/100);}
-  persist(){try{localStorage.setItem(this.key,JSON.stringify(this.lines));}catch{} this.updateButton();}
+  persist(){try{localStorage.setItem(this.key,JSON.stringify(this.lines));}catch{} this.updateButton();this.dispatchEvent(new CustomEvent('cart-change',{detail:{count:this.lines.reduce((n,l)=>n+l.quantity,0)},bubbles:true}));}
   updateButton(){const count=this.lines.reduce((n,l)=>n+l.quantity,0);this.shadowRoot.querySelector('.cart-launch').textContent=`Your order (${count}) · ${this.amount(totals(this.lines,this.catalog.taxBasisPoints).total)}`;}
   add(id,variant=''){
     if(!this.catalog || this.busy)return;
@@ -24,7 +24,6 @@ export class RestaurantOrdering extends HTMLElement {
     const row=this.lines.find(l=>lineKey(l.id,l.variant)===key);
     if(row){if(row.quantity>=99){this.announce('Maximum quantity is 99.');return;}row.quantity++;}else this.lines.push({...item,quantity:1});
     this.persist();this.announce(`${item.name} added to your order.`);
-    this.dispatchEvent(new CustomEvent('cart-change',{detail:{count:this.lines.reduce((n,l)=>n+l.quantity,0)},bubbles:true}));
   }
   announce(text){this.shadowRoot.querySelector('[role="status"]').textContent=text;}
   render(){
