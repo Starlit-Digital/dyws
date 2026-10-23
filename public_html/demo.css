@@ -33,3 +33,7 @@ header{padding-top:14px;padding-bottom:10px}main{padding-top:8px}.intro{padding-
 button{color:#fff8ed}.display-button{color:var(--text)}.eyebrow,.dish-action>span{color:var(--red)}.brand{color:var(--text)}.brand::first-letter{color:var(--red)}
 #menu h2::after{content:"";display:block;width:44px;height:4px;background:var(--accent);border-radius:4px;margin-top:12px}
 .item-stepper{background:var(--raised)}.display-options{--gold:var(--accent)}.item-stepper output{color:var(--text)}
+
+/* Keep the hero compact and align its copy with the top of the photograph. */
+.intro{align-items:flex-start;min-height:0;padding:22px 28px;gap:0}.intro .eyebrow{margin:0 0 12px}.intro h1{margin:0 0 14px}.intro>div>p:last-child{margin:0}.intro::after{background:linear-gradient(90deg,var(--bg) 0%,color-mix(in srgb,var(--bg) 97%,transparent) 52%,color-mix(in srgb,var(--bg) 24%,transparent) 76%,transparent 100%)}
+@media(max-width:650px){.intro{min-height:0;padding:20px 18px;margin-bottom:16px}.intro::after{background:linear-gradient(90deg,color-mix(in srgb,var(--bg) var(--hero-opacity,98%),transparent),color-mix(in srgb,var(--bg) var(--hero-opacity,98%),transparent))}.intro .eyebrow{margin:0 0 12px}.intro h1{margin:0 0 12px}}
