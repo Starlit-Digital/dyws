@@ -4,3 +4,6 @@
 
 /* Prevent double tap zoom while preserving scrolling and pinch zoom. */
 html,button,a,input,select,textarea{touch-action:manipulation}
+
+.item-controls{width:144px}.dish-action .item-add{width:144px;max-width:none;min-height:48px}.item-stepper{display:grid;grid-template-columns:48px 48px 48px;align-items:center;background:var(--bg);border-radius:12px}.item-stepper[hidden],.item-add[hidden]{display:none}.dish-action .item-stepper button{min-width:48px;width:48px;min-height:48px;max-width:48px;padding:8px;font-size:1.2rem}.item-stepper output{text-align:center;font-weight:700}.item-stepper button:disabled{opacity:.5}
+@media(max-width:430px){.dish{grid-template-columns:minmax(0,1fr) 144px}.dish-action{white-space:normal}.dish h3,.dish p{overflow-wrap:anywhere}}

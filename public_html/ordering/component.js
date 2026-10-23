@@ -25,6 +25,14 @@ export class RestaurantOrdering extends HTMLElement {
     if(row){if(row.quantity>=99){this.announce('Maximum quantity is 99.');return;}row.quantity++;}else this.lines.push({...item,quantity:1});
     this.persist();this.announce(`${item.name} added to your order.`);
   }
+  remove(id,variant=''){
+    if(!this.catalog || this.busy)return;
+    const row=this.lines.find(line=>lineKey(line.id,line.variant)===lineKey(id,variant));
+    if(!row)return;
+    row.quantity--;
+    this.lines=this.lines.filter(line=>line.quantity>0);
+    this.persist();this.announce(`${row.name} quantity ${row.quantity}.`);
+  }
   announce(text){this.shadowRoot.querySelector('[role="status"]').textContent=text;}
   render(){
     this.shadowRoot.innerHTML=`<link rel="stylesheet" href="${new URL('./component.css?v=4',import.meta.url).href}"><button class="cart-launch" type="button">Your order</button><p id="status" role="status" aria-live="polite"></p><dialog aria-labelledby="order-title"><header><h2 id="order-title">Your order</h2><button type="button" class="muted close" aria-label="Close order">Close</button></header><div class="content"></div></dialog>`;
