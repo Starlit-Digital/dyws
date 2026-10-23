@@ -49,7 +49,11 @@
           "description": "Grilled steak, two eggs, toast and breakfast potatoes.",
           "price": 2195
         }
-      ]
+      ],
+      "image": {
+        "src": "images/breakfast.webp",
+        "alt": "Sunny side up eggs with bacon, breakfast potatoes and toast."
+      }
     },
     {
       "id": "classics",
@@ -97,7 +101,11 @@
           "description": "Homestyle meatloaf with gravy, mashed potatoes and seasonal vegetables.",
           "price": 1895
         }
-      ]
+      ],
+      "image": {
+        "src": "images/classics.webp",
+        "alt": "Cheeseburger with cheddar, lettuce, tomato and golden fries."
+      }
     },
     {
       "id": "soups",
@@ -145,7 +153,11 @@
           "description": "Tomato soup with a half grilled cheese sandwich.",
           "price": 1295
         }
-      ]
+      ],
+      "image": {
+        "src": "images/soups.webp",
+        "alt": "Caesar salad with romaine, parmesan and croutons."
+      }
     },
     {
       "id": "sides",
@@ -193,7 +205,11 @@
           "description": "Two slices of toasted bread with garlic butter.",
           "price": 395
         }
-      ]
+      ],
+      "image": {
+        "src": "images/sides.webp",
+        "alt": "Golden french fries with a side of ketchup."
+      }
     },
     {
       "id": "sweet",
@@ -258,7 +274,11 @@
           "description": "A refreshing glass of classic lemonade.",
           "price": 395
         }
-      ]
+      ],
+      "image": {
+        "src": "images/sweet.webp",
+        "alt": "Vanilla milkshake topped with whipped cream and a cherry."
+      }
     }
   ],
   "pickupAddress": "100 Example Avenue, Starlight, AB (fictional)"

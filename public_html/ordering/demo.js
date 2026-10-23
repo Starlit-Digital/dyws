@@ -24,6 +24,9 @@ ordering.addEventListener('ordering-ready',()=>{
  for(const category of ordering.catalog.categories){
   const section=document.createElement('section');section.id=category.id;
   const heading=document.createElement('h2');heading.textContent=category.name;section.append(heading);
+  const layout=document.createElement('div');layout.className='category-layout';
+  if(category.image){const photo=document.createElement('img');photo.className='category-photo';photo.src=category.image.src;photo.alt=category.image.alt;photo.width=1200;photo.height=800;photo.loading='lazy';photo.decoding='async';layout.append(photo);}
+  const dishes=document.createElement('div');dishes.className='category-dishes';layout.append(dishes);section.append(layout);
   for(const item of category.items){
    const row=document.createElement('article');row.className='dish';
    const info=document.createElement('div');const title=document.createElement('h3');title.textContent=item.name;const description=document.createElement('p');description.textContent=item.description;info.append(title,description);
@@ -37,7 +40,7 @@ ordering.addEventListener('ordering-ready',()=>{
    const minus=document.createElement('button');minus.type='button';minus.className='item-minus';minus.textContent='−';minus.setAttribute('aria-label','Remove one '+item.name);minus.onclick=()=>ordering.remove(item.id,select?.value||'');
    const quantity=document.createElement('output');quantity.setAttribute('aria-label',item.name+' quantity');quantity.setAttribute('aria-live','polite');quantity.textContent='0';
    const plus=document.createElement('button');plus.type='button';plus.className='item-plus';plus.textContent='+';plus.setAttribute('aria-label','Add one '+item.name);plus.onclick=()=>ordering.add(item.id,select?.value||'');
-   stepper.append(minus,quantity,plus);controls.append(add,stepper);action.append(price,controls);row.append(info,action);section.append(row);
+   stepper.append(minus,quantity,plus);controls.append(add,stepper);action.append(price,controls);row.append(info,action);dishes.append(row);
    if(select)select.addEventListener('change',updateItemCounts);
   }
   menu.append(section);
