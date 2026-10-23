@@ -56,7 +56,7 @@ try {
   $result=$plugins->applyFilters('lookup.results',\StarlitGo\Lookup::search($store,\StarlitGo\Catalog::load($config['catalog']),$config['drivers'],$query,$kind),['query'=>$query,'kind'=>$kind]);
  }
  elseif($method==='GET'&&$route==='/manager/reports'){
-  dyws_authorize($store,['manager']);$tz=new DateTimeZone('America/Edmonton');$start=$_GET['from']??(new DateTimeImmutable('today',$tz))->format('Y-m-d');$end=$_GET['to']??$start;if(!is_string($start)||!is_string($end))throw new \StarlitGo\ApiError('Choose valid report dates.');
+  dyws_authorize($store,['manager']);$tz=new DateTimeZone((new \StarlitGo\Settings($config))->read()['timeZone']);$start=$_GET['from']??(new DateTimeImmutable('today',$tz))->format('Y-m-d');$end=$_GET['to']??$start;if(!is_string($start)||!is_string($end))throw new \StarlitGo\ApiError('Choose valid report dates.');
   $from=DateTimeImmutable::createFromFormat('!Y-m-d',$start,$tz);$to=DateTimeImmutable::createFromFormat('!Y-m-d',$end,$tz);if(!$from||!$to||$from->format('Y-m-d')!==$start||$to->format('Y-m-d')!==$end||$to<$from||(int)$from->diff($to)->format('%a')>365)throw new \StarlitGo\ApiError('Choose a valid date range up to one year.');$result=$plugins->applyFilters('reports.summary',$store->reports($from->getTimestamp(),$to->modify('+1 day')->getTimestamp()));
  }
  elseif($method==='POST'&&preg_match('~^/manager/orders/(SG-[A-F0-9]{12})/(status|assign|payment)$~',$route,$m)){
@@ -87,6 +87,7 @@ try {
   if($route==='/orders')$plugins->doAction('order.created',$result,$store);
   if(str_ends_with($route,'/status'))$plugins->doAction('order.status_changed',$result,$store);
  }
+ header('X-DYWS-Time-Zone: '.(new \StarlitGo\Settings($config))->read()['timeZone']);
  $result=$plugins->applyFilters('api.response',$result,$route,$method);
  $plugins->doAction('api.respond',$route,$method,$result);
  echo json_encode($result,JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES);

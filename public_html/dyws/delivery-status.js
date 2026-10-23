@@ -1,3 +1,4 @@
+import {formatTime} from './date-time.js';
 /** Customer language and estimates, without inventing preparation or travel times. */
 export const terminalStatuses=new Set(['delivered','completed','cancelled']);
 export function deliveryStatus(order,{estimate=undefined,now=Date.now(),role='Driver',unavailable=false}={}) {
@@ -21,7 +22,7 @@ export function deliveryStatus(order,{estimate=undefined,now=Date.now(),role='Dr
  const minutes=Math.max(1,Math.ceil(estimate.durationMillis/60000));
  view.etaTitle=order.locationSource==='simulated'?'Demo arrival estimate':'Estimated arrival';
  view.etaValue=minutes<=2?'Arriving soon':'About '+minutes+' min';
- const time=new Date(estimate.calculatedAt+estimate.durationMillis).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
+ const time=formatTime((estimate.calculatedAt+estimate.durationMillis)/1000);
  view.etaDetail=(order.locationSource==='simulated'?'Simulated location. ':'')+'Around '+time+'. Based on the driving route and traffic. Timing may change.';
  return view;
 }

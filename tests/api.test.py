@@ -69,7 +69,7 @@ with tempfile.TemporaryDirectory(prefix='starlit-api-') as work:
   restored=request('/manager/plugins/google-maps/settings',token=manager_token)
   assert restored['hasKey'] and restored['revision']==maps_saved['revision']
   initial_settings=request('/settings')
-  assert initial_settings=={'driverRole':{'singular':'Driver','plural':'Drivers'}}
+  assert initial_settings=={'driverRole':{'singular':'Driver','plural':'Drivers'},'timeZone':'America/Edmonton'}
   request('/manager/settings',status=401)
   request('/manager/settings',token=driver_token,status=403)
   request('/manager/settings',{},status=401)

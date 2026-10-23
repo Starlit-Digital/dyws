@@ -1,3 +1,4 @@
+import {getTimeZone,configureTimeZone} from '../../../../public_html/dyws/date-time.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdtemp,readFile,writeFile,rm} from 'node:fs/promises';
@@ -51,6 +52,9 @@ test('WebSocket RPC, scoped live updates, HTTP polling fallback and safe mutatio
   await fetch(endpoint+'?route='+encodeURIComponent('/driver/orders/'+receipt.id+'/location/stop'),{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+driver.token},body:JSON.stringify({sharingToken:share.sharingToken})});
   await until(()=>trackingEvents>prior);
   assert.equal((await customer('/tracking/'+receipt.id,{trackingToken:receipt.trackingToken})).location,null);
+  const settings=await api('/manager/settings',{token:manager.token});settings.settings.timeZone='Asia/Tokyo';
+  await api('/manager/settings',{method:'POST',body:settings,token:manager.token});assert.equal(getTimeZone(),'Asia/Tokyo','WebSocket mutation carries updated timezone');
+  configureTimeZone('UTC');await customer('/tracking/'+receipt.id,{trackingToken:receipt.trackingToken});assert.equal(getTimeZone(),'Asia/Tokyo','Tracking RPC refreshes display zone');
   // Reject untrusted browser origins before the upgrade.
   await new Promise(resolve=>{const bad=new WebSocket(socketURL,{origin:'https://untrusted.invalid'});bad.on('error',()=>resolve());bad.on('open',()=>{bad.close();assert.fail('Unexpected upgrade');});});
   await service.close();service=null;await until(()=>api.transport==='polling');

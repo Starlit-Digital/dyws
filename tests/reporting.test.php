@@ -26,5 +26,16 @@ try {
  foreach([['from'=>'2026-02-30'],['from'=>[]],['from'=>'2026-04-01','to'=>'2026-03-01'],['from'=>'2020-01-01','to'=>'2026-01-01']]as$q){try{OrderReports::range($q);throw new RuntimeException('Invalid range accepted');}catch(ApiError $e){check($e->http===422,'Invalid dates rejected');}}
  foreach([['currency'=>'<script>'],['fulfillment'=>[]]]as$q){try{$reporter->dashboard($from,$to,'CAD',$q);throw new RuntimeException('Invalid filter');}catch(ApiError $e){check($e->http===422,'Invalid filters rejected');}}
  $serialized=json_encode($full);foreach(['Fictional Customer','7805550100','tracking','latitude','customer_phone'] as $private)check(!str_contains($serialized,$private),'No private order details');
+ $before=$s->query('SELECT id,created_at,updated_at FROM orders ORDER BY id');
+ [$utcStart,$utcEnd]=OrderReports::range(['from'=>'2026-03-08','to'=>'2026-03-08'],'UTC');
+ check($utcEnd-$utcStart===86400&&gmdate('H:i',$utcStart)==='00:00','UTC boundaries');
+ [$tokyoStart,$tokyoEnd]=OrderReports::range(['from'=>'2026-03-08','to'=>'2026-03-08'],'Asia/Tokyo');
+ check(gmdate('Y-m-d H:i',$tokyoStart)==='2026-03-07 15:00','Local midnight converted to UTC');
+ $tokyo=(new OrderReports($s,'Asia/Tokyo'))->dashboard($tokyoStart,$tokyoEnd,'CAD');
+ check($tokyo['timeZone']==='Asia/Tokyo'&&$tokyo['current']['summary']['orders']===2,'Selected zone controls order date inclusion');
+ check($tokyo['current']['hours'][16]['count']===1,'Hourly report uses selected timezone');
+ [$fallStart,$fallEnd]=OrderReports::range(['from'=>'2026-11-01','to'=>'2026-11-01'],'America/Toronto');
+ check($fallEnd-$fallStart===25*3600,'Fall DST day has 25 hours');
+ check($before===$s->query('SELECT id,created_at,updated_at FROM orders ORDER BY id'),'Timezone changes never alter stored instants');
  echo "Reporting: $checks checks passed.\n";
 }finally{unset($s,$other);foreach([$path,$path.'-wal',$path.'-shm']as$f)if(is_file($f))unlink($f);}

@@ -48,7 +48,7 @@ An assigned driver can start or finish only their delivery. Completion requires 
 
 Order count, ordered value, average order value, active count, cancelled count and top items are based on order creation date. Ordered value includes unpaid and cancelled orders and is not revenue. Popular items exclude cancelled orders and count ordered quantities regardless of payment. The dashboard labels these distinctions. Average preparation measures accepted to ready; average delivery measures out for delivery to delivered, using only orders with both events. These are observed event durations, not promises or route ETAs. Fulfillment and status counts are also available in the API.
 
-Payment collections and refunds use payment event date. Net collections equals captures minus refunds. Net product sales, net tax and net delivery fees use the corresponding signed amounts, and their sum reconciles to net collections. These are test operational metrics, not formal accounting statements. The date range is interpreted in America/Edmonton and converted to inclusive start and exclusive end timestamps. All timestamps are stored as Unix seconds.
+Payment collections and refunds use payment event date. Net collections equals captures minus refunds. Net product sales, net tax and net delivery fees use the corresponding signed amounts, and their sum reconciles to net collections. These are test operational metrics, not formal accounting statements. The date range is interpreted in the timezone selected in Settings (America/Edmonton by default) and converted to inclusive start and exclusive end timestamps. All timestamps are stored as Unix seconds.
 
 ## Access and privacy boundaries
 

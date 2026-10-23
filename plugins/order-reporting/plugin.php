@@ -4,12 +4,13 @@ use StarlitGo\PluginContext;
 use StarlitGo\Plugins\OrderReporting\OrderReports;
 require_once __DIR__.'/OrderReports.php';
 return static function(PluginContext $plugin):void {
- $service=static fn()=>new OrderReports($plugin->store);
+ $zone=static fn()=>(new \StarlitGo\Settings($plugin->config))->read()['timeZone'];
+ $service=static fn()=>new OrderReports($plugin->store,$zone());
  $currency=static fn()=>\StarlitGo\Catalog::load($plugin->config['catalog'])['currency'];
  $plugin->addFilter('reports.summary',static function(array $report)use($service):array{
   try{$report['orderReporting']=$service()->dashboard($report['from'],$report['to'],$report['currency'],$_GET);}catch(\StarlitGo\ApiError $e){$report['orderReportingError']=$e->getMessage();}return $report;
  });
- $plugin->route('GET','/manager/plugins/order-reporting/dashboard','manager',static function()use($service,$currency):array{
-  [$from,$to]=OrderReports::range($_GET);return $service()->dashboard($from,$to,$currency(),$_GET);
+ $plugin->route('GET','/manager/plugins/order-reporting/dashboard','manager',static function()use($service,$currency,$zone):array{
+  [$from,$to]=OrderReports::range($_GET,$zone());return $service()->dashboard($from,$to,$currency(),$_GET);
  });
 };

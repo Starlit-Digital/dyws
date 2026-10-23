@@ -20,7 +20,7 @@ Preliminary registry checks on October 23, 2026 returned no registration record 
 
 ## Foundation delivered
 
-Persistent SQLite orders with tenant identifiers, authoritative catalog pricing, integer cent totals, request idempotency, immutable status events, manager status workflow, driver assignment, separate test payment capture and full refund ledger, order totals, average order value, top items, paid collections, tax and fee breakdown, date filtering in Edmonton time, observed preparation and delivery durations, CSV report export, role scoped manager and driver sessions, and customer tracking links that expire after 24 hours.
+Persistent SQLite orders with tenant identifiers, authoritative catalog pricing, integer cent totals, request idempotency, immutable status events, manager status workflow, driver assignment, separate test payment capture and full refund ledger, order totals, average order value, top items, paid collections, tax and fee breakdown, date filtering in the configured site timezone, observed preparation and delivery durations, CSV report export, role scoped manager and driver sessions, and customer tracking links that expire after 24 hours.
 
 Customers choose pickup or delivery in the example checkout. Delivery has a fixed $3.95 demonstration fee. The driver console automatically starts browser GPS during active deliveries, with a fixed test origin configured for this demo. Only the assigned driver can update an active delivery. Customer tracking polls the same API and displays a timeline, Google map and driving route on a private status page. It shows a stale warning after 60 seconds and hides locations older than 15 minutes. Terminal orders delete their stored position.
 

@@ -1,0 +1,34 @@
+import {escapeHTML as esc,money,statusText} from './api.js';
+import {formatDateTime,getTimeZone} from './date-time.js';
+
+/** One compact summary per order. Contact details and actions open on demand. */
+export function mountOrderList({root,plugins,renderOrder}){
+ root.innerHTML=`<p class="dyws-note">Latest 200 orders · <span data-order-zone></span></p><div class="dyws-order-filters"><label>Search<input type="search" data-order-search placeholder="Order or customer"></label>${[['status','Status'],['fulfillment','Type'],['payment_status','Payment']].map(([key,label])=>`<label>${label}<select data-order-filter="${key}"><option value="">All</option></select></label>`).join('')}</div><div class="dyws-order-table"></div><section class="dyws-order-detail" hidden aria-label="Order details"><button type="button" class="dyws-secondary" data-close-order>Close details</button><div data-order-content></div></section>`;
+ const tableRoot=root.querySelector('.dyws-order-table'),detail=root.querySelector('.dyws-order-detail'),content=root.querySelector('[data-order-content]'),search=root.querySelector('[data-order-search]'),filters=[...root.querySelectorAll('[data-order-filter]')];
+ let current={orders:[],drivers:[]},selected=null,signature='',instance=null;
+ const show=()=>{const order=current.orders.find(o=>o.id===selected);detail.hidden=!order;if(order)renderOrder(order,current,content);else content.replaceChildren();};
+ const filter=()=>{
+  if(instance){instance.search(search.value);filters.forEach((control,i)=>instance.column(i+3).search(control.value,{exact:true}));instance.draw();return;}
+  for(const row of tableRoot.querySelectorAll('tbody tr')){const order=current.orders.find(o=>o.id===row.dataset.orderId);row.hidden=!!order&&(!row.textContent.toLowerCase().includes(search.value.toLowerCase())||filters.some(control=>control.value&&statusText(order[control.dataset.orderFilter])!==control.value));}
+ };
+ search.oninput=filter;filters.forEach(control=>control.onchange=filter);
+ tableRoot.onclick=event=>{const button=event.target.closest('[data-open-order]');if(!button)return;selected=button.dataset.openOrder;show();detail.scrollIntoView({block:'nearest'});detail.querySelector('[data-close-order]').focus({preventScroll:true});};
+ root.querySelector('[data-close-order]').onclick=()=>{const id=selected;selected=null;show();tableRoot.querySelector(`[data-open-order="${id}"]`)?.focus({preventScroll:true});};
+ return {
+  async update(data,{force=false}={}){
+   current=data;
+   // Preserve a selection or typed value while an operator is working.
+   if(force||!detail.contains(root.ownerDocument.activeElement))show();
+   const key=JSON.stringify([getTimeZone(),data.orders.map(o=>[o.id,o.created_at,o.customer_name,o.status,o.fulfillment,o.payment_status,o.total,o.currency])]);
+   if(key===signature||(!force&&(tableRoot.contains(root.ownerDocument.activeElement)||filters.includes(root.ownerDocument.activeElement))))return;
+   signature=key;root.querySelector('[data-order-zone]').textContent=getTimeZone();
+   await plugins?.runAction('admin:tables',{root:tableRoot,phase:'dispose'});instance=null;
+   for(const control of filters){const value=control.value,values=[...new Set(data.orders.map(o=>statusText(o[control.dataset.orderFilter])))].sort();if(value&&!values.includes(value))values.push(value);control.innerHTML='<option value="">All</option>'+values.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('');control.value=value;}
+   tableRoot.innerHTML=`<div class="dyws-table-wrap"><table data-dyws-table="orders"><caption class="dyws-visually-hidden">Latest 200 orders</caption><thead><tr>${['Order','Placed','Customer','Status','Type','Payment','Total'].map(label=>`<th scope="col">${label}</th>`).join('')}</tr></thead><tbody>${data.orders.map(o=>`<tr data-order-id="${esc(o.id)}"><td><button type="button" class="dyws-secondary" data-open-order="${esc(o.id)}" aria-label="View order ${esc(o.id)}">${esc(o.id)}</button></td><td data-order="${Number(o.created_at)}">${esc(formatDateTime(o.created_at))}</td><td>${esc(o.customer_name)}</td><td>${esc(statusText(o.status))}</td><td>${esc(o.fulfillment)}</td><td>${esc(statusText(o.payment_status))}</td><td data-order="${Number(o.total)}">${esc(money(o.total,o.currency))}</td></tr>`).join('')}</tbody></table></div>`;
+   await plugins?.runAction('admin:tables',{root:tableRoot,options:{order:[[1,'desc']],layout:{topEnd:null}},ready:table=>{instance=table;instance.search(search.value);filters.forEach((control,i)=>instance.column(i+3).search(control.value,{exact:true}));instance.draw(false);}});
+   if(!instance)filter();
+  },
+  async clear(){await plugins?.runAction('admin:tables',{root:tableRoot,phase:'dispose',forget:true});instance=null;signature='';selected=null;current={orders:[],drivers:[]};tableRoot.replaceChildren();show();search.value='';filters.forEach(control=>control.value='');},
+  destroy(){return plugins?.runAction('admin:tables',{root:tableRoot,phase:'dispose',forget:true});}
+ };
+}

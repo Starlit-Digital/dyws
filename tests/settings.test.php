@@ -17,8 +17,14 @@ try {
  foreach(['','   ',str_repeat('a',61),"Bad\nName",['wrong']] as $invalid){$body['settings']['driverRole']['singular']=$invalid;$body['revision']=$saved['revision'];denied(fn()=>$settings->save($body));}
  $body['settings']['driverRole']=['singular'=>'助理','plural'=>'Équipe'];$saved=$settings->save($body);check($saved['settings']['driverRole']['singular']==='助理','Unicode names');
  $body['revision']=$saved['revision'];$body['settings']['driverRole']=['singular'=>'<Admin & Handler>','plural'=>'Team'];$body['settings']['manager_password_hash']='must not persist';$saved=$settings->save($body);
- check(count($saved['settings'])===1,'Only display settings persisted');
+ check(count($saved['settings'])===2,'Only display settings persisted');
  check($saved['settings']['driverRole']['singular']==='<Admin & Handler>','Plain text labels retained');
  $path=glob($dir.'/settings-*.json')[0];check((fileperms($path)&0777)===0600,'Settings file is private');
+ check($saved['settings']['timeZone']==='America/Edmonton','Legacy settings default to Edmonton');
+ check(in_array('UTC',$saved['timeZones'],true)&&in_array('Asia/Tokyo',$saved['timeZones'],true),'Timezone choices');
+ $body=['settings'=>array_replace($saved['settings'],['timeZone'=>'Asia/Tokyo']),'revision'=>$saved['revision']];
+ $saved=$settings->save($body);check($settings->read()['timeZone']==='Asia/Tokyo','Timezone persists');
+ $body['revision']=$saved['revision'];unset($body['settings']['timeZone']);$saved=$settings->save($body);check($saved['settings']['timeZone']==='Asia/Tokyo','Old clients preserve selected timezone');
+ foreach(['GMT+5','Not/AZone',[],null] as $zone){$body['revision']=$saved['revision'];$body['settings']['timeZone']=$zone;denied(fn()=>$settings->save($body));}
  echo "General settings: $checks checks passed.\n";
 }finally{foreach(glob($dir.'/*') as $file)unlink($file);rmdir($dir);}

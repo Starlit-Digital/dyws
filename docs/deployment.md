@@ -154,3 +154,7 @@ Validation: 497 automated checks passed, plus 42 fresh installation checks again
 ## Version 0.7 reporting plugins
 
 Deploy private plugins/order-reporting, plugins/datatables, the updated bundled.json and hook catalog, plus their matching public_html/plugins assets and version 31 browser adapters. Preserve var, the hosted bootstrap path and setup removal. No schema or order migration is required. Both new bundled plugins are adopted once through upgradeDefaults; explicit deactivation persists. Rebuild dyws.zip from staged source and run the archive installer test. DataTables assets and their MIT license are included locally, without a runtime CDN dependency.
+
+## Version 0.8.0
+
+Adds compact admin orders and the timezone preference. Deploy PHP, both changed plugins and browser assets together, preserving private configuration, catalogs, SQLite and settings JSON. Assets use cache version 32. Existing optional WebSocket relay deployments should also update server.js so timezone metadata is forwarded. The hosted demo continues to use HTTPS polling. No database migration or timestamp conversion is needed. Existing installations default to America/Edmonton until an admin saves another timezone. Back up public files, private PHP and plugins, settings JSON and a consistent SQLite snapshot before replacing files. Build and verify the installation ZIP after staging the new date-time.js and order-list.js modules.

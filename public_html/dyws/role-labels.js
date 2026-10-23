@@ -1,6 +1,7 @@
+import {configureTimeZone} from './date-time.js';
 export const defaultRole=Object.freeze({singular:'Driver',plural:'Drivers'});
 export async function loadRole(api){
- try{return (await api('/settings')).driverRole||defaultRole;}
+ try{const settings=await api('/settings');configureTimeZone(settings.timeZone);return settings.driverRole||defaultRole;}
  catch{return defaultRole;}
 }
 // Replace only explicitly marked text nodes, never input values or HTML.

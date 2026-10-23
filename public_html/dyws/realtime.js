@@ -1,3 +1,4 @@
+import {configureTimeZone} from './date-time.js';
 import {createAPIClient} from './api.js';
 /** Optional WebSocket RPC and invalidation, with ordinary HTTP and polling when unavailable. */
 export function createRealtimeAPI(endpoint,{WebSocket:Socket=globalThis.WebSocket,http=createAPIClient(endpoint),connectTimeout=2500,requestTimeout=25000}={}) {
@@ -22,7 +23,7 @@ export function createRealtimeAPI(endpoint,{WebSocket:Socket=globalThis.WebSocke
     ws.onclose=()=>{clearTimeout(timeout);if(socket===ws){socket=null;rejectPending();status('polling');nextAttempt=Date.now()+Math.min(30000,1000*2**Math.min(attempt++,5));}resolve(null);};
     ws.onmessage=event=>{
      let m;try{m=JSON.parse(event.data);}catch{return;}
-     if(m.type==='response'){const request=pending.get(m.id);if(!request)return;pending.delete(m.id);if(m.status>=200&&m.status<300)request.resolve(m.data);else request.reject(Object.assign(new Error(m.data?.error||'Request failed.'),{status:m.status}));}
+     if(m.type==='response'){configureTimeZone(m.timeZone);const request=pending.get(m.id);if(!request)return;pending.delete(m.id);if(m.status>=200&&m.status<300)request.resolve(m.data);else request.reject(Object.assign(new Error(m.data?.error||'Request failed.'),{status:m.status}));}
      else {const sub=subscriptions.get(m.subscription);if(!sub)return;
       if(m.type==='subscribed'){notify(sub,{type:sub.revision!==undefined&&sub.revision!==m.revision?'change':'sync'});sub.revision=m.revision;}
       if(m.type==='change')notify(sub,{type:'change'});

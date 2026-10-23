@@ -10,6 +10,7 @@ require_once __DIR__.'/Settings.php';
 require_once __DIR__.'/Plugins.php';
 require_once __DIR__.'/Realtime.php';
 function dyws_bootstrap(?string $configPath=null):array {
+ date_default_timezone_set('UTC');
  $configPath=$configPath?:getenv('DYWS_CONFIG')?:getenv('STARLIT_GO_CONFIG');
  if(!$configPath)throw new ApiError('A private configuration path is required.',503);
  if(!is_file($configPath))throw new ApiError('The order service has not been configured.',503);

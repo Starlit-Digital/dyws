@@ -8,9 +8,9 @@ use StarlitGo\{Store,ApiError};
 /** Aggregate private order snapshots and ledger events, without contacts or location data. */
 final class OrderReports {
  public const TIMEZONE='America/Edmonton';
- public function __construct(private Store $store) {}
- public static function range(array $query):array {
-  $tz=new DateTimeZone(self::TIMEZONE);$today=new DateTimeImmutable('today',$tz);
+ public function __construct(private Store $store,private string $timeZone=self::TIMEZONE) {}
+ public static function range(array $query,string $timeZone=self::TIMEZONE):array {
+  $tz=new DateTimeZone($timeZone);$today=new DateTimeImmutable('today',$tz);
   $start=$query['from']??$today->modify('-29 days')->format('Y-m-d');$end=$query['to']??$today->format('Y-m-d');
   $parse=static function($date)use($tz){if(!is_string($date)||!preg_match('/^\d{4}-\d{2}-\d{2}$/D',$date))throw new ApiError('Choose valid report dates.');$d=DateTimeImmutable::createFromFormat('!Y-m-d',$date,$tz);if(!$d||$d->format('Y-m-d')!==$date)throw new ApiError('Choose valid report dates.');return $d;};
   $from=$parse($start);$to=$parse($end);
@@ -20,7 +20,7 @@ final class OrderReports {
  public function dashboard(int $from,int $to,string $currency,array $query=[]):array {
   $currency=$query['currency']??$currency;$fulfillment=$query['fulfillment']??'all';
   if(!is_string($currency)||!preg_match('/^[A-Z]{3}$/D',$currency)||!in_array($fulfillment,['all','pickup','delivery'],true))throw new ApiError('Choose a valid currency and fulfilment filter.');
-  $tz=new DateTimeZone(self::TIMEZONE);$start=(new DateTimeImmutable('@'.$from))->setTimezone($tz);$end=(new DateTimeImmutable('@'.$to))->setTimezone($tz);
+  $tz=new DateTimeZone($this->timeZone);$start=(new DateTimeImmutable('@'.$from))->setTimezone($tz);$end=(new DateTimeImmutable('@'.$to))->setTimezone($tz);
   $days=(int)$start->diff($end)->format('%a');if($days<1||$days>366)throw new ApiError('Choose a range of at most 366 days.');
   $previousStart=$start->modify('-'.$days.' days')->getTimestamp();
   // A deferred read transaction gives all panels the same SQLite snapshot without reserving a write lock.
@@ -30,14 +30,14 @@ final class OrderReports {
    $currencies=array_column($this->store->query('SELECT DISTINCT currency FROM orders WHERE tenant=? ORDER BY currency',[$this->store->tenant]),'currency');if(!in_array($currency,$currencies,true))$currencies[]=$currency;sort($currencies);
    if($own)$this->store->db->commit();
   }catch(\Throwable $e){if($own&&$this->store->db->inTransaction())$this->store->db->rollBack();throw $e;}
-  $context=['from'=>$from,'to'=>$to,'currency'=>$currency,'fulfillment'=>$fulfillment,'timeZone'=>self::TIMEZONE];
-  $data=['schemaVersion'=>1,'demo'=>true,'currency'=>$currency,'currencies'=>$currencies,'fulfillment'=>$fulfillment,'timeZone'=>self::TIMEZONE,'range'=>['from'=>$start->format('Y-m-d'),'to'=>$end->modify('-1 day')->format('Y-m-d'),'days'=>$days],'previousRange'=>['from'=>$start->modify('-'.$days.' days')->format('Y-m-d'),'to'=>$start->modify('-1 day')->format('Y-m-d')],'current'=>$current,'previous'=>$previous['summary']];
+  $context=['from'=>$from,'to'=>$to,'currency'=>$currency,'fulfillment'=>$fulfillment,'timeZone'=>$this->timeZone];
+  $data=['schemaVersion'=>1,'demo'=>true,'currency'=>$currency,'currencies'=>$currencies,'fulfillment'=>$fulfillment,'timeZone'=>$this->timeZone,'range'=>['from'=>$start->format('Y-m-d'),'to'=>$end->modify('-1 day')->format('Y-m-d'),'days'=>$days],'previousRange'=>['from'=>$start->modify('-'.$days.' days')->format('Y-m-d'),'to'=>$start->modify('-1 day')->format('Y-m-d')],'current'=>$current,'previous'=>$previous['summary']];
   $data=$this->store->plugins?->applyFilters('reports.dataset',$data,$context)??$data;
   $this->store->plugins?->doAction('reports.generated',$data,$context);
   return $data;
  }
  private function aggregate(int $from,int $to,string $currency,string $fulfillment):array {
-  $s=$this->store;$tz=new DateTimeZone(self::TIMEZONE);$date=static fn(int $t)=>(new DateTimeImmutable('@'.$t))->setTimezone($tz);
+  $s=$this->store;$tz=new DateTimeZone($this->timeZone);$date=static fn(int $t)=>(new DateTimeImmutable('@'.$t))->setTimezone($tz);
   $daily=[];for($d=$date($from);$d->getTimestamp()<$to;$d=$d->modify('+1 day'))$daily[$d->format('Y-m-d')]=['date'=>$d->format('Y-m-d'),'orders'=>0,'orderedValue'=>0,'captured'=>0,'refunded'=>0,'netCollected'=>0];
   $summary=array_fill_keys(['orders','active','completed','cancelled','orderedValue','averageOrder','unpaidOrders','unpaidValue','captured','refunded','netCollected','netSales','netTax','netDeliveryFees'],0);
   $summary+=['completionRate'=>null,'cancellationRate'=>null,'preparationSeconds'=>null,'deliverySeconds'=>null,'preparationSamples'=>0,'deliverySamples'=>0];

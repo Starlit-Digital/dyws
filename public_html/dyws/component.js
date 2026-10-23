@@ -35,7 +35,7 @@ export class RestaurantOrdering extends HTMLElement {
   }
   announce(text){this.shadowRoot.querySelector('[role="status"]').textContent=text;}
   render(){
-    this.shadowRoot.innerHTML=`<link rel="stylesheet" href="${new URL('./ordering.css?v=31',import.meta.url).href}"><div class="dyws-ordering"><button class="dyws-cart-launch" type="button">Your order</button><p id="dyws-status" role="status" aria-live="polite"></p><dialog aria-labelledby="dyws-order-title"><header><h2 id="dyws-order-title">Your order</h2><small>${escapeHTML(this.catalog.platformName || 'DYWS')}</small><button type="button" class="dyws-muted dyws-close" aria-label="Close order">Close</button></header><div class="dyws-content"></div></dialog></div>`;
+    this.shadowRoot.innerHTML=`<link rel="stylesheet" href="${new URL('./ordering.css?v=32',import.meta.url).href}"><div class="dyws-ordering"><button class="dyws-cart-launch" type="button">Your order</button><p id="dyws-status" role="status" aria-live="polite"></p><dialog aria-labelledby="dyws-order-title"><header><h2 id="dyws-order-title">Your order</h2><small>${escapeHTML(this.catalog.platformName || 'DYWS')}</small><button type="button" class="dyws-muted dyws-close" aria-label="Close order">Close</button></header><div class="dyws-content"></div></dialog></div>`;
     this.dialog=this.shadowRoot.querySelector('dialog');
     this.shadowRoot.querySelector('.dyws-cart-launch').onclick=()=>this.open();
     this.shadowRoot.querySelector('.dyws-close').onclick=()=>this.dialog.close();

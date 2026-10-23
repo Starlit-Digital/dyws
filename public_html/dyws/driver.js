@@ -1,4 +1,5 @@
-import {pluginSlot} from './plugin-ui.js?v=31';
+import {formatTime} from './date-time.js';
+import {pluginSlot} from './plugin-ui.js?v=32';
 import {escapeHTML as esc,money,statusText} from './api.js';
 import {createDriverGPS} from './driver-gps.js';
 export function mountDriver({root=document,api,storageKey='starlit-go-driver',renderLocation,simulatePosition,testLocationName='Configured test origin',plugins}) {
@@ -10,7 +11,7 @@ export function mountDriver({root=document,api,storageKey='starlit-go-driver',re
  function signedOut(){if(feedback)feedback.textContent='';latestPosition=null;currentDelivery=null;renderLocation?.clear?.();attemptedOrder=null;token=null;sessionStorage.removeItem(storageKey);root.querySelector('#deliveries').replaceChildren();display();}
  const gps=createDriverGPS({api,getToken:()=>token,onUnauthorized:signedOut,onState:s=>{
   state.textContent=s.message;const mapRoot=root.querySelector('#driver-map');if(mapRoot&&renderLocation){if(s.position)latestPosition={...s.position,recorded_at:s.position.recordedAt};if(!s.active)latestPosition=null;const view=renderLocation(latestPosition,undefined,{destinationAddress:currentDelivery?.address});if(view&&!mapRoot.contains(view))mapRoot.replaceChildren(view);}
-  if(details){if(!s.active)details.textContent='';else if(s.position)details.textContent=(s.source==='simulated'?'Test route · ':'Device GPS · ')+s.orderId+' · Last shared '+new Date(s.sharedAt).toLocaleTimeString()+' · '+s.position.latitude.toFixed(5)+', '+s.position.longitude.toFixed(5);else details.textContent=s.orderId+' · '+(s.source==='simulated'?'Simulated test route':'Device GPS');}
+  if(details){if(!s.active)details.textContent='';else if(s.position)details.textContent=(s.source==='simulated'?'Test route · ':'Device GPS · ')+s.orderId+' · Last shared '+formatTime(s.sharedAt/1000)+' · '+s.position.latitude.toFixed(5)+', '+s.position.longitude.toFixed(5);else details.textContent=s.orderId+' · '+(s.source==='simulated'?'Simulated test route':'Device GPS');}
 
  }});
  root.querySelector('#logout').onclick=async()=>{gps.stop();const old=token;signedOut();try{await api('/logout',{method:'POST',body:{},token:old});}catch{}};
@@ -39,7 +40,7 @@ export function mountDriver({root=document,api,storageKey='starlit-go-driver',re
   });
   root.querySelectorAll('[data-status]').forEach(button=>{button.disabled=changing;});
   const current=data.orders.find(o=>o.id===gps.orderId&&o.status==='out_for_delivery')||data.orders.find(o=>o.status==='out_for_delivery');
-  currentDelivery=current;if(!current)latestPosition=null;if(simulatePosition&&current?.gps?.location){latestPosition=current.gps.location;state.textContent='Test location: '+testLocationName+'. Device GPS is not used.';details.textContent=current.id+' · Updated '+new Date(latestPosition.recorded_at*1000).toLocaleTimeString();}const mapRoot=root.querySelector('#driver-map');if(mapRoot&&renderLocation){const view=renderLocation(latestPosition,undefined,{destinationAddress:current?.address});if(view&&!mapRoot.contains(view))mapRoot.replaceChildren(view);}
+  currentDelivery=current;if(!current)latestPosition=null;if(simulatePosition&&current?.gps?.location){latestPosition=current.gps.location;state.textContent='Test location: '+testLocationName+'. Device GPS is not used.';details.textContent=current.id+' · Updated '+formatTime(latestPosition.recorded_at);}const mapRoot=root.querySelector('#driver-map');if(mapRoot&&renderLocation){const view=renderLocation(latestPosition,undefined,{destinationAddress:current?.address});if(view&&!mapRoot.contains(view))mapRoot.replaceChildren(view);}
   if(current&&(simulatePosition||permission?.state!=='denied')&&!document.hidden&&!gps.orderId&&(attemptedOrder!==current.id||Date.now()>retryAfter)){attemptedOrder=current.id;retryAfter=Date.now()+60000;void gps.start(current.id,{simulatePosition});}
   if(!current){attemptedOrder=null;state.textContent='GPS starts automatically when an assigned delivery is on the way.';}
   if(plugins)void plugins.runAction('driver:orders',{root:pluginSlot(root.querySelector('#deliveries'),'driver'),orders:data.orders});

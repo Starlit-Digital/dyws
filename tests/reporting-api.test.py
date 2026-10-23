@@ -32,6 +32,12 @@ with tempfile.TemporaryDirectory(prefix='dyws-report-api-') as temp:
   request('/manager/reports',token=admin,query='&from[]=invalid',status=422)
   check('orderReportingError' in request('/manager/reports',token=admin,query='&currency[]=CAD'))
   for query in ['&from[]=2026','&from=2026-02-30','&currency[]=CAD','&fulfillment=invalid']:request(route,token=admin,query=query,status=422)
+  settings=request('/manager/settings',token=admin);settings['settings']['timeZone']='Asia/Tokyo'
+  request('/manager/settings',settings,token=admin)
+  check(request('/settings')['timeZone']=='Asia/Tokyo')
+  zoned=request('/manager/reports',token=admin,query='&from=2026-03-08&to=2026-03-08')
+  check(zoned['from']==1772895600 and zoned['to']-zoned['from']==86400 and zoned['orderReporting']['timeZone']=='Asia/Tokyo')
+  direct=request(route,token=admin,query='&from=2026-03-08&to=2026-03-08');check(direct['timeZone']=='Asia/Tokyo')
   def toggle(id,active):
    state=request('/manager/plugins',token=admin);request('/manager/plugins',{'id':id,'active':active,'revision':state['revision']},token=admin)
   toggle('datatables',False);check('orderReporting' in request('/manager/reports',token=admin,query='&from=2026-10-01&to=2026-10-07'))

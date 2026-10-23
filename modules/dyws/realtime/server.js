@@ -29,7 +29,7 @@ export function createRealtimeServer({backend,secret,origins,host='127.0.0.1',po
   const response=await fetchRequest(url,{method:message.method||'GET',headers,body:message.method==='POST'?JSON.stringify(message.body||{}):undefined,signal:AbortSignal.timeout(20000),redirect:'error'});
   const data=await response.json();let topics=[];try{topics=JSON.parse(response.headers.get('x-dyws-events')||'[]');}catch{}
   if(response.ok&&Array.isArray(topics))broadcast(topics.filter(t=>typeof t==='string'));
-  return {status:response.status,data};
+  return {status:response.status,data,timeZone:response.headers.get('x-dyws-time-zone')};
  }
  wss.on('connection',(ws,req)=>{
   ws.subs=new Map();ws.alive=true;ws.inflight=0;ws.messages=0;ws.window=Date.now();clients.add(ws);
