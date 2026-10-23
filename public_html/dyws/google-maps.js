@@ -16,19 +16,20 @@ export async function makeGoogleMap(element,config,position,{showMarker=true}={}
  const [{Map},{AdvancedMarkerElement}]=await Promise.all([sdk.importLibrary('maps'),sdk.importLibrary('marker')]);
  const map=new Map(element,{center:position,zoom:15,mapId:config.mapId||'DEMO_MAP_ID',mapTypeControl:false,streetViewControl:false,fullscreenControl:true,gestureHandling:'cooperative'});
  const marker=new AdvancedMarkerElement({map:showMarker?map:null,position,title:'Delivery location'});
- let polylines=[],destinationMarker=null,routeAddress='',lastOrigin=null,routeAt=0,routePending=null,routeEpoch=0;
- function clearRoute(){routeEpoch++;polylines.forEach(line=>line.setMap(null));polylines=[];if(destinationMarker)destinationMarker.map=null;destinationMarker=null;routeAddress='';lastOrigin=null;routePending=null;}
+ let polylines=[],destinationMarker=null,routeAddress='',lastOrigin=null,routeAt=0,routePending=null,routeEpoch=0,routeEstimate=null;
+ function clearRoute(){routeEpoch++;polylines.forEach(line=>line.setMap(null));polylines=[];if(destinationMarker)destinationMarker.map=null;destinationMarker=null;routeAddress='';lastOrigin=null;routePending=null;routeEstimate=null;}
  async function route(origin,address){
-  if(!address){clearRoute();return '';}
+  if(!address){clearRoute();return null;}
   const moved=lastOrigin?Math.hypot((origin.lat-lastOrigin.lat)*111320,(origin.lng-lastOrigin.lng)*111320*Math.cos(origin.lat*Math.PI/180)):Infinity;
-  if(routeAddress===address&&((polylines.length&&moved<100)||Date.now()-routeAt<60000))return polylines.length?'Driving route to the delivery address.':'';
+  if(routeAddress!==address)clearRoute();
   if(routePending)return routePending;
-  if(routeAddress!==address)clearRoute();routeAddress=address;routeAt=Date.now();const epoch=routeEpoch;
-  routePending=(async()=>{const {Route}=await sdk.importLibrary('routes');const {routes}=await Route.computeRoutes({origin,destination:address,travelMode:'DRIVING',fields:['path']});
+  if(routeAddress===address&&Date.now()-routeAt<(polylines.length&&moved<100?120000:60000))return routeEstimate;
+  routeAddress=address;routeAt=Date.now();const epoch=routeEpoch;
+  routePending=(async()=>{const {Route}=await sdk.importLibrary('routes');const {routes}=await Route.computeRoutes({origin,destination:address,travelMode:'DRIVING',routingPreference:'TRAFFIC_AWARE',fields:['path','durationMillis','distanceMeters']});
    if(epoch!==routeEpoch)return '';if(!routes?.[0]?.path?.length)throw new Error('No driving route was found for this address.');
    const path=routes[0].path;polylines.forEach(line=>line.setMap(null));polylines=routes[0].createPolylines();polylines.forEach(line=>{line.setOptions({strokeColor:'#b62d39',strokeWeight:6});line.setMap(map);});
    if(destinationMarker)destinationMarker.map=null;destinationMarker=new AdvancedMarkerElement({map,position:path.at(-1),title:'Delivery destination: '+address});
-   const {LatLngBounds}=await sdk.importLibrary('core');if(epoch!==routeEpoch)return '';const bounds=new LatLngBounds();path.forEach(point=>bounds.extend(point));map.fitBounds(bounds,40);lastOrigin=origin;return 'Driving route to the delivery address.';
+   const {LatLngBounds}=await sdk.importLibrary('core');if(epoch!==routeEpoch)return '';const bounds=new LatLngBounds();path.forEach(point=>bounds.extend(point));map.fitBounds(bounds,40);lastOrigin=origin;routeEstimate={durationMillis:routes[0].durationMillis,distanceMeters:routes[0].distanceMeters,calculatedAt:Date.now()};return routeEstimate;
   })().finally(()=>{if(epoch===routeEpoch)routePending=null;});return routePending;
  }
  return {update(p,title){marker.map=map;marker.position=p;marker.title=title;if(!polylines.length)map.panTo(p);},route,clear(){marker.map=null;clearRoute();},reset(center){marker.map=null;clearRoute();map.panTo(center);}};
@@ -37,28 +38,29 @@ export async function makeGoogleMap(element,config,position,{showMarker=true}={}
 export function createLocationRenderer({api,fallback,defaultCenter,makeMap=makeGoogleMap,document:doc=globalThis.document,now=Date.now,setTimer=setTimeout,clearTimer=clearTimeout}){
  const root=doc.createElement('div'),canvas=doc.createElement('div'),reference=doc.createElement('div'),note=doc.createElement('p');
  root.className='dyws-location-view';canvas.className='dyws-google-map';note.className='dyws-note';root.append(canvas,reference,note);root.hidden=true;canvas.hidden=true;
- const ttl=900000,cache=createGPSCache({now,ttl});let map,creating,configuration,timer,signature,lastRole={singular:'Driver'},fallbackSignature,version=0,visible=false,destinationAddress='';
- function clear(){version++;visible=false;cache.clear();clearTimer(timer);map?.clear();root.hidden=true;reference.replaceChildren();signature=null;fallbackSignature=null;}
+ const ttl=900000,cache=createGPSCache({now,ttl});let map,creating,configuration,timer,signature,lastRole={singular:'Driver'},fallbackSignature,version=0,visible=false,destinationAddress='',onEstimate=null;
+ function clear(){onEstimate?.(null);onEstimate=null;version++;visible=false;cache.clear();clearTimer(timer);map?.clear();root.hidden=true;reference.replaceChildren();signature=null;fallbackSignature=null;}
  function showFallback(p,role){if(p){const next=p.latitude+','+p.longitude+'|'+role.singular;if(next!==fallbackSignature){const node=fallback?.(p,role);reference.replaceChildren(...(node?[node]:[]));fallbackSignature=next;}}else reference.replaceChildren();reference.hidden=false;canvas.hidden=true;}
  async function refresh(){
   const current=version;let p=cache.get();if(!visible||(!p&&!defaultCenter)){clear();return;}root.hidden=false;
   configuration??=api('/maps/config').catch(()=>({enabled:false}));const config=await configuration;if(current!==version||!visible)return;
   p=cache.get();if(!p&&!defaultCenter){clear();return;}
-  if(!config.enabled||!config.browserKey){showFallback(p,lastRole);note.textContent='Google Maps can be enabled in admin Settings.';return;}
+  if(!config.enabled||!config.browserKey){showFallback(p,lastRole);note.textContent=p?'Live map unavailable. Use the location link.':'Waiting for an active delivery.';onEstimate?.(null);return;}
   try{
    const position=p?{lat:p.latitude,lng:p.longitude}:defaultCenter;canvas.hidden=false;
    if(!map){creating??=makeMap(canvas,config,position,{showMarker:!!p});map=await creating;}
    if(current!==version||!visible){if(!visible)map.clear();return;}
-   p=cache.get();if(p){const next=p.latitude+','+p.longitude+'|'+lastRole.singular;if(signature!==next){map.update({lat:p.latitude,lng:p.longitude},lastRole.singular+' location');signature=next;}note.textContent=(now()-p.recorded_at*1000>60000?'Last known position. ':'Latest shared position. ')+'No route or arrival estimate is calculated.';}
+   p=cache.get();if(p){const next=p.latitude+','+p.longitude+'|'+lastRole.singular;if(signature!==next){map.update({lat:p.latitude,lng:p.longitude},lastRole.singular+' location');signature=next;}note.textContent=(now()-p.recorded_at*1000>60000?'Last known position. ':'Latest shared position. ')+'Waiting for a driving route.';}
    else if(defaultCenter){map.reset?.(defaultCenter);map.clear();signature=null;note.textContent='Business area reference. Waiting for the driver location.';}
    else{clear();return;}
    reference.hidden=true;
-   if(p&&destinationAddress&&map.route){try{const routeNote=await map.route({lat:p.latitude,lng:p.longitude},destinationAddress);if(current===version&&visible)note.textContent=(now()-p.recorded_at*1000>60000?'Last known driver position. ':'')+routeNote;}catch{if(current===version&&visible){note.textContent='Route unavailable. Check that Routes API is enabled for this key. ';const link=doc.createElement('a');link.href='https://www.google.com/maps/dir/?api=1&origin='+encodeURIComponent(p.latitude+','+p.longitude)+'&destination='+encodeURIComponent(destinationAddress)+'&travelmode=driving';link.textContent='Open driving directions';link.target='_blank';link.rel='noopener noreferrer';note.append(link);}}}
-  }catch(error){creating=null;if(current!==version||!visible)return;p=cache.get();showFallback(p,lastRole);const reason=String(error?.message||'Map initialization failed.').replaceAll(config.browserKey,'[key]');note.textContent='Google Maps is unavailable: '+reason+' The location link is still available.';}
+   if(p&&now()-p.recorded_at*1000>60000)onEstimate?.(null);
+   if(p&&now()-p.recorded_at*1000<=60000&&destinationAddress&&map.route){try{const estimate=await map.route({lat:p.latitude,lng:p.longitude},destinationAddress);if(current===version&&visible){const stale=now()-cache.get()?.recorded_at*1000>60000||!cache.get();onEstimate?.(stale?null:estimate);note.textContent=(stale?'Last known driver position. ':'')+'Driving route to the delivery address.';}}catch{if(current===version&&visible){onEstimate?.(null);note.textContent='Arrival estimate unavailable. ';const link=doc.createElement('a');link.href='https://www.google.com/maps/dir/?api=1&origin='+encodeURIComponent(p.latitude+','+p.longitude)+'&destination='+encodeURIComponent(destinationAddress)+'&travelmode=driving';link.textContent='Open driving directions';link.target='_blank';link.rel='noopener noreferrer';note.append(link);}}}
+  }catch(error){creating=null;if(current!==version||!visible)return;p=cache.get();showFallback(p,lastRole);onEstimate?.(null);const reason=String(error?.message||'Map initialization failed.').replaceAll(config.browserKey,'[key]');note.textContent='Google Maps is unavailable: '+reason+' The location link is still available.';}
  }
  function render(position,role={singular:'Driver'},options={}){
   if(destinationAddress!==(options.destinationAddress||'')){version++;destinationAddress=options.destinationAddress||'';map?.route?.(null,'');}
-  clearTimer(timer);lastRole=role;visible=true;cache.set(position);
+  onEstimate=options.onEstimate||null;clearTimer(timer);lastRole=role;visible=true;cache.set(position);
   if(!cache.get()&&!defaultCenter){clear();return root;}
   if(cache.get())timer=setTimer(()=>{cache.clear();map?.clear();signature=null;void refresh();},Math.max(1,Math.min(120000,position.recorded_at*1000+ttl-now())));
   void refresh();return root;

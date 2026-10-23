@@ -116,3 +116,13 @@ Existing installations keep their current database filename and tenant. Deploy A
 Public changes include the new setup directory for fresh installations, optional generic storefront template, and an unconfigured homepage redirect. Existing diner configuration still selects its original website.
 
 Validation: 314 automated checks passed, including fresh HTTP installation, installer removal, reinstall protection, private storage boundaries, SQLite account migration, preserved passwords and inactive drivers, JSON business settings, and order persistence. The extracted ZIP also passes the 40 HTTP installation checks. A preupgrade code backup, consistent database snapshot and private JSON backups are in domains/sltd.ca/private/deploy-backups/dyws-installer-20261023/.
+
+## Customer delivery flow, version 0.4.1
+
+Deploy the changed public files only, retaining api/bootstrap-path.php and excluding setup. No schema or private settings change is required. The tracking page uses the existing private URL token and stops GPS display when the backend confirms completion. Orders still require recorded payment before completion; this change does not bypass that rule or enable real payments.
+
+Validation includes a full driver completion via the HTTP API, customer state updates and polling shutdown, delayed GPS, failed routing, expired estimates and Google route request caching. A separate browser fixture verified driver pickup, automatic customer progress and delivery completion without refreshing the customer page. The original hosted demo order is preserved.
+
+Rollback code backup: domains/sltd.ca/private/deploy-backups/dyws-delivery-flow-20261023/public-diner/.
+
+Final verification: 327 automated checks passed, plus 40 checks against the rebuilt install ZIP. The live Google route preview returned a traffic based arrival estimate and destination marker. A 390px customer preview was checked for legible progress and completion. Temporary route preview files were removed after verification.

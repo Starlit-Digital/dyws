@@ -68,7 +68,7 @@ export class RestaurantOrdering extends HTMLElement {
         const result=await this.submitOrder(order);
         if(!result?.id)throw new Error('Order confirmation was not received.');
         this.lines=[];this.persist();
-        content.innerHTML=`<h3>Test order complete</h3><p>Reference <strong>${escapeHTML(result.id)}</strong></p><p>Your test order is saved. ${result.paymentProvider==='stripe'?'Continue to Stripe test payment in the tracking panel on this page.':'Follow its status on this page.'} No real delivery or payment.</p><button type="button" class="dyws-done">Back to items</button>`;
+        content.innerHTML=`<h3>Order received</h3><p>Reference <strong>${escapeHTML(result.id)}</strong></p><p>Your test order is saved. ${result.paymentProvider==='stripe'?'Continue to Stripe test payment in the tracking panel on this page.':'Follow its status on this page.'} No real delivery or payment.</p><button type="button" class="dyws-done">Back to items</button>`;
         content.querySelector('.dyws-done').onclick=()=>{this.dialog.close();this.dispatchEvent(new CustomEvent('order-confirmation-closed',{bubbles:true}));};
         this.dispatchEvent(new CustomEvent('order-complete',{detail:{id:result.id,demo:result.demo===true,trackingToken:result.trackingToken},bubbles:true}));
       }catch(error){content.querySelector('.dyws-error').textContent=error.message||'Unable to submit. Your cart has been kept.';form.querySelectorAll('button').forEach(b=>b.disabled=false);}

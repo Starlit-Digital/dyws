@@ -118,6 +118,16 @@ with tempfile.TemporaryDirectory(prefix='starlit-api-') as work:
   config_path=pathlib.Path(work)/'config.json';cfg=json.loads(config_path.read_text());cfg['driver_test_location']={'latitude':53.61665,'longitude':-113.39804,'accuracy':8};config_path.write_text(json.dumps(cfg))
   mock=request('/driver/orders',token=driver_token)['orders'][0]['gps'];assert mock['source']=='simulated' and mock['location']['latitude']==53.61665
   assert request('/manager/driver-locations',token=manager_token)['locations'][0]['gps']['source']=='simulated'
+  # Completion is driver authorised, reaches the customer, and removes GPS and active work.
+  request('/driver/orders/'+delivery['id']+'/status',{'status':'delivered'},token=driver_token,status=409)
+  request('/manager/orders/'+delivery['id']+'/payment',{'kind':'capture'},token=manager_token)
+  request('/driver/orders/'+delivery['id']+'/status',{'status':'delivered'},token=driver_token)
+  finished=request('/tracking/'+delivery['id'],tracking=delivery['trackingToken'])
+  assert finished['status']=='delivered' and finished['location'] is None and finished['locationSource'] is None
+  assert finished['events'][-1]['status']=='delivered'
+  assert not any(o['id']==delivery['id'] for o in request('/driver/orders',token=driver_token)['orders'])
+  request(route+'/start',{},token=driver_token,status=403)
+  request('/driver/orders/'+delivery['id']+'/status',{'status':'out_for_delivery'},token=driver_token,status=409)
   request('/logout',{},token=driver_token)
   assert request('/tracking/'+delivery['id'],tracking=delivery['trackingToken'])['location'] is None
   request(route,fix,token=driver_token,status=401)

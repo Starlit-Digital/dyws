@@ -57,3 +57,7 @@ The owner confirmed lowercase dyws on October 23, 2026. The private GitHub repos
 ## Installer and durable storage
 
 The project ships a single dyws.zip for installation, with Git clone as an alternative. The /setup wizard checks hosting, verifies a private one time ownership key, collects the business name, URL and admin password, creates private storage, then removes itself. Existing configuration blocks repeat setup. Orders already used SQLite and remain there; driver accounts and admin password hashes now use SQLite too. Overall site settings and product catalogs remain JSON. Legacy account migration preserves credentials, driver IDs, assignments, active state and sessions.
+
+## Customer delivery polish
+
+The private order page now prioritises progress and an approximate arrival time from the driver's current route. Until departure it explains when that estimate becomes available. Simulated locations, stale GPS and connection errors are explicit. Driver completion automatically displays Delivered with its time and removes the customer map. The customer retains a confirmation and a Back to menu action. No preparation duration or automatic completion is fabricated.

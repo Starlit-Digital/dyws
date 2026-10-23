@@ -1,42 +1,66 @@
 import {statusText,escapeHTML} from './api.js';
 import {defaultRole} from './role-labels.js';
-export function createTracking({api,container,role=defaultRole,trackingPage,renderLocation,storageKey='starlit-go-tracking',panelId='customer-tracking'}) {
- if(typeof api!=='function'||!container)throw new TypeError('DYWS tracking requires an API client and container.');
- let timer,active,panel,unwatch=null,polling=false,again=false;
-const labels={placed:'Order placed',accepted:'Order accepted',preparing:'Preparing your order',ready:'Ready',out_for_delivery:role.singular+' on the way',delivered:'Delivered',completed:'Collected',cancelled:'Cancelled'};
-function show(id,token){
- renderLocation?.clear?.();
- active={id,token};try{sessionStorage.setItem(storageKey,JSON.stringify(active));}catch{}
- if(!panel){panel=document.createElement('section');panel.id=panelId;panel.className='dyws-tracking-panel';container.prepend(panel);}panel.setAttribute('aria-label','Your order tracking');
- panel.innerHTML=`<h2>Your test order</h2><p>Reference <strong>${escapeHTML(id)}</strong></p><p class="dyws-tracking-status" role="status">Connecting…</p><ol class="dyws-tracking-timeline"></ol><div class="dyws-tracking-payment"></div><div class="dyws-tracking-gps"></div><div class="dyws-tracking-map"></div><p>Updates appear here automatically. Keep this page open.</p>${trackingPage?`<p><a class="dyws-tracking-link" href="${escapeHTML(trackingPage)}#${encodeURIComponent(id)}.${encodeURIComponent(token)}">Open private tracking page ↗</a></p>`:''}<p class="dyws-tracking-error" role="alert"></p><button class="dyws-dismiss-tracking" type="button">Hide tracking</button>`;
- panel.querySelector('.dyws-dismiss-tracking').onclick=()=>{destroy();try{sessionStorage.removeItem(storageKey);}catch{}};
- clearTimeout(timer);unwatch?.();unwatch=api.watch?.({scope:'tracking',orderId:id,trackingToken:token,interval:5000},()=>poll());poll();
-}
-async function poll(){
- const current=active;if(!current)return;if(polling){again=true;return;}polling=true;
- try{
-  const data=await api('/tracking/'+current.id,{trackingToken:current.token});if(active!==current)return;
-  if(!panel)return;
-  panel.querySelector('.dyws-tracking-status').textContent=labels[data.status]||statusText(data.status);panel.querySelector('.dyws-tracking-error').textContent='';
-  panel.querySelector('.dyws-tracking-timeline').innerHTML=data.events.filter(e=>labels[e.status]).map(e=>`<li>${escapeHTML(labels[e.status])} <small>${new Date(e.created_at*1000).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</small></li>`).join('');
+import {deliveryStatus,terminalStatuses} from './delivery-status.js';
+export function createTracking({api,container,role=defaultRole,trackingPage,renderLocation,shopPage,storageKey='starlit-go-tracking',panelId='customer-tracking',document:doc=globalThis.document,now=Date.now}) {
+ if(typeof api!=='function'||!container)throw new TypeError('dyws tracking requires an API client and container.');
+ let timer,clock,active,panel,unwatch=null,polling=false,again=false,lastData,estimate,unavailable=false,lastChecked=0;
+ const time=value=>new Date(value*1000).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
+ function write(selector,text){const node=panel?.querySelector(selector);if(node&&node.textContent!==text)node.textContent=text;}
+ function summary(){
+  if(!panel||!lastData)return;
+  const view=deliveryStatus(lastData,{estimate,now:now(),role:role.singular,unavailable});
+  panel.dataset.status=lastData.status;
+  write('.dyws-tracking-status',view.title);write('.dyws-tracking-message',view.message);
+  const arrival=panel.querySelector('.dyws-tracking-arrival');arrival.hidden=view.terminal;
+  write('.dyws-arrival-label',view.etaTitle);write('.dyws-arrival-value',view.etaValue);write('.dyws-arrival-detail',view.etaDetail);
+  const stages=panel.querySelector('.dyws-tracking-timeline');stages.hidden=lastData.status==='cancelled';
+  const html=view.stages.map(step=>`<li class="dyws-step-${step.state}" ${step.state==='current'?'aria-current="step"':''}><span aria-hidden="true">${step.state==='done'||(view.complete&&step.state==='current')?'✓':'○'}</span>${escapeHTML(step.label)}</li>`).join('');
+  if(stages.innerHTML!==html)stages.innerHTML=html;
+  write('.dyws-tracking-updated',view.terminal?(view.title+' at '+time(view.stamp)):unavailable?'Updates paused. Reconnecting…':'Updates automatically · Last checked '+time(lastChecked/1000));
+  panel.querySelector('.dyws-tracking-complete').hidden=!view.complete;
+ }
+ function show(id,token){
+  renderLocation?.clear?.();lastData=null;estimate=undefined;unavailable=false;
+  active={id,token};try{sessionStorage.setItem(storageKey,JSON.stringify(active));}catch{}
+  if(!panel){panel=doc.createElement('section');panel.id=panelId;panel.className='dyws-tracking-panel';container.prepend(panel);}panel.setAttribute('aria-label','Your order tracking');
+  panel.innerHTML=`<p class="dyws-tracking-reference">Test order <strong>${escapeHTML(id)}</strong></p><div class="dyws-tracking-heading" role="status" aria-live="polite" aria-atomic="true"><h2 class="dyws-tracking-status">Connecting…</h2><p class="dyws-tracking-message"></p></div><div class="dyws-tracking-arrival" role="status" aria-live="polite" aria-atomic="true"><p class="dyws-arrival-label">Estimated arrival</p><strong class="dyws-arrival-value">Checking your order</strong><p class="dyws-arrival-detail"></p></div><ol class="dyws-tracking-timeline" aria-label="Order progress"></ol><p class="dyws-tracking-complete" hidden>Your order is complete. No further action is needed.</p><div class="dyws-tracking-payment"></div><div class="dyws-tracking-gps"></div><div class="dyws-tracking-map"></div><p class="dyws-tracking-updated dyws-note"></p>${trackingPage?`<p><a class="dyws-tracking-link" href="${escapeHTML(trackingPage)}#${encodeURIComponent(id)}.${encodeURIComponent(token)}">Open private tracking page</a></p>`:''}<p class="dyws-tracking-error" role="alert"></p>${shopPage?`<a class="dyws-tracking-return" href="${escapeHTML(shopPage)}">Back to menu</a>`:'<button class="dyws-dismiss-tracking" type="button">Hide tracking</button>'}`;
+  const dismiss=panel.querySelector('.dyws-dismiss-tracking');if(dismiss)dismiss.onclick=()=>{destroy();try{sessionStorage.removeItem(storageKey);}catch{}};
+  clearTimeout(timer);clearInterval(clock);clock=setInterval(summary,10000);
+  unwatch?.();unwatch=api.watch?.({scope:'tracking',orderId:id,trackingToken:token,interval:5000},()=>poll());void poll();
+ }
+ async function poll(){
+  const current=active;if(!current||terminalStatuses.has(lastData?.status))return;if(polling){again=true;return;}polling=true;
+  try{
+   const data=await api('/tracking/'+current.id,{trackingToken:current.token});if(active!==current||!panel)return;
+   lastData=data;lastChecked=now();unavailable=false;write('.dyws-tracking-error','');summary();
   const payment=panel.querySelector('.dyws-tracking-payment');
   if(!payment.querySelector('button:disabled')){
-   payment.replaceChildren();const label=document.createElement('p');label.textContent='Payment: '+statusText(data.paymentStatus);payment.append(label);
+   payment.replaceChildren();const label=doc.createElement('p');label.textContent='Payment: '+statusText(data.paymentStatus);payment.append(label);
    if(data.paymentProvider==='stripe'&&data.paymentStatus==='unpaid'&&data.status==='placed'){
     if(!data.checkoutStatus||['creating','open'].includes(data.checkoutStatus)){
-     const pay=document.createElement('button');pay.textContent='Pay with Stripe · test checkout';payment.append(pay);
+     const pay=doc.createElement('button');pay.textContent='Pay with Stripe · test checkout';payment.append(pay);
      pay.onclick=async()=>{pay.disabled=true;try{const result=await api('/orders/'+current.id+'/checkout',{method:'POST',body:{},trackingToken:current.token});const url=new URL(result.url);if(url.protocol!=='https:'||url.hostname!=='checkout.stripe.com')throw new Error('Invalid payment link.');location.assign(url.href);}catch(e){panel.querySelector('.dyws-tracking-error').textContent=e.message;pay.disabled=false;}};
-    }else{const note=document.createElement('p');note.textContent=data.checkoutStatus==='pending'?'Waiting for Stripe to confirm payment. Do not place a duplicate order.':'Checkout '+data.checkoutStatus+'. Contact the business if you need help.';payment.append(note);}
+    }else{const note=doc.createElement('p');note.textContent=data.checkoutStatus==='pending'?'Waiting for Stripe to confirm payment. Do not place a duplicate order.':'Checkout '+data.checkoutStatus+'. Contact the business if you need help.';payment.append(note);}
    }
   }
-  const gps=panel.querySelector('.dyws-tracking-gps');
-  if(data.location){const l=data.location;gps.innerHTML=`<p>${data.locationSource==='simulated'?'Simulated GPS test':'Device location'}</p><h3>${escapeHTML((data.gpsStale?'Last known ':'')+role.singular+' location')}</h3><p>${escapeHTML(Number(l.latitude).toFixed(5))}, ${escapeHTML(Number(l.longitude).toFixed(5))} · accuracy ${Math.round(l.accuracy)} m · updated ${new Date(l.recorded_at*1000).toLocaleTimeString()}</p>${data.gpsStale?'<p>GPS updates are delayed. This position may have changed.</p>':''}`;if(renderLocation){const map=renderLocation(l,role,{destinationAddress:data.deliveryAddress});const container=panel.querySelector('.dyws-tracking-map');if(map&&!container.contains(map))container.replaceChildren(map);}}
-  else {renderLocation?.clear?.();panel.querySelector('.dyws-tracking-map').replaceChildren();gps.innerHTML=data.status==='out_for_delivery'?`<p>Waiting for the ${escapeHTML(role.singular)} GPS update…</p>`:`<p>${escapeHTML(role.singular)} location is shared only while your delivery is on the way.</p>`;}
-  if(['completed','delivered','cancelled'].includes(data.status)){unwatch?.();unwatch=null;return;}
- }catch(e){if(active!==current)return;const error=panel?.querySelector('.dyws-tracking-error');if(error)error.textContent=e.message+' Retrying shortly.';}finally{polling=false;if(again){again=false;queueMicrotask(poll);}}
- if(!api.watch)timer=setTimeout(poll,document.hidden?30000:5000);
-}
-function destroy(){renderLocation?.clear?.();clearTimeout(timer);unwatch?.();unwatch=null;active=null;panel?.remove();panel=null;}
-function restore(){try{const saved=JSON.parse(sessionStorage.getItem(storageKey));if(saved?.id&&saved?.token)show(saved.id,saved.token);}catch{}}
-return {show,restore,destroy,scrollIntoView(){panel?.scrollIntoView({behavior:'smooth',block:'start'});}};
+   const gps=panel.querySelector('.dyws-tracking-gps');
+   if(data.location&&data.status==='out_for_delivery'){
+    const l=data.location,stale=data.gpsStale||now()-l.recorded_at*1000>60000;
+    gps.innerHTML=`<p>${data.locationSource==='simulated'?'Demo location · ':''}${escapeHTML(stale?'Last known '+role.singular.toLowerCase()+' location':role.singular+' location')} · updated ${time(l.recorded_at)}</p>${stale?'<p>Location updates are delayed. The position may have changed.</p>':''}`;
+    if(renderLocation){const map=renderLocation(l,role,{destinationAddress:data.deliveryAddress,onEstimate:value=>{if(active!==current||lastData!==data||terminalStatuses.has(data.status))return;estimate=value;summary();}});const mapRoot=panel.querySelector('.dyws-tracking-map');if(map&&!mapRoot.contains(map))mapRoot.replaceChildren(map);}
+    else {estimate=null;summary();}
+   }else{
+    renderLocation?.clear?.();estimate=undefined;panel.querySelector('.dyws-tracking-map').replaceChildren();
+    gps.innerHTML=data.status==='out_for_delivery'?'<p>Waiting for the next location update.</p>':'';
+   }
+   if(terminalStatuses.has(data.status)){clearTimeout(timer);clearInterval(clock);unwatch?.();unwatch=null;again=false;summary();return;}
+  }catch(e){
+   if(active!==current)return;unavailable=true;estimate=undefined;summary();write('.dyws-tracking-error',e.status===404?'This tracking link is unavailable or has expired.':'Connection interrupted. Your last update is shown. Retrying automatically.');
+   if(e.status===404){active=null;lastData=null;renderLocation?.clear?.();panel?.querySelector('.dyws-tracking-map').replaceChildren();if(panel)panel.querySelector('.dyws-tracking-arrival').hidden=true;write('.dyws-tracking-status','Tracking unavailable');clearInterval(clock);unwatch?.();unwatch=null;again=false;return;}
+  }finally{polling=false;if(again){again=false;queueMicrotask(poll);}}
+  if(!api.watch&&active===current)timer=setTimeout(poll,doc.hidden?30000:5000);
+ }
+ function destroy(){active=null;lastData=null;renderLocation?.clear?.();clearTimeout(timer);clearInterval(clock);unwatch?.();unwatch=null;panel?.remove();panel=null;}
+ function restore(){try{const saved=JSON.parse(sessionStorage.getItem(storageKey));if(saved?.id&&saved?.token)show(saved.id,saved.token);}catch{}}
+ return {show,restore,destroy,scrollIntoView(){panel?.scrollIntoView({behavior:'smooth',block:'start'});}};
 }

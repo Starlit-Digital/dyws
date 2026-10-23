@@ -1,6 +1,6 @@
 {
   "name": "@starlit-digital/dyws",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "private": true,
   "description": "Reusable Do You Want Something ordering JavaScript and scoped CSS",
   "style": "dyws.css",

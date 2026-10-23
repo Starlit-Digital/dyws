@@ -5,8 +5,8 @@ export const endpoint=new URL('../api/index.php',import.meta.url);
 export const api=createRealtimeAPI(endpoint);
 
 const label=document.createElement('p');label.className='dyws-connection-status';label.setAttribute('role','status');
-const admin=document.body.classList.contains('dyws-admin');
+const admin=document.body.classList.contains('dyws-admin'),customer=document.body.dataset.trackingPage==='true';
 if(admin){const footer=document.createElement('footer');footer.className='dyws-admin-footer';document.body.append(footer);footer.append(label);}
 else (document.querySelector('footer')||document.querySelector('header'))?.append(label);
-api.onConnection(mode=>{label.textContent=admin?(mode==='connecting'?'Connecting…':'Live updates'):(mode==='websocket'?'Live connection · WebSocket':mode==='connecting'?'Connecting…':'Live updates · HTTPS polling');label.title=mode==='websocket'?'WebSocket connection':'HTTPS polling';});
+api.onConnection(mode=>{label.hidden=customer;label.textContent=admin?(mode==='connecting'?'Connecting…':'Live updates'):(mode==='websocket'?'Live connection · WebSocket':mode==='connecting'?'Connecting…':'Live updates · HTTPS polling');label.title=mode==='websocket'?'WebSocket connection':'HTTPS polling';});
 window.addEventListener('pagehide',()=>api.close());window.addEventListener('pageshow',()=>api.resume());
