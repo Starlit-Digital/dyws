@@ -1,4 +1,4 @@
-import './component.js?v=3';
+import './component.js?v=4';
 const ordering=document.querySelector('restaurant-ordering');
 ordering.submitOrder=async order=>({id:'STAR-'+order.idempotencyKey.slice(0,8).toUpperCase(),demo:true});
 function updateItemCounts(){
