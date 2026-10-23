@@ -1,20 +1,39 @@
 import {escapeHTML as esc,money,statusText} from './api.js';
-export function mountDriver({root=document,api,storageKey='starlit-go-driver',simulatePosition}) {
+import {createDriverGPS} from './driver-gps.js';
+export function mountDriver({root=document,api,storageKey='starlit-go-driver',renderLocation,simulatePosition,testLocationName='Configured test origin'}) {
  if(typeof api!=='function')throw new TypeError('A DYWS API client is required.');
-let token=sessionStorage.getItem(storageKey),watch=null,simulation=null,sharingOrder=null,lastSent=0;
-const error=root.querySelector('#error'),state=root.querySelector('#gps-state');
-function display(){root.querySelector('#login').hidden=!!token;root.querySelector('#driver-board').hidden=!token;}
-function stop(){if(watch!==null)navigator.geolocation.clearWatch(watch);clearInterval(simulation);watch=null;simulation=null;sharingOrder=null;state.textContent='GPS is off.';}
-root.querySelector('#stop').onclick=stop;
-root.querySelector('#logout').onclick=async()=>{stop();try{await api('/logout',{method:'POST',body:{},token});}catch{}token=null;sessionStorage.removeItem(storageKey);display();};
-root.querySelector('#login-form').onsubmit=async e=>{e.preventDefault();try{const f=new FormData(e.target);const data=await api('/login',{method:'POST',body:{role:'driver',driverId:f.get('driverId'),password:f.get('password')}});token=data.token;sessionStorage.setItem(storageKey,token);e.target.elements.password.value='';display();await load();}catch(e){error.textContent=e.message;}};
-async function send(id,latitude,longitude,accuracy,simulated=false){try{await api('/driver/orders/'+id+'/location',{method:'POST',token,body:{latitude,longitude,accuracy,recordedAt:Math.floor(Date.now()/1000)}});state.textContent=`${simulated?'Simulated GPS':'GPS'} shared at ${new Date().toLocaleTimeString()}.`;error.textContent='';}catch(e){error.textContent=e.message;stop();}}
-async function change(id,status){try{await api('/driver/orders/'+id+'/status',{method:'POST',token,body:{status}});if(status==='delivered')stop();await load();}catch(e){error.textContent=e.message;}}
-async function load(){if(!token)return;try{const data=await api('/driver/orders',{token});error.textContent='';if(sharingOrder&&!data.orders.some(o=>o.id===sharingOrder&&o.status==='out_for_delivery'))stop();root.querySelector('#deliveries').innerHTML=data.orders.length?data.orders.map(o=>`<article data-order="${o.id}"><h2>${o.id}</h2><p>${esc(statusText(o.status))} · ${money(o.total)}</p><p>${esc(o.customer_name)} · ${esc(o.customer_phone)}<br>${esc(o.address)}</p><p>${esc(o.notes)}</p><div class="dyws-actions">${o.status==='ready'?'<button data-status="out_for_delivery">Picked up, start delivery</button>':`<button data-gps>Share my GPS</button>${simulatePosition?'<button data-simulate>Simulate test route</button>':''}<button data-status="delivered">Mark delivered</button>`}</div></article>`).join(''):'<p>No active deliveries assigned. A manager can assign a delivery order to you.</p>';
- root.querySelectorAll('[data-order]').forEach(card=>{const id=card.dataset.order;card.querySelector('[data-status]')?.addEventListener('click',e=>change(id,e.target.dataset.status));card.querySelector('[data-gps]')?.addEventListener('click',()=>{stop();if(!navigator.geolocation){error.textContent='GPS is unavailable in this browser.';return;}sharingOrder=id;state.textContent='Requesting GPS permission. Your position is shared with this order’s customer while delivery is active.';watch=navigator.geolocation.watchPosition(p=>{if(Date.now()-lastSent<5000)return;lastSent=Date.now();send(id,p.coords.latitude,p.coords.longitude,p.coords.accuracy);},e=>{stop();error.textContent=e.message;},{enableHighAccuracy:true,maximumAge:5000,timeout:20000});});card.querySelector('[data-simulate]')?.addEventListener('click',()=>{stop();sharingOrder=id;let step=0;const tick=()=>{const p=simulatePosition(step++);send(id,p.latitude,p.longitude,p.accuracy,true);};tick();simulation=setInterval(tick,5000);});});
- }catch(e){error.textContent=e.message;}}
-root.querySelector('#refresh').onclick=load;display();if(token)load();const refreshTimer=setInterval(()=>{if(token&&!document.hidden&&!root.querySelector('#deliveries')?.contains(document.activeElement))load();},10000);window.addEventListener('pagehide',stop);
+ let token=sessionStorage.getItem(storageKey),loading=false,changing=false,unwatch=null,watchedToken=null,attemptedOrder=null,retryAfter=0,permission,currentDelivery=null,latestPosition=null;
+ const error=root.querySelector('#error'),state=root.querySelector('#gps-state'),details=root.querySelector('#gps-details');
+ function display(){if(token!==watchedToken){unwatch?.();watchedToken=token;unwatch=token?api.watch?.({scope:'operator',token,interval:10000},()=>load()):null;}root.querySelector('#login').hidden=!!token;root.querySelector('#driver-board').hidden=!token;}
+ function signedOut(){renderLocation?.clear?.();attemptedOrder=null;token=null;sessionStorage.removeItem(storageKey);root.querySelector('#deliveries').replaceChildren();display();}
+ const gps=createDriverGPS({api,getToken:()=>token,onUnauthorized:signedOut,onState:s=>{
+  state.textContent=s.message;const mapRoot=root.querySelector('#driver-map');if(mapRoot&&renderLocation){if(s.position)latestPosition={...s.position,recorded_at:s.position.recordedAt};if(!s.active)latestPosition=null;const view=renderLocation(latestPosition,undefined,{destinationAddress:currentDelivery?.address});if(view&&!mapRoot.contains(view))mapRoot.replaceChildren(view);}
+  if(details){if(!s.active)details.textContent='';else if(s.position)details.textContent=(s.source==='simulated'?'Test route · ':'Device GPS · ')+s.orderId+' · Last shared '+new Date(s.sharedAt).toLocaleTimeString()+' · '+s.position.latitude.toFixed(5)+', '+s.position.longitude.toFixed(5);else details.textContent=s.orderId+' · '+(s.source==='simulated'?'Simulated test route':'Device GPS');}
 
-return {refresh:load,destroy(){clearInterval(refreshTimer);stop();window.removeEventListener('pagehide',stop);}};
-
+ }});
+ root.querySelector('#logout').onclick=async()=>{gps.stop();const old=token;signedOut();try{await api('/logout',{method:'POST',body:{},token:old});}catch{}};
+ root.querySelector('#login-form').onsubmit=async e=>{e.preventDefault();const button=e.submitter;button.disabled=true;try{const f=new FormData(e.target);const data=await api('/login',{method:'POST',body:{role:'driver',driverId:f.get('driverId'),password:f.get('password')}});token=data.token;sessionStorage.setItem(storageKey,token);try{const config=await api('/driver/gps-config',{token});simulatePosition=config.testLocation?()=>config.testLocation:undefined;testLocationName=config.testLocation?.name||'Configured test origin';}catch{}e.target.elements.password.value='';display();await load();}catch(e){error.textContent=e.message;}finally{button.disabled=false;}};
+ async function change(id,status){if(changing)return;changing=true;try{await api('/driver/orders/'+id+'/status',{method:'POST',token,body:{status}});if(status==='delivered'&&gps.orderId===id)gps.stop('Delivery finished. GPS is off.');await load();}catch(e){error.textContent=e.message;if(e.status===401){gps.stop();signedOut();}}finally{changing=false;}}
+ async function load(){if(!token||loading)return;loading=true;const login=token;try{
+  const data=await api('/driver/orders',{token:login});if(token!==login)return;error.textContent='';
+  if(gps.orderId&&!data.orders.some(o=>o.id===gps.orderId&&o.status==='out_for_delivery'))gps.stop('This delivery is no longer active. GPS is off.');
+  root.querySelector('#deliveries').innerHTML=data.orders.length?data.orders.map(o=>`<article data-order="${o.id}"><h2>${o.id}</h2><p>${esc(statusText(o.status))} · ${money(o.total)}</p><p>${esc(o.customer_name)} · ${esc(o.customer_phone)}<br>${esc(o.address)}</p><p>${esc(o.notes)}</p><div class="dyws-actions">${o.status==='ready'?'<button data-status="out_for_delivery">Picked up, start delivery</button>':'<button data-status="delivered">Mark delivered</button>'}</div></article>`).join(''):'<p>No active deliveries assigned. A manager can assign a delivery order to you.</p>';
+  root.querySelectorAll('[data-order]').forEach(card=>{
+   const id=card.dataset.order;
+   card.querySelector('[data-status]')?.addEventListener('click',e=>change(id,e.target.dataset.status));
+  });
+  const current=data.orders.find(o=>o.id===gps.orderId&&o.status==='out_for_delivery')||data.orders.find(o=>o.status==='out_for_delivery');
+  currentDelivery=current;if(simulatePosition&&current?.gps?.location){latestPosition=current.gps.location;state.textContent='Test location: '+testLocationName+'. Device GPS is not used.';details.textContent=current.id+' · Updated '+new Date(latestPosition.recorded_at*1000).toLocaleTimeString();}const mapRoot=root.querySelector('#driver-map');if(mapRoot&&renderLocation){const view=renderLocation(latestPosition,undefined,{destinationAddress:current?.address});if(view&&!mapRoot.contains(view))mapRoot.replaceChildren(view);}
+  if(current&&(simulatePosition||permission?.state!=='denied')&&!document.hidden&&!gps.orderId&&(attemptedOrder!==current.id||Date.now()>retryAfter)){attemptedOrder=current.id;retryAfter=Date.now()+60000;void gps.start(current.id,{simulatePosition});}
+  if(!current){attemptedOrder=null;state.textContent='GPS starts automatically when an assigned delivery is on the way.';}
+ }catch(e){if(token!==login)return;error.textContent=e.message;if(e.status===401||e.status===403){gps.stop('Please sign in again before sharing GPS.');signedOut();}}finally{loading=false;}}
+ function hidden(){if(!document.hidden){if(!gps.orderId)attemptedOrder=null;void load();}}
+ const pagehide=()=>{gps.stop();attemptedOrder=null;};
+ const permissionChanged=()=>{attemptedOrder=null;if(permission?.state==='denied')gps.stop('Location permission is blocked. Allow location in your browser settings.');else if(permission?.state==='granted')void load();};
+ navigator.permissions?.query({name:'geolocation'}).then(p=>{permission=p;p.addEventListener('change',permissionChanged);if(p.state==='denied')permissionChanged();}).catch(()=>{});
+ const initialMap=root.querySelector('#driver-map');if(initialMap&&renderLocation&&token)initialMap.append(renderLocation(null));
+ root.querySelector('#refresh').onclick=load;display();if(token)void load();
+ const refreshTimer=setInterval(()=>{if(!api.watch&&token&&!document.hidden)void load();},10000);
+ document.addEventListener('visibilitychange',hidden);window.addEventListener('pagehide',pagehide);
+ return {refresh:load,destroy(){clearInterval(refreshTimer);unwatch?.();gps.destroy();renderLocation?.destroy?.();permission?.removeEventListener('change',permissionChanged);document.removeEventListener('visibilitychange',hidden);window.removeEventListener('pagehide',pagehide);}};
 }

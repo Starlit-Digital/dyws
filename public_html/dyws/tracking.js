@@ -2,17 +2,18 @@ import {statusText,escapeHTML} from './api.js';
 import {defaultRole} from './role-labels.js';
 export function createTracking({api,container,role=defaultRole,trackingPage,renderLocation,storageKey='starlit-go-tracking',panelId='customer-tracking'}) {
  if(typeof api!=='function'||!container)throw new TypeError('DYWS tracking requires an API client and container.');
- let timer,active,panel;
+ let timer,active,panel,unwatch=null,polling=false,again=false;
 const labels={placed:'Order placed',accepted:'Order accepted',preparing:'Preparing your order',ready:'Ready',out_for_delivery:role.singular+' on the way',delivered:'Delivered',completed:'Collected',cancelled:'Cancelled'};
 function show(id,token){
+ renderLocation?.clear?.();
  active={id,token};try{sessionStorage.setItem(storageKey,JSON.stringify(active));}catch{}
  if(!panel){panel=document.createElement('section');panel.id=panelId;panel.className='dyws-tracking-panel';container.prepend(panel);}panel.setAttribute('aria-label','Your order tracking');
- panel.innerHTML=`<h2>Your test order</h2><p>Reference <strong>${escapeHTML(id)}</strong></p><p class="dyws-tracking-status" role="status">Connecting…</p><ol class="dyws-tracking-timeline"></ol><div class="dyws-tracking-payment"></div><div class="dyws-tracking-gps"></div><p>Updates appear here automatically. Keep this page open.</p>${trackingPage?`<p><a class="dyws-tracking-link" href="${escapeHTML(trackingPage)}#${encodeURIComponent(id)}.${encodeURIComponent(token)}">Open private tracking page ↗</a></p>`:''}<p class="dyws-tracking-error" role="alert"></p><button class="dyws-dismiss-tracking" type="button">Hide tracking</button>`;
+ panel.innerHTML=`<h2>Your test order</h2><p>Reference <strong>${escapeHTML(id)}</strong></p><p class="dyws-tracking-status" role="status">Connecting…</p><ol class="dyws-tracking-timeline"></ol><div class="dyws-tracking-payment"></div><div class="dyws-tracking-gps"></div><div class="dyws-tracking-map"></div><p>Updates appear here automatically. Keep this page open.</p>${trackingPage?`<p><a class="dyws-tracking-link" href="${escapeHTML(trackingPage)}#${encodeURIComponent(id)}.${encodeURIComponent(token)}">Open private tracking page ↗</a></p>`:''}<p class="dyws-tracking-error" role="alert"></p><button class="dyws-dismiss-tracking" type="button">Hide tracking</button>`;
  panel.querySelector('.dyws-dismiss-tracking').onclick=()=>{destroy();try{sessionStorage.removeItem(storageKey);}catch{}};
- clearTimeout(timer);poll();
+ clearTimeout(timer);unwatch?.();unwatch=api.watch?.({scope:'tracking',orderId:id,trackingToken:token,interval:5000},()=>poll());poll();
 }
 async function poll(){
- const current=active;if(!current)return;
+ const current=active;if(!current)return;if(polling){again=true;return;}polling=true;
  try{
   const data=await api('/tracking/'+current.id,{trackingToken:current.token});if(active!==current)return;
   if(!panel)return;
@@ -29,13 +30,13 @@ async function poll(){
    }
   }
   const gps=panel.querySelector('.dyws-tracking-gps');
-  if(data.location){const l=data.location;gps.innerHTML=`<h3>${escapeHTML((data.gpsStale?'Last known ':'')+role.singular+' location')}</h3><p>${escapeHTML(Number(l.latitude).toFixed(5))}, ${escapeHTML(Number(l.longitude).toFixed(5))} · accuracy ${Math.round(l.accuracy)} m · updated ${new Date(l.recorded_at*1000).toLocaleTimeString()}</p>${data.gpsStale?'<p>GPS updates are delayed. This position may have changed.</p>':''}`;if(renderLocation){const map=renderLocation(l,role);if(map)gps.append(map);}}
-  else gps.innerHTML=data.status==='out_for_delivery'?`<p>Waiting for the ${escapeHTML(role.singular)} GPS update…</p>`:`<p>${escapeHTML(role.singular)} location is shared only while your delivery is on the way.</p>`;
-  if(['completed','delivered','cancelled'].includes(data.status))return;
- }catch(e){if(active!==current)return;const error=panel?.querySelector('.dyws-tracking-error');if(error)error.textContent=e.message+' Retrying shortly.';}
- timer=setTimeout(poll,document.hidden?30000:5000);
+  if(data.location){const l=data.location;gps.innerHTML=`<p>${data.locationSource==='simulated'?'Simulated GPS test':'Device location'}</p><h3>${escapeHTML((data.gpsStale?'Last known ':'')+role.singular+' location')}</h3><p>${escapeHTML(Number(l.latitude).toFixed(5))}, ${escapeHTML(Number(l.longitude).toFixed(5))} · accuracy ${Math.round(l.accuracy)} m · updated ${new Date(l.recorded_at*1000).toLocaleTimeString()}</p>${data.gpsStale?'<p>GPS updates are delayed. This position may have changed.</p>':''}`;if(renderLocation){const map=renderLocation(l,role,{destinationAddress:data.deliveryAddress});const container=panel.querySelector('.dyws-tracking-map');if(map&&!container.contains(map))container.replaceChildren(map);}}
+  else {renderLocation?.clear?.();panel.querySelector('.dyws-tracking-map').replaceChildren();gps.innerHTML=data.status==='out_for_delivery'?`<p>Waiting for the ${escapeHTML(role.singular)} GPS update…</p>`:`<p>${escapeHTML(role.singular)} location is shared only while your delivery is on the way.</p>`;}
+  if(['completed','delivered','cancelled'].includes(data.status)){unwatch?.();unwatch=null;return;}
+ }catch(e){if(active!==current)return;const error=panel?.querySelector('.dyws-tracking-error');if(error)error.textContent=e.message+' Retrying shortly.';}finally{polling=false;if(again){again=false;queueMicrotask(poll);}}
+ if(!api.watch)timer=setTimeout(poll,document.hidden?30000:5000);
 }
-function destroy(){clearTimeout(timer);active=null;panel?.remove();panel=null;}
+function destroy(){renderLocation?.clear?.();clearTimeout(timer);unwatch?.();unwatch=null;active=null;panel?.remove();panel=null;}
 function restore(){try{const saved=JSON.parse(sessionStorage.getItem(storageKey));if(saved?.id&&saved?.token)show(saved.id,saved.token);}catch{}}
 return {show,restore,destroy,scrollIntoView(){panel?.scrollIntoView({behavior:'smooth',block:'start'});}};
 }

@@ -39,6 +39,13 @@ with tempfile.TemporaryDirectory(prefix='starlit-api-') as work:
   for path in ['/manager/drivers','/manager/password']:
    request(path,{},status=401)
    request(path,{},token=driver_token,status=403)
+  for path in ['/manager/maps','/manager/driver-locations']:
+   request(path,status=401)
+   request(path,token=driver_token,status=403)
+  assert request('/maps/config')['enabled'] is False
+  request('/manager/maps',{},status=401)
+  request('/manager/maps',{},token=driver_token,status=403)
+  assert request('/manager/driver-locations',token=manager_token)['locations']==[]
   initial_settings=request('/settings')
   assert initial_settings=={'driverRole':{'singular':'Driver','plural':'Drivers'}}
   request('/manager/settings',status=401)
@@ -76,6 +83,49 @@ with tempfile.TemporaryDirectory(prefix='starlit-api-') as work:
   stripe=request('/manager/stripe',token=manager_token);assert not stripe['enabled'] and 'apiKey' not in stripe
   request('/manager/stripe',{'enabled':True,'apiKey':'rk_live_invalid'},token=manager_token,status=422)
   request('/orders/'+receipt['id']+'/checkout',{},tracking=receipt['trackingToken'],status=409)
+  # Complete device GPS flow against the real HTTP entry point, using fictional coordinates.
+  gps_order={**order,'idempotencyKey':str(uuid.uuid4()),'fulfillment':'delivery','address':'15320 Fictional Lane NW'}
+  delivery=request('/orders',gps_order,status=201)
+  route='/driver/orders/'+delivery['id']+'/location'
+  request(route+'/start',{},status=401)
+  request(route+'/start',{},token=manager_token,status=403)
+  request(route+'/start',{},token=driver_token,status=403)
+  request('/manager/orders/'+delivery['id']+'/assign',{'driverId':'demo-driver'},token=manager_token)
+  for state in ['accepted','preparing','ready']:
+   request('/manager/orders/'+delivery['id']+'/status',{'status':state},token=manager_token)
+  request(route+'/start',{},token=driver_token,status=403)
+  request('/driver/orders/'+delivery['id']+'/status',{'status':'out_for_delivery'},token=driver_token)
+  sharing=request(route+'/start',{'source':'simulated'},token=driver_token)
+  fix={'latitude':53.61665,'longitude':-113.39804,'accuracy':8,'recordedAt':int(time.time()),'sharingToken':sharing['sharingToken']}
+  request(route,fix,token=driver_token)
+  request(route,fix,token=driver_token,status=409)
+  request(route,{**fix,'accuracy':'NaN'},token=driver_token,status=422)
+  tracked=request('/tracking/'+delivery['id'],tracking=delivery['trackingToken'])
+  assert tracked['location']['latitude']==fix['latitude'] and tracked['locationSource']=='simulated' and not tracked['gpsStale']
+  managed=request('/manager/orders',token=manager_token)
+  gps=next(o for o in managed['orders'] if o['id']==delivery['id'])['gps']
+  assert gps['location']['latitude']==tracked['location']['latitude'] and 'sharingToken' not in str(managed)
+  request(route+'/heartbeat',{'sharingToken':'a'*64},token=driver_token,status=403)
+  request(route+'/heartbeat',{'sharingToken':sharing['sharingToken']},token=driver_token)
+  assert request('/tracking/'+delivery['id'],tracking=delivery['trackingToken'])['location']['recorded_at']==fix['recordedAt']
+  request(route+'/stop',{'sharingToken':sharing['sharingToken']},token=driver_token)
+  assert request('/tracking/'+delivery['id'],tracking=delivery['trackingToken'])['location'] is None
+  request(route,{**fix,'recordedAt':int(time.time())+1},token=driver_token,status=403)
+  # An old stop request cannot revoke a newer sharing session.
+  newer=request(route+'/start',{'source':'device'},token=driver_token)
+  request(route+'/stop',{'sharingToken':sharing['sharingToken']},token=driver_token)
+  request(route,{**fix,'sharingToken':newer['sharingToken']},token=driver_token)
+  config_path=pathlib.Path(work)/'config.json';cfg=json.loads(config_path.read_text());cfg['driver_test_location']={'latitude':53.61665,'longitude':-113.39804,'accuracy':8};config_path.write_text(json.dumps(cfg))
+  mock=request('/driver/orders',token=driver_token)['orders'][0]['gps'];assert mock['source']=='simulated' and mock['location']['latitude']==53.61665
+  assert request('/manager/driver-locations',token=manager_token)['locations'][0]['gps']['source']=='simulated'
+  request('/logout',{},token=driver_token)
+  assert request('/tracking/'+delivery['id'],tracking=delivery['trackingToken'])['location'] is None
+  request(route,fix,token=driver_token,status=401)
+  full={**gps_order,'idempotencyKey':str(uuid.uuid4()),'addressDetails':{'line1':'123 Fictional Road','line2':'Unit 4','city':'Edmonton','region':'AB','postalCode':'T5A 0A1','country':'Canada'}}
+  complete=request('/orders',full,status=201)
+  detail=next(o for o in request('/manager/orders',token=manager_token)['orders'] if o['id']==complete['id']);assert detail['addressDetails']==full['addressDetails'] and 'T5A 0A1' in detail['address']
+  assert request('/orders',full,status=201)['id']==complete['id']
+  full['addressDetails']['postalCode']='';request('/orders',full,status=422)
   request('/logout',{},token=manager_token)
   request('/manager/orders',token=manager_token,status=401)
   print(f'HTTP API: {checks} checks passed.')

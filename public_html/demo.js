@@ -1,6 +1,5 @@
-import {mountStorefront,createAPIClient} from './dyws/index.js';
-import {renderDinerLocation} from './demo-map.js';
-const api=createAPIClient(new URL('./api/index.php',import.meta.url));
+import {mountStorefront} from './dyws/index.js';
+import {api} from './platform/api.js';
 import {loadRole,applyRoleLabels} from './dyws/role-labels.js';
 const role=await loadRole(api);
 applyRoleLabels(document.body,role);
@@ -9,5 +8,14 @@ mountStorefront({
  container:[...document.querySelectorAll('[data-dyws-rendered],#menu')],
  navigation:document.querySelector('nav[aria-label="Menu categories"]'),
  loading:document.querySelector('#loading'),api,hydrate:true,
- tracking:{role,container:document.querySelector('main'),trackingPage:'tracking.html',renderLocation:renderDinerLocation}
+ onOrderComplete:receipt=>{if(receipt.trackingToken)location.assign('tracking.html#'+encodeURIComponent(receipt.id)+'.'+encodeURIComponent(receipt.trackingToken));}
+});
+
+let publicState=JSON.stringify(await api('/catalog'));
+api.watch({scope:'public',interval:15000},async()=>{
+ const [catalog,settings]=await Promise.all([api('/catalog'),api('/settings')]);
+ applyRoleLabels(document.body,settings.driverRole);
+ const signature=JSON.stringify(catalog);
+ if(publicState!==undefined&&publicState!==signature){let notice=document.querySelector('[data-dyws-catalog-notice]');if(!notice){notice=document.createElement('p');notice.dataset.dywsCatalogNotice='true';notice.className='dyws-update-notice';notice.textContent='The catalog has changed. Refresh the page to see the latest items and prices.';document.querySelector('main').prepend(notice);}}
+ publicState=signature;
 });

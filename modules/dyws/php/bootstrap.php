@@ -8,6 +8,8 @@ require_once __DIR__.'/StripeSettings.php';
 require_once __DIR__.'/StripePayments.php';
 require_once __DIR__.'/AdminAccounts.php';
 require_once __DIR__.'/Settings.php';
+require_once __DIR__.'/MapsSettings.php';
+require_once __DIR__.'/Realtime.php';
 function dyws_bootstrap(?string $configPath=null):array {
  $configPath=$configPath?:getenv('DYWS_CONFIG')?:getenv('STARLIT_GO_CONFIG');
  if(!$configPath)throw new ApiError('A private configuration path is required.',503);

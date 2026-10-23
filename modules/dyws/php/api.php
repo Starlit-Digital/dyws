@@ -5,6 +5,8 @@ ini_set('display_errors','0');
 header('Content-Type: application/json; charset=utf-8');header('Cache-Control: no-store');header('X-Content-Type-Options: nosniff');header('Referrer-Policy: no-referrer');
 try {
  [$config,$store]=$bootstrap?$bootstrap():dyws_bootstrap($configPath);
+ $realtime=new \StarlitGo\Realtime($config,$store);
+ $expired=$store->pruneLocations();if($expired)$realtime->changed(array_merge([$store->tenant.':operators'],array_map(fn($id)=>$store->tenant.':order:'.$id,$expired)));
  $accounts=new \StarlitGo\AdminAccounts($config);
  $stripeSettings=new \StarlitGo\StripeSettings($config);$stripe=new \StarlitGo\StripePayments($store,$config,$stripeSettings);
  $method=$_SERVER['REQUEST_METHOD'];$route=$_GET['route']??'/health';if(!is_string($route)||strlen($route)>180)throw new \StarlitGo\ApiError('Invalid route.',400);
@@ -17,12 +19,24 @@ try {
  }else $body=[];
  $result=null;
  if($method==='GET'&&$route==='/health')$result=['service'=>'Starlit Go','demo'=>true];
+ elseif($method==='GET'&&$route==='/realtime/config')$result=$realtime->publicConfig();
+ elseif($method==='POST'&&$route==='/realtime/access'){
+  $scope=$body['scope']??'public';$session=null;$order=null;
+  if($scope==='operator')$session=dyws_authorize($store,['manager','driver']);
+  elseif($scope==='tracking'){$order=\StarlitGo\Store::text($body['orderId']??null,20);$store->tracking($order,$_SERVER['HTTP_X_TRACKING_TOKEN']??'');}
+  elseif($scope!=='public')throw new \StarlitGo\ApiError('Invalid realtime scope.');
+  $result=$realtime->access($scope,$session,$order);
+ }
+ elseif($method==='GET'&&$route==='/maps/config')$result=(new \StarlitGo\MapsSettings($config))->publicConfig();
+ elseif($method==='GET'&&$route==='/manager/maps'){dyws_authorize($store,['manager']);$result=(new \StarlitGo\MapsSettings($config))->summary();}
+ elseif($method==='POST'&&$route==='/manager/maps'){dyws_authorize($store,['manager']);$result=(new \StarlitGo\MapsSettings($config))->save($body);}
  elseif($method==='GET'&&$route==='/settings')$result=(new \StarlitGo\Settings($config))->read();
  elseif($method==='GET'&&$route==='/manager/settings'){dyws_authorize($store,['manager']);$result=(new \StarlitGo\Settings($config))->summary();}
  elseif($method==='POST'&&$route==='/manager/settings'){dyws_authorize($store,['manager']);$result=(new \StarlitGo\Settings($config))->save($body);}
  elseif($method==='GET'&&$route==='/catalog')$result=\StarlitGo\Catalog::publicData(\StarlitGo\Catalog::load($config['catalog']));
  elseif($method==='GET'&&$route==='/manager/catalog'){dyws_authorize($store,['manager']);$catalog=\StarlitGo\Catalog::load($config['catalog']);$result=['catalog'=>$catalog,'revision'=>\StarlitGo\Catalog::revision($catalog)];}
  elseif($method==='POST'&&$route==='/manager/catalog'){dyws_authorize($store,['manager']);if(!is_array($body['catalog']??null))throw new \StarlitGo\ApiError('Provide a catalog object.');$catalog=\StarlitGo\Catalog::save($config['catalog'],$body['catalog'],\StarlitGo\Store::text($body['revision']??null,64));$result=['catalog'=>$catalog,'revision'=>\StarlitGo\Catalog::revision($catalog)];}
+ elseif($method==='GET'&&$route==='/manager/driver-locations'){dyws_authorize($store,['manager']);$result=['locations'=>array_map(fn($o)=>['driverId'=>$o['driver_id'],'orderId'=>$o['id'],'deliveryAddress'=>$o['address'],'gps'=>$store->locationSummary($o['id'])],$store->query("SELECT id,driver_id,address FROM orders WHERE tenant=? AND status='out_for_delivery' AND driver_id IS NOT NULL ORDER BY updated_at DESC",[$store->tenant]))];}
  elseif($method==='GET'&&$route==='/manager/drivers'){dyws_authorize($store,['manager']);$result=$accounts->summary($store);}
  elseif($method==='POST'&&$route==='/manager/drivers'){dyws_authorize($store,['manager']);dyws_limit_requests($store,$config,'driver-settings',30,900);$result=$accounts->saveDriver($store,$body);}
  elseif($method==='POST'&&$route==='/manager/password'){dyws_authorize($store,['manager']);dyws_limit_requests($store,$config,'manager-password',10,900);$result=$accounts->changePassword($store,$body);}
@@ -35,7 +49,7 @@ try {
   dyws_limit_requests($store,$config,'login',10,900);
   $result=$accounts->login($store,$body);
  }
- elseif($method==='POST'&&$route==='/logout'){$s=dyws_authorize($store,['manager','driver']);$store->execute('DELETE FROM sessions WHERE token_hash=?',[$s['token_hash']]);$result=['ok'=>true];}
+ elseif($method==='POST'&&$route==='/logout'){$s=dyws_authorize($store,['manager','driver']);$store->execute('DELETE FROM sessions WHERE token_hash=?',[$s['token_hash']]);$expired=$store->pruneLocations();if($expired)$realtime->changed(array_map(fn($id)=>$store->tenant.':order:'.$id,$expired));$result=['ok'=>true];}
  elseif($method==='POST'&&$route==='/orders'){dyws_limit_requests($store,$config,'orders',20,3600);if(($body['demoAcknowledged']??false)!==true)throw new \StarlitGo\ApiError('Confirm this is a test order.');$result=$store->create($body);http_response_code(201);}
  elseif($method==='GET'&&preg_match('~^/tracking/(SG-[A-F0-9]{12})$~',$route,$m)){dyws_limit_requests($store,$config,'tracking',120,60);$result=$store->tracking($m[1],$_SERVER['HTTP_X_TRACKING_TOKEN']??'');}
  elseif($method==='GET'&&$route==='/manager/orders'){dyws_authorize($store,['manager']);$result=['orders'=>$store->orders(),'drivers'=>array_map(fn($id,$d)=>['id'=>$id,'name'=>$d['name']],array_keys(array_filter($config['drivers'],fn($d)=>$d['active']??true)),array_values(array_filter($config['drivers'],fn($d)=>$d['active']??true)))];}
@@ -48,10 +62,18 @@ try {
   elseif($m[2]==='assign'){$driver=$body['driverId']??'';if(!is_string($driver))throw new \StarlitGo\ApiError('Unknown driver.');$accounts->assign($store,$m[1],$driver);$result=['ok'=>true];}
   else{$store->payment($m[1],\StarlitGo\Store::text($body['kind']??null,20));$result=['ok'=>true];}
  }
- elseif($method==='GET'&&$route==='/driver/orders'){$s=dyws_authorize($store,['driver']);$result=['orders'=>$store->orders($s['subject'])];}
+ elseif($method==='POST'&&preg_match('~^/driver/orders/(SG-[A-F0-9]{12})/location/(start|stop|heartbeat)$~',$route,$m)){
+  $s=dyws_authorize($store,['driver']);dyws_limit_requests($store,$config,'gps-control',60,60);
+  if($m[2]==='start')$result=$store->startLocation($m[1],$s,isset($config['driver_test_location'])?'simulated':\StarlitGo\Store::text($body['source']??'device',20));
+  elseif($m[2]==='heartbeat'){$store->heartbeatLocation($m[1],$s,\StarlitGo\Store::text($body['sharingToken']??null,64));$result=['ok'=>true];}
+  else{$store->stopLocation($m[1],$s,\StarlitGo\Store::text($body['sharingToken']??null,64));$result=['ok'=>true];}
+ }
+ elseif($method==='GET'&&$route==='/driver/gps-config'){dyws_authorize($store,['driver']);$result=['testLocation'=>$config['driver_test_location']??null];}
+ elseif($method==='GET'&&$route==='/driver/orders'){$s=dyws_authorize($store,['driver']);if(isset($config['driver_test_location'])){foreach($store->orders($s['subject'])as $order)if($order['status']==='out_for_delivery')$store->testLocation($order['id'],$s,$config['driver_test_location']);}$result=['orders'=>$store->orders($s['subject'])];}
  elseif($method==='POST'&&preg_match('~^/driver/orders/(SG-[A-F0-9]{12})/(status|location)$~',$route,$m)){
-  $s=dyws_authorize($store,['driver']);if($m[2]==='status')$result=$store->change($m[1],\StarlitGo\Store::text($body['status']??null,30),'driver:'.$s['subject'],$s['subject']);else{dyws_limit_requests($store,$config,'gps',120,60);$store->locate($m[1],$s['subject'],$body);$result=['ok'=>true];}
+  $s=dyws_authorize($store,['driver']);if($m[2]==='status')$result=$store->change($m[1],\StarlitGo\Store::text($body['status']??null,30),'driver:'.$s['subject'],$s['subject']);else{dyws_limit_requests($store,$config,'gps',120,60);if(isset($config['driver_test_location'])){$body=array_replace($body,array_intersect_key($config['driver_test_location'],array_flip(['latitude','longitude','accuracy'])));}$store->locate($m[1],$s['subject'],$body,$s);$result=['ok'=>true,'recordedAt'=>$body['recordedAt'],'receivedAt'=>time()];}
  }else throw new \StarlitGo\ApiError('Endpoint not found.',404);
+ if($method==='POST')$realtime->mutation($route,$result);
  echo json_encode($result,JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES);
 }catch(\StarlitGo\ApiError $e){http_response_code($e->http);echo json_encode(['error'=>$e->getMessage()]);}
 catch(JsonException $e){http_response_code(400);echo json_encode(['error'=>'Invalid JSON request.']);}
@@ -59,7 +81,8 @@ catch(Throwable $e){error_log('Starlit Go API failure: '.$e->getMessage());http_
 
 }
  function dyws_limit_requests($store,$config,string $name,int $max,int $seconds):void{
-  $bucket=hash_hmac('sha256',$name.'|'.($_SERVER['REMOTE_ADDR']??'local').'|'.intdiv(time(),$seconds),$config['tracking_secret']);
+  $identity=$_SERVER['REMOTE_ADDR']??'local';$secret=$config['realtime']['secret']??'';if(strlen($secret)>=32&&hash_equals($secret,$_SERVER['HTTP_X_DYWS_RELAY_KEY']??'')&&preg_match('/^[a-f0-9]{64}$/',$_SERVER['HTTP_X_DYWS_CLIENT']??''))$identity=$_SERVER['HTTP_X_DYWS_CLIENT'];
+  $bucket=hash_hmac('sha256',$name.'|'.$identity.'|'.intdiv(time(),$seconds),$config['tracking_secret']);
   $store->transaction(function()use($store,$bucket,$max,$seconds){$r=$store->query('SELECT hits FROM limits WHERE bucket=?',[$bucket]);if($r&&(int)$r[0]['hits']>=$max)throw new \StarlitGo\ApiError('Please wait before trying again.',429);$store->execute('INSERT INTO limits(bucket,hits,expires_at) VALUES(?,1,?) ON CONFLICT(bucket) DO UPDATE SET hits=hits+1',[$bucket,time()+$seconds]);$store->execute('DELETE FROM limits WHERE expires_at<?',[time()]);});
  }
  function dyws_authorize($store,array $roles):array{

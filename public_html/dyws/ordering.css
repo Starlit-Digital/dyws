@@ -33,3 +33,6 @@
   .dyws-ordering header { flex-wrap: wrap; }
   .dyws-ordering .dyws-quantity { gap: 10px; flex-wrap: wrap; }
 }
+.dyws-delivery-address{border:0;margin:0;padding:0;min-width:0}
+.dyws-delivery-address legend{font-weight:700;margin-block:1rem}
+.dyws-delivery-address[hidden]{display:none}

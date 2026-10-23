@@ -27,7 +27,12 @@
     "./account-editor.js": "./account-editor.js",
     "./stripe-editor.js": "./stripe-editor.js",
     "./role-labels.js": "./role-labels.js",
-    "./general-settings.js": "./general-settings.js"
+    "./general-settings.js": "./general-settings.js",
+    "./driver-gps.js": "./driver-gps.js",
+    "./realtime.js": "./realtime.js",
+    "./google-maps.js": "./google-maps.js",
+    "./gps-cache.js": "./gps-cache.js",
+    "./maps-settings.js": "./maps-settings.js"
   },
   "files": [
     "*.js",

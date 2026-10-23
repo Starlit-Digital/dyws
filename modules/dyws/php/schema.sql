@@ -21,3 +21,12 @@ CREATE TABLE IF NOT EXISTS stripe_attempts (
 CREATE TABLE IF NOT EXISTS stripe_events (tenant TEXT NOT NULL,event_id TEXT NOT NULL,created_at INTEGER NOT NULL,PRIMARY KEY(tenant,event_id));
 
 CREATE TABLE IF NOT EXISTS stripe_refund_deltas (tenant TEXT NOT NULL,event_id TEXT NOT NULL,order_id TEXT NOT NULL,amount INTEGER NOT NULL CHECK(amount>0),subtotal INTEGER NOT NULL,tax INTEGER NOT NULL,delivery_fee INTEGER NOT NULL,created_at INTEGER NOT NULL,PRIMARY KEY(tenant,event_id),FOREIGN KEY(tenant,order_id) REFERENCES orders(tenant,id));
+
+CREATE TABLE IF NOT EXISTS location_shares (
+ tenant TEXT NOT NULL, order_id TEXT NOT NULL, driver_id TEXT NOT NULL,
+ sharing_hash TEXT NOT NULL, auth_hash TEXT NOT NULL, source TEXT NOT NULL,
+ expires_at INTEGER NOT NULL, PRIMARY KEY(tenant,order_id),
+ FOREIGN KEY(tenant,order_id) REFERENCES orders(tenant,id)
+);
+
+CREATE TABLE IF NOT EXISTS realtime_versions(channel TEXT PRIMARY KEY,revision TEXT NOT NULL);

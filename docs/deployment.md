@@ -2,7 +2,7 @@
 
 ## Local
 
-Requirements: PHP 8.1 or newer with PDO SQLite, Node.js for frontend tests, Python 3 for HTTP tests. Install the pinned Stripe PHP SDK with Composer. There are no npm dependencies.
+Requirements: PHP 8.1 or newer with PDO SQLite, Node.js for frontend tests, Python 3 for HTTP tests. Install the pinned Stripe PHP SDK with Composer. The storefront has no npm dependencies. The optional realtime service has a pinned ws dependency.
 
 ```sh
 composer install --no-dev
@@ -31,11 +31,11 @@ Back up SQLite with a coordinated SQLite backup or snapshot procedure, not by co
 
 ## Demonstration walkthrough
 
-1. Place a delivery test order on the diner page with fictional details. Confirmation creates inline tracking on that same page.
+1. Place a delivery test order on the diner page with fictional details. Confirmation redirects to a private order status page.
 2. Sign in as manager. Accept, prepare and mark ready. Assign Demo Driver. Record test payment.
-3. Sign in as demo-driver. Start the delivery and choose Simulate test route, or explicitly choose Share my GPS to send the browser’s real location while the page is running.
-4. Watch the customer’s original page update its timeline and marker. GPS has a stale warning, latest timestamp and accuracy value.
-5. Stop GPS and mark delivered. The customer sees completion and the backend removes location access. Optionally record a full test refund and confirm that collections reconcile.
+3. Sign in as demo-driver. Start the delivery. GPS begins automatically after browser permission is granted; keep the page visible.
+4. Watch the customer’s order status page update its timeline and marker. GPS has a stale warning, latest timestamp and accuracy value.
+5. Mark delivered. The customer sees completion and the backend removes location access. Optionally record a full test refund and confirm that collections reconcile.
 
 ## Validation on October 23, 2026
 
@@ -84,3 +84,15 @@ Backup: domains/sltd.ca/private/deploy-backups/dyws-admin-20261023/. Restore the
 ## General Settings page
 
 `settings-admin.html` adds the Settings tab. The old `settings.html` shortcut now opens this page. Role labels default to Driver and Drivers until explicitly saved. Saves create `settings-<tenant hash>.json` beside the private database, with mode 0600. Preserve this file during deployments and backups alongside account overrides. Deploy `modules/dyws/php/Settings.php` with the other private modules. No database migration or credential reset is needed.
+
+## GPS, maps and optional realtime upgrade
+
+Deploy private modules/dyws/php and server/cleanup.php first, then public_html, excluding api/bootstrap-path.php. Preserve all private var files, credentials, catalog, accounts and settings. The idempotent schema creates location_shares and realtime_versions on first access; no existing orders are replaced. Maps settings use a new private maps-<tenant hash>.json file only when saved.
+
+The hosted demo stays on HTTPS polling. WebSocket hosting is deferred to the owner's separate server. No relay URL or relay secret is inserted by deployment. The owner subsequently saved a Google key through Settings. See gps-maps-realtime.md for setup, pricing and caching behaviour. Google maps and routes were then verified in the live admin and customer views.
+
+Rollback backup: domains/sltd.ca/private/deploy-backups/dyws-gps-maps-20261023/. Restore public-diner and php together; preserve live SQLite and all runtime JSON. New tables can remain during rollback. Backups contain code, not a consistent database snapshot.
+
+The destination upgrade also adds orders.address_json idempotently. Preserve driver_test_location in this test deployment until the owner requests real device GPS again. It is a private test setting, not a default for other installations. The driver page no longer artificially stops an active session when visibility changes; browser permission and background limits still apply.
+
+Final GPS, maps and routing validation: 239 automated checks passed across the core and relay suites. Browser verification confirmed a Google map and route on the live Drivers tab and customer order page, and a full structured address checkout with its private page redirect. Source changes and the hosted key remain separate.
