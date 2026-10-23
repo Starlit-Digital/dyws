@@ -1,6 +1,6 @@
 # Starlit Diner reference integration
 
-The fictional diner is the working example of Starlit Go. Its deployed assets live in `../../public_html/`, which is kept as the web root for the existing https://sltd.ca/diner/ hosting path.
+The fictional diner is the working example of dyws. Its deployed assets live in `../../public_html/`, which is kept as the web root for the existing https://sltd.ca/diner/ hosting path.
 
 Customer: `/diner/`
 Restaurant manager: `/diner/manager.html`
