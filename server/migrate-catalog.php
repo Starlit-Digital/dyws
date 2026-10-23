@@ -2,7 +2,8 @@
 // One time migration: preserve existing deployment data and credentials.
 if(PHP_SAPI!=='cli'){http_response_code(404);exit;}
 require __DIR__.'/Store.php';require __DIR__.'/Catalog.php';
-$configPath=$argv[1]??dirname(__DIR__).'/var/config.json';
+$configPath=realpath($argv[1]??dirname(__DIR__).'/var/config.json');
+if($configPath===false)throw new RuntimeException('Configuration file not found.');
 $config=json_decode(file_get_contents($configPath),true,512,JSON_THROW_ON_ERROR);
 $target=dirname($configPath).'/catalog.json';
 $catalog=\StarlitGo\Catalog::load($argv[3]??$config['catalog']);

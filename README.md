@@ -34,7 +34,7 @@ Open http://127.0.0.1:8097 . PHP 8.1 or newer with PDO SQLite is required. Node.
 - [Local setup, hosted demo and validation](docs/deployment.md)
 - [Starlit Diner example](examples/starlit-diner/README.md)
 
-The reusable custom element is in public_html/ordering. Supply a catalog URL and an order adapter. The diner adapter uses the same origin API; another restaurant integration must provide its own authenticated tenant configuration and narrowly configured origin policy. Host theme variables include --order-accent, --order-button-text, --order-surface, --order-text, --order-muted and --order-line.
+The reusable custom element is in public_html/ordering. Supply a catalog URL and an order adapter. The diner adapter uses the same origin API; another restaurant integration must provide its own authenticated tenant configuration and narrowly configured origin policy. Styles are a separate DYWS package with scoped dyws classes and --dyws theme variables. See [DYWS styling](docs/dyws-styles.md).
 
 The repository was renamed from restaurant-ordering while preserving its Git history. The original Cravings & Delight website remains separately saved at https://github.com/Starlit-Digital/cravingsanddelight.ca .
 
@@ -43,3 +43,5 @@ The repository was renamed from restaurant-ordering while preserving its Git his
 Starlit Go now supports general products, services sold in whole units and food. Open [Catalog and payments](https://sltd.ca/diner/settings.html) from the business admin. The private server JSON supplies the storefront and authoritative prices. See [catalog and Stripe setup](docs/catalog-and-payments.md) and the [general store example](examples/general-store/catalog.json).
 
 Run `composer install` before setup or tests. The Stripe connector uses hosted Checkout and signed payment webhooks. Sandbox credentials are entered in admin settings; live keys are intentionally unavailable in this demonstration. Payments are disabled until configured. The product display name is configurable; “Do You Want Something?” is the current name candidate, not a repository rename.
+
+The current demo uses `<dyws-ordering>`. The older element names remain compatible. CSS entry point: `public_html/dyws/dyws.css`; shadow cart styles: `public_html/dyws/ordering.css`.

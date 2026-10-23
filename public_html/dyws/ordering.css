@@ -1,0 +1,35 @@
+@import url('./tokens.css?v=19');
+/* Loaded inside the ordering element's shadow root. No host page selectors. */
+.dyws-ordering button, .dyws-ordering input, .dyws-ordering textarea, .dyws-ordering select { font: inherit; touch-action: manipulation; }
+.dyws-ordering button { cursor: pointer; min-height: 48px; border: 0; border-radius: 12px; padding: 10px 18px; background: var(--dyws-color-accent); color: var(--dyws-color-button-text); font-weight: 700; }
+.dyws-ordering :focus-visible { outline: 3px solid var(--dyws-color-emphasis); outline-offset: 3px; }
+.dyws-ordering button:disabled { opacity: .55; cursor: wait; }
+.dyws-ordering .dyws-cart-launch { position: fixed; bottom: 20px; right: 20px; z-index: 10; box-shadow: 0 8px 30px #0007; }
+.dyws-ordering dialog { color: inherit; background: var(--dyws-color-surface); border: 1px solid var(--dyws-color-border); border-radius: 22px; width: min(640px,calc(100% - 24px)); max-height: 90dvh; padding: 24px; }
+.dyws-ordering dialog::backdrop { background: #000b; }
+.dyws-ordering h2 { margin-top: 0; }
+.dyws-ordering header { display: flex; align-items: start; justify-content: space-between; gap: 16px; }
+.dyws-ordering .dyws-muted { background: var(--dyws-color-raised); color: var(--dyws-color-text); }
+.dyws-ordering .dyws-line { padding: 20px 0; border-bottom: 1px solid var(--dyws-color-border); }
+.dyws-ordering .dyws-line strong { display: block; }
+.dyws-ordering .dyws-quantity { display: flex; align-items: center; gap: 16px; margin-top: 12px; }
+.dyws-ordering .dyws-quantity button { min-width: 48px; }
+.dyws-ordering .dyws-summary { display: grid; grid-template-columns: 1fr auto; gap: 10px; margin: 24px 0; }
+.dyws-ordering .dyws-summary dd { margin: 0; text-align: right; }
+.dyws-ordering .dyws-summary dt:last-of-type, .dyws-ordering .dyws-summary dd:last-of-type { font-weight: 800; }
+.dyws-ordering label { display: block; margin: 16px 0; }
+.dyws-ordering input, .dyws-ordering textarea { width: 100%; min-height: 52px; padding: 12px; border: 1px solid var(--dyws-color-border); border-radius: 10px; background: var(--dyws-color-bg); color: var(--dyws-color-text); }
+.dyws-ordering textarea { min-height: 90px; }
+.dyws-ordering select { min-height: 48px; padding: 10px; width: 100%; border-radius: 10px; background: var(--dyws-color-surface); color: inherit; }
+.dyws-ordering .dyws-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.dyws-ordering .dyws-note { color: var(--dyws-color-muted); font-size: .85em; }
+.dyws-ordering .dyws-error { color: var(--dyws-color-emphasis); }
+.dyws-ordering #dyws-status { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.dyws-ordering input[type='checkbox'] { width: 26px; min-height: 26px; vertical-align: middle; }
+.dyws-ordering [hidden] { display: none !important; }
+@media (max-width: 500px) {
+  .dyws-ordering .dyws-cart-launch { left: 12px; right: 12px; bottom: 12px; }
+  .dyws-ordering dialog { padding: 20px; }
+  .dyws-ordering header { flex-wrap: wrap; }
+  .dyws-ordering .dyws-quantity { gap: 10px; flex-wrap: wrap; }
+}

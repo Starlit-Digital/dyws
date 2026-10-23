@@ -37,3 +37,7 @@ Do not call the platform production ready. No actual money is moved and no drive
 ## Generic ordering direction
 
 The owner requested server JSON products with name, image, description and price, suitable for any business, plus admin managed Stripe credentials. The platform now has validated product JSON, SKU, unit, availability, options and public metadata; an authenticated editor; and sandbox Stripe Checkout with signed webhook reconciliation. “Do You Want Something?” is the exact novelty name candidate. Keep the repository name Starlit Go pending a confirmed rename. There is no requested governor feature; that wording meant “just go from there.”
+
+## DYWS presentation boundary
+
+The owner requested a separate CSS system named DYWS, short for Do You Want Something. Reusable catalog, cart, admin and tracking presentation now lives in public_html/dyws with dyws class names and theme tokens. The diner remains a host example. Driver trip, admin, backend and installer runtime packages are ideas for later, not part of this CSS extraction.

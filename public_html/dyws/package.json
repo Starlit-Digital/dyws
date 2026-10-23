@@ -1,0 +1,17 @@
+{
+  "name": "@starlit-digital/dyws-styles",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Scoped styles for Do You Want Something ordering components",
+  "style": "dyws.css",
+  "exports": {
+    ".": "./dyws.css",
+    "./tokens.css": "./tokens.css",
+    "./catalog.css": "./catalog.css",
+    "./ordering.css": "./ordering.css",
+    "./admin.css": "./admin.css",
+    "./tracking.css": "./tracking.css"
+  },
+  "files": ["*.css"],
+  "sideEffects": ["*.css"]
+}

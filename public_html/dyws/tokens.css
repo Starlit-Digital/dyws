@@ -1,0 +1,21 @@
+/* Public overrides use --dyws-*. Resolved values stay within each DYWS root. */
+.dyws-shell,
+.dyws-catalog,
+.dyws-tracking-panel,
+.dyws-ordering {
+  --dyws-color-bg: var(--dyws-bg, #202124);
+  --dyws-color-surface: var(--dyws-surface, #292a2e);
+  --dyws-color-raised: var(--dyws-raised, #323338);
+  --dyws-color-text: var(--dyws-text, #fff8ed);
+  --dyws-color-muted: var(--dyws-muted, #d7cec5);
+  --dyws-color-accent: var(--dyws-accent, #b52e37);
+  --dyws-color-emphasis: var(--dyws-emphasis, #ffadb0);
+  --dyws-color-border: var(--dyws-border, #777);
+  --dyws-color-button-text: var(--dyws-button-text, #fff8ed);
+  color: var(--dyws-color-text);
+  font: var(--dyws-font, 18px/1.5 system-ui, sans-serif);
+}
+.dyws-shell *,
+.dyws-catalog *,
+.dyws-tracking-panel *,
+.dyws-ordering * { box-sizing: border-box; }

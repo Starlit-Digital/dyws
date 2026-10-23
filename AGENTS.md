@@ -9,3 +9,5 @@ Serve only public_html. Keep server configuration, credentials, SQLite databases
 Run npm test for backend or cart changes. Document API contracts, reporting definitions and deployment changes. Preserve user edits and do not alter unrelated repositories.
 
 Product data is generic. Keep the runtime catalog in private var/catalog.json, with seeds in examples. Do not overwrite a merchant catalog during deployment. Stripe integrations use the Composer SDK and hosted Checkout, test keys only for this demo. Never mark a Stripe order paid from a browser return or manager test action. Verify signatures, tenant, amount, currency and idempotency. Keep credentials encrypted outside public_html and never return them through an API. Run the catalog and Stripe tests with the existing suite.
+
+Reusable presentation belongs in public_html/dyws. Prefix component classes and theme variables with dyws. Keep diner branding, hero, display controls and palette mapping in demo.css. Preserve the legacy element aliases, API routes, cart storage keys and tracking URLs during style refactors.

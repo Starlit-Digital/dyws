@@ -1,0 +1,13 @@
+.dyws-tracking-panel { background: var(--dyws-color-surface); padding: 24px; border-radius: 16px; margin: 0 0 24px; }
+.dyws-tracking-panel h2 { font: 700 1.7em var(--dyws-heading-font, Georgia, serif); margin: 0 0 18px; }
+.dyws-tracking-panel p { line-height: 1.5; }
+.dyws-tracking-panel a { color: var(--dyws-color-emphasis); }
+.dyws-tracking-panel button { font: inherit; min-height: 48px; min-width: 48px; padding: 10px 16px; border: 0; border-radius: 10px; color: var(--dyws-color-button-text); background: var(--dyws-color-accent); cursor: pointer; touch-action: manipulation; }
+.dyws-tracking-panel :focus-visible { outline: 3px solid var(--dyws-color-emphasis); outline-offset: 4px; }
+.dyws-tracking-panel .dyws-tracking-status { font-size: 1.3em; font-weight: 800; color: var(--dyws-color-emphasis); }
+.dyws-tracking-panel .dyws-tracking-timeline { display: flex; gap: 18px; flex-wrap: wrap; padding-left: 24px; }
+.dyws-tracking-panel .dyws-tracking-timeline small { display: block; }
+.dyws-tracking-panel .dyws-driver-map { width: 100%; height: auto; border-radius: 12px; }
+.dyws-tracking-panel .dyws-note { font-size: .85em; color: var(--dyws-color-muted); }
+.dyws-tracking-panel .dyws-tracking-error { color: var(--dyws-color-emphasis); }
+.dyws-tracking-panel .dyws-tracking-payment { margin: 18px 0; }

@@ -50,3 +50,9 @@ Then deploy public_html, including settings.html, and retain the existing privat
 October 23 catalog and Stripe upgrade validation: 98 checks pass, comprising five cart tests, 28 backend checks, 26 HTTP checks and 39 catalog and Stripe checks. Hosted browser verification saved the private catalog and placed order SG-6547CD1FE1B9 through the migrated storefront. The Stripe SDK was audited with no reported dependency advisories. Stripe credentials remain unset; no external Stripe sandbox payment was performed. Backup: domains/sltd.ca/private/deploy-backups/starlit-go-catalog-stripe-20261023/.
 
 For a local checkout where the old tracked catalog has already moved, pass the seed explicitly as the third migration argument: `php server/migrate-catalog.php var/config.json http://127.0.0.1:8097 examples/starlit-diner/catalog.json`. Do not replace a modified merchant catalog with that seed.
+
+## DYWS CSS extraction
+
+The demo loads `dyws/dyws.css?v=19`, and the cart loads `dyws/ordering.css?v=19` inside its shadow root. Deploy the entire dyws folder together with the updated HTML and JavaScript. The former CSS URLs forward to these files. No runtime catalog or database migration is needed. The catalog migration CLI now resolves relative config paths before storing an absolute catalog path, preventing local preview failures.
+
+October 23 validation: all 98 existing checks passed. Browser checks covered desktop and mobile catalog/cart layouts, light and dark cart themes, 48px quantity buttons, admin styling and a plain host page using only DYWS CSS. The isolated page confirmed that unrelated host controls keep their native styles. Frontend backup: domains/sltd.ca/private/deploy-backups/starlit-go-dyws-css-20261023/public-diner/.

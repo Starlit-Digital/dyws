@@ -1,0 +1,26 @@
+.dyws-shell { max-width: 1100px; margin: auto; padding: 24px 20px 120px; background: var(--dyws-color-bg); min-height: 100vh; }
+.dyws-shell h1 { font: 700 2rem var(--dyws-heading-font, Georgia, serif); }
+.dyws-shell h2 { font: 700 1.4rem var(--dyws-heading-font, Georgia, serif); }
+.dyws-shell a { color: var(--dyws-color-emphasis); }
+.dyws-shell input, .dyws-shell select, .dyws-shell textarea { font: inherit; min-height: 48px; padding: 10px; border-radius: 8px; border: 1px solid var(--dyws-color-border); background: var(--dyws-color-surface); color: var(--dyws-color-text); max-width: 100%; }
+.dyws-shell label { display: block; margin: 16px 0; }
+.dyws-shell button { font: inherit; min-height: 48px; min-width: 48px; padding: 10px 16px; border: 0; border-radius: 10px; color: var(--dyws-color-button-text); background: var(--dyws-color-accent); cursor: pointer; touch-action: manipulation; }
+.dyws-shell button:disabled { opacity: .6; }
+.dyws-shell .dyws-toolbar { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; }
+.dyws-shell .dyws-toolbar label { margin: 0; }
+.dyws-shell section, .dyws-shell article { background: var(--dyws-color-surface); padding: 24px; border-radius: 16px; margin: 24px 0; }
+.dyws-shell .dyws-stats { display: grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap: 14px; }
+.dyws-shell .dyws-stat { padding: 18px; background: var(--dyws-color-raised); border-radius: 12px; }
+.dyws-shell .dyws-stat strong { display: block; font-size: 1.5rem; }
+.dyws-shell .dyws-actions { display: flex; gap: 10px; flex-wrap: wrap; margin: 18px 0; }
+.dyws-shell .dyws-error { color: var(--dyws-color-emphasis); }
+.dyws-shell small, .dyws-shell .dyws-note { color: var(--dyws-color-muted); }
+.dyws-shell [hidden] { display: none !important; }
+.dyws-shell table { width: 100%; border-collapse: collapse; text-align: left; }
+.dyws-shell th, .dyws-shell td { padding: 10px; }
+.dyws-shell .dyws-table-wrap { overflow: auto; }
+.dyws-shell :focus-visible { outline: 3px solid var(--dyws-color-emphasis); outline-offset: 4px; }
+.dyws-shell .dyws-catalog-json { width: 100%; font: 15px/1.5 ui-monospace,monospace; tab-size: 2; }
+.dyws-shell code, .dyws-shell p { overflow-wrap: anywhere; }
+.dyws-shell input[type='password'] { display: block; width: 100%; max-width: 36rem; }
+.dyws-shell input[type='checkbox'] { min-height: 24px; min-width: 24px; vertical-align: middle; }
