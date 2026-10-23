@@ -1,0 +1,5 @@
+/* Accessibility center. Component specific layout, shared controls live in shared/ui.css. */
+
+[data-open]{font-size:0!important;min-width:44px!important;width:44px!important;padding:10px!important;background:transparent!important;border:1px solid #b8b4a9!important}[data-open] svg{width:20px;height:20px}
+
+[data-open]{color:white!important;border-color:#b19562!important}
