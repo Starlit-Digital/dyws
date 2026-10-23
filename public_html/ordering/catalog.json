@@ -24,6 +24,30 @@
           "name": "Diner Omelette",
           "description": "Cheddar, peppers and onions with toast.",
           "price": 1395
+        },
+        {
+          "id": "breakfast3",
+          "name": "French Toast",
+          "description": "Thick slices of cinnamon French toast with maple syrup.",
+          "price": 1295
+        },
+        {
+          "id": "breakfast4",
+          "name": "Eggs Benedict",
+          "description": "Poached eggs, ham and hollandaise on an English muffin with breakfast potatoes.",
+          "price": 1695
+        },
+        {
+          "id": "breakfast5",
+          "name": "Breakfast Wrap",
+          "description": "Scrambled eggs, sausage, cheddar and peppers in a warm tortilla.",
+          "price": 1395
+        },
+        {
+          "id": "breakfast6",
+          "name": "Steak & Eggs",
+          "description": "Grilled steak, two eggs, toast and breakfast potatoes.",
+          "price": 2195
         }
       ]
     },
@@ -48,6 +72,78 @@
           "name": "Grilled Cheese",
           "description": "Golden sourdough and melted cheddar. Served with fries.",
           "price": 1195
+        },
+        {
+          "id": "classics3",
+          "name": "Bacon Cheeseburger",
+          "description": "Beef patty, crisp bacon and cheddar. Served with fries.",
+          "price": 1895
+        },
+        {
+          "id": "classics4",
+          "name": "Hot Turkey Sandwich",
+          "description": "Roast turkey on bread with gravy, mashed potatoes and vegetables.",
+          "price": 1795
+        },
+        {
+          "id": "classics5",
+          "name": "Fish & Chips",
+          "description": "Crispy battered fish, fries, coleslaw and tartar sauce.",
+          "price": 1895
+        },
+        {
+          "id": "classics6",
+          "name": "Meatloaf Dinner",
+          "description": "Homestyle meatloaf with gravy, mashed potatoes and seasonal vegetables.",
+          "price": 1895
+        }
+      ]
+    },
+    {
+      "id": "soups",
+      "name": "Soups & Salads",
+      "items": [
+        {
+          "id": "soups0",
+          "name": "Tomato Soup",
+          "description": "Creamy tomato soup served with crackers.",
+          "price": 695
+        },
+        {
+          "id": "soups1",
+          "name": "Chicken Noodle Soup",
+          "description": "Chicken, noodles and vegetables in a savoury broth.",
+          "price": 795
+        },
+        {
+          "id": "soups2",
+          "name": "Beef & Bean Chili",
+          "description": "Hearty beef and bean chili topped with cheddar.",
+          "price": 995
+        },
+        {
+          "id": "soups3",
+          "name": "Caesar Salad",
+          "description": "Romaine, croutons and parmesan with Caesar dressing.",
+          "price": 1195
+        },
+        {
+          "id": "soups4",
+          "name": "Greek Salad",
+          "description": "Tomato, cucumber, olives and feta with herb dressing.",
+          "price": 1295
+        },
+        {
+          "id": "soups5",
+          "name": "Grilled Chicken Salad",
+          "description": "Mixed greens, grilled chicken, tomato and cucumber.",
+          "price": 1595
+        },
+        {
+          "id": "soups6",
+          "name": "Soup & Half Sandwich",
+          "description": "Tomato soup with a half grilled cheese sandwich.",
+          "price": 1295
         }
       ]
     },
@@ -66,6 +162,36 @@
           "name": "Garden Salad",
           "description": "Mixed greens, tomato and cucumber.",
           "price": 695
+        },
+        {
+          "id": "sides2",
+          "name": "Onion Rings",
+          "description": "Golden battered onion rings with house dip.",
+          "price": 795
+        },
+        {
+          "id": "sides3",
+          "name": "Poutine",
+          "description": "French fries topped with cheese curds and gravy.",
+          "price": 995
+        },
+        {
+          "id": "sides4",
+          "name": "Mashed Potatoes",
+          "description": "Creamy mashed potatoes with gravy.",
+          "price": 595
+        },
+        {
+          "id": "sides5",
+          "name": "Coleslaw",
+          "description": "Crunchy cabbage and carrots in a creamy dressing.",
+          "price": 495
+        },
+        {
+          "id": "sides6",
+          "name": "Garlic Toast",
+          "description": "Two slices of toasted bread with garlic butter.",
+          "price": 395
         }
       ]
     },
@@ -107,6 +233,30 @@
           "name": "Coffee",
           "description": "Freshly brewed diner coffee.",
           "price": 295
+        },
+        {
+          "id": "sweet3",
+          "name": "Cherry Pie",
+          "description": "A classic cherry pie slice with a golden pastry crust.",
+          "price": 695
+        },
+        {
+          "id": "sweet4",
+          "name": "Chocolate Brownie",
+          "description": "Warm chocolate brownie with vanilla ice cream.",
+          "price": 895
+        },
+        {
+          "id": "sweet5",
+          "name": "Hot Chocolate",
+          "description": "Rich hot chocolate topped with whipped cream.",
+          "price": 395
+        },
+        {
+          "id": "sweet6",
+          "name": "Lemonade",
+          "description": "A refreshing glass of classic lemonade.",
+          "price": 395
         }
       ]
     }

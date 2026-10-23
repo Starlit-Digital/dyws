@@ -18,6 +18,6 @@ test('variants are mandatory and retained as distinct lines',()=>{
  const result=restoreCart(catalog,[{id:'sweet1',variant:'vanilla',quantity:1},{id:'sweet1',variant:'chocolate',quantity:2},{id:'sweet1',variant:'vanilla',quantity:2}]);
  assert.equal(result.length,2);assert.equal(result[0].quantity,3);
 });
-test('menu has four compact categories with unique valid items',()=>{
- assert.equal(catalog.categories.length,4);const ids=new Set();for(const c of catalog.categories){assert.ok(c.items.length<=5);for(const i of c.items){assert.ok(!ids.has(i.id));ids.add(i.id);assert.ok(Number.isSafeInteger(i.price)&&i.price>0);}}
+test('menu has five categories with seven items each with unique valid items',()=>{
+ assert.equal(catalog.categories.length,5);const ids=new Set();for(const c of catalog.categories){assert.equal(c.items.length,7);for(const i of c.items){assert.ok(!ids.has(i.id));ids.add(i.id);assert.ok(Number.isSafeInteger(i.price)&&i.price>0);}}
 });

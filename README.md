@@ -4,7 +4,7 @@ A reusable restaurant ordering web component, demonstrated by the fictional Star
 
 Demo: https://sltd.ca/diner/
 
-The project was cloned from the saved Cravings & Delight website, retaining its Git history. The diner demo replaces the restaurant content with 11 fictional menu items in four categories. Its address, phone and hours are fictional. The original website is preserved at https://github.com/Starlit-Digital/cravingsanddelight.ca .
+The project was cloned from the saved Cravings & Delight website, retaining its Git history. The diner demo replaces the restaurant content with 35 fictional menu items in five categories. Its address, phone and hours are fictional. The original website is preserved at https://github.com/Starlit-Digital/cravingsanddelight.ca .
 
 ## Run
 
