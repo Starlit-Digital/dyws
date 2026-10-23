@@ -1,6 +1,6 @@
-import './component.js?v=30';
-import {mountCatalog} from './catalog.js?v=30';
-import {createTracking} from './tracking.js?v=30';
+import './component.js?v=31';
+import {mountCatalog} from './catalog.js?v=31';
+import {createTracking} from './tracking.js?v=31';
 export function mountStorefront({ordering,container,navigation,loading,api,tracking,submitOrder,onOrderComplete,hydrate=false,plugins}) {
  ordering.plugins=plugins;
  const catalogs=(Array.isArray(container)?container:[container]).map((element,index)=>mountCatalog({ordering,container:element,navigation:index===0?navigation:null,loading:index===0?loading:null,hydrate,plugins}));

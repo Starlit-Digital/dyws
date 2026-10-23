@@ -148,5 +148,47 @@
     "runtime": "browser",
     "type": "action",
     "description": "Display tools for a driver's assigned orders."
+  },
+  {
+    "name": "reports.dataset",
+    "runtime": "php",
+    "type": "filter",
+    "description": "Enrich the aggregate reporting dataset after scoped reads."
+  },
+  {
+    "name": "reports.generated",
+    "runtime": "php",
+    "type": "action",
+    "description": "Observe a completed reporting dataset."
+  },
+  {
+    "name": "admin:report-controls",
+    "runtime": "browser",
+    "type": "action",
+    "description": "Mount report filter controls with a refresh callback."
+  },
+  {
+    "name": "reports:query",
+    "runtime": "browser",
+    "type": "filter",
+    "description": "Add report query parameters before the authenticated request."
+  },
+  {
+    "name": "reports:cards",
+    "runtime": "browser",
+    "type": "filter",
+    "description": "Add or adjust dashboard summary cards."
+  },
+  {
+    "name": "reports:export",
+    "runtime": "browser",
+    "type": "filter",
+    "description": "Adjust report export rows before CSV escaping."
+  },
+  {
+    "name": "admin:tables",
+    "runtime": "browser",
+    "type": "action",
+    "description": "Enhance or dispose explicitly marked admin tables."
   }
 ]

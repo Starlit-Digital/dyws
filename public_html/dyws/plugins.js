@@ -43,5 +43,10 @@ export async function createPluginHost({api,baseURL=new URL('../plugins/',import
   if(provider)try{return provider({api,document:doc,...options});}catch{errors.push('Payment controls could not load.');}
   const note=doc.createElement('p');note.className='dyws-note';note.textContent=options.order.checkoutStatus==='pending'?'Payment confirmation is pending. Please do not place a duplicate order.':'Online payment is unavailable. Contact the business for help with this order.';options.container.append(note);
  }
- return {runAction,applyFilters,validate,createLocationRenderer,renderPayment,errors,removeAction:(name,fn)=>remove(actions,name,fn),removeFilter:(name,fn)=>remove(filters,name,fn),removeValidator:(name,fn)=>remove(validators,name,fn),destroy(){for(const fn of cleanup)try{fn();}catch{}styles.forEach(style=>style.remove());actions.clear();filters.clear();validators.clear();providers.clear();}};
+ async function renderReports(options){
+  const provider=providers.get('reports.renderer');if(!provider)return false;
+  try{if(await provider({...options,applyFilters,runAction})===true)return true;}catch{recordError('The report plugin could not render.');}
+  await runAction('admin:tables',{root:options.root,phase:'dispose'});options.root.replaceChildren();return false;
+ }
+ return {runAction,applyFilters,validate,createLocationRenderer,renderPayment,renderReports,errors,removeAction:(name,fn)=>remove(actions,name,fn),removeFilter:(name,fn)=>remove(filters,name,fn),removeValidator:(name,fn)=>remove(validators,name,fn),destroy(){for(const fn of cleanup)try{fn();}catch{}styles.forEach(style=>style.remove());actions.clear();filters.clear();validators.clear();providers.clear();}};
 }

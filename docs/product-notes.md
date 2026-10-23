@@ -71,3 +71,7 @@ Version 0.5 adds installed plugins, an Admin Plugins page, lifecycle hooks, PHP 
 Stripe is a bundled plugin alongside Google Maps. Its encrypted configuration, admin form, verification, Checkout, signed webhooks and customer payment button belong to the plugin. The old settings URL redirects to its settings panel. Deactivation stops new checkouts but retains signed reconciliation for existing attempts. Core owns neutral payment records, reports and the protection against manually marking online orders paid.
 
 The plugin API now exposes 25 implemented hooks covering lifecycle, catalog, validation, order events, tracking, reporting, searches, admin navigation and panels, product presentation, cart changes, checkout fields and driver tools. Required validators can reject operations; optional observer errors do not undo successful orders. Extra checkout data is bounded, stored with the order and omitted from public tracking by default. A gift note example demonstrates the full field to order panel flow.
+
+## 2026-10-23, reporting
+
+Reviewed the private PayCal reporting implementation and added Order Reporting for business summaries, comparisons, SVG charts, CSV exports and operational metrics. DataTables is an independent bundled plugin. Added seven reporting and table hooks, bringing the documented catalog to 32. Report data stays scoped to the authenticated tenant, selected currency and fulfilment. Demo data remains labelled and live orders are preserved.

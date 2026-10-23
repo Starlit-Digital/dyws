@@ -1,7 +1,9 @@
 {
   "active": [
     "google-maps",
-    "stripe"
+    "stripe",
+    "order-reporting",
+    "datatables"
   ],
   "aliases": {
     "google-maps": [
@@ -25,6 +27,8 @@
     "stripe"
   ],
   "upgradeDefaults": [
-    "stripe"
+    "stripe",
+    "order-reporting",
+    "datatables"
   ]
 }

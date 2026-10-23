@@ -1,6 +1,6 @@
 import {escapeHTML as esc} from './api.js';
 import {defaultRole} from './role-labels.js';
-import {adminPage} from './admin-navigation.js?v=30';
+import {adminPage} from './admin-navigation.js?v=31';
 export async function mountDriverAdmin({root=document,api,storageKey,role=defaultRole,createLocationRenderer}) {
  const page=adminPage({root,api,storageKey});if(!page.token)return;
  const form=root.querySelector('#driver-form'),list=root.querySelector('#drivers-list'),message=root.querySelector('#driver-message');let revision,drivers=[],locations=[],refreshing=false;const maps=new Map();

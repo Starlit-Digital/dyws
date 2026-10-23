@@ -1,0 +1,1 @@
+{"id":"order-reporting","name":"Order Reporting","version":"1.0.0","apiVersion":1,"description":"Order trends, payment totals, popular items and fulfilment performance.","entry":"plugin.php","browserModule":"index.js","stylesheet":"reporting.css"}

@@ -89,8 +89,8 @@ with tempfile.TemporaryDirectory(prefix='dyws-install-') as tmp:
    req=urllib.request.Request(url+'/api/index.php?route='+route,headers={'Authorization':'Bearer '+token})
    with client.open(req) as r:return json.load(r)
   plugin_manifest=get_api('/plugins')
-  check([p['id'] for p in plugin_manifest['plugins']]==['google-maps','stripe'],'Both bundled plugins discovered after fresh install')
-  check(len(plugin_manifest['hooks'])==25,'Installed hook catalog available')
+  check(sorted(p['id'] for p in plugin_manifest['plugins'])==['datatables','google-maps','order-reporting','stripe'],'All bundled plugins discovered after fresh install')
+  check(len(plugin_manifest['hooks'])==32,'Installed hook catalog available')
   draft=get_api('/manager/catalog');draft['catalog']['categories']=[{'id':'goods','name':'Goods','items':[{'id':'sample','name':'Example item','price':500,'description':'','active':True,'unit':'each'}]}]
   api('/manager/catalog',draft,token)
   order=api('/orders',{'demoAcknowledged':True,'idempotencyKey':'install-test-1234567890','customer':{'name':'Example Customer','phone':'7805550142'},'fulfillment':'pickup','lines':[{'id':'sample','variant':'','quantity':1}]},status=201)

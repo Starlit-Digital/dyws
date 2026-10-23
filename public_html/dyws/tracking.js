@@ -1,7 +1,7 @@
-import {pluginSlot} from './plugin-ui.js?v=30';
+import {pluginSlot} from './plugin-ui.js?v=31';
 import {statusText,escapeHTML} from './api.js';
 import {defaultRole} from './role-labels.js';
-import {deliveryStatus,terminalStatuses} from './delivery-status.js?v=30';
+import {deliveryStatus,terminalStatuses} from './delivery-status.js?v=31';
 export function createTracking({api,container,role=defaultRole,trackingPage,renderLocation,renderPayment,plugins,shopPage,storageKey='starlit-go-tracking',panelId='customer-tracking',document:doc=globalThis.document,now=Date.now}) {
  if(typeof api!=='function'||!container)throw new TypeError('dyws tracking requires an API client and container.');
  let timer,clock,active,panel,unwatch=null,polling=false,again=false,lastData,estimate,unavailable=false,lastChecked=0;

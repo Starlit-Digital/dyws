@@ -56,8 +56,8 @@ try {
   $result=$plugins->applyFilters('lookup.results',\StarlitGo\Lookup::search($store,\StarlitGo\Catalog::load($config['catalog']),$config['drivers'],$query,$kind),['query'=>$query,'kind'=>$kind]);
  }
  elseif($method==='GET'&&$route==='/manager/reports'){
-  dyws_authorize($store,['manager']);$tz=new DateTimeZone('America/Edmonton');$start=$_GET['from']??date('Y-m-d');$end=$_GET['to']??$start;
-  $from=DateTimeImmutable::createFromFormat('!Y-m-d',$start,$tz);$to=DateTimeImmutable::createFromFormat('!Y-m-d',$end,$tz);if(!$from||!$to||$from->format('Y-m-d')!==$start||$to->format('Y-m-d')!==$end||$to<$from||$to->getTimestamp()-$from->getTimestamp()>366*86400)throw new \StarlitGo\ApiError('Choose a valid date range up to one year.');$result=$plugins->applyFilters('reports.summary',$store->reports($from->getTimestamp(),$to->modify('+1 day')->getTimestamp()));
+  dyws_authorize($store,['manager']);$tz=new DateTimeZone('America/Edmonton');$start=$_GET['from']??(new DateTimeImmutable('today',$tz))->format('Y-m-d');$end=$_GET['to']??$start;if(!is_string($start)||!is_string($end))throw new \StarlitGo\ApiError('Choose valid report dates.');
+  $from=DateTimeImmutable::createFromFormat('!Y-m-d',$start,$tz);$to=DateTimeImmutable::createFromFormat('!Y-m-d',$end,$tz);if(!$from||!$to||$from->format('Y-m-d')!==$start||$to->format('Y-m-d')!==$end||$to<$from||(int)$from->diff($to)->format('%a')>365)throw new \StarlitGo\ApiError('Choose a valid date range up to one year.');$result=$plugins->applyFilters('reports.summary',$store->reports($from->getTimestamp(),$to->modify('+1 day')->getTimestamp()));
  }
  elseif($method==='POST'&&preg_match('~^/manager/orders/(SG-[A-F0-9]{12})/(status|assign|payment)$~',$route,$m)){
   dyws_authorize($store,['manager']);if($m[2]==='status')$result=$store->change($m[1],\StarlitGo\Store::text($body['status']??null,30),'manager');

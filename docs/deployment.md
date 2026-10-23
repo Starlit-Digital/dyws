@@ -150,3 +150,7 @@ The bundled release includes the 25 hook catalog and developer reference, and an
 Live deployment completed on 2026-10-23. Backup: domains/sltd.ca/private/deploy-backups/dyws-stripe-hooks-20261023/. It contains public-diner, private php and plugins, JSON settings and a consistent orders.sqlite snapshot. The live API advertises both plugins and all 25 hooks. Before and after fingerprints matched for all five orders, payment records, admin credentials, drivers, catalog, site configuration and Maps settings. Stripe checkout remains unconfigured and disabled.
 
 Validation: 497 automated checks passed, plus 42 fresh installation checks against the rebuilt ZIP. Browser verification covered the plugin Settings link, both live plugin cards, the unchanged Maps settings, and a separate gift note checkout through to its saved manager order panel. No external Stripe charge was attempted; payment reconciliation used locally signed sandbox fixtures.
+
+## Version 0.7 reporting plugins
+
+Deploy private plugins/order-reporting, plugins/datatables, the updated bundled.json and hook catalog, plus their matching public_html/plugins assets and version 31 browser adapters. Preserve var, the hosted bootstrap path and setup removal. No schema or order migration is required. Both new bundled plugins are adopted once through upgradeDefaults; explicit deactivation persists. Rebuild dyws.zip from staged source and run the archive installer test. DataTables assets and their MIT license are included locally, without a runtime CDN dependency.

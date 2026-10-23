@@ -1,6 +1,6 @@
 # dyws hook reference
 
-dyws 0.6 includes 25 built in hook features. The names below are live integration points. The machine readable catalog is modules/dyws/php/hooks.json and is also returned by GET /plugins. Actions, filters and validators use priorities, default 10, with lower values first.
+dyws 0.7 includes 32 built in hook features. The names below are live integration points. The machine readable catalog is modules/dyws/php/hooks.json and is also returned by GET /plugins. Actions, filters and validators use priorities, default 10, with lower values first.
 
 ## Server hooks
 
@@ -91,3 +91,19 @@ A complete example is in examples/plugins/gift-note. It is shipped as example so
 ## Capabilities beyond the hooks
 
 Plugins can also register namespaced HTTP routes with public, manager or driver access, offer payment providers, supply payment renderer controls, and supply a location renderer with route estimates. Google Maps and Stripe use these APIs in the bundled distribution. See [Plugin architecture](plugins.md) for route limits, raw request handling, retained signed callbacks, activation and deactivation, and the trusted code boundary. WordPress PHP plugins do not run unchanged in dyws.
+
+## Reporting and table hooks
+
+| # | Hook | Runtime and type | Contract |
+|---|---|---|---|
+| 26 | reports.dataset | PHP filter | `(dataset, context)` after the Order Reporting plugin reads a consistent tenant, date, currency and fulfilment scoped snapshot. Add namespaced aggregates without contacts, GPS or credentials. |
+| 27 | reports.generated | PHP action | `(dataset, context)` after dataset filters. Observe completion, do not modify orders or charge. Runs only with Order Reporting active. |
+| 28 | admin:report-controls | Browser action | `({root, refresh})` once during manager mounting. Root is the report toolbar. Add labelled controls and call refresh after selection. No token is passed. |
+| 29 | reports:query | Browser filter | `(query)` with initial `{from,to}` before the authenticated report request. Return query parameters. Server authorization remains mandatory. |
+| 30 | reports:cards | Browser filter | `(cards,{report})` inside Order Reporting. Cards use plain `{label,value,detail}` text, escaped by the renderer. |
+| 31 | reports:export | Browser filter | `(rows,{key,report})` before CSV escaping. Return an array of row arrays. Keys include summary, items and daily. Summary receives the core report; other exports receive its orderReporting dataset. Numeric money is integer cents. Strings are quoted and spreadsheet formula prefixes neutralised after filters. |
+| 32 | admin:tables | Browser action | `({root,phase})`, phase mount or dispose. Enhance only marked tables inside root on mount; destroy owned instances before replacement on dispose. Never attach handlers to order action buttons. |
+
+The browser provider `reports.renderer` receives `{root,report,applyFilters,runAction}`. Return true after rendering or false to use core reports. Errors fall back to the core view. Core authentication and order controls remain independent. Order Reporting supplies this provider; DataTables subscribes to admin:tables, so either plugin can be disabled independently. Report renderers must dispose table instances before replacing their DOM. The host also disposes on a rendering error.
+
+PHP reporting context is `{from,to,currency,fulfillment,timeZone}`. Date bounds are epoch seconds with an exclusive end. The dataset includes its schemaVersion. These plugin owned dataset hooks are available only when that plugin runs; the toolbar, query, summary export and renderer provider are core integration points.

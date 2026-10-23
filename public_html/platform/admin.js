@@ -1,9 +1,9 @@
-import {plugins} from './plugins.js?v=30';
-import {mountNavigation} from './admin-navigation.js?v=30';
+import {plugins} from './plugins.js?v=31';
+import {mountNavigation} from './admin-navigation.js?v=31';
 import {mountCatalogEditor} from '../dyws/catalog-editor.js?v=26';
 import {mountDriverAdmin,mountPasswordAdmin} from '../dyws/account-editor.js?v=26';
 import {api} from './api.js';
-import {mountPluginAdmin} from '../dyws/plugin-admin.js?v=30';
+import {mountPluginAdmin} from '../dyws/plugin-admin.js?v=31';
 import {mountGeneralSettings} from '../dyws/general-settings.js?v=26';
 import {loadRole,applyRoleLabels} from '../dyws/role-labels.js';
 const role=await loadRole(api);

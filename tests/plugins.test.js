@@ -33,3 +33,9 @@ test('An unavailable validation plugin cannot silently bypass checkout checks',a
  const host=await createPluginHost({document:doc,api:async()=>({plugins:[{...manifest('required'),capabilities:['validation']}]}),loadModule:async()=>{throw new Error('Unavailable');}});
  await assert.rejects(host.validate('checkout:validating'),/required checkout plugin/);
 });
+test('Optional report renderer failures dispose tables and retain the core report fallback',async()=>{
+ let disposed=0,cleared=0;const root={replaceChildren(){cleared++;}};
+ const host=await createPluginHost({document:doc,api:async()=>({plugins:[manifest('reports')]}),loadModule:async()=>({register(p){p.addAction('admin:tables',({phase})=>{if(phase==='dispose')disposed++;});p.provide('reports.renderer',()=>{throw new Error('Broken chart');});}})});
+ assert.equal(await host.renderReports({root,report:{}}),false);assert.equal(disposed,1);assert.equal(cleared,1);assert.equal(host.errors.length,1);
+ const absent=await createPluginHost({document:doc,api:async()=>({plugins:[]})});assert.equal(await absent.renderReports({root,report:{}}),false);
+});

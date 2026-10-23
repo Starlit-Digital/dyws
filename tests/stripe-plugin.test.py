@@ -46,7 +46,7 @@ with tempfile.TemporaryDirectory(prefix='dyws-stripe-plugin-') as work:
   # Backward compatible default adoption does not reactivate Maps or override an explicit Stripe disable.
   statefile=next(work.glob('plugins-*.json'),work/('plugins-'+hashlib.sha256(config['tenant'].encode()).hexdigest()[:16]+'.json'))
   statefile.write_text(json.dumps({'active':[]}))
-  check([p['id'] for p in request('/plugins')['plugins']]==['stripe'])
+  check(sorted(p['id'] for p in request('/plugins')['plugins'])==['datatables','order-reporting','stripe'])
   body={'demoAcknowledged':True,'idempotencyKey':str(uuid.uuid4()),'customer':{'name':'Test Shopper','phone':'7805550100'},'fulfillment':'pickup','lines':[{'id':request('/catalog')['categories'][0]['items'][0]['id'],'variant':'','quantity':1}]}
   receipt=request('/orders',body,status=201);order=receipt['id'];tracking=receipt['trackingToken']
   check(receipt['paymentProvider']=='stripe')
@@ -69,7 +69,7 @@ with tempfile.TemporaryDirectory(prefix='dyws-stripe-plugin-') as work:
   send(pending)
   check(request('/tracking/'+order,tracking=tracking)['checkoutStatus']=='pending')
   toggle(False)
-  check(request('/plugins')['plugins']==[])
+  check(sorted(p['id'] for p in request('/plugins')['plugins'])==['datatables','order-reporting'])
   check((work/'stripe.json').read_bytes()==encrypted)
   request('/manager/plugins/stripe/settings',token=admin,status=404)
   request('/plugins/stripe/orders/'+order+'/checkout',{},tracking=tracking,status=404)

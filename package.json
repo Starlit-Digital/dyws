@@ -1,10 +1,10 @@
 {
   "name": "@starlit-digital/dyws",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test tests/*.test.js && php tests/backend.test.php && python3 tests/api.test.py && php tests/catalog-payments.test.php && php tests/render.test.php && php tests/accounts.test.php && php tests/settings.test.php && php tests/maps-settings.test.php && php tests/plugins.test.php && python3 tests/stripe-plugin.test.py && python3 tests/hooks.test.py && python3 tests/installer.test.py && php tests/installer.test.php && python3 tests/upgrade.test.py",
+    "test": "node --test tests/*.test.js && php tests/backend.test.php && python3 tests/api.test.py && php tests/catalog-payments.test.php && php tests/render.test.php && php tests/accounts.test.php && php tests/settings.test.php && php tests/maps-settings.test.php && php tests/plugins.test.php && python3 tests/stripe-plugin.test.py && python3 tests/hooks.test.py && python3 tests/installer.test.py && php tests/installer.test.php && python3 tests/upgrade.test.py && php tests/reporting.test.php && python3 tests/reporting-api.test.py",
     "serve": "php -S 127.0.0.1:8097 -t public_html",
     "setup": "php server/setup.php",
     "test:realtime": "npm test --prefix modules/dyws/realtime",

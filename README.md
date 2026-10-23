@@ -12,6 +12,10 @@ Download [dyws.zip](https://github.com/Starlit-Digital/dyws/blob/main/dyws.zip?r
 
 Orders and accounts use SQLite. Overall site settings and the catalog remain JSON. Existing driver credentials migrate without password resets.
 
+## Reporting plugins
+
+The Reports page includes the bundled Order Reporting dashboard: period comparisons, payment and order charts, popular items, fulfilment, turnaround times, CSV and SVG exports. DataTables is a separate bundled plugin for table search, sorting and pagination. Both can be disabled independently in Admin → Plugins. See [report definitions and plugin integration](docs/order-reporting.md).
+
 ## What works
 
 Orders persist in SQLite. The server validates product IDs, variants and quantities, calculates prices and tax in integer cents, and handles idempotent submissions. Business managers accept and prepare orders, assign drivers and inspect operational reports, test payment totals, refunds, fees, tax, popular items and CSV exports. Drivers see assigned deliveries and can update their status and automatically share browser GPS during active deliveries. A simulated route is included for testing without sharing a real person’s location.

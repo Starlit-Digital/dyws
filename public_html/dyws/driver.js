@@ -1,4 +1,4 @@
-import {pluginSlot} from './plugin-ui.js?v=30';
+import {pluginSlot} from './plugin-ui.js?v=31';
 import {escapeHTML as esc,money,statusText} from './api.js';
 import {createDriverGPS} from './driver-gps.js';
 export function mountDriver({root=document,api,storageKey='starlit-go-driver',renderLocation,simulatePosition,testLocationName='Configured test origin',plugins}) {

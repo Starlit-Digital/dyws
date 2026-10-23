@@ -9,11 +9,11 @@ A plugin has two parts so executable PHP stays private:
 - `plugins/<id>/plugin.json` and `plugin.php`, beside server and modules, outside public_html.
 - Optional browser assets under `public_html/plugins/<id>/`.
 
-Copy both parts from a trusted source, then open **Admin → Plugins** and activate it. Additional plugins start inactive. The bundled distribution activates Google Maps and Stripe by default through plugins/bundled.json, preserving existing installations. Activation does not replace its saved API key or Maps settings. Deactivation preserves settings too. Reload other open pages after changing activation. Existing browser tabs are not forcibly reloaded or stripped of already downloaded code.
+Copy both parts from a trusted source, then open **Admin → Plugins** and activate it. Additional plugins start inactive. The bundled distribution activates Google Maps, Stripe, Order Reporting and DataTables by default through plugins/bundled.json, preserving existing installations. Activation does not replace its saved API key or Maps settings. Deactivation preserves settings too. Reload other open pages after changing activation. Existing browser tabs are not forcibly reloaded or stripped of already downloaded code.
 
 Plugin state is tenant scoped private JSON beside the database, with revision checking and file locking. A corrupt state file disables plugins and produces an admin warning. Missing optional display plugins do not stop orders. Required payment and validation failures reject affected operations. Reinstall a plugin's files before attempting to activate it again. Removing files does not erase its settings.
 
-This first version installs code through Git or file upload using the hosting file manager. There is no browser ZIP uploader, marketplace, automatic updater or uninstall data deletion. The main dyws.zip includes both halves of the bundled Google Maps and Stripe plugins.
+This first version installs code through Git or file upload using the hosting file manager. There is no browser ZIP uploader, marketplace, automatic updater or uninstall data deletion. The main dyws.zip includes both halves of all four bundled plugins.
 
 ## Manifest
 
@@ -141,3 +141,9 @@ The PHP context also exposes store for tenant scoped storage and read access. A 
 The browser context offers onDestroy for cleanup. Pass the plugin host as plugins to mountStorefront, mountCatalog, mountManager, mountDriver and createTracking. The shipped diner does this already. Display callbacks receive a fresh dedicated root at each render, so delayed work cannot replace core buttons or a newer status. Dispose resources and listeners when the host is destroyed. Hooks can run repeatedly because of polling; replace content within the supplied root and deduplicate external side effects.
 
 Example source in examples/plugins/gift-note includes a checkout field, browser and server validation, a product note and manager order display. Copy private/ to plugins/gift-note and public/ to public_html/plugins/gift-note, then activate it. It is an example only and is not active in the hosted diner.
+
+## Order Reporting and DataTables
+
+Version 0.7 bundles Order Reporting and DataTables as independent optional plugins. New installations activate both. Existing installations adopt them once through upgradeDefaults; later deactivation persists. Reports stay at manager.html. Disabling Order Reporting restores core summaries and keeps the order board. Disabling DataTables leaves semantic tables with CSV exports and SVG charts. DataTables loads its local library only when a marked admin table needs it, with no CDN request, analytics, stored search state or commercial add ons.
+
+See [reporting definitions and PayCal research](order-reporting.md) and [hook contracts](plugin-hooks.md). No runtime order migration or external reporting service is required.

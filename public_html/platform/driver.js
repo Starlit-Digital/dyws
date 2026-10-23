@@ -1,5 +1,5 @@
-import {plugins} from './plugins.js?v=30';
-import {mountDriver} from '../dyws/driver.js?v=30';
+import {plugins} from './plugins.js?v=31';
+import {mountDriver} from '../dyws/driver.js?v=31';
 import {api} from './api.js';
 import {loadRole,applyRoleLabels} from '../dyws/role-labels.js';
 const role=await loadRole(api);

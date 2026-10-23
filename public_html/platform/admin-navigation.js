@@ -1,5 +1,5 @@
-import {plugins} from './plugins.js?v=30';
-import {mountAdminNavigation} from '../dyws/admin-navigation.js?v=30';
+import {plugins} from './plugins.js?v=31';
+import {mountAdminNavigation} from '../dyws/admin-navigation.js?v=31';
 import {defaultRole} from '../dyws/role-labels.js';
 const pages=[['reports','Reports','manager.html'],['catalog','Catalog','catalog-admin.html'],['drivers','Drivers','drivers-admin.html'],['password','Password','password-admin.html'],['settings','Settings','settings-admin.html'],['plugins','Plugins','plugins-admin.html']];
 let revision=0;

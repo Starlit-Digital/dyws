@@ -1,4 +1,4 @@
-import {pluginSlot} from './plugin-ui.js?v=30';
+import {pluginSlot} from './plugin-ui.js?v=31';
 export function mountCatalog({ordering,container,navigation,loading,locale='en-CA',hydrate=false,plugins}) {
  if(!ordering||!container)throw new TypeError('DYWS requires ordering and catalog elements.');
  container.classList.add('dyws-catalog');

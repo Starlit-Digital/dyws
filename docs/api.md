@@ -116,3 +116,7 @@ GET /plugins also returns hooks, the 25 built in hook descriptions. GET /manager
 POST /orders accepts an optional pluginData object keyed by installed plugin convention. Values are objects or arrays, up to 20 keys and 8192 encoded bytes in total. Plugins validate their own data with order.validating. Values participate in idempotency and remain in SQLite; authorised manager and driver order projections include pluginData, while public tracking omits it by default. Unknown plugin data does not execute code or create a capability.
 
 See [the hook reference](plugin-hooks.md) for validation timing and response filters. Core pricing, manager authorization, driver assignment, tracking tokens and online payment guards run before relevant plugin hooks.
+
+## Order Reporting, version 0.7
+
+Manager only GET /manager/plugins/order-reporting/dashboard accepts from, to, currency and fulfillment. It returns a schemaVersion 1 aggregate with current metrics, previous period metrics, daily series, item totals, status, fulfilment and hourly counts. It excludes customer contact and location data. See [report definitions](order-reporting.md). The existing /manager/reports adds orderReporting when the plugin is active. Disabling the plugin leaves core reports available. DataTables has no API routes or server data access.
