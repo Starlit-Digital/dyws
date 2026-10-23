@@ -1,8 +1,8 @@
 import {configureTimeZone} from './date-time.js';
 import {createAPIClient} from './api.js';
 /** Optional WebSocket RPC and invalidation, with ordinary HTTP and polling when unavailable. */
-export function createRealtimeAPI(endpoint,{WebSocket:Socket=globalThis.WebSocket,http=createAPIClient(endpoint),connectTimeout=2500,requestTimeout=25000}={}) {
- let socket,connecting,configured=false,url=null,nextAttempt=0,attempt=0,serial=0,mode='connecting',closed=false;
+export function createRealtimeAPI(endpoint,{WebSocket:Socket=globalThis.WebSocket,http=createAPIClient(endpoint),connectTimeout=2500,requestTimeout=25000,config}={}) {
+ let socket,connecting,configured=config!==undefined,url=config?.url||null,nextAttempt=0,attempt=0,serial=0,mode='connecting',closed=false;
  const pending=new Map(),subscriptions=new Map(),listeners=new Set();
  const status=value=>{mode=value;listeners.forEach(fn=>fn(value));};
  const id=()=>String(++serial);

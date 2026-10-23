@@ -1,5 +1,5 @@
 """Admin page access must be enforced by PHP before sending markup."""
-import hashlib,http.cookiejar,json,os,pathlib,re,socket,sqlite3,subprocess,tempfile,time,urllib.request,urllib.error,urllib.parse
+import html as html_parser,hashlib,http.cookiejar,json,os,pathlib,re,socket,sqlite3,subprocess,tempfile,time,urllib.request,urllib.error,urllib.parse
 root=pathlib.Path(__file__).resolve().parents[1]
 class NoRedirect(urllib.request.HTTPRedirectHandler):
  def redirect_request(self,*args):return None
@@ -56,6 +56,11 @@ with tempfile.TemporaryDirectory(prefix='dyws-auth-') as work:
   for page in pages[1:]:
    status,headers,html=req('/'+page+'/')
    check(status==200 and '<header' in html and 'dyws-admin-token' in html and token in html and 'login-form' not in html and 'no-store' in headers['Cache-Control'])
+   boot=json.loads(html_parser.unescape(re.search(r'name="dyws-admin-data" content="([^"]+)"',html)[1]))
+   check(boot['page']==page and '/settings' in boot['responses'] and config['tracking_secret'] not in html and password not in html and 'data-dyws-skeleton' in html)
+   check('modulepreload' in html and 'initial_data' in headers['Server-Timing'])
+   if page=='orders':check('data-dyws-order-initial' in html and '/manager/orders' in boot['responses'])
+   if page=='settings':check('id="maps-form"' in html and 'id="stripe-form"' in html and '/manager/plugins/stripe/settings' in boot['responses'])
   check(req('/admin/')[1]['Location']=='/orders/')
   check(req('/auth/')[1]['Location']=='/orders/')
   # Page cookies never authorize API mutations without their explicit bearer token.

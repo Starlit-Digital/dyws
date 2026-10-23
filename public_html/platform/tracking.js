@@ -1,6 +1,6 @@
-import {createTracking} from '../dyws/tracking.js?v=36';
+import {createTracking} from '../dyws/tracking.js?v=37';
 import {api} from './api.js';
-import {plugins} from './plugins.js?v=36';
+import {plugins} from './plugins.js?v=37';
 import {loadRole} from '../dyws/role-labels.js';
 const role=await loadRole(api);
 const tracking=createTracking({api,role,plugins,renderPayment:plugins.renderPayment,container:document.querySelector('main'),shopPage:document.body.dataset.trackingPage==='true'?new URL('../',import.meta.url).href:undefined,trackingPage:document.body.dataset.trackingPage==='true'?undefined:new URL('../tracking/',import.meta.url).href,renderLocation:plugins.createLocationRenderer({api})});

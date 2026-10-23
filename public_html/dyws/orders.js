@@ -1,7 +1,8 @@
-import {redirectToAuth} from './admin-session.js?v=36';
-import {mountOrderList} from './order-list.js?v=36';
+import {markReady,traceLoad} from './diagnostics.js';
+import {redirectToAuth} from './admin-session.js?v=37';
+import {mountOrderList} from './order-list.js?v=37';
 import {formatTime,formatDateTime} from './date-time.js';
-import {pluginSlot} from './plugin-ui.js?v=36';
+import {pluginSlot} from './plugin-ui.js?v=37';
 import {money as formatMoney,escapeHTML as esc,statusText} from './api.js';
 import {defaultRole} from './role-labels.js';
 export function mountOrders({root=document,api,role=defaultRole,storageKey='dyws-manager',renderLocation,plugins}) {
@@ -34,7 +35,7 @@ function renderOrder(o,data,container){
 }
 async function load(){if(!token)return;if(loading){loadAgain=true;return;}loading=true;try{
  const data=await api('/manager/orders',{token});error.textContent='';
- await orderList.update(data,{force:busy});
+ await traceLoad('Orders render',()=>orderList.update(data,{force:busy}));markReady();
  orders=data.orders.filter(o=>o.status==='out_for_delivery');const selected=mapOrder.value;mapOrder.innerHTML=orders.map(o=>`<option value="${o.id}">${o.id} · ${esc(o.driver_id||role.singular)}</option>`).join('');if(orders.some(o=>o.id===selected))mapOrder.value=selected;mapOrder.disabled=!orders.length;updateMap();
  root.querySelectorAll('#orders [data-order-content] button').forEach(b=>b.disabled=busy);
  }catch(e){if(e.status===401){token=null;sessionStorage.removeItem(storageKey);display();}error.textContent=e.message;}finally{loading=false;if(loadAgain){loadAgain=false;queueMicrotask(load);}}}

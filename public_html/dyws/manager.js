@@ -1,6 +1,7 @@
-import {redirectToAuth} from './admin-session.js?v=36';
+import {markReady} from './diagnostics.js';
+import {redirectToAuth} from './admin-session.js?v=37';
 import {dateKey} from './date-time.js';
-import {pluginSlot} from './plugin-ui.js?v=36';
+import {pluginSlot} from './plugin-ui.js?v=37';
 import {money as formatMoney,escapeHTML as esc} from './api.js';
 import {defaultRole} from './role-labels.js';
 export function mountManager({root=document,api,role=defaultRole,storageKey='dyws-manager',plugins}) {
@@ -21,6 +22,7 @@ async function load(){if(!token)return;if(loading){loadAgain=true;return;}loadin
  if(plugins){
   void plugins.runAction('admin:dashboard',{root:pluginSlot(root.querySelector('#dashboard'),'dashboard'),report:r});
  }
+ markReady();
  }catch(e){if(e.status===401){token=null;sessionStorage.removeItem(storageKey);display();}error.textContent=e.message;}finally{loading=false;if(loadAgain){loadAgain=false;queueMicrotask(load);}}}
 root.querySelector('#refresh').onclick=load;
 root.querySelector('#export').onclick=async()=>{if(!report)return;const fields=['orderCount','activeOrders','cancelledOrders','orderedValue','captured','refunded','netCollected','netSales','netDeliveryFees','netTax','averageOrderValue'];const rows=['metric,value,currency,units',...fields.map(k=>`${k},${report[k]},${report.currency},${k.includes('Orders')||k==='orderCount'?'count':'cents'}`)];const exported=plugins?await plugins.applyFilters('reports:export',rows.map(row=>row.split(',')),{key:'summary',report}):rows.map(row=>row.split(','));const csv=exported.map(row=>row.map(value=>'\"'+(typeof value==='string'?value.replace(/^[\s]*[=+@\-]/,"'$&"):String(value??'')).replaceAll('\"','\"\"')+'\"').join(',')).join('\r\n');const url=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));const a=document.createElement('a');a.href=url;a.download='dyws-report.csv';a.click();URL.revokeObjectURL(url);};

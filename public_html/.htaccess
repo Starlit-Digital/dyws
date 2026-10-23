@@ -12,3 +12,10 @@ Header always set X-Frame-Options "DENY"
 Header always set X-Content-Type-Options "nosniff"
 Header set X-Robots-Tag "noindex, nofollow, noarchive"
 </IfModule>
+
+# Keep authenticated HTML and API responses private. Static code can be revalidated.
+<IfModule mod_headers.c>
+<FilesMatch "\.(js|css|svg|png|jpg|jpeg|webp|woff2)$">
+Header set Cache-Control "public, max-age=0, must-revalidate"
+</FilesMatch>
+</IfModule>

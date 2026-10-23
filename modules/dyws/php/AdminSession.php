@@ -17,11 +17,12 @@ function dyws_admin_session(\dyws\Store $store):?string {
  return $found?$token:null;
 }
 function dyws_admin_redirect(array $config,string $page,int $status=302):never {
- header('Location: '.dyws_admin_base($config).'/'.$page.'/',true,$status);exit;
+ header('Location: '.dyws_admin_base($config).'/'.$page.'/'.(($_GET['diagnostics']??'')==='1'?'?diagnostics=1':''),true,$status);exit;
 }
 function dyws_require_admin(array $config,\dyws\Store $store):string {
  $token=dyws_admin_session($store);
  if(!$token){dyws_admin_cookie($config,'dyws_admin_session','',time()-3600);dyws_admin_redirect($config,'auth');}
+ header('Server-Timing: app;dur='.round((microtime(true)-($_SERVER['REQUEST_TIME_FLOAT']??microtime(true)))*1000,2));
  return $token;
 }
 function dyws_admin_meta(array $config,string $token):string {

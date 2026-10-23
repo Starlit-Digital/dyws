@@ -39,3 +39,10 @@ test('Optional report renderer failures dispose tables and retain the core repor
  assert.equal(await host.renderReports({root,report:{}}),false);assert.equal(disposed,1);assert.equal(cleared,1);assert.equal(host.errors.length,1);
  const absent=await createPluginHost({document:doc,api:async()=>({plugins:[]})});assert.equal(await absent.renderReports({root,report:{}}),false);
 });
+
+test('Plugin imports overlap while registration preserves manifest order',async()=>{
+ const started=[],registered=[];let release;
+ const gate=new Promise(resolve=>{release=resolve;});
+ const loading=createPluginHost({document:doc,api:async()=>({plugins:[manifest('first'),manifest('second')]}),loadModule:async url=>{const name=url.includes('/first/')?'first':'second';started.push(name);if(name==='first')await gate;return {register(){registered.push(name);}};}});
+ await new Promise(resolve=>setImmediate(resolve));assert.deepEqual(started,['first','second']);assert.deepEqual(registered,[]);release();await loading;assert.deepEqual(registered,['first','second']);
+});

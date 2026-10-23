@@ -182,3 +182,7 @@ The 0.9.0 live update passed the full test suite, relay integration and all 42 e
 ## Administrator entry, 0.9.1
 
 Use `/admin/` under the installation URL. Every admin PHP page validates the manager session cookie against the tenant scoped SQLite session before returning markup. Signed out, revoked and expired sessions redirect to `/auth/`. The sign in form has CSRF protection and shares the API login rate limit. Successful sign in redirects to Orders. The secure HTTPS cookie is HttpOnly and scoped to the installation path. Authenticated pages supply the same bearer session to browser API and WebSocket clients; API calls still require explicit bearer authorization. Sign out and password changes revoke the underlying session. Protected pages and authentication responses use no store caching.
+
+## Backend startup and diagnostics, 0.9.2
+
+The authenticated PHP response supplies initial admin data, navigation and readable previews. JavaScript consumes each initial snapshot once and requests current data for refreshes and saves. The skeleton covers interactive controls until initialization finishes. Active plugin code loads concurrently while registration keeps manifest order. Generated module preload graphs avoid serial dependency discovery. Static files use cache revalidation, while HTML and API responses keep `no-store`. See `load-diagnostics.md` for the opt in timing panel and measured results. Live backup: `domains/sltd.ca/private/deploy-backups/dyws-backend-startup-20261023/`.

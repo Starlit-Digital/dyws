@@ -1,13 +1,18 @@
+import {traceLoad} from './diagnostics.js';
 /** Loads only installed, active plugins advertised by the same origin API. */
 export async function createPluginHost({api,baseURL=new URL('../plugins/',import.meta.url),loadModule=url=>import(url),document:doc=globalThis.document}={}) {
  const actions=new Map(),filters=new Map(),validators=new Map(),providers=new Map(),errors=[],styles=[],cleanup=[];let validationUnavailable=false;
  const root=new URL(baseURL);let manifest;
  try{manifest=await api('/plugins');}catch{manifest={plugins:[]};errors.push('Plugins could not be loaded.');}
+ const pending=[];
  for(const plugin of Array.isArray(manifest?.plugins)?manifest.plugins:[]){
   if(!plugin||plugin.apiVersion!==1||!/^[a-z][a-z0-9-]{0,59}$/.test(plugin.id)||!plugin.browserModule)continue;
   if(!/^[a-zA-Z0-9_-]+\.js$/.test(plugin.browserModule)||(plugin.stylesheet&&!/^[a-zA-Z0-9_-]+\.css$/.test(plugin.stylesheet)))continue;
   const url=new URL(plugin.id+'/'+plugin.browserModule,root);url.searchParams.set('v',plugin.version);
   if(url.origin!==root.origin||!url.pathname.startsWith(root.pathname))continue;
+  pending.push({plugin,loaded:traceLoad('Plugin import '+plugin.id,()=>loadModule(url.href)).then(module=>({module}),error=>({error}))});
+ }
+ for(const {plugin,loaded}of pending){
   const localActions=[],localFilters=[],localValidators=[],localProviders=[],localCleanup=[];let style,committed=false;
   const add=(collection,staged,name,fn,priority=10)=>{
    if(typeof name!=='string'||typeof fn!=='function'||!Number.isFinite(priority))throw new TypeError('Invalid plugin hook.');
@@ -15,8 +20,8 @@ export async function createPluginHost({api,baseURL=new URL('../plugins/',import
   };
   const removeOwn=(collection,staged,name,fn)=>{for(let i=staged.length-1;i>=0;i--)if(staged[i][0]===name&&staged[i][1]===fn)staged.splice(i,1);collection.set(name,(collection.get(name)||[]).filter(entry=>entry.fn!==fn));};
   try{
-   const module=await loadModule(url.href);if(typeof module.register!=='function')throw new Error('Missing plugin registration.');
-   await module.register({api,document:doc,addAction:(...args)=>add(actions,localActions,...args),addFilter:(...args)=>add(filters,localFilters,...args),addValidator:(...args)=>add(validators,localValidators,...args),removeAction:(...args)=>removeOwn(actions,localActions,...args),removeFilter:(...args)=>removeOwn(filters,localFilters,...args),removeValidator:(...args)=>removeOwn(validators,localValidators,...args),onDestroy:fn=>(committed?cleanup:localCleanup).push(fn),provide:(name,fn)=>{if(committed){if(!providers.has(name))providers.set(name,fn);}else localProviders.push([name,fn]);}});
+   const result=await loaded;if(result.error)throw result.error;const module=result.module;if(typeof module.register!=='function')throw new Error('Missing plugin registration.');
+   await traceLoad('Plugin register '+plugin.id,()=>module.register({api,document:doc,addAction:(...args)=>add(actions,localActions,...args),addFilter:(...args)=>add(filters,localFilters,...args),addValidator:(...args)=>add(validators,localValidators,...args),removeAction:(...args)=>removeOwn(actions,localActions,...args),removeFilter:(...args)=>removeOwn(filters,localFilters,...args),removeValidator:(...args)=>removeOwn(validators,localValidators,...args),onDestroy:fn=>(committed?cleanup:localCleanup).push(fn),provide:(name,fn)=>{if(committed){if(!providers.has(name))providers.set(name,fn);}else localProviders.push([name,fn]);}}));
    if(plugin.stylesheet&&doc){style=doc.createElement('link');style.rel='stylesheet';const css=new URL(plugin.id+'/'+plugin.stylesheet,root);css.searchParams.set('v',plugin.version);style.href=css.href;doc.head.append(style);styles.push(style);}
    for(const [name,fn,priority]of localActions){if(!actions.has(name))actions.set(name,[]);actions.get(name).push({fn,priority});}
    for(const [name,fn,priority]of localFilters){if(!filters.has(name))filters.set(name,[]);filters.get(name).push({fn,priority});}
@@ -26,7 +31,7 @@ export async function createPluginHost({api,baseURL=new URL('../plugins/',import
   }catch{style?.remove();for(const fn of localCleanup)try{fn();}catch{}if(plugin.capabilities?.includes('validation'))validationUnavailable=true;errors.push(plugin.id+' could not load.');}
  }
  const recordError=message=>{if(!errors.includes(message))errors.push(message);};
- const runAction=async(name,...args)=>{for(const {fn}of [...(actions.get(name)||[])].sort((a,b)=>a.priority-b.priority))try{await fn(...args);}catch{recordError('A plugin could not finish '+name+'.');}};
+ const runAction=async(name,...args)=>{for(const {fn}of [...(actions.get(name)||[])].sort((a,b)=>a.priority-b.priority))try{await traceLoad('Hook '+name,()=>fn(...args));}catch{recordError('A plugin could not finish '+name+'.');}};
  const applyFilters=async(name,value,...args)=>{for(const {fn}of [...(filters.get(name)||[])].sort((a,b)=>a.priority-b.priority))try{value=await fn(value,...args);}catch{recordError('A plugin filter failed.');}return value;};
  const validate=async(name,...args)=>{
   if(validationUnavailable)throw new Error('A required checkout plugin could not load. Reload before trying again.');

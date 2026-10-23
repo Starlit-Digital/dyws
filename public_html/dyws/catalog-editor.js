@@ -1,5 +1,5 @@
 import {escapeHTML as esc} from './api.js';
-import {adminPage} from './admin-navigation.js?v=36';
+import {adminPage} from './admin-navigation.js?v=37';
 
 export function decimalToMinor(value) {
  if(!/^\d+(\.\d{1,2})?$/.test(String(value)))throw new Error('Enter an amount with up to two decimal places.');

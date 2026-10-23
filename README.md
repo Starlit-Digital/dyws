@@ -67,3 +67,5 @@ Optional features use the [dyws plugin system](docs/plugins.md). Google Maps is 
 The bundled Stripe and Google Maps plugins own their integrations and settings. Admin → Plugins manages activation, with a Settings link for each configured plugin. Stripe remains sandbox only. The [25 hook features](docs/plugin-hooks.md) let plugins add validation, fields, views, searches, reports and order handling. A complete gift note example is included under examples/plugins/gift-note.
 
 Administrator entry: `/admin/`. PHP redirects signed out visitors to `/auth/` before sending admin markup. Successful sign in always opens `/orders/`. The standalone sign in page has no admin header, navigation or live update footer.
+
+[Load diagnostics and initial page rendering](docs/load-diagnostics.md): add `?diagnostics=1` to an admin URL for local timing measurements.

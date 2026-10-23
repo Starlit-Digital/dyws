@@ -1,11 +1,12 @@
-import {redirectToAuth} from '../dyws/admin-session.js?v=36';
-import {plugins} from './plugins.js?v=36';
-import {mountNavigation} from './admin-navigation.js?v=36';
-import {mountCatalogEditor} from '../dyws/catalog-editor.js?v=36';
-import {mountDriverAdmin,mountPasswordAdmin} from '../dyws/account-editor.js?v=36';
+import {markReady} from '../dyws/diagnostics.js';
+import {redirectToAuth} from '../dyws/admin-session.js?v=37';
+import {plugins} from './plugins.js?v=37';
+import {mountNavigation} from './admin-navigation.js?v=37';
+import {mountCatalogEditor} from '../dyws/catalog-editor.js?v=37';
+import {mountDriverAdmin,mountPasswordAdmin} from '../dyws/account-editor.js?v=37';
 import {api} from './api.js';
-import {mountPluginAdmin} from '../dyws/plugin-admin.js?v=36';
-import {mountGeneralSettings} from '../dyws/general-settings.js?v=36';
+import {mountPluginAdmin} from '../dyws/plugin-admin.js?v=37';
+import {mountGeneralSettings} from '../dyws/general-settings.js?v=37';
 import {loadRole,applyRoleLabels} from '../dyws/role-labels.js';
 const role=await loadRole(api);
 applyRoleLabels(document.body,role);
@@ -16,12 +17,13 @@ const mounts={catalog:mountCatalogEditor,drivers:mountDriverAdmin,password:mount
 await mounts[current]?.({root:document.body,api,role,createLocationRenderer:()=>plugins.createLocationRenderer({api,defaultCenter:{lat:53.61665,lng:-113.39804}}),onSave:settings=>mountNavigation(current,settings.driverRole)});
 
 if(current==='settings'&&sessionStorage.getItem('dyws-manager'))await plugins.runAction('admin:settings',{root:document.body,api});
+markReady();
 if(plugins.errors.length)document.querySelector('[data-admin-error]').textContent=plugins.errors.join(' ');
 const operator=sessionStorage.getItem('dyws-manager');
 if(operator){
  let previous;
  const routes={catalog:'/manager/catalog',drivers:'/manager/drivers',settings:'/manager/settings',plugins:'/manager/plugins'};
- if(routes[current]){try{previous=JSON.stringify(await api(routes[current],{token:operator}));}catch{}}
+ const seeded=JSON.parse(document.querySelector('meta[name="dyws-admin-data"]')?.content||'null');if(routes[current]&&seeded?.responses[routes[current]])previous=JSON.stringify(seeded.responses[routes[current]]);
  api.watch({scope:'operator',token:operator,interval:15000},async event=>{
   if(event.type==='auth-error'&&[401,403].includes(event.status)){redirectToAuth();return;}
   const settings=await api('/settings');mountNavigation(current,settings.driverRole);

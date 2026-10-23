@@ -1,4 +1,4 @@
-import {redirectToAuth} from './admin-session.js?v=36';
+import {redirectToAuth} from './admin-session.js?v=37';
 export function mountAdminNavigation({root=document,current,pages}) {
  const nav=root.querySelector('[data-dyws-admin-nav]');if(!nav)return;
  nav.classList.add('dyws-admin-tabs');nav.setAttribute('aria-label','Administration');

@@ -9,8 +9,10 @@ const statusOptions=[['active','Active'],['','All'],['complete','Completed'],['c
 
 /** One compact summary per order. Contact details and actions open on demand. */
 export function mountOrderList({root,plugins,renderOrder}){
+ const initial=root.querySelector('[data-dyws-order-initial]');
  root.innerHTML=`<p class="dyws-note">Up to 200 orders · Active first · <span data-order-zone></span></p><div class="dyws-order-filters"><label>Search<input type="search" data-order-search placeholder="Order or customer"></label>${[['status','Status'],['fulfillment','Type'],['payment_status','Payment']].map(([key,label])=>`<label>${label}<select data-order-filter="${key}">${key==='status'?statusOptions.map(([value,label])=>`<option value="${value}">${label}</option>`).join(''):'<option value="">All</option>'}</select></label>`).join('')}</div><div class="dyws-order-table"></div><section class="dyws-order-detail" hidden aria-label="Order details"><button type="button" class="dyws-secondary" data-close-order>Close details</button><div data-order-content></div></section>`;
  const tableRoot=root.querySelector('.dyws-order-table'),detail=root.querySelector('.dyws-order-detail'),content=root.querySelector('[data-order-content]'),search=root.querySelector('[data-order-search]'),filters=[...root.querySelectorAll('[data-order-filter]')];
+ if(initial)tableRoot.append(initial);
  let current={orders:[],drivers:[]},selected=null,signature='',instance=null;
  const show=()=>{const order=current.orders.find(o=>o.id===selected);detail.hidden=!order;if(order)renderOrder(order,current,content);else content.replaceChildren();};
  const filter=()=>{

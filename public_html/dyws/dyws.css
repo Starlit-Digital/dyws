@@ -12,3 +12,8 @@
 .dyws-admin[data-admin-page='orders'] .dyws-editor-heading h2{margin:0}.dyws-admin[data-admin-page='orders'] .dt-length{display:flex;align-items:center;gap:8px}.dyws-admin[data-admin-page='orders'] .dt-length label{margin:0}.dyws-admin[data-admin-page='orders'] .dt-length select{margin:0}
 
 .dyws-auth main{width:min(100% - 2rem,32rem);margin:clamp(2rem,8vh,5rem) auto}.dyws-auth h1{font-size:1.35rem;margin:0 0 1rem}.dyws-auth form{display:grid;gap:1rem}.dyws-auth form button{justify-self:start}
+
+.dyws-load-diagnostics{margin:1rem auto;padding:1rem;max-width:1100px;background:var(--dyws-color-panel);border:1px solid var(--dyws-color-border)}.dyws-load-diagnostics pre{font-size:14px;white-space:pre-wrap;overflow:auto;max-height:28rem}.dyws-load-diagnostics button{margin:.25rem}
+
+.dyws-skeleton{display:grid;gap:14px;padding:24px;background:var(--dyws-color-surface);border-radius:16px;margin-bottom:20px}.dyws-skeleton i{display:block;height:22px;border-radius:8px;background:var(--dyws-color-raised);animation:dyws-pulse 1.4s ease-in-out infinite alternate}.dyws-skeleton i:first-of-type{width:40%}.dyws-skeleton i:last-of-type{width:75%}@keyframes dyws-pulse{to{opacity:.4}}@media(prefers-reduced-motion:reduce){.dyws-skeleton i{animation:none}}
+@media(min-width:1000px){.dyws-admin-menu:not([open])>nav{display:flex}}

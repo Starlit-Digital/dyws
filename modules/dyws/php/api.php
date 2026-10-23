@@ -49,15 +49,14 @@ try {
  elseif($method==='POST'&&$route==='/logout'){$s=dyws_authorize($store,['manager','driver']);if($s['role']==='manager')dyws_admin_cookie($config,'dyws_admin_session','',time()-3600);$store->execute('DELETE FROM sessions WHERE token_hash=?',[$s['token_hash']]);$expired=$store->pruneLocations();if($expired)$realtime->changed(array_map(fn($id)=>$store->tenant.':order:'.$id,$expired));$result=['ok'=>true];}
  elseif($method==='POST'&&$route==='/orders'){dyws_limit_requests($store,$config,'orders',20,3600);if(($body['demoAcknowledged']??false)!==true)throw new \dyws\ApiError('Confirm this is a test order.');$result=$store->create($body,$plugins->paymentProvider());http_response_code(201);}
  elseif($method==='GET'&&preg_match('~^/tracking/([A-Z]{2,7}-[A-F0-9]{12})$~',$route,$m)){dyws_limit_requests($store,$config,'tracking',120,60);$result=$plugins->applyFilters('tracking.public',$store->tracking($m[1],$_SERVER['HTTP_X_TRACKING_TOKEN']??''));}
- elseif($method==='GET'&&$route==='/manager/orders'){dyws_authorize($store,['manager']);$result=['orders'=>$store->orders(),'drivers'=>array_map(fn($id,$d)=>['id'=>$id,'name'=>$d['name']],array_keys(array_filter($config['drivers'],fn($d)=>$d['active']??true)),array_values(array_filter($config['drivers'],fn($d)=>$d['active']??true)))];}
+ elseif($method==='GET'&&$route==='/manager/orders'){dyws_authorize($store,['manager']);$result=dyws_admin_orders($config,$store);}
  elseif($method==='GET'&&$route==='/manager/lookup'){
   dyws_authorize($store,['manager']);dyws_limit_requests($store,$config,'lookup',120,60);
   $query=\dyws\Store::text($_GET['q']??'',100);$kind=\dyws\Store::text($_GET['kind']??'all',60);
   $result=$plugins->applyFilters('lookup.results',\dyws\Lookup::search($store,\dyws\Catalog::load($config['catalog']),$config['drivers'],$query,$kind),['query'=>$query,'kind'=>$kind]);
  }
  elseif($method==='GET'&&$route==='/manager/reports'){
-  dyws_authorize($store,['manager']);$tz=new DateTimeZone((new \dyws\Settings($config))->read()['timeZone']);$start=$_GET['from']??(new DateTimeImmutable('today',$tz))->format('Y-m-d');$end=$_GET['to']??$start;if(!is_string($start)||!is_string($end))throw new \dyws\ApiError('Choose valid report dates.');
-  $from=DateTimeImmutable::createFromFormat('!Y-m-d',$start,$tz);$to=DateTimeImmutable::createFromFormat('!Y-m-d',$end,$tz);if(!$from||!$to||$from->format('Y-m-d')!==$start||$to->format('Y-m-d')!==$end||$to<$from||(int)$from->diff($to)->format('%a')>365)throw new \dyws\ApiError('Choose a valid date range up to one year.');$result=$plugins->applyFilters('reports.summary',$store->reports($from->getTimestamp(),$to->modify('+1 day')->getTimestamp()));
+  dyws_authorize($store,['manager']);$result=dyws_admin_report($config,$store,$plugins,$_GET);
  }
  elseif($method==='POST'&&preg_match('~^/manager/orders/([A-Z]{2,7}-[A-F0-9]{12})/(status|assign|payment)$~',$route,$m)){
   dyws_authorize($store,['manager']);if($m[2]==='status')$result=$store->change($m[1],\dyws\Store::text($body['status']??null,30),'manager');
@@ -90,6 +89,7 @@ try {
  header('X-DYWS-Time-Zone: '.(new \dyws\Settings($config))->read()['timeZone']);
  $result=$plugins->applyFilters('api.response',$result,$route,$method);
  $plugins->doAction('api.respond',$route,$method,$result);
+ header('Server-Timing: app;dur='.round((microtime(true)-($_SERVER['REQUEST_TIME_FLOAT']??microtime(true)))*1000,2));
  echo json_encode($result,JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES);
 }catch(\dyws\ApiError $e){http_response_code($e->http);echo json_encode(['error'=>$e->getMessage()]);}
 catch(JsonException $e){http_response_code(400);echo json_encode(['error'=>'Invalid JSON request.']);}
