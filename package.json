@@ -1,1 +1,11 @@
-{"name":"@starlit-digital/restaurant-ordering","version":"0.1.0","private":true,"type":"module","scripts":{"test":"node --test tests/*.test.js","serve":"python3 -m http.server 8097 --directory public_html"}}
+{
+  "name": "@starlit-digital/starlit-go",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.js && php tests/backend.test.php && python3 tests/api.test.py",
+    "serve": "php -S 127.0.0.1:8097 -t public_html",
+    "setup": "php server/setup.php"
+  }
+}

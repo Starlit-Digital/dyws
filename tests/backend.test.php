@@ -1,0 +1,36 @@
+<?php
+declare(strict_types=1);
+require __DIR__.'/../server/Store.php';
+use StarlitGo\Store;use StarlitGo\ApiError;
+$path=tempnam(sys_get_temp_dir(),'starlit-test-');$catalog=json_decode(file_get_contents(__DIR__.'/../public_html/ordering/catalog.json'),true);$GLOBALS['starlit_config']=['tracking_secret'=>str_repeat('a',64)];$store=new Store($path,$catalog);$checks=0;
+function check($condition,$message){global $checks;if(!$condition)throw new RuntimeException($message);$checks++;}
+function rejects(callable $f,int $code){try{$f();throw new RuntimeException('Expected rejection');}catch(ApiError $e){check($e->http===$code,'Wrong error '.$e->getMessage());}}
+function order(array $changes=[]):array{return array_replace_recursive(['idempotencyKey'=>bin2hex(random_bytes(16)),'customer'=>['name'=>'Test Guest','phone'=>'7805550142'],'lines'=>[['id'=>'breakfast0','variant'=>'','quantity'=>2,'price'=>1]],'fulfillment'=>'delivery','address'=>'15320 Fictional Lane, Edmonton','notes'=>'Test only'],$changes);}
+try {
+ $body=order();$receipt=$store->create($body);$id=$receipt['id'];$token=$receipt['trackingToken'];
+ check($receipt['total']===3554,'Authoritative total includes 2990 subtotal, 395 delivery and 169 tax');
+ $same=$store->create($body);check($same===$receipt,'Idempotent retry returns original order and tracking token');check(count($store->orders())===1,'No duplicate order');
+ $changed=$body;$changed['customer']['name']='Different';rejects(fn()=>$store->create($changed),409);
+ rejects(fn()=>$store->create(order(['lines'=>[['id'=>'missing','quantity'=>1]]])),422);
+ rejects(fn()=>$store->create(order(['lines'=>[['id'=>'sweet1','variant'=>'invalid','quantity'=>1]]])),422);
+ rejects(fn()=>$store->tracking($id,'wrong-token'),404);
+ check(!isset($store->tracking($id,$token)['customer_name']),'Public tracking excludes personal details');
+ rejects(fn()=>$store->change($id,'delivered','manager'),409);
+ $store->assign($id,'driver-one');$store->change($id,'accepted','manager');$store->change($id,'preparing','manager');$store->change($id,'ready','manager');
+ rejects(fn()=>$store->change($id,'out_for_delivery','driver','driver-two'),403);
+ $store->change($id,'out_for_delivery','driver','driver-one');
+ $gps=['latitude'=>53.61665,'longitude'=>-113.39804,'accuracy'=>8,'recordedAt'=>time()];
+ rejects(fn()=>$store->locate($id,'driver-two',$gps),403);
+ rejects(fn()=>$store->locate($id,'driver-one',array_replace($gps,['latitude'=>91])),422);
+ rejects(fn()=>$store->locate($id,'driver-one',array_replace($gps,['recordedAt'=>time()-500])),422);
+ $store->locate($id,'driver-one',$gps);check($store->tracking($id,$token)['location']!==null,'GPS visible on active delivery');
+ rejects(fn()=>$store->locate($id,'driver-one',$gps),409);
+ rejects(fn()=>$store->change($id,'delivered','driver','driver-one'),409);
+ $store->payment($id,'capture');rejects(fn()=>$store->payment($id,'capture'),409);
+ $report=$store->reports(time()-60,time()+60);check($report['captured']===3554&&$report['netCollected']===3554,'Payment report');check($report['netSales']+$report['netTax']+$report['netDeliveryFees']===$report['netCollected'],'Report reconciles');
+ $store->change($id,'delivered','driver','driver-one');check($store->tracking($id,$token)['location']===null,'GPS removed on delivery');rejects(fn()=>$store->locate($id,'driver-one',array_replace($gps,['recordedAt'=>time()+1])),403);
+ $store->payment($id,'refund');rejects(fn()=>$store->payment($id,'refund'),409);check($store->reports(time()-60,time()+60)['netCollected']===0,'Refund reduces collection once');
+ $other=new Store($path,$catalog,'other-restaurant');check(count($other->orders())===0,'Tenant order isolation');rejects(fn()=>$other->get($id),404);rejects(fn()=>$other->tracking($id,$token),404);check($other->reports(time()-60,time()+60)['orderCount']===0,'Tenant report isolation');
+ $store->execute('UPDATE orders SET tracking_expires=? WHERE id=?',[time()-1,$id]);rejects(fn()=>$store->tracking($id,$token),404);
+ echo "Backend: $checks checks passed.\n";
+}finally {unset($other,$store);foreach([$path,$path.'-wal',$path.'-shm']as $f)if(is_file($f))unlink($f);}

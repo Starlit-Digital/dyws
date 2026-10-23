@@ -1,0 +1,56 @@
+<?php
+declare(strict_types=1);
+ini_set('display_errors','0');
+header('Content-Type: application/json; charset=utf-8');header('Cache-Control: no-store');header('X-Content-Type-Options: nosniff');header('Referrer-Policy: no-referrer');
+try {
+ $bootstrap=getenv('STARLIT_GO_BOOTSTRAP')?:__DIR__.'/../../server/bootstrap.php';
+ // This nonsecret file may point to a private server install on shared hosting.
+ if(is_file(__DIR__.'/bootstrap-path.php'))$bootstrap=require __DIR__.'/bootstrap-path.php';
+ require_once $bootstrap;
+ [$config,$store]=starlit_bootstrap();
+ $method=$_SERVER['REQUEST_METHOD'];$route=$_GET['route']??'/health';if(!is_string($route)||strlen($route)>180)throw new \StarlitGo\ApiError('Invalid route.',400);
+ if($method==='POST'){
+  if(stripos($_SERVER['CONTENT_TYPE']??'','application/json')!==0)throw new \StarlitGo\ApiError('JSON requests are required.',415);
+  if((int)($_SERVER['CONTENT_LENGTH']??0)>32768)throw new \StarlitGo\ApiError('Request is too large.',413);
+  $raw=file_get_contents('php://input',false,null,0,32769);if(strlen($raw)>32768)throw new \StarlitGo\ApiError('Request is too large.',413);
+  $body=json_decode($raw,true,64,JSON_THROW_ON_ERROR);if(!is_array($body))throw new \StarlitGo\ApiError('Invalid request.',400);
+ }else $body=[];
+ function limit_requests($store,$config,string $name,int $max,int $seconds):void{
+  $bucket=hash_hmac('sha256',$name.'|'.($_SERVER['REMOTE_ADDR']??'local').'|'.intdiv(time(),$seconds),$config['tracking_secret']);
+  $store->transaction(function()use($store,$bucket,$max,$seconds){$r=$store->query('SELECT hits FROM limits WHERE bucket=?',[$bucket]);if($r&&(int)$r[0]['hits']>=$max)throw new \StarlitGo\ApiError('Please wait before trying again.',429);$store->execute('INSERT INTO limits(bucket,hits,expires_at) VALUES(?,1,?) ON CONFLICT(bucket) DO UPDATE SET hits=hits+1',[$bucket,time()+$seconds]);$store->execute('DELETE FROM limits WHERE expires_at<?',[time()]);});
+ }
+ function authorize($store,array $roles):array{
+  $authorization=$_SERVER['HTTP_AUTHORIZATION']??'';if(!preg_match('/^Bearer ([a-f0-9]{64})$/',$authorization,$m))throw new \StarlitGo\ApiError('Please sign in.',401);
+  $rows=$store->query('SELECT * FROM sessions WHERE token_hash=? AND tenant=? AND expires_at>?',[hash('sha256',$m[1]),$store->tenant,time()]);
+  if(!$rows)throw new \StarlitGo\ApiError('Your session expired. Sign in again.',401);$session=$rows[0];if(!in_array($session['role'],$roles,true))throw new \StarlitGo\ApiError('Access denied.',403);return $session;
+ }
+ $result=null;
+ if($method==='GET'&&$route==='/health')$result=['service'=>'Starlit Go','demo'=>true];
+ elseif($method==='POST'&&$route==='/login'){
+  limit_requests($store,$config,'login',10,900);
+  $role=$body['role']??'';$password=$body['password']??'';$subject=$role==='manager'?'manager':($body['driverId']??'');if(!is_string($role)||!is_string($subject))throw new \StarlitGo\ApiError('Incorrect sign in details.',401);
+  $hash=$role==='manager'?($config['manager_password_hash']??''):($config['drivers'][$subject]['password_hash']??'');
+  if(!in_array($role,['manager','driver'],true)||!is_string($password)||strlen($password)>200||!password_verify($password,$hash?:'$2y$10$invalid'))throw new \StarlitGo\ApiError('Incorrect sign in details.',401);
+  $token=bin2hex(random_bytes(32));$store->execute('INSERT INTO sessions(token_hash,tenant,role,subject,expires_at) VALUES(?,?,?,?,?)',[hash('sha256',$token),$store->tenant,$role,$subject,time()+28800]);$store->execute('DELETE FROM sessions WHERE expires_at<?',[time()]);$result=['token'=>$token,'role'=>$role,'subject'=>$subject,'expiresAt'=>time()+28800];
+ }
+ elseif($method==='POST'&&$route==='/logout'){$s=authorize($store,['manager','driver']);$store->execute('DELETE FROM sessions WHERE token_hash=?',[$s['token_hash']]);$result=['ok'=>true];}
+ elseif($method==='POST'&&$route==='/orders'){limit_requests($store,$config,'orders',20,3600);if(($body['demoAcknowledged']??false)!==true)throw new \StarlitGo\ApiError('Confirm this is a test order.');$result=$store->create($body);http_response_code(201);}
+ elseif($method==='GET'&&preg_match('~^/tracking/(SG-[A-F0-9]{12})$~',$route,$m)){limit_requests($store,$config,'tracking',120,60);$result=$store->tracking($m[1],$_SERVER['HTTP_X_TRACKING_TOKEN']??'');}
+ elseif($method==='GET'&&$route==='/manager/orders'){authorize($store,['manager']);$result=['orders'=>$store->orders(),'drivers'=>array_map(fn($id,$d)=>['id'=>$id,'name'=>$d['name']],array_keys($config['drivers']),array_values($config['drivers']))];}
+ elseif($method==='GET'&&$route==='/manager/reports'){
+  authorize($store,['manager']);$tz=new DateTimeZone('America/Edmonton');$start=$_GET['from']??date('Y-m-d');$end=$_GET['to']??$start;
+  $from=DateTimeImmutable::createFromFormat('!Y-m-d',$start,$tz);$to=DateTimeImmutable::createFromFormat('!Y-m-d',$end,$tz);if(!$from||!$to||$from->format('Y-m-d')!==$start||$to->format('Y-m-d')!==$end||$to<$from||$to->getTimestamp()-$from->getTimestamp()>366*86400)throw new \StarlitGo\ApiError('Choose a valid date range up to one year.');$result=$store->reports($from->getTimestamp(),$to->modify('+1 day')->getTimestamp());
+ }
+ elseif($method==='POST'&&preg_match('~^/manager/orders/(SG-[A-F0-9]{12})/(status|assign|payment)$~',$route,$m)){
+  authorize($store,['manager']);if($m[2]==='status')$result=$store->change($m[1],\StarlitGo\Store::text($body['status']??null,30),'manager');
+  elseif($m[2]==='assign'){$driver=$body['driverId']??'';if(!is_string($driver)||!isset($config['drivers'][$driver]))throw new \StarlitGo\ApiError('Unknown driver.');$store->assign($m[1],$driver);$result=['ok'=>true];}
+  else{$store->payment($m[1],\StarlitGo\Store::text($body['kind']??null,20));$result=['ok'=>true];}
+ }
+ elseif($method==='GET'&&$route==='/driver/orders'){$s=authorize($store,['driver']);$result=['orders'=>$store->orders($s['subject'])];}
+ elseif($method==='POST'&&preg_match('~^/driver/orders/(SG-[A-F0-9]{12})/(status|location)$~',$route,$m)){
+  $s=authorize($store,['driver']);if($m[2]==='status')$result=$store->change($m[1],\StarlitGo\Store::text($body['status']??null,30),'driver:'.$s['subject'],$s['subject']);else{limit_requests($store,$config,'gps',120,60);$store->locate($m[1],$s['subject'],$body);$result=['ok'=>true];}
+ }else throw new \StarlitGo\ApiError('Endpoint not found.',404);
+ echo json_encode($result,JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES);
+}catch(\StarlitGo\ApiError $e){http_response_code($e->http);echo json_encode(['error'=>$e->getMessage()]);}
+catch(JsonException $e){http_response_code(400);echo json_encode(['error'=>'Invalid JSON request.']);}
+catch(Throwable $e){error_log('Starlit Go API failure: '.$e->getMessage());http_response_code(500);echo json_encode(['error'=>'The order service is temporarily unavailable.']);}

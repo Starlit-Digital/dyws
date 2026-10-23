@@ -2,3 +2,7 @@
 .env
 .env.*
 node_modules/
+
+/var/*
+!/var/.gitkeep
+public_html/api/bootstrap-path.php

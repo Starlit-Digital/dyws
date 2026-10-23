@@ -1,38 +1,38 @@
-# Starlit Ordering
+# Starlit Go
 
-A reusable restaurant ordering web component, demonstrated by the fictional Starlit Diner.
+Restaurant ordering and delivery infrastructure for a restaurant’s own website. Your website. Your orders. Delivered.
 
-Demo: https://sltd.ca/diner/
+Private repository: https://github.com/Starlit-Digital/starlit-go
 
-The project was cloned from the saved Cravings & Delight website, retaining its Git history. The diner demo replaces the restaurant content with 35 fictional menu items in five categories. Its address, phone and hours are fictional. The original website is preserved at https://github.com/Starlit-Digital/cravingsanddelight.ca .
+Starlit Diner is the fictional example at https://sltd.ca/diner/ . It demonstrates the public menu and cart, a protected restaurant manager board, a driver test console and customer status and GPS tracking on the original page.
+
+## What works
+
+Orders persist in SQLite. The server validates menu IDs, variants and quantities, calculates prices and tax in integer cents, and handles idempotent submissions. Restaurant managers accept and prepare orders, assign drivers and inspect operational reports, test payment totals, refunds, fees, tax, popular items and CSV exports. Drivers see assigned deliveries and can update their status or explicitly share browser GPS. A simulated route is included for testing without sharing a real person’s location.
+
+The customer stays on the menu page after checkout. An expiring private tracking link powers an inline status timeline and approximate driver position on the Manning area reference map. Completed deliveries stop sharing location. The map is a demonstration projection, not navigation or an arrival estimate.
+
+No real payments are collected and no real deliveries are dispatched. Payment actions are test ledger records. iOS and Android apps are planned in the mobile document, not built yet.
 
 ## Run
 
-`npm run serve`, then open http://localhost:8097 . There are no package dependencies or build steps. Run `npm test` for cart arithmetic, restoration, variant and catalog checks.
-
-## Embed
-
-Copy `public_html/ordering/` into the host website, excluding `demo.js` and the demonstration catalog if supplying your own. Load the component as a module:
-
-```html
-<script type="module" src="/ordering/component.js"></script>
-<restaurant-ordering catalog="/menu.json" storage-key="my-restaurant-cart"></restaurant-ordering>
+```sh
+npm run setup
+npm run serve
+npm test
 ```
 
-After `ordering-ready`, call `element.add(itemId, variantId)` from your menu buttons. `variantId` is required for items with variants. The component supplies the cart launcher, modal, quantity controls, saved cart and pickup checkout. The shadow root isolates styles. Override `--order-accent`, `--order-surface`, `--order-text` and `--order-muted` on the element to match a host website.
+Open http://127.0.0.1:8097 . PHP 8.1 or newer with PDO SQLite is required. Node.js and Python 3 run the tests. No external packages are required. Only public_html is a web root. Private access details are in ignored var files; see deployment instructions.
 
-The JSON catalog contains restaurant, pickupAddress, currency, taxBasisPoints and categories. Item and variant prices are integer currency cents. See the demo catalog for the schema. Give every restaurant its own storage key. Only cart selections are saved locally. Customer checkout details are not persisted by the demo.
+## Project guide
 
-The host supplies `element.submitOrder = async order => ({id, demo: true})`. Without an adapter, checkout reports an error and preserves the cart. The supplied `demo.js` adapter creates a local test reference only. Events are `ordering-ready`, `cart-change`, and `order-complete`.
+- [Product notes and naming research](docs/product-notes.md)
+- [Backend architecture and reporting definitions](docs/architecture.md)
+- [HTTP API](docs/api.md)
+- [iOS and Android driver app plan](docs/mobile-driver-plan.md)
+- [Local setup, hosted demo and validation](docs/deployment.md)
+- [Starlit Diner example](examples/starlit-diner/README.md)
 
-## Scope
+The reusable custom element is in public_html/ordering. Supply a catalog URL and an order adapter. The diner adapter uses the same origin API; another restaurant integration must provide its own authenticated tenant configuration and narrowly configured origin policy. Host theme variables include --order-accent, --order-button-text, --order-surface, --order-text, --order-muted and --order-line.
 
-This is a working frontend prototype, not a live order service. It does not transmit orders, collect payments, notify a kitchen or dispatch drivers. Production adapters must validate item IDs, availability, variants, prices, tax and totals on the server, enforce idempotency and return an accepted order reference. The browser totals are for display and cannot authorize a charge. Add restaurant operations, real fulfillment, payment and authenticated order management before using it for real customers. Current checkout copy deliberately identifies every order as a test.
-
-## Validation
-
-Four automated tests pass. Live browser checks covered adding items, tax totals, required checkout fields, successful test confirmation, variant restoration after reload, 390 pixel mobile cart layout and 48 pixel button targets. The demo has no external JavaScript dependencies.
-
-## Earlier component search
-
-Searched the available Starlit Digital, cshaiku and PayCal Technologies repository inventories and likely local GrandmaPizza, templates, archives and sltd source paths for cart and restaurant ordering code. No earlier reusable restaurant ordering component was found in those locations. Existing payment checkout code was not assumed to be a restaurant ordering system.
+The repository was renamed from restaurant-ordering while preserving its Git history. The original Cravings & Delight website remains separately saved at https://github.com/Starlit-Digital/cravingsanddelight.ca .

@@ -4,3 +4,5 @@
 input[type="checkbox"]{width:26px;min-height:26px;vertical-align:middle}
 
 :host,button,a,input,select,textarea{touch-action:manipulation}
+
+select{font:inherit;min-height:48px;padding:10px;width:100%;border-radius:10px;background:var(--order-surface,#292a2e);color:inherit}label[hidden]{display:none}

@@ -1,6 +1,10 @@
-import './component.js?v=10';
+import './component.js?v=17';
+import {api} from '../platform/api.js';
+import {showTracking} from '../platform/tracking.js';
 const ordering=document.querySelector('restaurant-ordering');
-ordering.submitOrder=async order=>({id:'STAR-'+order.idempotencyKey.slice(0,8).toUpperCase(),demo:true});
+ordering.submitOrder=async order=>api('/orders',{method:'POST',body:{...order,demoAcknowledged:true}});
+ordering.addEventListener('order-confirmation-closed',()=>document.querySelector('#customer-tracking')?.scrollIntoView({behavior:'smooth',block:'start'}));
+ordering.addEventListener('order-complete',event=>{if(event.detail.trackingToken)showTracking(event.detail.id,event.detail.trackingToken);});
 function updateItemCounts(){
  for(const controls of document.querySelectorAll('[data-order-item]')){
   const variant=controls.closest('.dish').querySelector('select')?.value||'';
