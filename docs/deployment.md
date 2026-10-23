@@ -80,3 +80,7 @@ The catalog editor loads the runtime JSON and saves through the existing revisio
 October 23 admin upgrade validation: 144 checks passed, including account creation, duplicate ID rejection, password verification and session revocation, disabled driver access, assignment rules, stale revisions and catalog decimal conversion. Browser testing used a separate temporary backend and saved edited item fields, new categories, new items and option prices back to JSON, then updated a driver name. Reports, catalog, drivers, Stripe and password navigation were checked. Password changes were tested against isolated backend fixtures; deployment does not change the owner's passwords.
 
 Backup: domains/sltd.ca/private/deploy-backups/dyws-admin-20261023/. Restore the public-diner and php code directories together if needed. Preserve runtime accounts files, catalog and SQLite data. Older code will not read account overrides, so reconcile credentials deliberately before rolling back after a password change.
+
+## General Settings page
+
+`settings-admin.html` adds the Settings tab. The old `settings.html` shortcut now opens this page. Role labels default to Driver and Drivers until explicitly saved. Saves create `settings-<tenant hash>.json` beside the private database, with mode 0600. Preserve this file during deployments and backups alongside account overrides. Deploy `modules/dyws/php/Settings.php` with the other private modules. No database migration or credential reset is needed.

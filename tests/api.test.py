@@ -39,6 +39,20 @@ with tempfile.TemporaryDirectory(prefix='starlit-api-') as work:
   for path in ['/manager/drivers','/manager/password']:
    request(path,{},status=401)
    request(path,{},token=driver_token,status=403)
+  initial_settings=request('/settings')
+  assert initial_settings=={'driverRole':{'singular':'Driver','plural':'Drivers'}}
+  request('/manager/settings',status=401)
+  request('/manager/settings',token=driver_token,status=403)
+  request('/manager/settings',{},status=401)
+  request('/manager/settings',{},token=driver_token,status=403)
+  settings=request('/manager/settings',token=manager_token)
+  settings['settings']['driverRole']={'singular':'Admin','plural':'Admins'}
+  renamed=request('/manager/settings',settings,token=manager_token)
+  assert request('/settings')==renamed['settings']
+  request('/manager/settings',settings,token=manager_token,status=409)
+  # A display name of Admin never changes session authority or existing accounts.
+  request('/manager/orders',token=driver_token,status=403)
+  assert request('/driver/orders',token=driver_token)['orders']==[]
   drivers=request('/manager/drivers',token=manager_token)
   assert drivers['drivers'][0]['id']=='demo-driver' and 'password_hash' not in str(drivers)
   request('/manager/password',{'currentPassword':'wrong','newPassword':'fictional-new-password','confirmPassword':'fictional-new-password'},token=manager_token,status=422)

@@ -76,3 +76,9 @@ All three endpoints require a manager bearer session. Driver sessions receive 40
 * POST /manager/password accepts currentPassword, newPassword and confirmPassword. The current password must verify. Success returns ok and signInRequired, and revokes all manager sessions. New passwords are limited to 12 through 72 bytes, with the browser also enforcing at least 12 characters. No existing credentials are changed by deployment.
 
 Account changes use a private accounts file identified by the tenant hash alongside the database. It overrides the initial deployment credentials and driver list without rewriting config.json. File locking serializes login, account updates and assignment eligibility checks. Passwords are hashed using PHP password_hash and the file is written atomically with mode 0600. Account changes and password attempts are rate limited. Keep account overrides in private backups together with the database and base configuration.
+
+## General settings
+
+`GET /settings` returns only public display labels: `{"driverRole":{"singular":"Driver","plural":"Drivers"}}`. `GET /manager/settings` requires a manager session and returns `{settings, revision}`. `POST /manager/settings` accepts that same shape. Both names are required, with up to 60 characters and no control characters. A stale revision returns 409.
+
+Settings are private tenant scoped JSON, updated atomically under a file lock. No credential fields are accepted or returned. Display names never alter the internal `driver` role, API paths, account IDs or permissions. A role displayed as Admin still cannot access manager endpoints.

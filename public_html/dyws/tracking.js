@@ -1,8 +1,9 @@
 import {statusText,escapeHTML} from './api.js';
-export function createTracking({api,container,trackingPage,renderLocation,storageKey='starlit-go-tracking',panelId='customer-tracking'}) {
+import {defaultRole} from './role-labels.js';
+export function createTracking({api,container,role=defaultRole,trackingPage,renderLocation,storageKey='starlit-go-tracking',panelId='customer-tracking'}) {
  if(typeof api!=='function'||!container)throw new TypeError('DYWS tracking requires an API client and container.');
  let timer,active,panel;
-const labels={placed:'Order placed',accepted:'Order accepted',preparing:'Preparing your order',ready:'Ready',out_for_delivery:'Driver on the way',delivered:'Delivered',completed:'Collected',cancelled:'Cancelled'};
+const labels={placed:'Order placed',accepted:'Order accepted',preparing:'Preparing your order',ready:'Ready',out_for_delivery:role.singular+' on the way',delivered:'Delivered',completed:'Collected',cancelled:'Cancelled'};
 function show(id,token){
  active={id,token};try{sessionStorage.setItem(storageKey,JSON.stringify(active));}catch{}
  if(!panel){panel=document.createElement('section');panel.id=panelId;panel.className='dyws-tracking-panel';container.prepend(panel);}panel.setAttribute('aria-label','Your order tracking');
@@ -28,8 +29,8 @@ async function poll(){
    }
   }
   const gps=panel.querySelector('.dyws-tracking-gps');
-  if(data.location){const l=data.location;gps.innerHTML=`<h3>${data.gpsStale?'Last known driver location':'Driver location'}</h3><p>${escapeHTML(Number(l.latitude).toFixed(5))}, ${escapeHTML(Number(l.longitude).toFixed(5))} · accuracy ${Math.round(l.accuracy)} m · updated ${new Date(l.recorded_at*1000).toLocaleTimeString()}</p>${data.gpsStale?'<p>GPS updates are delayed. This position may have changed.</p>':''}`;if(renderLocation){const map=renderLocation(l);if(map)gps.append(map);}}
-  else gps.innerHTML=data.status==='out_for_delivery'?'<p>Waiting for the driver’s GPS update…</p>':'<p>Driver location is shared only while your delivery is on the way.</p>';
+  if(data.location){const l=data.location;gps.innerHTML=`<h3>${escapeHTML((data.gpsStale?'Last known ':'')+role.singular+' location')}</h3><p>${escapeHTML(Number(l.latitude).toFixed(5))}, ${escapeHTML(Number(l.longitude).toFixed(5))} · accuracy ${Math.round(l.accuracy)} m · updated ${new Date(l.recorded_at*1000).toLocaleTimeString()}</p>${data.gpsStale?'<p>GPS updates are delayed. This position may have changed.</p>':''}`;if(renderLocation){const map=renderLocation(l,role);if(map)gps.append(map);}}
+  else gps.innerHTML=data.status==='out_for_delivery'?`<p>Waiting for the ${escapeHTML(role.singular)} GPS update…</p>`:`<p>${escapeHTML(role.singular)} location is shared only while your delivery is on the way.</p>`;
   if(['completed','delivered','cancelled'].includes(data.status))return;
  }catch(e){if(active!==current)return;const error=panel?.querySelector('.dyws-tracking-error');if(error)error.textContent=e.message+' Retrying shortly.';}
  timer=setTimeout(poll,document.hidden?30000:5000);

@@ -63,3 +63,5 @@
  .dyws-shell .dyws-driver-card { align-items:start; flex-direction:column; }
  .dyws-shell .dyws-editor-layout section { padding:16px; }
 }
+
+.dyws-shell .dyws-admin-tabs a { max-width:100%; overflow-wrap:anywhere; }

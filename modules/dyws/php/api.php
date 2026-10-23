@@ -17,6 +17,9 @@ try {
  }else $body=[];
  $result=null;
  if($method==='GET'&&$route==='/health')$result=['service'=>'Starlit Go','demo'=>true];
+ elseif($method==='GET'&&$route==='/settings')$result=(new \StarlitGo\Settings($config))->read();
+ elseif($method==='GET'&&$route==='/manager/settings'){dyws_authorize($store,['manager']);$result=(new \StarlitGo\Settings($config))->summary();}
+ elseif($method==='POST'&&$route==='/manager/settings'){dyws_authorize($store,['manager']);$result=(new \StarlitGo\Settings($config))->save($body);}
  elseif($method==='GET'&&$route==='/catalog')$result=\StarlitGo\Catalog::publicData(\StarlitGo\Catalog::load($config['catalog']));
  elseif($method==='GET'&&$route==='/manager/catalog'){dyws_authorize($store,['manager']);$catalog=\StarlitGo\Catalog::load($config['catalog']);$result=['catalog'=>$catalog,'revision'=>\StarlitGo\Catalog::revision($catalog)];}
  elseif($method==='POST'&&$route==='/manager/catalog'){dyws_authorize($store,['manager']);if(!is_array($body['catalog']??null))throw new \StarlitGo\ApiError('Provide a catalog object.');$catalog=\StarlitGo\Catalog::save($config['catalog'],$body['catalog'],\StarlitGo\Store::text($body['revision']??null,64));$result=['catalog'=>$catalog,'revision'=>\StarlitGo\Catalog::revision($catalog)];}

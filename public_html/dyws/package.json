@@ -25,7 +25,9 @@
     "./admin-navigation.js": "./admin-navigation.js",
     "./catalog-editor.js": "./catalog-editor.js",
     "./account-editor.js": "./account-editor.js",
-    "./stripe-editor.js": "./stripe-editor.js"
+    "./stripe-editor.js": "./stripe-editor.js",
+    "./role-labels.js": "./role-labels.js",
+    "./general-settings.js": "./general-settings.js"
   },
   "files": [
     "*.js",

@@ -49,3 +49,5 @@ The current demo uses `<dyws-ordering>`. The older element names remain compatib
 ## Administration
 
 Open [Reports](https://sltd.ca/diner/manager.html) and use the five tabs for Reports, Catalog, Drivers, Stripe and Password. The catalog editor provides category and item fields with a Save catalog action backed by the private JSON file. Drivers can be added, renamed, reset or deactivated. Password changes require the current admin password and sign out admin sessions. Images currently use existing paths or HTTPS URLs.
+
+The admin Settings tab lets businesses rename the assignment role using singular and plural display names. Driver and Drivers remain the defaults. Custom labels also appear in the team console and customer tracking; authorization stays unchanged.
