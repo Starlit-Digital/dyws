@@ -1,5 +1,5 @@
-import {plugins} from './platform/plugins.js?v=35';
-import {mountStorefront} from './dyws/index.js?v=35';
+import {plugins} from './platform/plugins.js?v=36';
+import {mountStorefront} from './dyws/index.js?v=36';
 import {api} from './platform/api.js';
 import {loadRole,applyRoleLabels} from './dyws/role-labels.js';
 const role=await loadRole(api);

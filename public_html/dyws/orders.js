@@ -1,6 +1,7 @@
-import {mountOrderList} from './order-list.js?v=35';
+import {redirectToAuth} from './admin-session.js?v=36';
+import {mountOrderList} from './order-list.js?v=36';
 import {formatTime,formatDateTime} from './date-time.js';
-import {pluginSlot} from './plugin-ui.js?v=35';
+import {pluginSlot} from './plugin-ui.js?v=36';
 import {money as formatMoney,escapeHTML as esc,statusText} from './api.js';
 import {defaultRole} from './role-labels.js';
 export function mountOrders({root=document,api,role=defaultRole,storageKey='dyws-manager',renderLocation,plugins}) {
@@ -12,8 +13,7 @@ function updateMap(){mapPanel.hidden=!orders.length;if(!orders.length){renderLoc
 mapOrder.onchange=()=>{renderLocation?.clear?.();updateMap();};
 const error=root.querySelector('#error');
 const orderList=mountOrderList({root:root.querySelector('#orders'),plugins,renderOrder});
-function display(){if(!token){renderLocation?.clear?.();orders=[];void orderList.clear();}if(token!==watchedToken){unwatch?.();watchedToken=token;unwatch=token?api.watch?.({scope:'operator',token,interval:10000},()=>{if(!busy)return load();}):null;}root.querySelector('#login').hidden=!!token;root.querySelector('#dashboard').hidden=!token;root.querySelector('#logout').hidden=!token;}
-root.querySelector('#login-form').onsubmit=async e=>{e.preventDefault();try{const data=await api('/login',{method:'POST',body:{role:'manager',password:new FormData(e.target).get('password')}});token=data.token;sessionStorage.setItem(storageKey,token);e.target.reset();display();await load();}catch(e){error.textContent=e.message;}};
+function display(){if(!token){renderLocation?.clear?.();orders=[];void orderList.clear();redirectToAuth(root);return;}if(token!==watchedToken){unwatch?.();watchedToken=token;unwatch=token?api.watch?.({scope:'operator',token,interval:10000},()=>{if(!busy)return load();}):null;}root.querySelector('#dashboard').hidden=!token;root.querySelector('#logout').hidden=!token;}
 root.querySelector('#logout').onclick=async()=>{try{await api('/logout',{method:'POST',body:{},token});}catch{}token=null;sessionStorage.removeItem(storageKey);display();};
 const statuses={placed:['accepted','cancelled'],accepted:['preparing','cancelled'],preparing:['ready','cancelled'],ready:['completed','out_for_delivery','cancelled'],out_for_delivery:['delivered']};
 async function mutate(route,body){if(busy)return;busy=true;root.querySelectorAll('#orders [data-order-content] button').forEach(b=>b.disabled=true);try{await api(route,{method:'POST',body,token});await load();}catch(e){error.textContent=e.message;}finally{busy=false;root.querySelectorAll('#orders [data-order-content] button').forEach(b=>b.disabled=false);}}

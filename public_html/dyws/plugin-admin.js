@@ -1,4 +1,4 @@
-import {adminPage} from './admin-navigation.js?v=35';
+import {adminPage} from './admin-navigation.js?v=36';
 import {escapeHTML as esc} from './api.js';
 export async function mountPluginAdmin({root=document,api}){
  const page=adminPage({root,api});if(!page.token)return;

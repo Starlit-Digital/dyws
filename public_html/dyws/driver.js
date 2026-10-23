@@ -1,5 +1,5 @@
 import {formatTime} from './date-time.js';
-import {pluginSlot} from './plugin-ui.js?v=35';
+import {pluginSlot} from './plugin-ui.js?v=36';
 import {escapeHTML as esc,money,statusText} from './api.js';
 import {createDriverGPS} from './driver-gps.js';
 export function mountDriver({root=document,api,storageKey='dyws-driver',renderLocation,simulatePosition,testLocationName='Configured test origin',plugins}) {

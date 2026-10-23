@@ -38,7 +38,7 @@ with tempfile.TemporaryDirectory(prefix='dyws-api-') as work:
     checks+=1
   assert not list((root/'public_html').rglob('*.html'))
   with urllib.request.urlopen(f'http://127.0.0.1:{port}/orders',timeout=4) as response:
-   assert response.url.endswith('/orders/');checks+=1
+   assert response.url.endswith('/auth/');checks+=1
   request('/manager/orders',status=401)
   request('/login',{'role':'manager','password':'wrong'},status=401)
   manager_token=request('/login',{'role':'manager','password':manager})['token']

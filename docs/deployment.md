@@ -178,3 +178,7 @@ PHP classes use the lowercase `dyws` namespace, with `dyws_config_path()` and `d
 Stripe credential encryption now derives its key using the `dyws-stripe:` context. Before replacing an existing installation with encrypted Stripe settings, decrypt them with the running version and reencrypt with the new context under a private backup. Do not overwrite the catalog, config, SQLite database or other saved settings. This demo had no saved Stripe credential file at the naming update.
 
 The 0.9.0 live update passed the full test suite, relay integration and all 42 extracted installer checks. Live backup: `domains/sltd.ca/private/deploy-backups/dyws-clean-php-20261023/`. The deployed PHP 8.1 code passed syntax and bootstrap checks. Before and after digests matched for orders, accounts, payments and private JSON settings.
+
+## Administrator entry, 0.9.1
+
+Use `/admin/` under the installation URL. Every admin PHP page validates the manager session cookie against the tenant scoped SQLite session before returning markup. Signed out, revoked and expired sessions redirect to `/auth/`. The sign in form has CSRF protection and shares the API login rate limit. Successful sign in redirects to Orders. The secure HTTPS cookie is HttpOnly and scoped to the installation path. Authenticated pages supply the same bearer session to browser API and WebSocket clients; API calls still require explicit bearer authorization. Sign out and password changes revoke the underlying session. Protected pages and authentication responses use no store caching.

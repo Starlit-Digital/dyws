@@ -39,7 +39,7 @@ $ready=$installer&&\dyws\Installer::ready($checks)&&$checks;
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Setup | dyws</title><link rel="stylesheet" href="../dyws/dyws.css"><link rel="stylesheet" href="<?= $done?'../dyws/setup.css':'setup.css' ?>"></head>
 <body class="dyws-shell dyws-setup"><header><img src="../assets/dyws.svg" width="44" height="44" alt=""><strong>dyws</strong></header><main>
 <?php if($done): ?>
-<h1>Ready to go</h1><p><?=esc($done['businessName'])?> is set up.</p><p><?= $done['removed']?'Setup has been removed.':'Setup is locked. Remove the remaining public_html/setup folder using your hosting file manager.' ?></p><a class="dyws-setup-link" href="../orders/">Open admin</a>
+<h1>Ready to go</h1><p><?=esc($done['businessName'])?> is set up.</p><p><?= $done['removed']?'Setup has been removed.':'Setup is locked. Remove the remaining public_html/setup folder using your hosting file manager.' ?></p><a class="dyws-setup-link" href="../admin/">Open admin</a>
 <?php else: ?>
 <h1><?= $step===1?'Set up dyws':'Your business' ?></h1><p class="dyws-note">Step <?=$step?> of 2</p>
 <?php if($error): ?><p class="dyws-error" role="alert"><?=esc($error)?></p><?php endif; ?>
