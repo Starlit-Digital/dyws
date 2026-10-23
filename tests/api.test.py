@@ -46,6 +46,28 @@ with tempfile.TemporaryDirectory(prefix='starlit-api-') as work:
   request('/manager/maps',{},status=401)
   request('/manager/maps',{},token=driver_token,status=403)
   assert request('/manager/driver-locations',token=manager_token)['locations']==[]
+  # Plugin administration is manager only. Deactivation keeps core orders and settings.
+  request('/manager/plugins',status=401)
+  request('/manager/plugins',token=driver_token,status=403)
+  request('/manager/plugins',{},token=driver_token,status=403)
+  plugins=request('/manager/plugins',token=manager_token)
+  assert plugins['plugins'][0]['id']=='google-maps' and plugins['plugins'][0]['active']
+  assert request('/plugins')['plugins'][0]['browserModule']=='index.js'
+  request('/manager/plugins/google-maps/settings',status=401)
+  request('/manager/plugins/google-maps/settings',token=driver_token,status=403)
+  maps=request('/manager/plugins/google-maps/settings',token=manager_token)
+  maps_saved=request('/manager/plugins/google-maps/settings',{**maps,'browserKey':'a'*39,'enabled':True},token=manager_token)
+  disabled=request('/manager/plugins',{'id':'google-maps','active':False,'revision':plugins['revision']},token=manager_token)
+  assert request('/plugins')['plugins']==[]
+  request('/maps/config',status=404)
+  request('/plugins/google-maps/config',status=404)
+  request('/manager/maps',token=manager_token,status=404)
+  assert request('/catalog')['categories']
+  request('/manager/plugins',{'id':'google-maps','active':True,'revision':plugins['revision']},token=manager_token,status=409)
+  request('/manager/plugins',{'id':'google-maps','active':True,'revision':disabled['revision']},token=manager_token)
+  assert request('/maps/config')['browserKey']=='a'*39
+  restored=request('/manager/plugins/google-maps/settings',token=manager_token)
+  assert restored['hasKey'] and restored['revision']==maps_saved['revision']
   initial_settings=request('/settings')
   assert initial_settings=={'driverRole':{'singular':'Driver','plural':'Drivers'}}
   request('/manager/settings',status=401)

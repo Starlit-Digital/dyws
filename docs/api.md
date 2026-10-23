@@ -100,3 +100,9 @@ GET /driver/gps-config requires driver authentication. It returns testLocation o
 ## Account storage
 
 Version 0.4.0 stores driver records and admin password hashes in the same private SQLite database as orders. HTTP request and response contracts are unchanged. Credential changes and session revocation commit in the same transaction. Each tenant imports legacy account configuration only once. Business settings, map settings, encrypted Stripe configuration and product catalogs remain private JSON.
+
+## Plugins
+
+GET /plugins returns apiVersion 1 and active compatible browser plugin metadata, with no configuration or credentials. GET /manager/plugins requires manager authentication and returns installed metadata, activation state, load errors and a revision. POST /manager/plugins accepts id, active boolean and revision; it requires manager authentication and rejects stale revisions with 409. State remains private JSON, scoped by tenant.
+
+Active plugin routes are dispatched after core routes. Core enforces the route's public, manager or driver access before calling it. Google Maps now uses GET /plugins/google-maps/config and manager authenticated GET/POST /manager/plugins/google-maps/settings. Existing Maps aliases work only while the plugin is active. Inactive plugin routes return 404. Plugin POST mutations notify operator and public subscriptions; no keys or location payloads are put in invalidation messages. See plugins.md for lifecycle and hook contracts.

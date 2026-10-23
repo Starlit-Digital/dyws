@@ -8,7 +8,7 @@ tracked=subprocess.check_output(['git','ls-files','-z'],cwd=root).decode().split
 files={}
 for name in tracked:
  if not name:continue
- if name.startswith(('public_html/','modules/dyws/php/','server/','examples/','docs/')) or name in ['README.md','INSTALL.md','composer.json','composer.lock','package.json']:
+ if name.startswith(('public_html/','modules/dyws/php/','server/','plugins/','examples/','docs/')) or name in ['README.md','INSTALL.md','composer.json','composer.lock','package.json']:
   if name=='public_html/api/bootstrap-path.php' or pathlib.Path(name).suffix in ['.sqlite','.db'] or '/node_modules/' in name:raise SystemExit('Refusing private/runtime file: '+name)
   path=root/name
   if path.is_symlink():raise SystemExit('Refusing source symlink: '+name)
@@ -16,7 +16,7 @@ for name in tracked:
 for path in (root/'vendor').rglob('*'):
  if path.is_symlink():raise SystemExit('Refusing dependency symlink: '+str(path))
  if path.is_file():files[path.relative_to(root).as_posix()]=path.read_bytes()
-for needed in ['public_html/setup/index.php','modules/dyws/php/Installer.php','modules/dyws/php/accounts.sql','INSTALL.md']:
+for needed in ['public_html/setup/index.php','modules/dyws/php/Installer.php','modules/dyws/php/accounts.sql','plugins/google-maps/plugin.json','public_html/plugins/google-maps/index.js','INSTALL.md']:
  if needed not in files:raise SystemExit('Stage release source before building: '+needed)
 files['var/.gitkeep']=b''
 manifest={'version':json.loads((root/'package.json').read_text())['version'],'files':{name:hashlib.sha256(data).hexdigest() for name,data in sorted(files.items())}}

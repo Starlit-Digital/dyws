@@ -13,7 +13,7 @@ with tempfile.TemporaryDirectory(prefix='dyws-install-') as tmp:
   with zipfile.ZipFile(archive) as z:z.extractall(tmp)
  else:
   base.mkdir()
-  for folder in ['public_html','server','examples']:
+  for folder in ['public_html','server','examples','plugins']:
    shutil.copytree(root/folder,base/folder,ignore=shutil.ignore_patterns('bootstrap-path.php'))
   shutil.copytree(root/'modules/dyws/php',base/'modules/dyws/php')
   (base/'vendor').symlink_to(root/'vendor',target_is_directory=True)
@@ -88,6 +88,7 @@ with tempfile.TemporaryDirectory(prefix='dyws-install-') as tmp:
   def get_api(route):
    req=urllib.request.Request(url+'/api/index.php?route='+route,headers={'Authorization':'Bearer '+token})
    with client.open(req) as r:return json.load(r)
+  check(get_api('/plugins')['plugins'][0]['id']=='google-maps','Bundled plugin discovered after fresh install')
   draft=get_api('/manager/catalog');draft['catalog']['categories']=[{'id':'goods','name':'Goods','items':[{'id':'sample','name':'Example item','price':500,'description':'','active':True,'unit':'each'}]}]
   api('/manager/catalog',draft,token)
   order=api('/orders',{'demoAcknowledged':True,'idempotencyKey':'install-test-1234567890','customer':{'name':'Example Customer','phone':'7805550142'},'fulfillment':'pickup','lines':[{'id':'sample','variant':'','quantity':1}]},status=201)

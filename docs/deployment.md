@@ -126,3 +126,13 @@ Validation includes a full driver completion via the HTTP API, customer state up
 Rollback code backup: domains/sltd.ca/private/deploy-backups/dyws-delivery-flow-20261023/public-diner/.
 
 Final verification: 327 automated checks passed, plus 40 checks against the rebuilt install ZIP. The live Google route preview returned a traffic based arrival estimate and destination marker. A 390px customer preview was checked for legible progress and completion. Temporary route preview files were removed after verification.
+
+## Plugins, version 0.5.0
+
+Deploy private plugins/ first beside server and modules, then modules/dyws/php, then public_html. Retain api/bootstrap-path.php, exclude setup on existing sites and preserve all private var files. No database or Maps key migration is needed. The bundled activation manifest enables Google Maps unless the tenant has saved a different plugin state. Admin → Plugins changes activation; Admin → Settings contains active plugin forms. Reload other open pages after activation changes.
+
+Back up code before deploying. Both plugin halves are required; uploading only the browser files will leave the plugin undiscovered. Application ZIP packaging includes private plugin code and public assets. Removing or disabling Google Maps leaves core orders, driver GPS and customer progress functional. Preserve plugins-<tenant hash>.json alongside site settings on backup and restore.
+
+Rollback backup: domains/sltd.ca/private/deploy-backups/dyws-plugins-20261023/. Restore public-diner and php together, preserving private settings and SQLite. The old release ignores plugin activation settings and always has its original built in map feature.
+
+Validation: 376 automated checks passed, including manager only activation, namespaced route access, ordered hooks, tenant isolation, failed activation, corrupt plugin state, deactivation and preserved Maps settings. The rebuilt ZIP passed 41 fresh installation checks. Browser verification covered activation, deactivation, settings removal and restoration, and live Google map, destination and traffic estimate rendering through the plugin host. The live saved Maps configuration fingerprint was unchanged. No existing orders or credentials were changed.

@@ -1,10 +1,12 @@
 <?php
 declare(strict_types=1);
+require_once __DIR__.'/Plugins.php';
 function dyws_serve_api(?string $configPath=null,?callable $bootstrap=null):void {
 ini_set('display_errors','0');
 header('Content-Type: application/json; charset=utf-8');header('Cache-Control: no-store');header('X-Content-Type-Options: nosniff');header('Referrer-Policy: no-referrer');
 try {
  [$config,$store]=$bootstrap?$bootstrap():dyws_bootstrap($configPath);
+ $plugins=new \StarlitGo\Plugins($config);
  $realtime=new \StarlitGo\Realtime($config,$store);
  $expired=$store->pruneLocations();if($expired)$realtime->changed(array_merge([$store->tenant.':operators'],array_map(fn($id)=>$store->tenant.':order:'.$id,$expired)));
  $accounts=new \StarlitGo\AdminAccounts($config);
@@ -27,9 +29,9 @@ try {
   elseif($scope!=='public')throw new \StarlitGo\ApiError('Invalid realtime scope.');
   $result=$realtime->access($scope,$session,$order);
  }
- elseif($method==='GET'&&$route==='/maps/config')$result=(new \StarlitGo\MapsSettings($config))->publicConfig();
- elseif($method==='GET'&&$route==='/manager/maps'){dyws_authorize($store,['manager']);$result=(new \StarlitGo\MapsSettings($config))->summary();}
- elseif($method==='POST'&&$route==='/manager/maps'){dyws_authorize($store,['manager']);$result=(new \StarlitGo\MapsSettings($config))->save($body);}
+ elseif($method==='GET'&&$route==='/plugins')$result=$plugins->publicManifest();
+ elseif($method==='GET'&&$route==='/manager/plugins'){dyws_authorize($store,['manager']);$result=$plugins->summary();}
+ elseif($method==='POST'&&$route==='/manager/plugins'){dyws_authorize($store,['manager']);dyws_limit_requests($store,$config,'plugins',30,900);$result=$plugins->save($body);}
  elseif($method==='GET'&&$route==='/settings')$result=(new \StarlitGo\Settings($config))->read();
  elseif($method==='GET'&&$route==='/manager/settings'){dyws_authorize($store,['manager']);$result=(new \StarlitGo\Settings($config))->summary();}
  elseif($method==='POST'&&$route==='/manager/settings'){dyws_authorize($store,['manager']);$result=(new \StarlitGo\Settings($config))->save($body);}
@@ -72,8 +74,18 @@ try {
  elseif($method==='GET'&&$route==='/driver/orders'){$s=dyws_authorize($store,['driver']);if(isset($config['driver_test_location'])){foreach($store->orders($s['subject'])as $order)if($order['status']==='out_for_delivery')$store->testLocation($order['id'],$s,$config['driver_test_location']);}$result=['orders'=>$store->orders($s['subject'])];}
  elseif($method==='POST'&&preg_match('~^/driver/orders/(SG-[A-F0-9]{12})/(status|location)$~',$route,$m)){
   $s=dyws_authorize($store,['driver']);if($m[2]==='status')$result=$store->change($m[1],\StarlitGo\Store::text($body['status']??null,30),'driver:'.$s['subject'],$s['subject']);else{dyws_limit_requests($store,$config,'gps',120,60);if(isset($config['driver_test_location'])){$body=array_replace($body,array_intersect_key($config['driver_test_location'],array_flip(['latitude','longitude','accuracy'])));}$store->locate($m[1],$s['subject'],$body,$s);$result=['ok'=>true,'recordedAt'=>$body['recordedAt'],'receivedAt'=>time()];}
+ }elseif($pluginRoute=$plugins->match($method,$route)){
+  $session=$pluginRoute['access']==='public'?null:dyws_authorize($store,[$pluginRoute['access']]);
+  $result=($pluginRoute['handler'])($body,$session);
  }else throw new \StarlitGo\ApiError('Endpoint not found.',404);
- if($method==='POST')$realtime->mutation($route,$result);
+ if($method==='POST'){
+  $realtime->mutation($route,$result);
+  if(isset($pluginRoute))$realtime->changed([$store->tenant.':public']);
+  if($route==='/orders')$plugins->doAction('order.created',$result,$store);
+  if(str_ends_with($route,'/status'))$plugins->doAction('order.status_changed',$result,$store);
+ }
+ $result=$plugins->applyFilters('api.response',$result,$route,$method);
+ $plugins->doAction('api.respond',$route,$method,$result);
  echo json_encode($result,JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES);
 }catch(\StarlitGo\ApiError $e){http_response_code($e->http);echo json_encode(['error'=>$e->getMessage()]);}
 catch(JsonException $e){http_response_code(400);echo json_encode(['error'=>'Invalid JSON request.']);}

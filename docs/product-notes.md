@@ -61,3 +61,7 @@ The project ships a single dyws.zip for installation, with Git clone as an alter
 ## Customer delivery polish
 
 The private order page now prioritises progress and an approximate arrival time from the driver's current route. Until departure it explains when that estimate becomes available. Simulated locations, stale GPS and connection errors are explicit. Driver completion automatically displays Delivered with its time and removes the customer map. The customer retains a confirmation and a Back to menu action. No preparation duration or automatic completion is fabricated.
+
+## Plugins
+
+Version 0.5 adds installed plugins, an Admin Plugins page, lifecycle hooks, PHP actions and filters, browser providers and manager protected plugin routes. Google Maps is the first bundled plugin and is active by default. Its implementation and settings form are outside core, while orders, GPS capture and customer progress remain usable without it. Additional plugins are installed through trusted files and activated in Admin. There is no marketplace or browser code uploader in this first version.

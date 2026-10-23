@@ -5,3 +5,4 @@ export {createAPIClient} from './api.js';
 export {createTracking} from './tracking.js';
 export {lineKey,resolveItem,restoreCart,totals} from './cart.js';
 export {createRealtimeAPI} from './realtime.js';
+export {createPluginHost} from './plugins.js';

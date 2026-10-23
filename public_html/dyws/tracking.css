@@ -39,7 +39,6 @@
  .dyws-tracking-timeline li { display:flex; align-items:center; gap:12px; }
  .dyws-tracking-timeline span { margin:0; min-width:1em; font-size:1.1em; }
  .dyws-tracking-arrival { padding:16px; }
- .dyws-tracking-panel .dyws-google-map { height:300px; }
 }
 
 .dyws-shell #delivery-feedback:empty { display:none; }

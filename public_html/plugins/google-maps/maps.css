@@ -1,0 +1,7 @@
+.dyws-google-map{width:100%;height:360px;min-height:280px;border-radius:16px;overflow:hidden;color:#202124}
+.dyws-location-view[hidden],.dyws-google-map[hidden]{display:none}
+.dyws-location-view{margin-block:1rem}
+.dyws-tracking-panel .dyws-google-map{height:380px}
+.dyws-driver-location .dyws-google-map{height:300px}
+.dyws-admin #maps-form input:not([type='checkbox']) { display:block; width:100%; max-width:36rem; }
+@media(max-width:500px){.dyws-tracking-panel .dyws-google-map{height:300px}}

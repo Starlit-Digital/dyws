@@ -73,13 +73,8 @@
 .dyws-connection-status { font-size: .85rem; opacity:.8; }
 .dyws-update-notice { padding:16px; border-radius:12px; background:var(--dyws-color-raised); color:var(--dyws-color-text); }
 
-.dyws-google-map{width:100%;height:360px;min-height:280px;border-radius:16px;overflow:hidden;color:#202124}
-.dyws-location-view[hidden],.dyws-google-map[hidden]{display:none}
-.dyws-location-view{margin-block:1rem}
-.dyws-tracking-panel .dyws-google-map{height:380px}
 .dyws-shell .dyws-driver-card{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start;gap:24px}
 .dyws-driver-location{min-width:0;padding:16px;border-radius:16px;background:var(--dyws-surface-raised,#292b2f)}
-.dyws-driver-location .dyws-google-map{height:300px}
 @media(max-width:700px){.dyws-shell .dyws-driver-card{grid-template-columns:minmax(0,1fr)}}
 .dyws-driver-console-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start;gap:24px}
 .dyws-driver-console-grid .dyws-gps-panel{margin-top:0}
@@ -140,7 +135,6 @@
 }
 
 .dyws-admin #catalog-editor button[data-action]:not([data-action='item-add']):not([data-action='category-add']) { background:var(--dyws-color-raised); color:var(--dyws-color-text); }
-.dyws-admin #maps-form input:not([type='checkbox']) { display:block; width:100%; max-width:36rem; }
 @media(max-width:380px) { .dyws-admin .dyws-admin-header { flex-wrap:wrap; } .dyws-admin .dyws-admin-brand span { display:none; } }
 @media(max-width:600px) {
  .dyws-admin .dyws-toolbar { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); }

@@ -4,7 +4,7 @@ Download **dyws.zip** from this repository, or clone the repository. The ZIP inc
 
 ## Before opening the website
 
-1. Extract the ZIP. Keep its directory structure: public_html, modules, server, vendor, examples and var.
+1. Extract the ZIP. Keep its directory structure: public_html, modules, server, plugins, vendor, examples and var.
 2. Set your domain or subdomain document root to **dyws/public_html**. Keep the other folders outside the web root. Do not put the ZIP itself in a public directory.
 3. Enable HTTPS and PHP 8.1 or newer with PDO SQLite, OpenSSL, curl and mbstring.
 4. Give the PHP process write access to the private **var** folder. Temporarily give it write access to **public_html** and **public_html/setup** so the installer can remove itself. Use ownership or group permissions appropriate to your host, not world writable permissions.
@@ -16,7 +16,7 @@ For shared hosting where the document root cannot be changed, place the private 
 return '/home/example/private/dyws/server/bootstrap.php';
 ```
 
-Keep server, modules, vendor, examples and var together in that private installation directory. The browser installer will use this adapter too.
+Keep server, modules, plugins, vendor, examples and var together in that private installation directory. The browser installer will use this adapter too.
 
 ## Browser setup
 
@@ -74,3 +74,7 @@ Stage new release files before building. The packager uses tracked source and Co
 ## Reference
 
 The flow follows MediaWiki's [browser installer](https://www.mediawiki.org/wiki/Manual:Config_script): check the environment, collect installation details, create persistent configuration, then refuse repeat setup. MediaWiki's [installation instructions](https://www.mediawiki.org/wiki/Manual:Installing_MediaWiki) also keep SQLite data outside the document root. dyws writes its private configuration directly and removes its installer automatically.
+
+## Plugins
+
+The install ZIP includes Google Maps as an active bundled plugin. After setup, open Admin → Plugins to manage activation and Settings to configure active plugins. Upload private plugins/ beside server and modules, and public_html/plugins/ with the website. Preserve both parts when using split shared hosting. See [Plugin documentation](docs/plugins.md) to install or develop additional plugins.

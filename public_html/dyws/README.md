@@ -10,6 +10,8 @@ The current checkout remains a demonstration. It requires an explicitly configur
 
 ### Location and connection adapters
 
-createRealtimeAPI in realtime.js wraps the injected HTTP endpoint with optional WebSocket RPC and scoped subscriptions. createLocationRenderer in google-maps.js provides a reusable renderLocation adapter, one map per view, with a short memory GPS cache. Pass your own reference map fallback. The SDK loads only with an enabled key. An injected defaultCenter can show the business area while waiting for GPS. map settings and GPS source belong to the dyws package, not the diner theme.
+createRealtimeAPI in realtime.js wraps the injected HTTP endpoint with optional WebSocket RPC and scoped subscriptions. createPluginHost in plugins.js loads active optional features. Its location renderer capability supplies a map when a provider plugin is active, and a plain fallback otherwise. GPS capture and delivery tracking remain independent core features.
 
 mountStorefront accepts onOrderComplete(receipt). The demo uses it to navigate to a private order page. Without this callback the existing inline tracking behaviour remains available. mountDriver automatically starts GPS for an assigned active delivery. Browsers may pause capture when hidden; a heartbeat retains the current session without making an old fix look fresh. See docs/gps-maps-realtime.md in the host repository for deployment and API details.
+
+Since 0.5.0, obtain optional location renderers from createPluginHost in plugins.js. Google Maps implementations and settings now live in ../plugins/google-maps; the old exports are compatibility shims. Deploy the plugin assets with their private PHP counterpart. Core controllers work with no map plugin. The complete plugin API is documented in docs/plugins.md in the repository.
