@@ -5,7 +5,7 @@ dyws owns the reusable JavaScript, CSS and PHP backend. The diner is a host appl
 ## Package locations
 
 * `public_html/dyws/`: browser ES modules and scoped CSS, package `@starlit-digital/dyws` version 0.2.0. Copy this folder to a public assets location. Its imports and shadow styles resolve within that folder.
-* `modules/dyws/php/`: private PHP library, including catalog validation and rendering, order storage, schema, API dispatch and Stripe services. Copy this folder outside the web root. Include `module.php` once. Merely including it performs no output, database work or API dispatch.
+* `modules/dyws/php/`: private PHP library, including catalog validation and rendering, order storage, schema, API dispatch and plugin hooks. Copy this folder outside the web root. Include `module.php` once. Merely including it performs no output, database work or API dispatch.
 * `server/`: existing deployment configuration and CLI adapters. Compatibility includes preserve the existing StarlitGo class names. Setup and cleanup remain deployment commands, not public routes.
 * `public_html/demo.js`, `demo-map.js` and `platform/*.js`: small host adapters. The diner images, map projection, simulation coordinates, display preferences and HTML page content belong to the website.
 
@@ -70,17 +70,17 @@ require_once '/srv/private/dyws/module.php';
 dyws_serve_api('/srv/private/config.json');
 ```
 
-The same private catalog file must be used by rendering and the order API. The API dispatcher retains session authorization, tenant and driver scope, rate limits, server pricing, idempotency, tracking token checks and Stripe signature verification. Existing configuration fields and routes are documented in api.md and deployment.md. `dyws_bootstrap($configPath)` returns the configuration and Store for trusted server integrations. The legacy environment variable remains supported, with DYWS_CONFIG available as an alternative. API dispatch belongs in the endpoint, not in a homepage render call.
+The same private catalog file must be used by rendering and the order API. The API dispatcher retains session authorization, tenant and driver scope, rate limits, server pricing, idempotency, tracking token checks and plugin route authorization. Stripe signature verification belongs to its bundled plugin. Existing configuration fields and routes are documented in api.md and deployment.md. `dyws_bootstrap($configPath)` returns the configuration and Store for trusted server integrations. The legacy environment variable remains supported, with DYWS_CONFIG available as an alternative. API dispatch belongs in the endpoint, not in a homepage render call.
 
 See `examples/php-host/` for a separate shop host using one category and one featured product. It was verified using copied packages outside the diner repository, including a test order saved by its own PHP backend.
 
 ## Admin editing modules
 
-The admin host now has five separate pages: reports, catalog, drivers, Stripe and password. The tab navigation uses links with aria-current rather than ARIA tabs, because each destination is a separate page. The host passes its URLs into mountAdminNavigation; package modules do not decide where the website's pages live.
+The admin host has separate pages for reports, catalog, drivers, password, settings and plugins. The tab navigation uses links with aria-current rather than ARIA tabs, because each destination is a separate page. The host passes its URLs into mountAdminNavigation; package modules do not decide where the website's pages live.
 
 The browser exports catalog-editor.js, account-editor.js, stripe-editor.js and admin-navigation.js. They initialize against a supplied root and API client. The catalog editor clones the loaded JSON into an in-memory draft and edits categories, names, descriptions, image URLs and descriptions, prices, SKU, unit, availability and option names/prices. Category, item and option creation, removal and ordering preserve existing IDs. Hidden metadata is retained. Save uses the existing revision guarded catalog endpoint and server validation. Money is entered in dollars and converted to integer cents. Image uploads are not implemented; use existing relative paths or HTTPS URLs.
 
-Drivers can be added, renamed, have a password reset, or be deactivated. The admin password page requires the current password and confirms the new password. New account persistence lives in AdminAccounts.php. The Stripe page reuses the existing sandbox connector. settings.html is now a compatibility redirect to the catalog editor. The old mountSettings export remains for existing integrations.
+Drivers can be added, renamed, have a password reset, or be deactivated. The admin password page requires the current password and confirms the new password. New account persistence lives in AdminAccounts.php. Stripe owns its settings form in the Settings page. stripe-admin.html and settings.html are compatibility redirects to Settings. The old mountSettings export remains for existing integrations.
 
 ## Configurable team role labels
 

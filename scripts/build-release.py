@@ -16,7 +16,7 @@ for name in tracked:
 for path in (root/'vendor').rglob('*'):
  if path.is_symlink():raise SystemExit('Refusing dependency symlink: '+str(path))
  if path.is_file():files[path.relative_to(root).as_posix()]=path.read_bytes()
-for needed in ['public_html/setup/index.php','modules/dyws/php/Installer.php','modules/dyws/php/accounts.sql','plugins/google-maps/plugin.json','public_html/plugins/google-maps/index.js','INSTALL.md']:
+for needed in ['public_html/setup/index.php','modules/dyws/php/Installer.php','modules/dyws/php/accounts.sql','modules/dyws/php/hooks.json','plugins/stripe/plugin.json','public_html/plugins/stripe/index.js','plugins/google-maps/plugin.json','public_html/plugins/google-maps/index.js','INSTALL.md']:
  if needed not in files:raise SystemExit('Stage release source before building: '+needed)
 files['var/.gitkeep']=b''
 manifest={'version':json.loads((root/'package.json').read_text())['version'],'files':{name:hashlib.sha256(data).hexdigest() for name,data in sorted(files.items())}}

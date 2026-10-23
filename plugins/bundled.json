@@ -1,1 +1,30 @@
-{"active":["google-maps"],"aliases":{"google-maps":["/maps/config","/manager/maps"]}}
+{
+  "active": [
+    "google-maps",
+    "stripe"
+  ],
+  "aliases": {
+    "google-maps": [
+      "/maps/config",
+      "/manager/maps"
+    ],
+    "stripe": [
+      "/manager/stripe",
+      "/manager/stripe/verify",
+      "/stripe/webhook",
+      "/orders/{orderId}/checkout"
+    ]
+  },
+  "retainedRoutes": {
+    "stripe": [
+      "POST /stripe/webhook",
+      "POST /plugins/stripe/webhook"
+    ]
+  },
+  "paymentProviders": [
+    "stripe"
+  ],
+  "upgradeDefaults": [
+    "stripe"
+  ]
+}

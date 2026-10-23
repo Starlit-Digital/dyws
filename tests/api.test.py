@@ -58,7 +58,7 @@ with tempfile.TemporaryDirectory(prefix='starlit-api-') as work:
   maps=request('/manager/plugins/google-maps/settings',token=manager_token)
   maps_saved=request('/manager/plugins/google-maps/settings',{**maps,'browserKey':'a'*39,'enabled':True},token=manager_token)
   disabled=request('/manager/plugins',{'id':'google-maps','active':False,'revision':plugins['revision']},token=manager_token)
-  assert request('/plugins')['plugins']==[]
+  assert [p['id'] for p in request('/plugins')['plugins']]==['stripe']
   request('/maps/config',status=404)
   request('/plugins/google-maps/config',status=404)
   request('/manager/maps',token=manager_token,status=404)

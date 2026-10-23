@@ -14,7 +14,7 @@ try{
  $bad=$catalog;$bad['categories'][0]['items'][]=$bad['categories'][0]['items'][0];rejects(fn()=>Catalog::validate($bad));
  $changed=$catalog;$changed['categories'][0]['items'][0]['active']=false;Catalog::save($dir.'/catalog.json',$changed,Catalog::revision($catalog));
  check(count(Catalog::publicData(Catalog::load($dir.'/catalog.json'))['categories'][0]['items'])===1,'Inactive products omitted publicly');rejects(fn()=>Catalog::save($dir.'/catalog.json',$catalog,Catalog::revision($catalog)),409);
- $config=['tracking_secret'=>bin2hex(random_bytes(32)),'database'=>$dir.'/orders.sqlite','tenant'=>'example-shop','public_base_url'=>'https://example.test/shop','stripe_enabled'=>true];$GLOBALS['starlit_config']=$config;
+ $config=['tracking_secret'=>bin2hex(random_bytes(32)),'database'=>$dir.'/orders.sqlite','tenant'=>'example-shop','public_base_url'=>'https://example.test/shop','payment_provider'=>'stripe'];$GLOBALS['starlit_config']=$config;
  $disabledStore=new Store($config['database'],$changed,$config['tenant']);rejects(fn()=>$disabledStore->create(orderBody()));unset($disabledStore);
  $store=new Store($config['database'],$catalog,$config['tenant']);$settings=new StripeSettings($config);
  check(!$settings->summary()['enabled'],'Stripe starts disabled');
@@ -24,7 +24,7 @@ try{
  $summary=$settings->save(['enabled'=>true,'apiKey'=>$key,'webhookSecret'=>$secret]);
  check($summary['hasApiKey']&&!isset($summary['apiKey']),'Manager reads no secret');check(!str_contains(file_get_contents($dir.'/stripe.json'),$key),'Credentials encrypted at rest');
  $settings->save(['enabled'=>true,'apiKey'=>'','webhookSecret'=>'']);check($settings->read()['apiKey']===$key,'Blank key preserves credentials');
- $receipt=$store->create(orderBody());$id=$receipt['id'];$token=$receipt['trackingToken'];check($receipt['total']===1880,'Generic product price plus configured delivery fee and tax');check($receipt['paymentProvider']==='stripe','Provider snapshotted');
+ $receipt=$store->create(orderBody(),'stripe');$id=$receipt['id'];$token=$receipt['trackingToken'];check($receipt['total']===1880,'Generic product price plus configured delivery fee and tax');check($receipt['paymentProvider']==='stripe','Provider snapshotted');
  $o=$store->get($id);$lines=json_decode($o['lines_json'],true);check($lines[0]['sku']==='NOTE-A5'&&$lines[0]['price']===1295,'Immutable product snapshot and authoritative price');
  $calls=0;$params=null;
  $stripe=new StripePayments($store,$config,$settings,function($p,$key)use(&$calls,&$params){$calls++;$params=$p;return ['id'=>'cs_test_session','url'=>'https://checkout.stripe.com/c/pay/example'];});
@@ -52,6 +52,13 @@ try{
  $refund['id']='evt_refund_full';$refund['data']['object']['amount_refunded']=1880;$stripe->process($refund);$stripe->process($refund);check($store->reports(time()-60,time()+60)['netCollected']===0,'Full refund once');
  $refund['id']='evt_refund_old';$refund['data']['object']['amount_refunded']=500;$stripe->process($refund);check($store->reports(time()-60,time()+60)['netCollected']===0,'Older refund cannot reverse a later refund');
  $r=$store->reports(time()-60,time()+60);check($r['netSales']===0&&$r['netTax']===0&&$r['netDeliveryFees']===0,'Full refund reconciles every component after partial refunds');
- $store->execute('UPDATE stripe_refund_deltas SET created_at=? WHERE event_id=?',[time()-3600,'evt_refund_one']);check($store->reports(time()-60,time()+60)['refunded']===1380,'Refund report retains individual event dates');
+ $store->execute('UPDATE payment_refund_deltas SET created_at=? WHERE event_id=?',[time()-3600,'evt_refund_one']);check($store->reports(time()-60,time()+60)['refunded']===1380,'Refund report retains individual event dates');
+ // An existing pre plugin database retains every payment row during its atomic upgrade.
+ foreach(['payment_attempts'=>'stripe_attempts','payment_events'=>'stripe_events','payment_refund_deltas'=>'stripe_refund_deltas'] as $new=>$old)$store->db->exec("ALTER TABLE $new RENAME TO $old");
+ $upgraded=new Store($config['database'],$catalog,$config['tenant']);
+ check($upgraded->tracking($id,$token)['checkoutStatus']==='paid','Legacy attempt survives schema upgrade');
+ check(count($upgraded->query('SELECT * FROM payment_events'))>=4,'Webhook deduplication survives schema upgrade');
+ check($upgraded->reports(time()-60,time()+60)['refunded']===1380,'Refund history survives upgrade');
+ unset($upgraded);
  echo "Catalog and Stripe: $checks checks passed.\n";
 }finally{unset($store,$disabledStore,$stripe);foreach(glob($dir.'/*') as $file)unlink($file);rmdir($dir);}

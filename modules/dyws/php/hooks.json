@@ -1,0 +1,152 @@
+[
+  {
+    "name": "plugin.activated",
+    "runtime": "php",
+    "type": "action",
+    "description": "Observe an activation after its state is saved."
+  },
+  {
+    "name": "plugin.deactivated",
+    "runtime": "php",
+    "type": "action",
+    "description": "Observe deactivation from other active plugins."
+  },
+  {
+    "name": "catalog.public",
+    "runtime": "php",
+    "type": "filter",
+    "description": "Enrich the public catalog response."
+  },
+  {
+    "name": "catalog.validating",
+    "runtime": "php",
+    "type": "validator",
+    "description": "Check an admin catalog change before saving."
+  },
+  {
+    "name": "catalog.saved",
+    "runtime": "php",
+    "type": "action",
+    "description": "Observe a saved catalog and revision."
+  },
+  {
+    "name": "order.validating",
+    "runtime": "php",
+    "type": "validator",
+    "description": "Accept or reject a new order after authoritative pricing."
+  },
+  {
+    "name": "order.created",
+    "runtime": "php",
+    "type": "action",
+    "description": "Handle a successful order receipt."
+  },
+  {
+    "name": "order.status_changing",
+    "runtime": "php",
+    "type": "validator",
+    "description": "Check an authorised status transition before saving."
+  },
+  {
+    "name": "order.status_changed",
+    "runtime": "php",
+    "type": "action",
+    "description": "Observe a saved order status."
+  },
+  {
+    "name": "order.assigned",
+    "runtime": "php",
+    "type": "action",
+    "description": "Observe a manager delivery assignment."
+  },
+  {
+    "name": "tracking.public",
+    "runtime": "php",
+    "type": "filter",
+    "description": "Enrich the tracking token scoped customer response."
+  },
+  {
+    "name": "reports.summary",
+    "runtime": "php",
+    "type": "filter",
+    "description": "Add metrics to authorised manager reports."
+  },
+  {
+    "name": "api.response",
+    "runtime": "php",
+    "type": "filter",
+    "description": "Adjust a successful API response after authorization."
+  },
+  {
+    "name": "api.respond",
+    "runtime": "php",
+    "type": "action",
+    "description": "Observe a successful API response."
+  },
+  {
+    "name": "lookup.results",
+    "runtime": "php",
+    "type": "filter",
+    "description": "Offer results in authenticated manager searches."
+  },
+  {
+    "name": "admin:settings",
+    "runtime": "browser",
+    "type": "action",
+    "description": "Display a plugin settings form."
+  },
+  {
+    "name": "admin:navigation",
+    "runtime": "browser",
+    "type": "filter",
+    "description": "Offer an admin page link."
+  },
+  {
+    "name": "admin:dashboard",
+    "runtime": "browser",
+    "type": "action",
+    "description": "Display report widgets in the dashboard plugin area."
+  },
+  {
+    "name": "admin:order",
+    "runtime": "browser",
+    "type": "action",
+    "description": "Display manager order controls or information."
+  },
+  {
+    "name": "catalog:item",
+    "runtime": "browser",
+    "type": "action",
+    "description": "Display product badges or additional details."
+  },
+  {
+    "name": "cart:updated",
+    "runtime": "browser",
+    "type": "action",
+    "description": "Observe changes to cart items and quantities."
+  },
+  {
+    "name": "checkout:fields",
+    "runtime": "browser",
+    "type": "action",
+    "description": "Display additional checkout fields."
+  },
+  {
+    "name": "checkout:validating",
+    "runtime": "browser",
+    "type": "validator",
+    "description": "Check checkout fields before submission."
+  },
+  {
+    "name": "tracking:updated",
+    "runtime": "browser",
+    "type": "action",
+    "description": "Display extra customer status information."
+  },
+  {
+    "name": "driver:orders",
+    "runtime": "browser",
+    "type": "action",
+    "description": "Display tools for a driver's assigned orders."
+  }
+]

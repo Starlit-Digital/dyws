@@ -1,0 +1,13 @@
+{
+  "id": "stripe",
+  "name": "Stripe",
+  "version": "1.0.0",
+  "apiVersion": 1,
+  "description": "Sandbox checkout and signed payment updates. Settings stay with this plugin.",
+  "entry": "plugin.php",
+  "browserModule": "index.js",
+  "capabilities": [
+    "payments"
+  ],
+  "settingsAnchor": "plugin-stripe"
+}

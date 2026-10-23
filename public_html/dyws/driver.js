@@ -1,6 +1,7 @@
+import {pluginSlot} from './plugin-ui.js?v=30';
 import {escapeHTML as esc,money,statusText} from './api.js';
 import {createDriverGPS} from './driver-gps.js';
-export function mountDriver({root=document,api,storageKey='starlit-go-driver',renderLocation,simulatePosition,testLocationName='Configured test origin'}) {
+export function mountDriver({root=document,api,storageKey='starlit-go-driver',renderLocation,simulatePosition,testLocationName='Configured test origin',plugins}) {
  if(typeof api!=='function')throw new TypeError('A DYWS API client is required.');
  let token=sessionStorage.getItem(storageKey),loading=false,changing=false,unwatch=null,watchedToken=null,attemptedOrder=null,retryAfter=0,permission,currentDelivery=null,latestPosition=null,reloadPending=false,revision=0;
  const feedback=root.querySelector('#delivery-feedback');
@@ -41,6 +42,7 @@ export function mountDriver({root=document,api,storageKey='starlit-go-driver',re
   currentDelivery=current;if(!current)latestPosition=null;if(simulatePosition&&current?.gps?.location){latestPosition=current.gps.location;state.textContent='Test location: '+testLocationName+'. Device GPS is not used.';details.textContent=current.id+' · Updated '+new Date(latestPosition.recorded_at*1000).toLocaleTimeString();}const mapRoot=root.querySelector('#driver-map');if(mapRoot&&renderLocation){const view=renderLocation(latestPosition,undefined,{destinationAddress:current?.address});if(view&&!mapRoot.contains(view))mapRoot.replaceChildren(view);}
   if(current&&(simulatePosition||permission?.state!=='denied')&&!document.hidden&&!gps.orderId&&(attemptedOrder!==current.id||Date.now()>retryAfter)){attemptedOrder=current.id;retryAfter=Date.now()+60000;void gps.start(current.id,{simulatePosition});}
   if(!current){attemptedOrder=null;state.textContent='GPS starts automatically when an assigned delivery is on the way.';}
+  if(plugins)void plugins.runAction('driver:orders',{root:pluginSlot(root.querySelector('#deliveries'),'driver'),orders:data.orders});
  }catch(e){if(token!==login)return;error.textContent=e.message;if(e.status===401||e.status===403){gps.stop('Please sign in again before sharing GPS.');signedOut();}}finally{loading=false;if(reloadPending){reloadPending=false;void load();}}}
  function hidden(){if(!document.hidden){if(!gps.orderId)attemptedOrder=null;void load();}}
  const pagehide=()=>{gps.stop();attemptedOrder=null;};

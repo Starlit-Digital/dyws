@@ -54,8 +54,10 @@ The current demo uses `<dyws-ordering>`. The older element names remain compatib
 
 ## Administration
 
-Open [Reports](https://sltd.ca/diner/manager.html) and use the shared navigation for Reports, Catalog, Drivers, Stripe, Password and Settings. The catalog editor provides category and item fields with a Save catalog action backed by the private JSON file. Drivers can be added, renamed, reset or deactivated. Password changes require the current admin password and sign out admin sessions. Images currently use existing paths or HTTPS URLs.
+Open [Reports](https://sltd.ca/diner/manager.html) and use the shared navigation for Reports, Catalog, Drivers, Password, Settings and Plugins. The catalog editor provides category and item fields with a Save catalog action backed by the private JSON file. Drivers can be added, renamed, reset or deactivated. Password changes require the current admin password and sign out admin sessions. Images currently use existing paths or HTTPS URLs.
 
 The admin Settings tab lets businesses rename the assignment role using singular and plural display names. Driver and Drivers remain the defaults. Custom labels also appear in the team console and customer tracking; authorization stays unchanged.
 
 Optional features use the [dyws plugin system](docs/plugins.md). Google Maps is bundled as a plugin, with activation in Admin → Plugins. Plugin settings stay private JSON and survive deactivation.
+
+The bundled Stripe and Google Maps plugins own their integrations and settings. Admin → Plugins manages activation, with a Settings link for each configured plugin. Stripe remains sandbox only. The [25 hook features](docs/plugin-hooks.md) let plugins add validation, fields, views, searches, reports and order handling. A complete gift note example is included under examples/plugins/gift-note.

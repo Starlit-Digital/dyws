@@ -13,7 +13,7 @@ final class Installer {
    ['PHP 8.1 or newer',PHP_VERSION_ID>=80100,'Ask your host to enable PHP 8.1 or newer.'],
    ['SQLite',extension_loaded('pdo_sqlite'),'Enable the PHP pdo_sqlite extension.'],
    ['Encryption',extension_loaded('openssl'),'Enable the PHP openssl extension.'],
-   ['Payments dependencies',extension_loaded('curl')&&extension_loaded('mbstring')&&class_exists('Stripe\\StripeClient'),'Use the install ZIP, or run composer install --no-dev. Enable curl and mbstring.'],
+   ['Bundled dependencies',extension_loaded('curl')&&extension_loaded('mbstring')&&is_file($this->root.'/vendor/autoload.php'),'Use the install ZIP, or run composer install --no-dev. Enable curl and mbstring.'],
    ['Secure connection',$secure,'Open setup over HTTPS. HTTP is allowed only on localhost.'],
    ['Private storage',$outside,'Keep var outside the web document root. Serve only public_html.'],
    ['Writable storage',$outside&&is_writable($private),'Give the PHP process write access to the private var directory.'],

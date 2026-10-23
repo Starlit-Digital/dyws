@@ -1,4 +1,5 @@
-export function mountCatalog({ordering,container,navigation,loading,locale='en-CA',hydrate=false}) {
+import {pluginSlot} from './plugin-ui.js?v=30';
+export function mountCatalog({ordering,container,navigation,loading,locale='en-CA',hydrate=false,plugins}) {
  if(!ordering||!container)throw new TypeError('DYWS requires ordering and catalog elements.');
  container.classList.add('dyws-catalog');
 function updateItemCounts(){
@@ -19,8 +20,15 @@ function updateItemCounts(){
 }
 ordering.addEventListener('cart-change',updateItemCounts);
 const money=value=>new Intl.NumberFormat(locale,{style:'currency',currency:ordering.catalog.currency}).format(value/100);
+function decorate(){
+ if(!plugins)return;
+ for(const controls of container.querySelectorAll('[data-order-item]')){
+  const item=ordering.catalog.categories.flatMap(category=>category.items).find(item=>item.id===controls.dataset.orderItem);
+  if(item)void plugins.runAction('catalog:item',{root:pluginSlot(controls.closest('.dyws-product'),'product'),item});
+ }
+}
 function render(){
- if(hydrate&&container.hasAttribute('data-dyws-rendered')){updatePrices();updateItemCounts();loading?.remove();return;}
+ if(hydrate&&container.hasAttribute('data-dyws-rendered')){updatePrices();updateItemCounts();loading?.remove();decorate();return;}
  const menu=container;menu.replaceChildren();
  navigation?.replaceChildren();
  for(const category of ordering.catalog.categories){
@@ -50,7 +58,7 @@ function render(){
   menu.append(section);
  }
  loading?.remove();
- updateItemCounts();
+ updateItemCounts();decorate();
 }
  function updatePrices(){
  for(const controls of container.querySelectorAll('[data-order-item]')){

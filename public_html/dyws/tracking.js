@@ -1,7 +1,8 @@
+import {pluginSlot} from './plugin-ui.js?v=30';
 import {statusText,escapeHTML} from './api.js';
 import {defaultRole} from './role-labels.js';
-import {deliveryStatus,terminalStatuses} from './delivery-status.js';
-export function createTracking({api,container,role=defaultRole,trackingPage,renderLocation,shopPage,storageKey='starlit-go-tracking',panelId='customer-tracking',document:doc=globalThis.document,now=Date.now}) {
+import {deliveryStatus,terminalStatuses} from './delivery-status.js?v=30';
+export function createTracking({api,container,role=defaultRole,trackingPage,renderLocation,renderPayment,plugins,shopPage,storageKey='starlit-go-tracking',panelId='customer-tracking',document:doc=globalThis.document,now=Date.now}) {
  if(typeof api!=='function'||!container)throw new TypeError('dyws tracking requires an API client and container.');
  let timer,clock,active,panel,unwatch=null,polling=false,again=false,lastData,estimate,unavailable=false,lastChecked=0;
  const time=value=>new Date(value*1000).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
@@ -36,11 +37,9 @@ export function createTracking({api,container,role=defaultRole,trackingPage,rend
   const payment=panel.querySelector('.dyws-tracking-payment');
   if(!payment.querySelector('button:disabled')){
    payment.replaceChildren();const label=doc.createElement('p');label.textContent='Payment: '+statusText(data.paymentStatus);payment.append(label);
-   if(data.paymentProvider==='stripe'&&data.paymentStatus==='unpaid'&&data.status==='placed'){
-    if(!data.checkoutStatus||['creating','open'].includes(data.checkoutStatus)){
-     const pay=doc.createElement('button');pay.textContent='Pay with Stripe · test checkout';payment.append(pay);
-     pay.onclick=async()=>{pay.disabled=true;try{const result=await api('/orders/'+current.id+'/checkout',{method:'POST',body:{},trackingToken:current.token});const url=new URL(result.url);if(url.protocol!=='https:'||url.hostname!=='checkout.stripe.com')throw new Error('Invalid payment link.');location.assign(url.href);}catch(e){panel.querySelector('.dyws-tracking-error').textContent=e.message;pay.disabled=false;}};
-    }else{const note=doc.createElement('p');note.textContent=data.checkoutStatus==='pending'?'Waiting for Stripe to confirm payment. Do not place a duplicate order.':'Checkout '+data.checkoutStatus+'. Contact the business if you need help.';payment.append(note);}
+   if(data.paymentProvider!=='demo'&&data.paymentStatus==='unpaid'&&data.status==='placed'){
+    if(renderPayment)renderPayment({order:data,container:payment,trackingToken:current.token,onError:message=>write('.dyws-tracking-error',message)});
+    else{const note=doc.createElement('p');note.textContent='Online payment is unavailable. Contact the business for help with this order.';payment.append(note);}
    }
   }
    const gps=panel.querySelector('.dyws-tracking-gps');
@@ -53,6 +52,7 @@ export function createTracking({api,container,role=defaultRole,trackingPage,rend
     renderLocation?.clear?.();estimate=undefined;panel.querySelector('.dyws-tracking-map').replaceChildren();
     gps.innerHTML=data.status==='out_for_delivery'?'<p>Waiting for the next location update.</p>':'';
    }
+   if(plugins)void plugins.runAction('tracking:updated',{root:pluginSlot(panel,'tracking'),order:data});
    if(terminalStatuses.has(data.status)){clearTimeout(timer);clearInterval(clock);unwatch?.();unwatch=null;again=false;summary();return;}
   }catch(e){
    if(active!==current)return;unavailable=true;estimate=undefined;summary();write('.dyws-tracking-error',e.status===404?'This tracking link is unavailable or has expired.':'Connection interrupted. Your last update is shown. Retrying automatically.');

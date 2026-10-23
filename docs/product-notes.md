@@ -65,3 +65,9 @@ The private order page now prioritises progress and an approximate arrival time 
 ## Plugins
 
 Version 0.5 adds installed plugins, an Admin Plugins page, lifecycle hooks, PHP actions and filters, browser providers and manager protected plugin routes. Google Maps is the first bundled plugin and is active by default. Its implementation and settings form are outside core, while orders, GPS capture and customer progress remain usable without it. Additional plugins are installed through trusted files and activated in Admin. There is no marketplace or browser code uploader in this first version.
+
+## 2026-10-23, Stripe plugin and 25 hooks
+
+Stripe is a bundled plugin alongside Google Maps. Its encrypted configuration, admin form, verification, Checkout, signed webhooks and customer payment button belong to the plugin. The old settings URL redirects to its settings panel. Deactivation stops new checkouts but retains signed reconciliation for existing attempts. Core owns neutral payment records, reports and the protection against manually marking online orders paid.
+
+The plugin API now exposes 25 implemented hooks covering lifecycle, catalog, validation, order events, tracking, reporting, searches, admin navigation and panels, product presentation, cart changes, checkout fields and driver tools. Required validators can reject operations; optional observer errors do not undo successful orders. Extra checkout data is bounded, stored with the order and omitted from public tracking by default. A gift note example demonstrates the full field to order panel flow.

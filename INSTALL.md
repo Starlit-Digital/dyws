@@ -77,4 +77,4 @@ The flow follows MediaWiki's [browser installer](https://www.mediawiki.org/wiki/
 
 ## Plugins
 
-The install ZIP includes Google Maps as an active bundled plugin. After setup, open Admin → Plugins to manage activation and Settings to configure active plugins. Upload private plugins/ beside server and modules, and public_html/plugins/ with the website. Preserve both parts when using split shared hosting. See [Plugin documentation](docs/plugins.md) to install or develop additional plugins.
+The install ZIP includes Google Maps and Stripe as active bundled plugins. Stripe checkout remains disabled until configured. After setup, open Admin → Plugins to manage activation and Settings to configure active plugins. Upload private plugins/ beside server and modules, and public_html/plugins/ with the website. Preserve both parts when using split shared hosting. See [Plugin documentation](docs/plugins.md) to install or develop additional plugins.

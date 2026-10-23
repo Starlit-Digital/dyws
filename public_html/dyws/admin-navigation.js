@@ -3,7 +3,8 @@ export function mountAdminNavigation({root=document,current,pages}) {
  nav.classList.add('dyws-admin-tabs');nav.setAttribute('aria-label','Administration');
  if(!Array.isArray(pages))throw new TypeError('Provide the admin page links.');
  // Update labels in place so polling doesn't steal keyboard focus.
- if(!nav.children.length)nav.append(...pages.map(()=>document.createElement('a')));
+ while(nav.children.length>pages.length)nav.lastElementChild.remove();
+ while(nav.children.length<pages.length)nav.append(document.createElement('a'));
  pages.forEach(([key,name,url],index)=>{const link=nav.children[index];link.href=url;if(link.textContent!==name)link.textContent=name;if(key===current)link.setAttribute('aria-current','page');else link.removeAttribute('aria-current');});
  const title=pages.find(([key])=>key===current)?.[1];
  const pageTitle=root.querySelector('[data-dyws-page-title]');if(pageTitle&&pageTitle.textContent!==title)pageTitle.textContent=title;

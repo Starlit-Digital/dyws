@@ -1,4 +1,4 @@
-import {adminPage} from './admin-navigation.js?v=26';
+import {adminPage} from './admin-navigation.js?v=30';
 export async function mountGeneralSettings({root=document,api,storageKey,onSave=()=>{}}){
  const page=adminPage({root,api,storageKey});if(!page.token)return;
  const form=root.querySelector('#settings-form'),message=root.querySelector('#settings-message');

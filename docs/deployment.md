@@ -136,3 +136,17 @@ Back up code before deploying. Both plugin halves are required; uploading only t
 Rollback backup: domains/sltd.ca/private/deploy-backups/dyws-plugins-20261023/. Restore public-diner and php together, preserving private settings and SQLite. The old release ignores plugin activation settings and always has its original built in map feature.
 
 Validation: 376 automated checks passed, including manager only activation, namespaced route access, ordered hooks, tenant isolation, failed activation, corrupt plugin state, deactivation and preserved Maps settings. The rebuilt ZIP passed 41 fresh installation checks. Browser verification covered activation, deactivation, settings removal and restoration, and live Google map, destination and traffic estimate rendering through the plugin host. The live saved Maps configuration fingerprint was unchanged. No existing orders or credentials were changed.
+
+## Stripe plugin and hooks, version 0.6.0
+
+Deploy both private plugins and modules together, then the matching public assets. Stripe now owns its settings, Checkout and webhook code. The old PHP and JS entry points remain compatibility shims. The browser graph uses version 30 asset URLs. Preserve every runtime var file and api/bootstrap-path.php; exclude setup from existing sites. The bundled manifest adopts Stripe as an active plugin without enabling its checkout setting or rewriting keys. Explicit plugin deactivation remains persistent.
+
+This upgrade renames three old Stripe ledger tables to neutral payment table names and adds plugin_data_json to orders. Take a consistent SQLite backup and private JSON backup before deployment. Pause API writes briefly while replacing the matching code, so old payment code cannot run against renamed tables. Rollback requires restoring both the code and that database snapshot, accounting for any later orders first. Do not restore a stale database over newly accepted orders.
+
+Deactivate through the Plugins page to stop new Stripe checkouts. Its two signed webhook routes intentionally remain available for pending confirmations and refunds. Do not delete plugin files or signing secrets while payments remain unresolved. Core reports and online payment guards continue working without provider UI code. Stripe remains sandbox only.
+
+The bundled release includes the 25 hook catalog and developer reference, and an inactive gift note example under examples/plugins. Do not deploy that example as an active merchant plugin unless intended. The local browser fixture exercised product badges, checkout fields, validation, persisted plugin data and a manager order panel. It is separate from hosted customer data.
+
+Live deployment completed on 2026-10-23. Backup: domains/sltd.ca/private/deploy-backups/dyws-stripe-hooks-20261023/. It contains public-diner, private php and plugins, JSON settings and a consistent orders.sqlite snapshot. The live API advertises both plugins and all 25 hooks. Before and after fingerprints matched for all five orders, payment records, admin credentials, drivers, catalog, site configuration and Maps settings. Stripe checkout remains unconfigured and disabled.
+
+Validation: 497 automated checks passed, plus 42 fresh installation checks against the rebuilt ZIP. Browser verification covered the plugin Settings link, both live plugin cards, the unchanged Maps settings, and a separate gift note checkout through to its saved manager order panel. No external Stripe charge was attempted; payment reconciliation used locally signed sandbox fixtures.

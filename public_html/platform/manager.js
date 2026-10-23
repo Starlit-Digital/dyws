@@ -1,8 +1,8 @@
-import {plugins} from './plugins.js';
-import {mountNavigation} from './admin-navigation.js?v=26';
-import {mountManager} from '../dyws/manager.js?v=26';
+import {plugins} from './plugins.js?v=30';
+import {mountNavigation} from './admin-navigation.js?v=30';
+import {mountManager} from '../dyws/manager.js?v=30';
 import {api} from './api.js';
 import {loadRole} from '../dyws/role-labels.js';
 const role=await loadRole(api);
 mountNavigation('reports',role);
-mountManager({api,role,renderLocation:plugins.createLocationRenderer({api}),root:document.body});
+mountManager({api,role,plugins,renderLocation:plugins.createLocationRenderer({api}),root:document.body});

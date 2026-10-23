@@ -1,0 +1,10 @@
+{
+  "id": "gift-note",
+  "name": "Gift note example",
+  "description": "Example checkout field with server validation and an admin order panel.",
+  "version": "1.0.0",
+  "apiVersion": 1,
+  "entry": "plugin.php",
+  "browserModule": "index.js",
+  "capabilities": ["validation"]
+}

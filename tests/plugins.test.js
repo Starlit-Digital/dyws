@@ -19,3 +19,17 @@ test('Broken plugins discard partial registration and allow other plugins to loa
 test('Plugin API failure leaves core functional and reports the missing plugins',async()=>{
  const host=await createPluginHost({document:doc,api:async()=>{throw new Error('offline');}});assert.equal(host.errors.length,1);assert.equal(typeof host.createLocationRenderer(),'function');
 });
+test('Browser validators reject checkout, actions isolate errors, hooks can be added and removed after registration',async()=>{
+ let context,destroyed=false;const called=[];
+ const host=await createPluginHost({document:doc,api:async()=>({plugins:[manifest('hooks')]}),loadModule:async()=>({register(p){context=p;p.addValidator('checkout:validating',()=>{throw new Error('A note is required.');});p.onDestroy(()=>destroyed=true);p.addAction('test',()=>{throw new Error('Optional widget failed');},1);}})});
+ const second=()=>called.push('second');context.addAction('test',second,2);
+ await host.runAction('test');assert.deepEqual(called,['second']);assert.equal(host.errors.length,1);
+ await assert.rejects(host.validate('checkout:validating'),/note is required/);
+ context.removeAction('test',second);await host.runAction('test');assert.deepEqual(called,['second']);assert.equal(host.errors.length,1);
+ const filter=value=>[...value,'extra'];context.addFilter('admin:navigation',filter);assert.deepEqual(await host.applyFilters('admin:navigation',[]),['extra']);context.removeFilter('admin:navigation',filter);assert.deepEqual(await host.applyFilters('admin:navigation',[]),[]);
+ host.destroy();assert.equal(destroyed,true);
+});
+test('An unavailable validation plugin cannot silently bypass checkout checks',async()=>{
+ const host=await createPluginHost({document:doc,api:async()=>({plugins:[{...manifest('required'),capabilities:['validation']}]}),loadModule:async()=>{throw new Error('Unavailable');}});
+ await assert.rejects(host.validate('checkout:validating'),/required checkout plugin/);
+});

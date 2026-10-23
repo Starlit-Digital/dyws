@@ -3,3 +3,5 @@
 @import url('./catalog.css?v=21');
 @import url('./admin.css?v=28');
 @import url('./tracking.css?v=28');
+.dyws-plugin-area:empty { display: none; }
+.dyws-catalog .dyws-product > .dyws-plugin-area { grid-column: 1 / -1; }
