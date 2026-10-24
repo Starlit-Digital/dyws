@@ -17,3 +17,9 @@ mountStorefront accepts onOrderComplete(receipt). The demo uses it to navigate t
 Obtain optional location renderers from createPluginHost in plugins.js. Google Maps implementations and settings now live in ../plugins/google-maps; the old exports are compatibility shims. Deploy the plugin assets with their private PHP counterpart. Core controllers work with no map plugin. The complete plugin API is documented in docs/plugins.md in the repository.
 
 Stripe controls and settings live in ../plugins/stripe. Inject plugins.renderPayment into createTracking, and pass plugins to the storefront and admin controllers to enable the 32 documented hook contracts. See docs/plugin-hooks.md.
+
+### Shared presentation
+
+The catalog, cart, admin, driver and setup interfaces share warm action colours, rounded controls and layered surfaces. Set `--dyws-warm` to override the warm accent. Otherwise it is derived from the host text colour and adapts to the existing light and dark palette. Supply the other public `--dyws-*` colour tokens together to retain contrast. Form labels, status text and glyphs remain visible independently of colour. Keyboard focus and full size touch controls are preserved.
+
+Order Reporting and DataTables consume the same presentation tokens. Chart exports retain their standalone colours. The driver run progress element reports completed stops, with the next stop identified in text as well as by its border. No additional stylesheet or JavaScript dependency is loaded for this presentation update.

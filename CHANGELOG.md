@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Extend warm surfaces, rounded actions, clear form grouping and theme aware contrast across the storefront, cart, every admin page, sign in, driver console and installer. Drivers now see a highlighted next stop and accessible run progress. Browser charts follow the page palette while exported SVGs retain their standalone colours.
+
 - Refine customer tracking and expanded order details with warm theme aware accents, stronger typography, grouped information and rounded controls.
 
 - Replace the checkout Order type dropdown with an accessible Pickup and Delivery pill selector, preserving address validation and fee calculation.
