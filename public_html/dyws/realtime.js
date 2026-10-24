@@ -56,7 +56,7 @@ export function createRealtimeAPI(endpoint,{WebSocket:Socket=globalThis.WebSocke
   const tick=async()=>{if(sub.busy||!subscriptions.has(sub.id))return;sub.busy=true;try{
    const ws=await connect();if(!subscriptions.has(sub.id))return;
    if(ws?.readyState===1){if(Date.now()-sub.subscribedAt>25000)subscribe(sub);}
-   else {const data=await http('/realtime/access',{method:'POST',body:{scope:access.scope||'public',orderId:access.orderId},token:access.token,trackingToken:access.trackingToken});sub.revision=data.revision;notify(sub,{type:'poll'});}
+   else {const data=await http('/realtime/access',{method:'POST',body:{scope:access.scope||'public',orderId:access.orderId},token:access.token,trackingToken:access.trackingToken,timeoutMs:15000});sub.revision=data.revision;notify(sub,{type:'poll'});}
   }catch(e){notify(sub,{type:'auth-error',status:e.status});}finally{sub.busy=false;}};
   void tick();const timer=setInterval(tick,interval);
   return ()=>{clearInterval(timer);subscriptions.delete(sub.id);if(socket?.readyState===1)socket.send(JSON.stringify({type:'unsubscribe',id:sub.id}));};

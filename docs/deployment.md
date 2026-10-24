@@ -196,3 +196,9 @@ Preserve runtime JSON, SQLite, credentials and `api/bootstrap-path.php`. Exclude
 ## Page feature loading, 0.9.4
 
 Deploy `Features.php`, plugin registration attributes, the page data modules, storefront templates, catalog snapshot loader and generated preload graph together. Assets use version 39. Both PHP attribute classes require PHP 8.1, which is already the project's deployment baseline. Backend plugin registration remains global; the page resolver restricts browser assets only. No database or merchant configuration migration is needed. Preserve private JSON, SQLite, bootstrap paths and installed setup removal. Backup: `domains/sltd.ca/private/deploy-backups/dyws-page-features-20261023/`.
+
+### Tracking refresh recovery
+
+Customer tracking now reads immediately when its tab becomes visible or the browser comes back online. HTTP reads and the read only realtime access check have a 15 second deadline, including response body consumption, so a stalled connection cannot hold the polling loop indefinitely. Mutations are not automatically retried. Tracking labels updates delayed after 15 seconds without a successful read and removes resume listeners once the order is terminal. Deploy `public_html/dyws/api.js`, `realtime.js` and `tracking.js` together, then reload existing tracking tabs once. No data or settings migration is required.
+
+The reported live order was already Delivered in both customer and driver tabs when inspected, with no captured browser errors. These changes close identified recovery gaps; the original delay could not be reproduced. Regression checks cover stalled response headers and bodies, cancellation, foreground refresh, connectivity recovery, and completion cleanup.

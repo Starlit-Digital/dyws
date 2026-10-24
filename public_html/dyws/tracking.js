@@ -6,11 +6,15 @@ import {deliveryStatus,terminalStatuses} from './delivery-status.js?v=39';
 export function createTracking({api,container,role=defaultRole,trackingPage,renderLocation,renderPayment,plugins,shopPage,storageKey='dyws-tracking',panelId='customer-tracking',document:doc=globalThis.document,now=Date.now,onReady=()=>{}}) {
  if(typeof api!=='function'||!container)throw new TypeError('dyws tracking requires an API client and container.');
  let timer,clock,active,panel,unwatch=null,polling=false,again=false,lastData,estimate,unavailable=false,lastChecked=0;
+ const refreshWhenVisible=()=>{if(!doc.hidden)void poll();};
+ function listen(){doc.addEventListener?.('visibilitychange',refreshWhenVisible);doc.defaultView?.addEventListener('online',refreshWhenVisible);}
+ function unlisten(){doc.removeEventListener?.('visibilitychange',refreshWhenVisible);doc.defaultView?.removeEventListener('online',refreshWhenVisible);}
  const time=value=>formatTime(value);
  function write(selector,text){const node=panel?.querySelector(selector);if(node&&node.textContent!==text)node.textContent=text;}
  function summary(){
   if(!panel||!lastData)return;
-  const view=deliveryStatus(lastData,{estimate,now:now(),role:role.singular,unavailable});
+  const delayed=unavailable||now()-lastChecked>15000;
+  const view=deliveryStatus(lastData,{estimate,now:now(),role:role.singular,unavailable:delayed});
   panel.dataset.status=lastData.status;
   write('.dyws-tracking-status',view.title);write('.dyws-tracking-message',view.message);
   const arrival=panel.querySelector('.dyws-tracking-arrival');arrival.hidden=view.terminal;
@@ -18,7 +22,7 @@ export function createTracking({api,container,role=defaultRole,trackingPage,rend
   const stages=panel.querySelector('.dyws-tracking-timeline');stages.hidden=lastData.status==='cancelled';
   const html=view.stages.map(step=>`<li class="dyws-step-${step.state}" ${step.state==='current'?'aria-current="step"':''}><span aria-hidden="true">${step.state==='done'||(view.complete&&step.state==='current')?'✓':'○'}</span>${escapeHTML(step.label)}</li>`).join('');
   if(stages.innerHTML!==html)stages.innerHTML=html;
-  write('.dyws-tracking-updated',view.terminal?(view.title+' at '+time(view.stamp)):unavailable?'Updates paused. Reconnecting…':'Updates automatically · Last checked '+time(lastChecked/1000));
+  write('.dyws-tracking-updated',view.terminal?(view.title+' at '+time(view.stamp)):delayed?'Updates delayed. Reconnecting…':'Updates automatically · Last checked '+time(lastChecked/1000));
   panel.querySelector('.dyws-tracking-complete').hidden=!view.complete;
  }
  function show(id,token){
@@ -27,7 +31,7 @@ export function createTracking({api,container,role=defaultRole,trackingPage,rend
   if(!panel){panel=doc.createElement('section');panel.id=panelId;panel.className='dyws-tracking-panel';container.prepend(panel);}panel.setAttribute('aria-label','Your order tracking');
   panel.innerHTML=`<p class="dyws-tracking-reference">Test order <strong>${escapeHTML(id)}</strong></p><div class="dyws-tracking-heading" role="status" aria-live="polite" aria-atomic="true"><h2 class="dyws-tracking-status">Connecting…</h2><p class="dyws-tracking-message"></p></div><div class="dyws-tracking-arrival" role="status" aria-live="polite" aria-atomic="true"><p class="dyws-arrival-label">Estimated arrival</p><strong class="dyws-arrival-value">Checking your order</strong><p class="dyws-arrival-detail"></p></div><ol class="dyws-tracking-timeline" aria-label="Order progress"></ol><p class="dyws-tracking-complete" hidden>Your order is complete. No further action is needed.</p><div class="dyws-tracking-payment"></div><div class="dyws-tracking-gps"></div><div class="dyws-tracking-map"></div><p class="dyws-tracking-updated dyws-note"></p>${trackingPage?`<p><a class="dyws-tracking-link" href="${escapeHTML(trackingPage)}#${encodeURIComponent(id)}.${encodeURIComponent(token)}">Open private tracking page</a></p>`:''}<p class="dyws-tracking-error" role="alert"></p>${shopPage?`<a class="dyws-tracking-return" href="${escapeHTML(shopPage)}">Back to menu</a>`:'<button class="dyws-dismiss-tracking" type="button">Hide tracking</button>'}`;
   const dismiss=panel.querySelector('.dyws-dismiss-tracking');if(dismiss)dismiss.onclick=()=>{destroy();try{sessionStorage.removeItem(storageKey);}catch{}};
-  clearTimeout(timer);clearInterval(clock);clock=setInterval(summary,10000);
+  clearTimeout(timer);clearInterval(clock);clock=setInterval(summary,10000);listen();
   unwatch?.();unwatch=api.watch?.({scope:'tracking',orderId:id,trackingToken:token,interval:5000},()=>poll());void poll();
  }
  async function poll(){
@@ -54,14 +58,14 @@ export function createTracking({api,container,role=defaultRole,trackingPage,rend
     gps.innerHTML=data.status==='out_for_delivery'?'<p>Waiting for the next location update.</p>':'';
    }
    if(plugins)void plugins.runAction('tracking:updated',{root:pluginSlot(panel,'tracking'),order:data});
-   if(terminalStatuses.has(data.status)){clearTimeout(timer);clearInterval(clock);unwatch?.();unwatch=null;again=false;summary();return;}
+   if(terminalStatuses.has(data.status)){clearTimeout(timer);clearInterval(clock);unwatch?.();unwatch=null;unlisten();again=false;summary();return;}
   }catch(e){
    if(active!==current)return;unavailable=true;estimate=undefined;summary();write('.dyws-tracking-error',e.status===404?'This tracking link is unavailable or has expired.':'Connection interrupted. Your last update is shown. Retrying automatically.');
-   if(e.status===404){active=null;lastData=null;renderLocation?.clear?.();panel?.querySelector('.dyws-tracking-map').replaceChildren();if(panel)panel.querySelector('.dyws-tracking-arrival').hidden=true;write('.dyws-tracking-status','Tracking unavailable');clearInterval(clock);unwatch?.();unwatch=null;again=false;return;}
+   if(e.status===404){active=null;lastData=null;renderLocation?.clear?.();panel?.querySelector('.dyws-tracking-map').replaceChildren();if(panel)panel.querySelector('.dyws-tracking-arrival').hidden=true;write('.dyws-tracking-status','Tracking unavailable');clearInterval(clock);unwatch?.();unwatch=null;unlisten();again=false;return;}
   }finally{polling=false;onReady();if(again){again=false;queueMicrotask(poll);}}
   if(!api.watch&&active===current)timer=setTimeout(poll,doc.hidden?30000:5000);
  }
- function destroy(){active=null;lastData=null;renderLocation?.clear?.();clearTimeout(timer);clearInterval(clock);unwatch?.();unwatch=null;panel?.remove();panel=null;}
+ function destroy(){active=null;lastData=null;renderLocation?.clear?.();clearTimeout(timer);clearInterval(clock);unwatch?.();unwatch=null;unlisten();panel?.remove();panel=null;}
  function restore(){try{const saved=JSON.parse(sessionStorage.getItem(storageKey));if(saved?.id&&saved?.token)show(saved.id,saved.token);}catch{}}
  return {show,restore,destroy,scrollIntoView(){panel?.scrollIntoView({behavior:'smooth',block:'start'});}};
 }

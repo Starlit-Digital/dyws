@@ -26,3 +26,22 @@ test('Network failures keep the last status and retry without pretending the ord
  const tracker=createTracking({api,container,document:{createElement:element}});
  try{tracker.show('order','token');await settle();fail=true;notify();await settle();const panel=container.children[0];assert.equal(panel.querySelector('.dyws-tracking-status').textContent,'Driver is on the way');assert.equal(panel.querySelector('.dyws-arrival-value').textContent,'Reconnecting');assert.match(panel.querySelector('.dyws-tracking-error').textContent,/Retrying/);assert.equal(panel.querySelector('.dyws-tracking-complete').hidden,true);fail=false;notify();await settle();assert.equal(panel.querySelector('.dyws-tracking-error').textContent,'');}finally{tracker.destroy();}
 });
+test('Returning to a visible customer page immediately fetches completion without waiting for polling',async()=>{
+ const container=element(),doc=Object.assign(new EventTarget(),{hidden:false,createElement:element,defaultView:new EventTarget()});
+ let reads=0,status='out_for_delivery';const api=async()=>{reads++;return {status,paymentStatus:'paid',fulfillment:'delivery',events:[],location:null,updatedAt:Date.now()/1000};};
+ api.watch=()=>()=>{};
+ const tracker=createTracking({api,container,document:doc});
+ try{
+  tracker.show('order','token');await settle();const panel=container.children[0];
+  doc.hidden=true;doc.dispatchEvent(new Event('visibilitychange'));await settle();assert.equal(reads,1);
+  status='delivered';doc.hidden=false;doc.dispatchEvent(new Event('visibilitychange'));await settle();
+  assert.equal(reads,2);assert.equal(panel.querySelector('.dyws-tracking-status').textContent,'Delivered');
+  doc.defaultView.dispatchEvent(new Event('online'));await settle();assert.equal(reads,2);
+ }finally{tracker.destroy();}
+});
+test('Returning online refreshes and clears a failed update warning',async()=>{
+ const container=element(),doc=Object.assign(new EventTarget(),{hidden:false,createElement:element,defaultView:new EventTarget()});
+ let fail=true;const api=async()=>{if(fail)throw new Error('offline');return {status:'out_for_delivery',paymentStatus:'paid',fulfillment:'delivery',events:[],location:null};};api.watch=()=>()=>{};
+ const tracker=createTracking({api,container,document:doc});
+ try{tracker.show('order','token');await settle();const panel=container.children[0];assert.match(panel.querySelector('.dyws-tracking-error').textContent,/Retrying/);fail=false;doc.defaultView.dispatchEvent(new Event('online'));await settle();assert.equal(panel.querySelector('.dyws-tracking-error').textContent,'');assert.equal(panel.querySelector('.dyws-tracking-status').textContent,'Driver is on the way');}finally{tracker.destroy();}
+});
