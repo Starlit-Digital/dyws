@@ -75,6 +75,10 @@ final class AdminAccounts {
   },true);
  }
  public function login(Store $store,array $body):array {
+  if(!empty($this->config['required_plugins'])){
+   $policies=$store->plugins??new Plugins($this->config,$this->config['plugins_path']??null,$store);
+   $policies->validate('auth.validating',$body);
+  }
   return $this->locked($store,function()use($store,$body){
    $config=$this->effective();$role=$body['role']??'';$password=$body['password']??'';$subject=$role==='manager'?'manager':($body['driverId']??'');
    if(!is_string($role)||!is_string($subject))throw new ApiError('Incorrect sign in details.',401);

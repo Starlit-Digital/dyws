@@ -19,6 +19,7 @@ try {
   $raw=file_get_contents('php://input',false,null,0,$maxBody+1);if(strlen($raw)>$maxBody)throw new \dyws\ApiError('Request is too large.',413);
   $body=json_decode($raw,true,64,JSON_THROW_ON_ERROR);if(!is_array($body))throw new \dyws\ApiError('Invalid request.',400);
  }else $body=[];
+ if(!empty($config['required_plugins']))$plugins->validate('request.validating',$method,$route,$body);
  $result=null;
  if($method==='GET'&&$route==='/health')$result=['service'=>'dyws','demo'=>true];
  elseif($method==='GET'&&$route==='/realtime/config')$result=$realtime->publicConfig();

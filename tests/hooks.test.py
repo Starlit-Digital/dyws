@@ -14,7 +14,8 @@ use dyws\\ApiError;
 return function($plugin){
  $log=function($name)use($plugin){file_put_contents(dirname($plugin->config['database']).'/hooks.log',$name."\\n",FILE_APPEND);};
  foreach(['plugin.activated','plugin.deactivated','catalog.saved','order.created','order.status_changed','order.assigned','api.respond','reports.generated'] as $name)$plugin->addAction($name,fn()=>$log($name));
- foreach(['catalog.public','tracking.public','reports.summary','api.response','reports.dataset'] as $name)$plugin->addFilter($name,function($value)use($name,$log){$log($name);$value['fixtureHook']=$name;return $value;});
+ foreach(['catalog.public','tracking.public','reports.summary','api.response','reports.dataset','page.presentation'] as $name)$plugin->addFilter($name,function($value)use($name,$log){$log($name);$value['fixtureHook']=$name;return $value;});
+ $plugin->addFilter('order.input',function($value)use($log){$log('order.input');return $value;});
  $plugin->addFilter('lookup.results',function($value,$context)use($log){$log('lookup.results');if($context['kind']==='fixture')$value['results'][]=['kind'=>'fixture','id'=>'fixture-record','label'=>$context['query']];return $value;});
  $plugin->addValidator('catalog.validating',function($catalog)use($log){$log('catalog.validating');if($catalog['businessName']==='Denied catalog')throw new ApiError('Fixture rejects this catalog.');});
  $plugin->addValidator('order.validating',function($order,$totals)use($log){$log('order.validating');if($order['notes']==='reject')throw new ApiError('Fixture rejects this order.');if($order['notes']==='crash')throw new RuntimeException('Fixture failure');if($totals['total']<1)throw new ApiError('Total is required.');});
@@ -71,9 +72,10 @@ return function($plugin){
   result=request('/manager/lookup',query='&q=Fixture&kind=orders',token=admin);check(result['results'][0]['id']==order and 'customer_phone' not in result['results'][0])
   result=request('/manager/lookup',query='&q=Custom&kind=fixture',token=admin);check(result['results']==[{'kind':'fixture','id':'fixture-record','label':'Custom'}])
   check(request('/manager/lookup',query='&q=%25&kind=orders',token=admin)['results']==[])
-  # Server registry advertises exactly 32 built in hook features and every PHP site ran.
-  hooks=request('/plugins')['hooks'];check(len(hooks)==32 and len({h['name'] for h in hooks})==32)
-  check({h['name'] for h in hooks if h['runtime']=='php'}<=set(log()))
+  with urllib.request.urlopen(f'http://127.0.0.1:{port}/auth/') as response:check(response.status==200)
+  # Mandatory installation access hooks are exercised by demo-lockdown.test.py.
+  hooks=request('/plugins')['hooks'];check(len(hooks)==37 and len({h['name'] for h in hooks})==37)
+  check({h['name'] for h in hooks if h['runtime']=='php' and h['name'] not in ['installation.validating','request.validating','auth.validating']}<=set(log()))
   # Removed required validation code fails closed, while managers can still inspect settings.
   shutil.rmtree(fixture)
   body['idempotencyKey']=str(uuid.uuid4());request('/orders',body,status=503)

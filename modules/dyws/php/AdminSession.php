@@ -38,7 +38,7 @@ function dyws_admin_auth(array $config,\dyws\Store $store):array {
    if((int)($_SERVER['CONTENT_LENGTH']??0)>4096)throw new \dyws\ApiError('Sign in form is too large.',413);
    if(!is_string($cookie)||!preg_match('/^[a-f0-9]{64}$/D',$cookie)||!is_string($csrf)||!hash_equals($cookie,$csrf))throw new \dyws\ApiError('Refresh this page and try again.',403);
    dyws_limit_requests($store,$config,'login',10,900);
-   $session=(new \dyws\AdminAccounts($config))->login($store,['role'=>'manager','password'=>$_POST['password']??'']);
+   $session=(new \dyws\AdminAccounts($config))->login($store,['role'=>'manager','username'=>$_POST['username']??'','password'=>$_POST['password']??'']);
    dyws_admin_cookie($config,'dyws_admin_session',$session['token'],$session['expiresAt']);
    dyws_admin_cookie($config,'dyws_auth_csrf','',time()-3600);
    dyws_admin_redirect($config,'orders',303);
@@ -46,4 +46,10 @@ function dyws_admin_auth(array $config,\dyws\Store $store):array {
  }
  $csrf=bin2hex(random_bytes(32));dyws_admin_cookie($config,'dyws_auth_csrf',$csrf,0);
  return ['error'=>$error,'csrf'=>$csrf];
+}
+
+/** Plain text plugin presentation only. The page escapes every displayed value. */
+function dyws_page_presentation(array $config,\dyws\Store $store,string $page):array {
+ $plugins=$store->plugins??new \dyws\Plugins($config,$config['plugins_path']??null,$store);
+ return $plugins->applyFilters('page.presentation',['notice'=>'','username'=>'','driverId'=>'demo-driver','gpsMessage'=>''],$page);
 }

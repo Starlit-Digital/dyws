@@ -27,8 +27,11 @@ final class PluginContext {
 }
 
 final class Plugins {
- private string $root,$path;private array $installed=[],$loaded=[],$errors=[],$defaults=[],$aliases=[],$retained=[],$paymentPlugins=[],$upgradeDefaults=[];
+ private string $root,$path;private array $installed=[],$loaded=[],$errors=[],$defaults=[],$aliases=[],$retained=[],$paymentPlugins=[],$upgradeDefaults=[],$required=[];
  public function __construct(private array $config,?string $root=null,private ?Store $store=null){
+  $required=$config['required_plugins']??[];
+  if(!is_array($required)||!array_is_list($required)||array_filter($required,fn($id)=>!is_string($id)||!preg_match('/^[a-z][a-z0-9-]{0,59}$/D',$id)))throw new ApiError('Required plugin configuration is invalid.',503);
+  $this->required=array_values(array_unique($required));
   $this->root=$root??dirname(__DIR__,3).'/plugins';
   $this->path=dirname($config['database']).'/plugins-'.substr(hash('sha256',$config['tenant']),0,16).'.json';
   $bundle=$this->readJSON($this->root.'/bundled.json');$this->defaults=$bundle['active']??[];$this->aliases=$bundle['aliases']??[];$this->retained=$bundle['retainedRoutes']??[];$this->paymentPlugins=$bundle['paymentProviders']??[];$this->upgradeDefaults=$bundle['upgradeDefaults']??[];
@@ -50,6 +53,12 @@ final class Plugins {
  }
  private function readJSON(string $path):array{if(!is_file($path))return [];try{$value=json_decode(file_get_contents($path),true,32,JSON_THROW_ON_ERROR);return is_array($value)?$value:[];}catch(\Throwable){return [];}}
  private function state():array {
+  $state=$this->savedState();
+  $state['active']=array_values(array_unique(array_merge($this->required,$state['active'])));
+  return $state;
+ }
+ public function activeIds():array{return $this->state()['active'];}
+ private function savedState():array {
   if(!is_file($this->path))return ['active'=>array_values(array_intersect($this->defaults,array_unique(array_merge(array_keys($this->installed),$this->paymentPlugins))))];
   $state=$this->readJSON($this->path);
   if(!is_array($state['active']??null)||array_filter($state['active'],fn($id)=>!is_string($id)))return ['active'=>[],'invalid'=>true];
@@ -69,13 +78,15 @@ final class Plugins {
   $register($context);return $this->loaded[$id]=$context;
  }
  public function boot():void {
+  foreach($this->required as $id)if(!isset($this->installed[$id])||isset($this->errors[$id]))throw new ApiError('A required installation plugin is unavailable.',503);
   foreach($this->state()['active'] as $id){if(!isset($this->installed[$id])||isset($this->errors[$id]))continue;
    try{$this->load($id);}catch(\Throwable $e){$this->errors[$id]='Plugin could not start. Check the server log.';error_log('dyws plugin '.$id.': '.$e->getMessage());}
   }
+  foreach($this->required as $id)if(!isset($this->loaded[$id])||isset($this->errors[$id]))throw new ApiError('A required installation plugin could not start.',503);
  }
  public function summary():array {
   $this->boot();$state=$this->state();$plugins=[];
-  foreach($this->installed as $id=>$m)$plugins[]=['id'=>$id,'name'=>$m['name'],'version'=>$m['version'],'description'=>$m['description'],'active'=>in_array($id,$state['active'],true),'error'=>$this->errors[$id]??null,'settingsAnchor'=>$m['settingsAnchor']??null,'retainsWebhooks'=>!empty($this->retained[$id])];
+  foreach($this->installed as $id=>$m)$plugins[]=['id'=>$id,'name'=>$m['name'],'version'=>$m['version'],'description'=>$m['description'],'active'=>in_array($id,$state['active'],true),'error'=>$this->errors[$id]??null,'settingsAnchor'=>$m['settingsAnchor']??null,'locked'=>in_array($id,$this->required,true),'retainsWebhooks'=>!empty($this->retained[$id])];
   foreach($this->errors as $id=>$error)if(!isset($this->installed[$id]))$plugins[]=['id'=>$id,'name'=>$id,'version'=>'','description'=>'','active'=>false,'error'=>$error];
   return ['plugins'=>$plugins,'revision'=>$this->revision(),'warning'=>isset($state['invalid'])?'Plugin settings could not be read. Plugins are disabled until saved again.':null];
  }
@@ -89,6 +100,7 @@ final class Plugins {
  public function save(array $body):array {
   $id=Store::text($body['id']??null,60);$active=$body['active']??null;
   if(!is_bool($active)||!isset($this->installed[$id]))throw new ApiError('Choose an installed plugin.');
+  if(!$active&&in_array($id,$this->required,true))throw new ApiError('This plugin is required by the installation and cannot be disabled here.',403);
   $revision=Store::text($body['revision']??null,64);$lock=fopen($this->path.'.lock','c');if(!$lock)throw new ApiError('Plugin settings are busy.',503);
   try{
    if(!flock($lock,LOCK_EX))throw new ApiError('Plugin settings are busy.',503);

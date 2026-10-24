@@ -1,6 +1,6 @@
 # dyws hook reference
 
-dyws includes 32 built in hook features. The current application release is recorded in [VERSION](../VERSION). The names below are live integration points. The machine readable catalog is modules/dyws/php/hooks.json and is also returned by GET /plugins. Actions, filters and validators use priorities, default 10, with lower values first.
+dyws includes 37 built in hook features. The current application release is recorded in [VERSION](../VERSION). The names below are live integration points. The machine readable catalog is modules/dyws/php/hooks.json and is also returned by GET /plugins. Actions, filters and validators use priorities, default 10, with lower values first.
 
 ## Server hooks
 
@@ -109,3 +109,15 @@ The browser provider `reports.renderer` receives `{root,report,applyFilters,runA
 PHP reporting context is `{from,to,currency,fulfillment,timeZone}`. Date bounds are epoch seconds with an exclusive end. The dataset includes its schemaVersion. These plugin owned dataset hooks are available only when that plugin runs; the toolbar, query, summary export and renderer provider are core integration points.
 
 The `admin:tables` browser action also accepts a generic `table[data-dyws-table="stable-key"]`. Optional arguments are `options` for DataTables configuration, `ready(instance, table)` to attach table controls, and `forget: true` with the dispose phase to discard in memory state on logout or destruction. Existing report table markers remain supported. The core order board works without an enhancement handler. Handlers receive private admin DOM only after manager login.
+
+## Mandatory installation policies and input presentation
+
+These five additional PHP contracts bring the catalog to 37. Installation, request and authentication policy checks run when private configuration declares `required_plugins`. They run before the relevant handler, and do not replace core authorization. Pin any access policy in that private list so missing code fails closed. Ordinary installations can still inspect and repair a broken optional order validator.
+
+| # | Hook | Kind | Arguments and timing |
+|---|---|---|---|
+| 33 | installation.validating | Validator | `(config)` during bootstrap after creating the store, before returning any page data. Verify installation invariants. Required policies run first. |
+| 34 | request.validating | Validator | `(method, route, body)` after JSON decoding, before any API handler. A mandatory installation policy can deny unknown endpoints or critical mutations. |
+| 35 | auth.validating | Validator | `(body)` before core password verification and session creation, for both API and PHP form sign in. Add requirements; never bypass the core credential check. |
+| 36 | order.input | Filter | `(body)` before field validation, pricing and idempotency fingerprinting. Normalize input. Pair enforced restrictions with `order.validating`, since optional filters isolate errors. |
+| 37 | page.presentation | Filter | `(presentation, page)` on sign in pages. Fields are plain text `notice`, `username`, `driverId` and `gpsMessage`. PHP escapes every displayed value. |

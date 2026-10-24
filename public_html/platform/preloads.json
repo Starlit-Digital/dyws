@@ -169,6 +169,9 @@
     ]
   },
   "plugins": {
+    "demo-lockdown": [
+      "plugins/demo-lockdown/index.js?v=1.0.0"
+    ],
     "order-reporting": [
       "dyws/api.js",
       "dyws/date-time.js",

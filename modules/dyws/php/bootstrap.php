@@ -19,5 +19,10 @@ function dyws_bootstrap(?string $configPath=null):array {
  $config=(new \dyws\AdminAccounts($config))->effective();
  $GLOBALS['dyws_config']=$config;
  $catalog=\dyws\Catalog::load($config['catalog']);
- return [$config,new Store($config['database'],$catalog,$config['tenant'])];
+ $store=new Store($config['database'],$catalog,$config['tenant']);
+ if(!empty($config['required_plugins'])){
+  $store->plugins=new \dyws\Plugins($config,$config['plugins_path']??null,$store);
+  $store->plugins->validate('installation.validating',$config);
+ }
+ return [$config,$store];
 }

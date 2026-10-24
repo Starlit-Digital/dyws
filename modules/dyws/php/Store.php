@@ -25,6 +25,7 @@ final class Store {
  public function execute(string $sql,array $args=[]):void{$s=$this->db->prepare($sql);$s->execute($args);}
  public static function text($value,int $max,bool $required=true):string {if(!is_string($value)||strlen(trim($value))>$max||($required&&trim($value)===''))throw new ApiError('Check the required fields.');return trim($value);}
  public function create(array $body,string $paymentProvider='demo'):array {
+  $body=$this->plugins?->applyFilters('order.input',$body)??$body;
   $key=self::text($body['idempotencyKey']??null,80);if(!preg_match('/^[A-Za-z0-9-]{16,80}$/',$key))throw new ApiError('Invalid request key.');
   $customer=$body['customer']??[];$name=self::text($customer['name']??null,100);$phone=self::text($customer['phone']??null,30);if(!preg_match('/^[0-9+() .-]{7,30}$/',$phone))throw new ApiError('Enter a phone number.');
   $notes=self::text($body['notes']??'',500,false);$fulfillment=$body['fulfillment']??'pickup';if(!in_array($fulfillment,['pickup','delivery'],true))throw new ApiError('Choose pickup or delivery.');

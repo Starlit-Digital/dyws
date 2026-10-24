@@ -190,5 +190,35 @@
     "runtime": "browser",
     "type": "action",
     "description": "Enhance or dispose explicitly marked admin tables."
+  },
+  {
+    "name": "installation.validating",
+    "runtime": "php",
+    "type": "validator",
+    "description": "Verify mandatory private installation policies before serving any page."
+  },
+  {
+    "name": "request.validating",
+    "runtime": "php",
+    "type": "validator",
+    "description": "Reject an API request before its handler; core authorization still applies."
+  },
+  {
+    "name": "auth.validating",
+    "runtime": "php",
+    "type": "validator",
+    "description": "Check extra login requirements before core password verification."
+  },
+  {
+    "name": "order.input",
+    "runtime": "php",
+    "type": "filter",
+    "description": "Normalize order input before core validation and authoritative pricing."
+  },
+  {
+    "name": "page.presentation",
+    "runtime": "php",
+    "type": "filter",
+    "description": "Offer escaped login notices and suggested account identifiers."
   }
 ]
