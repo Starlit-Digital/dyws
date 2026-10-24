@@ -1,6 +1,6 @@
 {
   "name": "@starlit-digital/dyws",
-  "version": "0.9.4",
+  "version": "0.10.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -8,6 +8,7 @@
     "serve": "php -S 127.0.0.1:8097 -t public_html server/router.php",
     "setup": "php server/setup.php",
     "test:realtime": "npm test --prefix modules/dyws/realtime",
-    "build:zip": "python3 scripts/build-release.py"
+    "build:zip": "python3 scripts/build-release.py",
+    "verify:release": "python3 scripts/verify-release.py"
   }
 }

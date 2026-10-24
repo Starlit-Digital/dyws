@@ -2,6 +2,9 @@
 """Build the single install ZIP from tracked source plus locked Composer dependencies."""
 import hashlib,json,pathlib,subprocess,zipfile
 root=pathlib.Path(__file__).resolve().parents[1]
+version=(root/'VERSION').read_text().strip()
+for package in ['package.json','public_html/dyws/package.json']:
+ if json.loads((root/package).read_text())['version']!=version:raise SystemExit('Version mismatch: '+package)
 subprocess.run(['python3','scripts/build-preloads.py'],cwd=root,check=True)
 subprocess.run(['composer','validate','--no-check-publish'],cwd=root,check=True)
 if not (root/'vendor/autoload.php').is_file():raise SystemExit('Run composer install --no-dev first.')
@@ -9,7 +12,7 @@ tracked=subprocess.check_output(['git','ls-files','-z'],cwd=root).decode().split
 files={}
 for name in tracked:
  if not name:continue
- if name.startswith(('public_html/','modules/dyws/php/','server/','plugins/','examples/','docs/')) or name in ['README.md','INSTALL.md','composer.json','composer.lock','package.json']:
+ if name.startswith(('public_html/','modules/dyws/php/','modules/dyws/realtime/','server/','plugins/','examples/','docs/')) or name in ['README.md','INSTALL.md','VERSION','CHANGELOG.md','composer.json','composer.lock','package.json']:
   if name=='public_html/api/bootstrap-path.php' or pathlib.Path(name).suffix in ['.sqlite','.db'] or '/node_modules/' in name:raise SystemExit('Refusing private/runtime file: '+name)
   path=root/name
   if path.is_symlink():raise SystemExit('Refusing source symlink: '+name)
@@ -17,10 +20,10 @@ for name in tracked:
 for path in (root/'vendor').rglob('*'):
  if path.is_symlink():raise SystemExit('Refusing dependency symlink: '+str(path))
  if path.is_file():files[path.relative_to(root).as_posix()]=path.read_bytes()
-for needed in ['modules/dyws/php/Features.php','public_html/dyws/catalog-data.js','modules/dyws/php/PageData.php','public_html/dyws/tracking-handoff.js','public_html/platform/preloads.json','modules/dyws/php/AdminData.php','public_html/dyws/diagnostics.js','public_html/admin/page.php','public_html/auth/page.php','modules/dyws/php/AdminSession.php','public_html/home.php','public_html/orders/page.php','public_html/api/endpoint.php','server/router.php','public_html/setup/install.php','modules/dyws/php/Installer.php','modules/dyws/php/accounts.sql','modules/dyws/php/hooks.json','plugins/stripe/plugin.json','public_html/plugins/stripe/index.js','plugins/google-maps/plugin.json','public_html/plugins/google-maps/index.js','plugins/order-reporting/plugin.json','public_html/plugins/order-reporting/index.js','plugins/datatables/plugin.json','public_html/plugins/datatables/vendor/dataTables.min.js','INSTALL.md']:
+for needed in ['VERSION','CHANGELOG.md','modules/dyws/realtime/server.js','modules/dyws/realtime/package-lock.json','public_html/dyws/admin-refresh.js','modules/dyws/php/Features.php','public_html/dyws/catalog-data.js','modules/dyws/php/PageData.php','public_html/dyws/tracking-handoff.js','public_html/platform/preloads.json','modules/dyws/php/AdminData.php','public_html/dyws/diagnostics.js','public_html/admin/page.php','public_html/auth/page.php','modules/dyws/php/AdminSession.php','public_html/home.php','public_html/orders/page.php','public_html/api/endpoint.php','server/router.php','public_html/setup/install.php','modules/dyws/php/Installer.php','modules/dyws/php/accounts.sql','modules/dyws/php/hooks.json','plugins/stripe/plugin.json','public_html/plugins/stripe/index.js','plugins/google-maps/plugin.json','public_html/plugins/google-maps/index.js','plugins/order-reporting/plugin.json','public_html/plugins/order-reporting/index.js','plugins/datatables/plugin.json','public_html/plugins/datatables/vendor/dataTables.min.js','INSTALL.md']:
  if needed not in files:raise SystemExit('Stage release source before building: '+needed)
 files['var/.gitkeep']=b''
-manifest={'version':json.loads((root/'package.json').read_text())['version'],'files':{name:hashlib.sha256(data).hexdigest() for name,data in sorted(files.items())}}
+manifest={'version':version,'files':{name:hashlib.sha256(data).hexdigest() for name,data in sorted(files.items())}}
 files['MANIFEST.json']=(json.dumps(manifest,indent=2)+'\n').encode()
 archive=root/'dyws.zip'
 with zipfile.ZipFile(archive,'w',compression=zipfile.ZIP_DEFLATED,compresslevel=9) as z:
@@ -29,4 +32,6 @@ with zipfile.ZipFile(archive,'w',compression=zipfile.ZIP_DEFLATED,compresslevel=
 with zipfile.ZipFile(archive) as z:
  if z.testzip():raise SystemExit('ZIP integrity check failed.')
 print(f'{archive}: {len(files)} files, {archive.stat().st_size:,} bytes')
-print('SHA256 '+hashlib.sha256(archive.read_bytes()).hexdigest())
+digest=hashlib.sha256(archive.read_bytes()).hexdigest()
+(root/'SHA256SUMS').write_text(digest+'  dyws.zip\n')
+print('SHA256 '+digest)
