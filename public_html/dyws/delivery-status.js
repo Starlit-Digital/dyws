@@ -11,7 +11,7 @@ export function deliveryStatus(order,{estimate=undefined,now=Date.now(),role='Dr
  const stamp=order.events?.filter(e=>e.status===status).at(-1)?.created_at||order.updatedAt;
  const view={title:titles[status]||'Order update',message:messages[status]||'',terminal,complete,stamp,stages:stages.map((key,index)=>({key,label:({placed:'Received',preparing:'Preparing',ready:'Ready',out_for_delivery:'On the way',delivered:'Delivered',completed:'Collected'})[key],state:index<current?'done':index===current?'current':'upcoming'})),etaTitle:pickup?'Pickup':'Estimated arrival',etaValue:pickup?'Waiting for preparation':'Available after departure',etaDetail:pickup?'We will let you know here when your order is ready.':'An arrival estimate appears when your '+role.toLowerCase()+' starts the delivery.'};
  if(terminal){view.etaTitle='';view.etaValue='';view.etaDetail='';return view;}
- if(order.paymentProvider&&order.paymentProvider!=='demo'&&order.paymentStatus==='unpaid'&&status==='placed'){view.message='Complete your test payment below to continue.';view.etaValue='Waiting for payment';return view;}
+ if(order.paymentProvider&&order.paymentProvider!=='demo'&&order.paymentStatus==='unpaid'&&status==='placed'){view.message='Complete your payment below to continue.';view.etaValue='Waiting for payment';return view;}
  if(pickup){if(status==='ready')view.etaValue='Ready now';return view;}
  if(status!=='out_for_delivery')return view;
  const point=order.location,stale=order.gpsStale||!point||now-point.recorded_at*1000>60000;

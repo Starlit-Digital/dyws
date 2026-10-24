@@ -72,3 +72,8 @@
 .dyws-ordering header { align-items:center; margin-bottom:24px; }
 .dyws-ordering header h2 { margin:0; }
 @media(max-width:500px) { .dyws-ordering header { flex-wrap:nowrap; gap:8px; }.dyws-ordering header small { display:none; }.dyws-ordering header h2 { font-size:1.5em; }.dyws-ordering .dyws-close { padding-inline:14px; } }
+
+/* Contact details lead both flows. Paired fields remain side by side on phones. */
+.dyws-ordering .dyws-checkout-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px 12px; margin-block:16px; }
+.dyws-ordering .dyws-checkout-grid label { display:grid; align-content:end; gap:6px; min-width:0; margin:0; }
+.dyws-ordering .dyws-checkout-grid input { min-width:0; }

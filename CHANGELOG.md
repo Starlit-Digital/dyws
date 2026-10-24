@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Lead checkout with Name and Phone number in two columns, including on mobile. Pair delivery address fields, show the pickup location only for Pickup, and link it to Google Maps in a new tab.
+- Consolidate the diner demonstration notice in the hero and remove repeated test wording from customer, driver and admin screens. Demo restrictions and payment safeguards remain unchanged.
+
 - Extend warm surfaces, rounded actions, clear form grouping and theme aware contrast across the storefront, cart, every admin page, sign in, driver console and installer. Drivers now see a highlighted next stop and accessible run progress. Browser charts follow the page palette while exported SVGs retain their standalone colours.
 
 - Refine customer tracking and expanded order details with warm theme aware accents, stronger typography, grouped information and rounded controls.

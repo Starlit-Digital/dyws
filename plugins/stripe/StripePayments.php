@@ -21,7 +21,7 @@ final class StripePayments {
    $existing=$this->store->query('SELECT * FROM payment_attempts WHERE tenant=? AND order_id=?',[$this->store->tenant,$id]);
    if($existing)return $existing[0];
    if(!$this->settings->read()['enabled'])throw new ApiError('Stripe checkout is currently disabled.',503);
-   if($o['total']<100)throw new ApiError('Stripe test orders must total at least $1.00.');
+   if($o['total']<100)throw new ApiError('Stripe orders must total at least $1.00.');
    $nonce=bin2hex(random_bytes(16));$this->store->execute('INSERT INTO payment_attempts(tenant,order_id,nonce,status,amount,currency,created_at) VALUES(?,?,?,\'creating\',?,?,?)',[$this->store->tenant,$id,$nonce,$o['total'],$o['currency'],time()]);
    return $this->store->query('SELECT * FROM payment_attempts WHERE tenant=? AND order_id=?',[$this->store->tenant,$id])[0];
   });

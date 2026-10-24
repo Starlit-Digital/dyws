@@ -2,7 +2,7 @@
 export function renderStripePayment({api,document:doc,order,container,trackingToken,onError,navigate=url=>location.assign(url)}){
  if(order.paymentProvider!=='stripe'||order.paymentStatus!=='unpaid'||order.status!=='placed')return;
  if(!order.checkoutStatus||['creating','open'].includes(order.checkoutStatus)){
-  const button=doc.createElement('button');button.type='button';button.textContent='Pay with Stripe · test checkout';container.append(button);
+  const button=doc.createElement('button');button.type='button';button.textContent='Pay with Stripe';container.append(button);
   button.onclick=async()=>{
    button.disabled=true;
    try{

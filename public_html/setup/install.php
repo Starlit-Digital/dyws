@@ -53,6 +53,6 @@ $ready=$installer&&\dyws\Installer::ready($checks)&&$checks;
 <label>Admin password<input type="password" name="password" required minlength="12" maxlength="72" autocomplete="new-password"></label>
 <label>Confirm password<input type="password" name="confirmPassword" required minlength="12" maxlength="72" autocomplete="new-password"></label><p class="dyws-note">12 characters minimum.</p>
 <label>Starting catalog<select name="catalog"><option value="empty">Empty catalog</option><option value="diner"<?=($_POST['catalog']??'')==='diner'?' selected':''?>>Starlit Diner example</option></select></label>
-<p class="dyws-note">Test orders only. No real charges.</p><button>Install dyws</button></form>
+<button>Install dyws</button></form>
 <?php endif; endif; ?>
 </main></body></html>
