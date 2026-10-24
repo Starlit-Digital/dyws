@@ -2,7 +2,7 @@
 
 **Do You Want Something?** A reusable ordering and delivery system for a business’s own website.
 
-**Release: 0.10.0** · [Download the install ZIP](https://github.com/Starlit-Digital/dyws/releases/download/v0.10.0/dyws.zip) · [Release notes](CHANGELOG.md) · [Installation guide](INSTALL.md) · [Hosted diner example](https://sltd.ca/diner/)
+**Release: 0.10.0** · [Optional install ZIP](https://github.com/Starlit-Digital/dyws/releases/download/v0.10.0/dyws.zip) · [Release notes](CHANGELOG.md) · [Installation guide](INSTALL.md) · [Hosted diner example](https://sltd.ca/diner/)
 
 The customer orders on your website, the business manages the order, and an assigned driver handles the delivery. Starlit Diner is the fictional restaurant example. The catalog also supports general products and services sold in whole units.
 
@@ -12,7 +12,11 @@ This is a development preview. Orders and delivery workflows work against persis
 
 ## Install or run
 
-For a merchant installation, download `dyws.zip` from the release, extract it, and serve **only `public_html/`** over HTTPS. Keep `var`, `server`, `modules`, `plugins`, and `vendor` outside the web root. Open `/setup/`, supply the private setup key, choose your administrator password and catalog, and finish installation. Setup removes itself and locks out repeat installation. The ZIP includes the pinned PHP dependencies.
+The Git repository is the complete project: application source, bundled plugins, assets, examples, tests, build scripts and documentation. Clone it to develop or deploy dyws. Composer installs the locked PHP dependencies; the website does not need a ZIP or a frontend build.
+
+For a merchant installation, clone the repository and run `composer install --no-dev`, then serve **only `public_html/`** over HTTPS. Keep all other directories outside the web root. Open `/setup/`, supply the private setup key, choose your administrator password and catalog, and finish installation. Setup removes itself and locks out repeat installation.
+
+The optional release ZIP is a convenience for uploading to hosting without Composer. It contains the application and pinned PHP dependencies. Extract it and follow the same browser setup instructions.
 
 Requirements: PHP 8.1 or newer, PDO SQLite, OpenSSL, curl, mbstring, and a writable private storage directory. See [INSTALL.md](INSTALL.md) for shared hosting, permissions, upgrades, and recovery precautions.
 
@@ -96,7 +100,7 @@ Native PHP `#[Provides(...)]` attributes describe plugin features. Page `#[Requi
 | Assets | Page specific editor imports, plugin feature resolution, generated module preloads and revalidated static assets. Authenticated HTML and API responses use no store caching. |
 | Communication | HTTPS polling works on ordinary PHP hosting. An optional scoped WebSocket relay provides invalidations and RPC, with HTTP fallback and no automatic replay of uncertain writes. |
 | Diagnostics | Opt in `?diagnostics=1` measurements for startup, API reads, rendering and maps, without recording tokens, request bodies or customer contact details. |
-| Installation | A single ZIP with dependencies and a file hash manifest, or Git plus Composer. Ownership key setup, administrator creation, installer removal and reinstall protection. |
+| Installation | Git plus Composer, with an optional install ZIP containing dependencies and a file hash manifest. Ownership key setup, administrator creation, installer removal and reinstall protection. |
 | Maintenance | Documented backups, account migration, cleanup tooling and separate private runtime storage. These tools are not automatically scheduled by installation. |
 
 ## Screenshot examples
@@ -169,6 +173,9 @@ All images below were captured from this release’s local demo on October 23, 2
 | `plugins/` | Private bundled plugin implementations and manifests. |
 | `public_html/plugins/` | Matching browser assets for bundled plugins. |
 | `examples/` | Diner and general store catalogs, PHP host integration and plugin examples. |
+| `tests/` | Automated application, API, plugin and installation checks. |
+| `scripts/` | Asset preparation and optional release packaging tools. |
+| `dist/` | Ignored generated install ZIP and checksum, created only when requested. |
 | `var/` | Ignored runtime data and credentials. Never publish this directory. |
 | `docs/` | Architecture, APIs, deployment, screenshots, plugin contracts and plans. |
 
@@ -177,14 +184,21 @@ Use [the PHP module calls](docs/dyws-module.md) to render categories and item pa
 ## Verification and releases
 
 ```sh
+composer install --no-dev
+npm ci --prefix modules/dyws/realtime
 npm test
 npm run test:realtime
-npm run build:zip
-npm run verify:release
-DYWS_INSTALL_ARCHIVE="$PWD/dyws.zip" python3 tests/installer.test.py
 ```
 
-`VERSION`, the root package and the browser package share the application version. Bundled plugins and the optional relay retain their own component versions. The builder checks version alignment, includes the locked PHP dependencies, excludes runtime files and writes `MANIFEST.json` inside the ZIP. Stage new source files before building.
+Optionally build and verify an install download:
+
+```sh
+npm run build:zip
+npm run verify:release
+DYWS_INSTALL_ARCHIVE="$PWD/dist/dyws.zip" python3 tests/installer.test.py
+```
+
+`VERSION`, the root package and the browser package share the application version. Bundled plugins and the optional relay retain their own component versions. The builder checks version alignment, includes the locked PHP dependencies, excludes runtime files and writes `MANIFEST.json` inside the ZIP. Stage new source files before building. Generated `dist/dyws.zip` and `dist/SHA256SUMS` are ignored by Git. Upload them as GitHub release assets when publishing an install download; do not commit them. Credentials, runtime databases and installed dependencies also remain outside Git.
 
 Release work uses separate commits with detailed messages and annotated tags. For 0.10.0, the documentation and version preparation commits have `v0.10.0-docs` and `v0.10.0-version` tags. The final packaged commit is tagged `v0.10.0`. The GitHub release contains `dyws.zip` and `SHA256SUMS`. See [release notes](CHANGELOG.md) for included changes and verification.
 

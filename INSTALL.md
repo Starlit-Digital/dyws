@@ -1,10 +1,20 @@
 # Install dyws
 
-Download **dyws.zip** from this repository, or clone the repository. The ZIP includes the pinned PHP dependencies and is ready to upload. A Git checkout needs `composer install --no-dev` first. Node.js is not required to run the website.
+Clone the complete Git repository and install its locked PHP dependencies:
+
+```sh
+git clone git@github.com:Starlit-Digital/dyws.git
+cd dyws
+composer install --no-dev
+```
+
+Git is the primary distribution and development workflow. The repository includes application code, plugins, assets, examples, tests, scripts and documentation. Runtime data and credentials stay private; Composer and npm restore dependencies from tracked manifests and lockfiles. Node.js is not required to run the website.
+
+Alternatively, download **dyws.zip** from a GitHub release and extract it. This optional install bundle includes the pinned PHP dependencies, so hosting does not need Composer. Both methods use the setup process below.
 
 ## Before opening the website
 
-1. Extract the ZIP. Keep its directory structure: public_html, modules, server, plugins, vendor, examples and var.
+1. Keep the cloned or extracted directory structure: public_html, modules, server, plugins, vendor, examples and var. For Git installations, complete the Composer command above first.
 2. Set your domain or subdomain document root to **dyws/public_html**. Keep the other folders outside the web root. Do not put the ZIP itself in a public directory.
 3. Enable HTTPS and PHP 8.1 or newer with PDO SQLite, OpenSSL, curl and mbstring.
 4. Give the PHP process write access to the private **var** folder. Temporarily give it write access to **public_html** and **public_html/setup** so the installer can remove itself. Use ownership or group permissions appropriate to your host, not world writable permissions.
@@ -61,15 +71,16 @@ Visit `http://127.0.0.1:8097/setup/`. Localhost is the only HTTP exception. Brow
 
 `npm run setup` is a separate CLI demo fixture with generated credentials and a demo driver. It is intended for automated tests and local development, not merchant installation.
 
-## Building the ZIP
+## Building the optional ZIP
 
 ```sh
 composer install --no-dev
 npm run build:zip
-DYWS_INSTALL_ARCHIVE="$PWD/dyws.zip" python3 tests/installer.test.py
+npm run verify:release
+DYWS_INSTALL_ARCHIVE="$PWD/dist/dyws.zip" python3 tests/installer.test.py
 ```
 
-Stage new release files before building. The packager uses tracked source and Composer dependencies, excludes runtime data and deployment adapters, and adds a SHA256 file manifest. Commit the single root **dyws.zip** with the release.
+Stage new release files before building. The packager uses tracked source and Composer dependencies, excludes runtime data and deployment adapters, and adds a SHA256 file manifest. The outputs are **dist/dyws.zip** and **dist/SHA256SUMS**. These generated files are ignored by Git. Publish them as optional GitHub release assets, alongside the tagged source revision. Development and deployment from Git do not require building this ZIP.
 
 ## Reference
 
@@ -77,7 +88,7 @@ The flow follows MediaWiki's [browser installer](https://www.mediawiki.org/wiki/
 
 ## Plugins
 
-The install ZIP includes Google Maps and Stripe as active bundled plugins. Stripe checkout remains disabled until configured. After setup, open Admin → Plugins to manage activation and Settings to configure active plugins. Upload private plugins/ beside server and modules, and public_html/plugins/ with the website. Preserve both parts when using split shared hosting. See [Plugin documentation](docs/plugins.md) to install or develop additional plugins.
+Both Git and the optional install ZIP include Google Maps and Stripe as active bundled plugins. Stripe checkout remains disabled until configured. After setup, open Admin → Plugins to manage activation and Settings to configure active plugins. Upload private plugins/ beside server and modules, and public_html/plugins/ with the website. Preserve both parts when using split shared hosting. See [Plugin documentation](docs/plugins.md) to install or develop additional plugins.
 
 After setup, use `/admin/` under your installation URL. The sign in page is `/auth/`; successful authentication opens Orders.
 

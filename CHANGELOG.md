@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Make the complete Git checkout the primary development and installation workflow.
+- Keep the optional install ZIP and checksum in ignored `dist/`, published as release assets instead of committed binaries.
+- Update installation, development and packaging instructions. Existing 0.10.0 release downloads remain available.
+
 ## 0.10.0 · October 23, 2026
 
 First packaged GitHub preview release of dyws. This tag includes the complete earlier development history and the recent startup, tracking and administrator refresh work.

@@ -56,7 +56,7 @@ The owner confirmed lowercase dyws on October 23, 2026. The private GitHub repos
 
 ## Installer and durable storage
 
-The project ships a single dyws.zip for installation, with Git clone as an alternative. The /setup wizard checks hosting, verifies a private one time ownership key, collects the business name, URL and admin password, creates private storage, then removes itself. Existing configuration blocks repeat setup. Orders already used SQLite and remain there; driver accounts and admin password hashes now use SQLite too. Overall site settings and product catalogs remain JSON. Legacy account migration preserves credentials, driver IDs, assignments, active state and sessions.
+The complete project is maintained as an ordinary Git repository. Git clone plus Composer is the primary installation path. An optional dyws.zip with dependencies is available as a release download; generated downloads live in ignored dist/ locally. The /setup wizard checks hosting, verifies a private one time ownership key, collects the business name, URL and admin password, creates private storage, then removes itself. Existing configuration blocks repeat setup. Orders already used SQLite and remain there; driver accounts and admin password hashes now use SQLite too. Overall site settings and product catalogs remain JSON. Legacy account migration preserves credentials, driver IDs, assignments, active state and sessions.
 
 ## Customer delivery polish
 
