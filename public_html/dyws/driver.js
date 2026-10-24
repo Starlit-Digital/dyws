@@ -42,13 +42,13 @@ export function mountDriver({root=document,api,storageKey='dyws-driver',renderLo
   const current=data.orders.find(o=>o.id===gps.orderId&&o.status==='out_for_delivery')||data.orders.find(o=>o.status==='out_for_delivery');
   currentDelivery=current;if(!current)latestPosition=null;if(simulatePosition&&current?.gps?.location){latestPosition=current.gps.location;state.textContent='Test location: '+testLocationName+'. Device GPS is not used.';details.textContent=current.id+' · Updated '+formatTime(latestPosition.recorded_at);}const mapRoot=root.querySelector('#driver-map');if(mapRoot&&renderLocation){const view=renderLocation(latestPosition,undefined,{destinationAddress:current?.address});if(view&&!mapRoot.contains(view))mapRoot.replaceChildren(view);}
   if(current&&(simulatePosition||permission?.state!=='denied')&&!document.hidden&&!gps.orderId&&(attemptedOrder!==current.id||Date.now()>retryAfter)){attemptedOrder=current.id;retryAfter=Date.now()+60000;void gps.start(current.id,{simulatePosition});}
-  if(!current){attemptedOrder=null;state.textContent='GPS starts automatically when an assigned delivery is on the way.';}
+  if(!current){attemptedOrder=null;state.textContent=simulatePosition?'Simulated location starts when an assigned delivery is on the way. Device GPS is not used.':'GPS starts automatically when an assigned delivery is on the way.';}
   if(plugins)void plugins.runAction('driver:orders',{root:pluginSlot(root.querySelector('#deliveries'),'driver'),orders:data.orders});
  }catch(e){if(token!==login)return;error.textContent=e.message;if(e.status===401||e.status===403){gps.stop('Please sign in again before sharing GPS.');signedOut();}}finally{loading=false;onReady();if(reloadPending){reloadPending=false;void load();}}}
  function hidden(){if(!document.hidden){if(!gps.orderId)attemptedOrder=null;void load();}}
  const pagehide=()=>{gps.stop();attemptedOrder=null;};
- const permissionChanged=()=>{attemptedOrder=null;if(permission?.state==='denied')gps.stop('Location permission is blocked. Allow location in your browser settings.');else if(permission?.state==='granted')void load();};
- navigator.permissions?.query({name:'geolocation'}).then(p=>{permission=p;p.addEventListener('change',permissionChanged);if(p.state==='denied')permissionChanged();}).catch(()=>{});
+ const permissionChanged=()=>{if(simulatePosition)return;attemptedOrder=null;if(permission?.state==='denied')gps.stop('Location permission is blocked. Allow location in your browser settings.');else if(permission?.state==='granted')void load();};
+ if(!simulatePosition)navigator.permissions?.query({name:'geolocation'}).then(p=>{permission=p;p.addEventListener('change',permissionChanged);if(p.state==='denied')permissionChanged();}).catch(()=>{});
  const initialMap=root.querySelector('#driver-map');if(initialMap&&renderLocation&&token)initialMap.replaceChildren(renderLocation(null));
  root.querySelector('#refresh').onclick=load;root.querySelector('#refresh').disabled=false;root.querySelector('#logout').disabled=false;display();if(token)void load();
  const refreshTimer=setInterval(()=>{if(!api.watch&&token&&!document.hidden)void load();},10000);
