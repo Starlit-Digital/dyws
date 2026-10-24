@@ -35,7 +35,7 @@ export class DYWSOrdering extends HTMLElement {
   }
   announce(text){this.shadowRoot.querySelector('[role="status"]').textContent=text;}
   render(){
-    this.shadowRoot.innerHTML=`<link rel="stylesheet" href="${new URL('./ordering.css?v=44',import.meta.url).href}"><div class="dyws-ordering"><button class="dyws-cart-launch" type="button">Your order</button><p id="dyws-status" role="status" aria-live="polite"></p><dialog aria-labelledby="dyws-order-title"><header><h2 id="dyws-order-title">Your order</h2><small>${escapeHTML(this.catalog.platformName || 'DYWS')}</small><button type="button" class="dyws-muted dyws-close" aria-label="Close order">Close</button></header><div class="dyws-content"></div></dialog></div>`;
+    this.shadowRoot.innerHTML=`<link rel="stylesheet" href="${new URL('./ordering.css?v=45',import.meta.url).href}"><div class="dyws-ordering"><button class="dyws-cart-launch" type="button">Your order</button><p id="dyws-status" role="status" aria-live="polite"></p><dialog aria-labelledby="dyws-order-title"><header><h2 id="dyws-order-title">Your order</h2><small>${escapeHTML(this.catalog.platformName || 'DYWS')}</small><button type="button" class="dyws-muted dyws-close" aria-label="Close order">Close</button></header><div class="dyws-content"></div></dialog></div>`;
     this.dialog=this.shadowRoot.querySelector('dialog');
     this.shadowRoot.querySelector('.dyws-cart-launch').onclick=()=>this.open();
     this.shadowRoot.querySelector('.dyws-close').onclick=()=>this.dialog.close();
@@ -48,8 +48,10 @@ export class DYWSOrdering extends HTMLElement {
     const content=this.shadowRoot.querySelector('.dyws-content');
     const phone=String(this.catalog.businessPhone||'');
     const dial=/^[0-9+() .-]{7,30}$/.test(phone)?phone.replace(/[^0-9+]/g,''):'';
+    const digits=phone.replace(/\D/g,'').replace(/^1(?=\d{10}$)/,'');
+    const displayPhone=digits.length===10?`(${digits.slice(0,3)}) ${digits.slice(3,6)}-${digits.slice(6)}`:phone;
     const notice=document.createElement('div');notice.className='dyws-cap-notice';notice.tabIndex=-1;notice.setAttribute('role','alert');
-    notice.innerHTML=`<p>Online orders are limited to ${itemOrderCap(this.catalog)} of each item. Please call the store for a larger order.</p>${dial?`<a href="tel:${escapeHTML(dial)}">Call ${escapeHTML(phone)}</a>`:''}`;
+    notice.innerHTML=`<p>Online orders are limited to ${itemOrderCap(this.catalog)} of each item. Please call the store for a larger order.</p>${dial?`<a href="tel:${escapeHTML(dial)}">Call ${escapeHTML(displayPhone)}</a>`:''}`;
     content.prepend(notice);if(!this.dialog.open)this.dialog.showModal();notice.focus();
   }
   showCart(){
