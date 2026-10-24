@@ -44,13 +44,13 @@ Durations require both events in chronological order. Missing pairs are omitted 
 
 `GET /manager/plugins/order-reporting/dashboard?from=2026-10-01&to=2026-10-23&currency=CAD&fulfillment=all`
 
-Manager bearer authentication required. A driver receives 403 and anonymous callers receive 401. Malformed dates and filters receive 422. Valid fulfilment values are all, pickup and delivery. Disabling the plugin removes its route. Existing GET /manager/reports also receives an orderReporting aggregate via reports.summary; existing core totals keep their original definitions for compatibility.
+Manager bearer authentication required. A driver receives 403 and anonymous callers receive 401. Malformed dates and filters receive 422. Valid fulfilment values are all, pickup and delivery. Disabling the plugin removes its route. Existing GET /manager/reports also receives an orderReporting aggregate via reports.summary. The plugin ordered value and average exclude cancelled orders; the core fallback ordered value and average include them. Core popular item totals exclude cancellations. Keep these definitions separate when building another renderer.
 
 The dataset has schemaVersion, demo, currency, currencies, fulfillment, timeZone, range, previousRange, current and previous. Current contains summary, daily, statuses, fulfillment, hours and items. Previous contains summary metrics only. Money is integer cents. Daily arrays include zero activity dates. No customer names, phone numbers, addresses, GPS, tracking tokens or driver identities appear in the dataset or exports.
 
 ## Browser integration
 
-Order Reporting provides reports.renderer. Core owns login, date controls, requests, fallback summaries and order actions. Seven new hook contracts bring the catalog to 32, covering aggregate filters, completion observers, report controls, query parameters, summary cards, export rows and table lifecycle. See plugin-hooks.md.
+Order Reporting provides reports.renderer. The PHP host owns sign in; core owns date controls, requests and fallback summaries. Order actions live on Orders. Seven reporting and table contracts are part of the 32 hook catalog, covering aggregate filters, completion observers, report controls, query parameters, summary cards, export rows and table lifecycle. See plugin-hooks.md.
 
 CSV buttons export the complete selected dataset, not only the searched or paginated DataTables rows. Summary CSV includes units, dates, currency and fulfilment; item and daily exports include scope metadata and cent units. SVG buttons download standalone charts with titles and descriptions. Tables provide exact values without requiring hover or colour recognition.
 
@@ -65,7 +65,7 @@ Vendor SHA256:
 
 Future plugins can mark a semantic table with data-dyws-report-table and call admin:tables with phase mount. Use phase dispose before replacing it. DataTables retains no browser storage and destroys detached instances. Its search and pagination remain stable while the dataset is unchanged. A focused table is allowed to finish interaction before refreshed data replaces it.
 
-## Compact orders, version 0.8.0
+## Compact orders
 
 The order board now uses the bundled DataTables plugin with ten rows per page, column sorting, search and Status, Type and Payment filters. The order number opens a single detail panel containing the existing status, assignment and test payment actions. Search and filters cover the first 200 orders, active before finished, independent of the period selected on Reports. The scope is visible beside the table. Prices and placed times sort using integer values, not their formatted strings. Each order retains its own currency.
 
@@ -75,8 +75,8 @@ Settings now controls the timezone used by reports, daily and hourly grouping, o
 
 DataTables integration follows the official [search API](https://datatables.net/reference/api/search()) and [column search API](https://datatables.net/reference/api/column().search()).
 
-## Separate admin pages, version 0.8.2
+## Separate admin pages
 
 Reports remains at reports/ and loads only reporting data, charts and exports. Orders is at orders/, with the same session, searchable table, filters and detail actions. Active delivery maps appear below the order table only when deliveries are on the way. The Orders page makes no reporting requests. The existing admin:order hook runs there; admin:dashboard and reporting hooks remain on Reports.
 
-Version 0.9 defaults to Active. Completed includes delivered and collected orders; Cancelled and All remain available. Active orders sort before completed and cancelled orders even when viewing All. The database applies this priority before its 200 order cap, so old pending orders are not pushed out by newer finished history. Within each group, newest orders appear first unless the operator selects another column sort.
+Orders defaults to Active. Completed includes delivered and collected orders; Cancelled and All remain available. Active orders sort before completed and cancelled orders even when viewing All. The database applies this priority before its 200 order cap, so old pending orders are not pushed out by newer finished history. Within each group, newest orders appear first unless the operator selects another column sort.

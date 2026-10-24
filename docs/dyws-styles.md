@@ -15,7 +15,7 @@ All classes use lowercase `dyws-`, including `dyws-catalog`, `dyws-category`, `d
 <script type="module" src="dyws/index.js"></script>
 ```
 
-The JavaScript now lives alongside these styles in the dyws package. PHP rendering and backend services live in the private modules/dyws/php library. See [module integration](dyws-module.md). The older element names and CSS URLs remain compatibility entry points.
+The JavaScript now lives alongside these styles in the dyws package. PHP rendering and backend services live in the private modules/dyws/php library. See [module integration](dyws-module.md). Use `<dyws-ordering>` and the current `dyws/` asset URLs; obsolete element names and CSS paths are not supported.
 
 ## Theme interface
 
@@ -37,4 +37,4 @@ Set public tokens on the host page or a containing element. Internal resolved va
 
 The diner maps its existing shade slider palette to these tokens in demo.css. That stylesheet retains only the host page, hero, footer, navigation, display preferences and theme mapping. Product cards, photos, steppers and the cart no longer depend on it. Photo layouts remain full width on mobile, with the category image on the left and under half the available width on desktop. Controls retain their 48px targets and manipulation touch behavior.
 
-The existing admin and driver pages use `dyws-shell` now. Admin, driver and settings controllers now have explicit module entry points. Native driver apps and installer components remain future work.
+Admin and driver pages use `dyws-shell`, with explicit controller module entry points. The full distribution includes browser setup. Native driver apps remain future work.

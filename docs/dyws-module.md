@@ -1,13 +1,13 @@
 # dyws module integration
 
-dyws owns the reusable JavaScript, CSS and PHP backend. The diner is a host application that supplies placement, configuration, branding and its reference map.
+dyws owns the reusable JavaScript, CSS and PHP backend. The diner is a host application that supplies placement, configuration and branding. Optional plugins supply maps and payment controls.
 
 ## Package locations
 
-* `public_html/dyws/`: browser ES modules and scoped CSS, package `@starlit-digital/dyws` version 0.2.0. Copy this folder to a public assets location. Its imports and shadow styles resolve within that folder.
+* `public_html/dyws/`: browser ES modules and scoped CSS, package `@starlit-digital/dyws`. Its application version matches [VERSION](../VERSION). Copy this folder to a public assets location. Its imports and shadow styles resolve within that folder.
 * `modules/dyws/php/`: private PHP library, including catalog validation and rendering, order storage, schema, API dispatch and plugin hooks. Copy this folder outside the web root. Include `module.php` once. Merely including it performs no output, database work or API dispatch.
-* `server/`: existing deployment configuration and CLI adapters. Compatibility includes preserve the existing dyws class names. Setup and cleanup remain deployment commands, not public routes.
-* `public_html/demo.js`, `demo-map.js` and `platform/*.js`: small host adapters. The diner images, map projection, simulation coordinates, display preferences and HTML page content belong to the website.
+* `server/`: existing deployment configuration and CLI adapters. Compatibility includes preserve the existing dyws class names. CLI setup and cleanup remain private deployment commands. The full distribution also supplies the browser installer at `/setup/`.
+* `public_html/demo.js`, `demo-map.js` and `platform/*.js`: small host adapters. Diner images, optional reference map adapters, test coordinates, display preferences and PHP page templates belong to the website.
 
 Neither package is published to a public registry. The PHP library requires PHP 8.1 or later and PDO SQLite for order storage. Stripe requires the Composer autoloader and the existing pinned SDK dependency. Load that autoloader before dispatching payment requests.
 
@@ -52,13 +52,13 @@ const app = mountStorefront({
 });
 ```
 
-`hydrate: true` attaches cart controls to PHP output and preserves the host's chosen panels. It does not replace those panels with a second full menu. Without PHP, pass an empty container and omit hydrate to render the catalog in JavaScript. `navigation` and `loading` elements are optional. Catalog prices are refreshed from the API before controls are enabled. The backend always prices the actual order. Without JavaScript the PHP menu remains readable, with ordering controls disabled.
+`hydrate: true` attaches cart controls to PHP output and preserves the host's chosen panels. It does not replace those panels with a second full menu. Without PHP, pass an empty container and omit hydrate to render the catalog in JavaScript. `navigation` and `loading` elements are optional. The element uses the public `catalog-data` snapshot when supplied by PHP, otherwise its catalog API URL; subsequent refreshes use the API. The backend always prices the actual order. Without JavaScript the PHP menu remains readable, with ordering controls disabled.
 
 `mountCatalog`, `createTracking`, cart helpers and `createAPIClient` are also exported separately. `mountStorefront` returns a destroy method that detaches its event handlers and tracking polling. Tracking accepts an optional `trackingPage` URL and `renderLocation(location)` callback returning a DOM node; without a map adapter it displays the GPS coordinates and status. No diner map or coordinates are inside the package.
 
-`mountManager`, `mountOrders`, `mountDriver` and `mountSettings` are explicit exports from their respective JS modules. They accept a supplied `api`, a DOM `root` matching the existing admin form markup, and a configurable session storage key. Importing these modules does not start them or inspect the page. The driver simulation requires a supplied position function; it does not begin GPS sharing on import. These controllers still use the current admin markup contract. Standalone native driver apps and an installer are separate future work.
+`mountManager`, `mountOrders`, `mountDriver` and `mountSettings` are explicit exports from their respective JS modules. They accept a supplied `api`, a DOM `root` matching the existing admin form markup, and a configurable session storage key. Importing these modules does not start them or inspect the page. The driver simulation requires a supplied position function; it does not begin GPS sharing on import. These controllers still use the current admin markup contract. The full distribution includes a browser installer. Native driver apps remain future work.
 
-The public element is `<dyws-ordering>` and its JavaScript class is `DYWSOrdering`. PHP services use the lowercase `dyws` namespace. Browser cart, session and tracking keys use the dyws prefix. Configure `DYWS_CONFIG` and `DYWS_BOOTSTRAP` when overriding private paths. Older names are removed. The CSS package is now part of `@starlit-digital/dyws`; styles are explicitly exported at `./dyws.css`.
+The public element is `<dyws-ordering>` and its JavaScript class is `DYWSOrdering`. PHP services use the lowercase `dyws` namespace. Browser cart, session and tracking keys use the dyws prefix. Configure `DYWS_CONFIG` and `DYWS_BOOTSTRAP` when overriding private paths. Older names are removed. The CSS package is part of `@starlit-digital/dyws`; styles are explicitly exported at `./dyws.css`.
 
 ## Backend endpoint
 
@@ -70,22 +70,22 @@ require_once '/srv/private/dyws/module.php';
 dyws_serve_api('/srv/private/config.json');
 ```
 
-The same private catalog file must be used by rendering and the order API. The API dispatcher retains session authorization, tenant and driver scope, rate limits, server pricing, idempotency, tracking token checks and plugin route authorization. Stripe signature verification belongs to its bundled plugin. Existing configuration fields and routes are documented in api.md and deployment.md. `dyws_bootstrap($configPath)` returns the configuration and Store for trusted server integrations. The legacy environment variable remains supported, with DYWS_CONFIG available as an alternative. API dispatch belongs in the endpoint, not in a homepage render call.
+The same private catalog file must be used by rendering and the order API. The API dispatcher retains session authorization, tenant and driver scope, rate limits, server pricing, idempotency, tracking token checks and plugin route authorization. Stripe signature verification belongs to its bundled plugin. Existing configuration fields and routes are documented in api.md and deployment.md. `dyws_bootstrap($configPath)` returns the configuration and Store for trusted server integrations. Only `DYWS_CONFIG` and `DYWS_BOOTSTRAP` are supported environment overrides. API dispatch belongs in the endpoint, not in a homepage render call.
 
 See `examples/php-host/` for a separate shop host using one category and one featured product. It was verified using copied packages outside the diner repository, including a test order saved by its own PHP backend.
 
 ## Admin editing modules
 
-The admin host has separate pages for reports, catalog, drivers, password, settings and plugins. The tab navigation uses links with aria-current rather than ARIA tabs, because each destination is a separate page. The host passes its URLs into mountAdminNavigation; package modules do not decide where the website's pages live.
+The admin host has seven separate pages for orders, reports, catalog, drivers, password, settings and plugins. The host protects them in PHP; `/admin/` redirects to `/auth/` when signed out and successful sign in opens Orders. The tab navigation uses links with aria-current rather than ARIA tabs, because each destination is a separate page. The host passes its URLs into mountAdminNavigation; package modules do not decide where the website's pages live.
 
-The browser exports catalog-editor.js, account-editor.js, stripe-editor.js and admin-navigation.js. They initialize against a supplied root and API client. The catalog editor clones the loaded JSON into an in-memory draft and edits categories, names, descriptions, image URLs and descriptions, prices, SKU, unit, availability and option names/prices. Category, item and option creation, removal and ordering preserve existing IDs. Hidden metadata is retained. Save uses the existing revision guarded catalog endpoint and server validation. Money is entered in dollars and converted to integer cents. Image uploads are not implemented; use existing relative paths or HTTPS URLs.
+The browser exports catalog-editor.js, account-editor.js, general-settings.js, business-settings.js and admin-navigation.js. Stripe owns its settings implementation in the plugin; stripe-editor.js is a compatibility export. They initialize against a supplied root and API client. The catalog editor clones the loaded JSON into an in-memory draft and edits categories, names, descriptions, image URLs and descriptions, prices, SKU, unit, availability and option names/prices. Category, item and option creation, removal and ordering preserve existing IDs. Hidden metadata is retained. Save uses the existing revision guarded catalog endpoint and server validation. Money is entered in dollars and converted to integer cents. Image uploads are not implemented; use existing relative paths or HTTPS URLs.
 
-Drivers can be added, renamed, have a password reset, or be deactivated. The admin password page requires the current password and confirms the new password. New account persistence lives in AdminAccounts.php. Stripe owns its settings form in the Settings page. The settings/ PHP page contains the Stripe plugin form. The old mountSettings export remains for existing integrations.
+Drivers can be added, renamed, have a password reset, or be deactivated. The admin password page requires the current password and confirms the new password. Account persistence lives in AdminAccounts.php and uses SQLite. Stripe owns its settings form in the Settings page. The settings/ PHP page contains the Stripe plugin form. The mountSettings export remains for existing integrations and requires the bundled Stripe browser assets. New hosts should use the separate core editors and plugin settings hooks.
 
 ## Configurable team role labels
 
-The public `role-labels.js` module provides `loadRole(api)`, `defaultRole` and `applyRoleLabels(root, role)`. Mark host text elements with `data-dyws-role-text` templates containing `{role}` or `{roles}`. These are text substitutions, never HTML. Inject the loaded `role` into `mountManager`, `mountDriverAdmin` and `createTracking`. Map renderers receive it as their second argument. Labels refresh on page load; other open tabs should reload after a rename.
+The public `role-labels.js` module provides `loadRole(api)`, `defaultRole` and `applyRoleLabels(root, role)`. Mark host text elements with `data-dyws-role-text` templates containing `{role}` or `{roles}`. These are text substitutions, never HTML. Inject the loaded `role` into `mountManager`, `mountDriverAdmin` and `createTracking`. Map renderers receive it as their second argument. The storefront and shared admin editor pages refresh role labels during background updates. Reports, Orders, driver and customer tracking controllers receive labels at initialization; reload those views after renaming a role.
 
 `mountGeneralSettings({root, api, storageKey, onSave})` in `general-settings.js` mounts the authenticated Settings editor. The PHP `dyws\Settings` class persists tenant scoped labels independently of accounts and the catalog. This is a display name for the existing assignment role, not a permissions editor or multiple custom roles.
 
-`mountManager` now mounts only the Reports dashboard. `mountOrders` from orders.js mounts the order table, detail actions and active deliveries using the same manager session storage key. Both support direct sign in and independently refreshed data.
+`mountManager` mounts only the Reports dashboard. `mountOrders` from orders.js mounts the order table, detail actions and active deliveries using the same manager session storage key. The shipped PHP host handles sign in before mounting either controller. Both refresh their own data, including when returning to a visible tab or reconnecting.

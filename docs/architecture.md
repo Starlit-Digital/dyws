@@ -1,31 +1,46 @@
-# Backend foundation
+# dyws architecture
+
+The application release is recorded in [VERSION](../VERSION). dyws is a generic ordering and delivery platform; Starlit Diner is its fictional host example. The current build is a development preview with manual test payments or Stripe sandbox Checkout.
 
 ## Runtime and layout
 
-PHP 8.1 or newer with PDO SQLite, compatible with the current shared host. No server package dependencies. JavaScript modules handle the example surfaces. Existing diner visuals and accessibility settings remain intact.
+PHP 8.1 or newer requires PDO SQLite, OpenSSL, curl and mbstring. Composer installs the locked Stripe PHP SDK. The website needs no Node.js service or frontend build. Node.js and Python run the development tools and tests; the optional WebSocket relay requires Node.js 22 or newer.
 
-- `public_html/` is the Starlit Diner example and its customer, manager and driver web surfaces.
-- `public_html/ordering/` is the reusable menu ordering component.
-- `public_html/platform/` connects the example surfaces to the API.
-- `public_html/api/` is the HTTP boundary.
-- `server/` is private application code, schema, setup and cleanup tooling.
-- `var/` holds ignored local config, access details and runtime database files.
-- `examples/starlit-diner/README.md` describes the reference integration.
+| Path | Responsibility |
+| --- | --- |
+| `public_html/` | The only document root, with PHP pages, host assets and thin API adapters. |
+| `public_html/dyws/` | Reusable JavaScript modules, cart component and scoped CSS. |
+| `public_html/platform/` | Host adapters supplying endpoints, page roots, navigation and startup data. |
+| `modules/dyws/php/` | Private catalog rendering, storage, authorization, installation and plugin services. |
+| `plugins/` and `public_html/plugins/` | Private and public halves of bundled plugins. |
+| `server/` | Private bootstrap, CLI setup, migrations and cleanup adapters. |
+| `modules/dyws/realtime/` | Optional separately hosted WebSocket relay. |
+| `var/` | Ignored configuration, JSON settings, credentials and SQLite data. |
 
 ```mermaid
 flowchart LR
- C[Restaurant website and cart] --> API[dyws API]
- M[Restaurant manager] --> API
- D[Driver console or future native app] --> API
- API --> DB[(Orders, events, payments, latest location)]
- API --> T[Customer status and GPS on original page]
+ C[Business website and cart] --> API[dyws API]
+ M[Business administrator] --> API
+ D[Driver console] --> API
+ API --> DB[(SQLite orders, accounts, payments and active GPS)]
+ API --> JSON[Private catalog and settings JSON]
+ API --> T[Private customer tracking page]
+ API --> P[Optional bundled plugins]
 ```
+
+## Pages and initial data
+
+The homepage is `home.php`; named pages use `page.php` and directory URLs. `/admin/` redirects to Orders when authenticated, otherwise to `/auth/`. Every admin page checks its session before emitting navigation or private markup. Successful sign in opens Orders. The seven admin pages are Orders, Reports, Catalog, Drivers, Password, Settings and Plugins.
+
+PHP supplies initial authorized data and readable previews for admin, driver and tracking pages, plus the public storefront catalog. JavaScript enhances controls and handles actions, updates and saves. Skeletons cover controls and maps while they initialize. PHP `Provides` and `Requires` attributes select browser plugins per page; backend registration and required validation remain active independently.
+
+Operator and customer views refresh when revisited or reconnected. Admin form guards defer replacement of unsaved or focused fields and open editors. Saved revisions remain attached to drafts so a later save still detects concurrent changes. See [loading diagnostics](load-diagnostics.md) and [plugin manifests](plugins.md).
 
 ## Order contract
 
-The API ignores browser submitted prices, totals and restaurant names. It resolves item IDs and variant IDs against the server catalog, validates quantities and computes subtotal, delivery fee and GST in integer cents. The demo fee is 395 cents and the example tax basis is 500 basis points. No real financial service is connected.
+The server resolves product and variant IDs against the private catalog, validates quantities, and calculates prices, configured tax and delivery fees in integer cents. Browser submitted prices are not authoritative. The diner seed uses a 395 cent delivery fee and 500 basis point example tax; these are editable business settings.
 
-Creation and status mutations use immediate database transactions. Order request keys are unique per tenant. A repeat of the same canonical request returns the same order and tracking token; a changed request with the same key is rejected. The example frontend retains its request key when retrying an unchanged submission within the same checkout session. Network failure across a full page reload still needs a persisted pending submission flow before launch.
+Order creation and status changes use SQLite transactions. An idempotency key is unique per tenant. Repeating the same canonical request returns the same order and tracking token; changing the request with the same key returns a conflict. The cart retains its request key for retries within the current checkout session. Persisting an uncertain submission across a full page reload remains future work.
 
 ```mermaid
 stateDiagram-v2
@@ -42,30 +57,30 @@ stateDiagram-v2
  ready --> cancelled
 ```
 
-An assigned driver can start or finish only their delivery. Completion requires a recorded test payment. Manager actions and test payment entries are separate from order preparation status. This prototype supports one capture and one full refund per order, not partial refunds. Cancelling a paid order does not automatically create a refund; the manager explicitly records the test refund.
+Only the assigned driver can start or finish a delivery. Completion requires payment recorded by the appropriate provider. Manual demo orders support one test capture and one full test refund. Stripe sandbox orders rely on verified webhooks and support cumulative partial or full refunds. Managers cannot manually mark Stripe orders paid. Cancellation does not itself refund a payment. See [payment contracts](catalog-and-payments.md).
 
-## Reporting definitions
+## Storage and access
 
-Order count, ordered value, average order value, active count, cancelled count and top items are based on order creation date. Ordered value includes unpaid and cancelled orders and is not revenue. Popular items exclude cancelled orders and count ordered quantities regardless of payment. The dashboard labels these distinctions. Average preparation measures accepted to ready; average delivery measures out for delivery to delivered, using only orders with both events. These are observed event durations, not promises or route ETAs. Fulfillment and status counts are also available in the API.
+SQLite stores orders, item snapshots, events, payment records, driver accounts, administrator password hashes, sessions, active GPS and sharing sessions. Private JSON holds catalog, site configuration, general settings and plugin settings. Account migration imports older credential files once; current writes go to SQLite. See [installation and upgrades](../INSTALL.md).
 
-Payment collections and refunds use payment event date. Net collections equals captures minus refunds. Net product sales, net tax and net delivery fees use the corresponding signed amounts, and their sum reconciles to net collections. These are test operational metrics, not formal accounting statements. The date range is interpreted in the timezone selected in Settings (America/Edmonton by default) and converted to inclusive start and exclusive end timestamps. All timestamps are stored as Unix seconds.
+Random operator bearer sessions expire after eight hours and are stored as hashes in SQLite. PHP sign in forms use CSRF protection and HttpOnly page cookies; browser API clients use the associated bearer session in tab session storage. API requests still require explicit authorization. Password changes and sign out revoke the underlying sessions. Named administrator accounts, MFA and native device session management remain future work.
 
-## Access and privacy boundaries
+A private customer link contains an order ID and tracking token in its fragment. The tracking page exchanges them through POST for an order scoped HttpOnly cookie and redirects to `tracking/?order=ORDER_REFERENCE`. API reads use `X-Tracking-Token`. Tracking credentials expire after 24 hours and are bearer capabilities. The customer projection includes the delivery address for routing, status, payment state and active GPS; it omits customer name, phone, notes and driver identity. Never treat this page as public order lookup.
 
-Manager and driver passwords are hashed in private configuration. Random bearer session tokens expire after eight hours and are stored hashed in SQLite. Login and order creation are rate limited. The browser keeps operator tokens in tab session storage, not in URLs. Production authentication needs named accounts, rotation, MFA, device revocation and shorter access tokens with refresh sessions.
+All queries are tenant scoped, but the shipped installation serves one configured business. Self service tenant provisioning is not implemented. Private HTML and API responses use `no-store`.
 
-Tracking links contain an order ID plus a secret in the URL fragment. The secret goes to the API in X-Tracking-Token, not a query parameter. Tracking tokens are stored as digests and expire after 24 hours. Public responses omit the customer’s name, phone, address, notes and driver identity. Links are bearer capabilities and anyone with a link can view that order’s status while valid.
+## Location, routes and communication
 
-Every order query is tenant scoped; the first deployed configuration serves only the fictional diner. Tenant isolation is tested, but self service tenant onboarding is not implemented. Do not accept a client supplied tenant as authorization.
+GPS uploads require the assigned active delivery, a driver session and a sharing token. Sharing expires after two minutes without an authenticated upload or heartbeat. Heartbeats never change a measurement timestamp. API requests prune expired sharing records; completion, cancellation and logout remove access. The latest fix is retained rather than a location trail, labelled stale after 60 seconds and hidden after 15 minutes at the latest. Disconnected browser views clear markers after two minutes without a successful snapshot.
 
-GPS is accepted only for the assigned active delivery. Latitude, longitude, accuracy and timestamp are validated. Old or out of order positions are rejected. The API stores the latest position only, hides it after 15 minutes and deletes it on completion or cancellation. The cleanup CLI removes expired positions and sessions and scrubs demo customer contact fields after seven days. Cleanup is implemented but not scheduled automatically; configure a host scheduler before relying on physical deletion of abandoned demo data.
+The Google Maps plugin provides maps, destination markers, traffic aware routes and approximate arrival times. A fresh position and usable route are required for an ETA. Missing, stale or simulated positions are labelled explicitly. Estimates never finish an order. A private test origin can replace device GPS for demonstrations; it is absent from fresh installation defaults. See [GPS and maps](gps-maps-realtime.md).
 
-The demo map uses the existing attributed Manning reference image with a Mercator projection approximation. There is no routing, geocoding, turn by turn navigation or ETA computation. Outside its bounds, the UI shows coordinates rather than placing a misleading marker. Replace it with a proper licensed map adapter for a broader deployment.
+HTTPS polling works on ordinary PHP hosting. The optional WebSocket relay supplies scoped invalidations and RPC, with HTTP fallback. Safe reads recover after timeouts; uncertain writes are not automatically replayed. The hosted demo uses polling.
 
-## Deliberate boundaries
+## Reporting and operations
 
-No production checkout, payment processing, inventory, driver payouts, push delivery, route optimization, automatic dispatch, customer accounts, POS synchronization or native apps are claimed. SQLite is suitable for this small pilot; migrate to a managed transactional database and event outbox for a busy multi restaurant platform. Database migrations need versioned deployment tooling beyond the current additive schema initialization.
+Order Reporting supplies comparisons, daily and hourly charts, CSV and SVG exports, item summaries and observed preparation and delivery durations. Its ordered value excludes cancelled orders. Core fallback totals retain their own definition, including cancelled ordered value. Payment metrics use payment event dates, separately from order creation cohorts. See [exact report definitions](order-reporting.md).
 
-## Generic catalog and payment connector
+UTC timestamps are stored as Unix seconds. Settings selects the IANA timezone used for display and calendar report boundaries. Changing the timezone never rewrites stored instants.
 
-The private JSON catalog and Stripe connector extend this foundation. See catalog-and-payments.md for the current product schema, sandbox payment workflow, reconciliation definitions and secret storage. Stripe is optional per new order. Historical orders retain their original provider and currency. The diner is a branded example of the generic dyws-ordering component.
+The cleanup CLI removes expired sessions and location records and scrubs demo customer contact fields after seven days. It is not scheduled automatically. Backups, restore drills, production monitoring, queues and reliable native background GPS remain operational work. The preview does not include live payments, payouts, inventory reservation, automated dispatch, customer accounts or native mobile apps.

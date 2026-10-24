@@ -1,216 +1,83 @@
-# Run and deploy
+# Run and deploy dyws
 
-## Local
+Use [VERSION](../VERSION) for the application release, [INSTALL.md](../INSTALL.md) for fresh installation and [CHANGELOG.md](../CHANGELOG.md) for release history. This guide describes the current checkout.
 
-Requirements: PHP 8.1 or newer with PDO SQLite, Node.js for frontend tests, Python 3 for HTTP tests. Install the pinned Stripe PHP SDK with Composer. The storefront has no npm dependencies. The optional realtime service has a pinned ws dependency.
+## Local development
 
 ```sh
 composer install --no-dev
 npm run setup
 npm run serve
-npm test
 ```
 
-Setup creates `var/config.json` and `var/LOCAL-ACCESS.txt`, both private and ignored by Git. Setup refuses to overwrite an existing config. Open http://127.0.0.1:8097 and use the manager and driver credentials from that local file. Never serve the repository root. Serve only `public_html/`.
+Serve only `public_html/`. Open `http://127.0.0.1:8097/`. The CLI creates private demo configuration and generated manager and driver credentials in ignored `var/LOCAL-ACCESS.txt`. It refuses to overwrite existing installation data. Browser setup is separate: it creates the chosen admin password without a default driver, then removes `/setup/`.
 
-## Hosted example
+PHP 8.1 or newer needs PDO SQLite, OpenSSL, curl and mbstring. Node.js and Python 3 run development checks. The storefront itself has no npm dependencies. To test the optional relay, install its pinned dependency with `npm ci --prefix modules/dyws/realtime` using Node.js 22 or newer.
 
-The existing https://sltd.ca/diner/ demo now uses the backend. Customer menu, reports/ and driver/ share its API. Public deploy files live under `domains/sltd.ca/public_html/diner/` on pct-hostinger. Private application code and SQLite state live under `domains/sltd.ca/private/starlit-go/` outside the web root. Config is private and the SQLite database is never copied into public_html.
+## Pages
 
-The ignored `public_html/api/bootstrap-path.php` file returns the private bootstrap path. On this host, set `DYWS_CONFIG` in a private bootstrap wrapper or use the private install’s default `var/config.json`. Local and hosted configurations are separate. Deployed catalog paths must reference the deployed catalog, not a Mac path.
+| URL under the installation | Purpose |
+| --- | --- |
+| `/` | Customer storefront. |
+| `/admin/` | Administrator entry, redirecting to Orders or sign in. |
+| `/auth/` | Administrator sign in, redirecting to Orders on success. |
+| `/orders/` | Active orders by default, with Completed, Cancelled and All filters. |
+| `/reports/` | Reporting dashboard, charts and exports. |
+| `/catalog/` | Categories and items. |
+| `/drivers/` | Driver accounts and active delivery maps. |
+| `/password/` | Administrator password change. |
+| `/settings/` | Business details, timezone, role labels and active plugin settings. |
+| `/plugins/` | Plugin activation and settings links. |
+| `/driver/` | Driver sign in and assigned deliveries. |
+| `/tracking/` | Private order page entered through a checkout tracking link. |
+| `/setup/` | Fresh installation only; removed after setup. |
 
-Hosted demo access is saved locally at `var/HOSTED-DEMO-ACCESS.txt`, permissions 0600. Passwords and session tokens are not committed or embedded in JavaScript. This is the file the owner should use to sign in at reports/ and driver/.
+The hosted diner is at `https://sltd.ca/diner/`, with administrator entry at `https://sltd.ca/diner/admin/`. Its private installation path is resolved by the host's ignored `public_html/api/bootstrap-path.php` adapter. Read that adapter when maintaining the host rather than assuming a directory name. Do not commit host credentials or copy a local configuration over hosted data.
 
-A backup of the prior static diner was made at `domains/sltd.ca/private/deploy-backups/starlit-go-backend-20261023/`. Restoring that public directory returns the original frontend demonstration; do not delete the private database during a frontend rollback.
+## Code deployment
 
-## Data maintenance
+1. Back up the current code, private JSON and SQLite consistently. Pause writes while replacing incompatible code or applying a schema migration. Do not copy an active SQLite main file alone without accounting for its WAL.
+2. Install locked Composer dependencies. Deploy matching `plugins/`, `modules/dyws/php/`, `server/` and `vendor/` outside the web root. Keep the configured `examples/` seed files available for fresh setup.
+3. Deploy matching `public_html/` contents, including public plugin assets and generated `platform/preloads.json`. Preserve the host's `api/bootstrap-path.php`. Exclude `public_html/setup/` when updating an installed site.
+4. Preserve all runtime `var/` files, configured absolute paths, encrypted secrets and the database. Never replace a merchant catalog with an example seed. Keep the test GPS origin only on deployments deliberately configured to simulate a driver.
+5. Check PHP compatibility on the target host, API health, anonymous admin redirect, authenticated Orders and a fictional customer to driver completion flow. Reload existing tabs once to load the new code. Later tab returns refresh automatically.
 
-`php server/cleanup.php` deletes expired GPS positions and sessions, removes expired rate buckets, and scrubs customer name, phone, delivery address and notes from demo orders older than seven days. It preserves aggregate order and payment amounts. Run from the private installation. A host scheduler has not been installed automatically. Configure scheduling and backups before a real pilot, and define a separate approved retention policy for real business records.
+Only `DYWS_CONFIG` and `DYWS_BOOTSTRAP` override private paths. Do not publish the repository root. Application pages use PHP and directory URLs; obsolete HTML entry points are not supported.
 
-Back up SQLite with a coordinated SQLite backup or snapshot procedure, not by copying an active main database file without its WAL. Keep secrets and database backups private. Restore testing, monitoring and alerting remain production work.
+## Existing data and migrations
 
-## Demonstration walkthrough
+Fresh installs already use SQLite for orders and accounts. `server/migrate-accounts.php` takes a consistent SQLite snapshot and private JSON backups, imports credentials and driver records once per tenant, and archives the imported account files. Run it with the existing configuration path when upgrading an installation that still has JSON credentials. Existing database filenames and tenant IDs are retained.
 
-1. Place a delivery test order on the diner page with fictional details. Confirmation redirects to a private order status page.
-2. Sign in as manager. Accept, prepare and mark ready. Assign Demo Driver. Record test payment.
-3. Sign in as demo-driver. Start the delivery. GPS begins automatically after browser permission is granted; keep the page visible.
-4. Watch the customer’s order status page update its timeline and marker. GPS has a stale warning, latest timestamp and accuracy value.
-5. Mark delivered. The customer sees completion and the backend removes location access. Optionally record a full test refund and confirm that collections reconcile.
+`server/migrate-catalog.php` supports moving an older configured catalog to private JSON. Use the actual merchant source, not a sample seed. Read the CLI arguments and back up that catalog before running a migration. Normal code updates do not need a catalog migration.
 
-## Validation on October 23, 2026
+The store initializes additive schema changes, including structured addresses and plugin data. It also renames earlier Stripe ledger tables to provider neutral payment tables. Rolling back across that migration needs matching code and a consistent database backup, with reconciliation for any later writes.
 
-Four JavaScript cart tests, 28 PHP service checks and 14 HTTP boundary checks passed. Checks cover server pricing, idempotency, role access, tenant isolation, state transitions, assignment, duplicate payments and refunds, reporting reconciliation, GPS authorization, coordinates, timestamps, ordering and removal, and tracking token expiry. Hosted browser testing exercises checkout, manager board, driver assignment, test payment and inline tracking with simulated GPS. Native background location and actual payment processing are not tested or implemented.
+Stripe secrets are encrypted using the private tracking secret and the current `dyws-stripe:` context. Before upgrading a deployment that used a different encryption context, decrypt with its running implementation and reencrypt with the new implementation under a private backup. A code upload alone cannot migrate an encrypted credential file. Preserve the secret and encrypted settings together.
 
-## Catalog and Stripe deployment upgrade
+## Plugins, maps and realtime
 
-Deploy `server/` and Composer `vendor/` to the private installation, never public_html. Run `php server/migrate-catalog.php /absolute/private/var/config.json https://sltd.ca/diner` once to move the existing configured catalog into private JSON without overwriting credentials. The runtime catalog is not overwritten by future code deployments. New local setup copies the diner seed from examples into private var.
+Both halves of each plugin must be deployed. The bundle includes Google Maps, Stripe, Order Reporting and DataTables. Fresh installations activate all four; saved deactivation choices persist. Activation does not configure a Maps key or enable Stripe Checkout. Plugins are trusted code installed through Git or file upload, then managed in Admin.
 
-Then deploy public_html, including settings/, and retain the existing private bootstrap path. The old static ordering/catalog.json can be removed after its private migration and backup. The SDK uses its pinned default API version. Configure sandbox credentials and the webhook in admin settings; no Stripe account is configured by deployment itself.
+Use Settings for plugin configuration. Stripe accepts sandbox keys only and requires signed webhooks. No real charge or refund is performed by manual test ledger controls. Google Maps requires its enabled browser key and API configuration. See [plugin contracts](plugins.md), [payments](catalog-and-payments.md) and [maps and realtime](gps-maps-realtime.md).
 
-October 23 catalog and Stripe upgrade validation: 98 checks pass, comprising five cart tests, 28 backend checks, 26 HTTP checks and 39 catalog and Stripe checks. Hosted browser verification saved the private catalog and placed order SG-6547CD1FE1B9 through the migrated storefront. The Stripe SDK was audited with no reported dependency advisories. Stripe credentials remain unset; no external Stripe sandbox payment was performed. Backup: domains/sltd.ca/private/deploy-backups/starlit-go-catalog-stripe-20261023/.
+The hosted demo uses HTTPS polling. A WebSocket relay is optional and must be deployed separately behind TLS. Do not configure a relay URL until the service is reachable. Never expose its private shared secret to browsers.
 
-For a local checkout where the old tracked catalog has already moved, pass the seed explicitly as the third migration argument: `php server/migrate-catalog.php var/config.json http://127.0.0.1:8097 examples/starlit-diner/catalog.json`. Do not replace a modified merchant catalog with that seed.
+## Maintenance and recovery
 
-## dyws CSS extraction
+`php server/cleanup.php` removes expired GPS, sharing sessions, operator sessions and rate buckets, and scrubs demo customer name, phone, structured address and notes after seven days. Aggregate order and payment amounts remain. No cleanup scheduler is installed automatically.
 
-The demo loads `dyws/dyws.css?v=19`, and the cart loads `dyws/ordering.css?v=19` inside its shadow root. Deploy the entire dyws folder together with the updated HTML and JavaScript. The former CSS URLs forward to these files. No runtime catalog or database migration is needed. The catalog migration CLI now resolves relative config paths before storing an absolute catalog path, preventing local preview failures.
+Back up private configuration, catalogs, settings and SQLite together. Protect backups as private data. Verify restores before relying on them. Restore matching code and data deliberately; an older code directory alone may not understand migrated records. Hosted backups and access files are operational records, not source repository artifacts.
 
-October 23 validation: all 98 existing checks passed. Browser checks covered desktop and mobile catalog/cart layouts, light and dark cart themes, 48px quantity buttons, admin styling and a plain host page using only dyws CSS. The isolated page confirmed that unrelated host controls keep their native styles. Frontend backup: domains/sltd.ca/private/deploy-backups/starlit-go-dyws-css-20261023/public-diner/.
+## Verification and optional download
 
-## dyws JavaScript and PHP modules
+```sh
+npm test
+npm run test:realtime
+npm run build:zip
+npm run verify:release
+DYWS_INSTALL_ARCHIVE="$PWD/dist/dyws.zip" python3 tests/installer.test.py
+```
 
-The homepage is home.php, served at the installation root through DirectoryIndex. All subpages use page.php inside their named directory.
+The complete Git checkout is the primary distribution. Packaging is optional and produces ignored `dist/dyws.zip` and `dist/SHA256SUMS`. Stage new source before packaging. Publish these files as release assets alongside the tagged source; do not commit generated downloads. Verify downloaded assets with `shasum -a 256 -c SHA256SUMS` in their directory.
 
-Deploy modules/dyws/php to the private installation's modules/dyws/php folder first, then deploy server compatibility adapters, then public_html. The public api/bootstrap-path.php remains unchanged and private credentials, runtime catalog and SQLite state are not part of the upload. No database migration or catalog replacement is needed. The Composer autoloader remains in private vendor and is loaded by the server adapter. A new host can include module.php and dispatch dyws_serve_api with its own private configuration path.
-
-The browser package is now @starlit-digital/dyws, with ES module entry index.js and the existing CSS subpaths. Website scripts pass endpoint URLs, page elements and diner map functions into the package. A separate shop example is in examples/php-host. All imports in the browser package resolve within its folder.
-
-Validation on October 23: 115 checks passed, comprising eight JavaScript checks, 28 backend checks, 27 HTTP checks, 39 catalog and Stripe checks and 13 PHP rendering checks. The raw HTTP homepage contains five category panels and 35 items before JavaScript. Local browser checkout, variant and quantity controls, tracking, manager status updates, settings and driver login were verified. A second site with copied JavaScript/CSS/PHP packages, separate catalog and separate database successfully placed a test order and synchronized a category panel with a separate featured item. External Stripe payment execution remains untested and disabled without credentials.
-
-Rollback files are in domains/sltd.ca/private/deploy-backups/dyws-modules-20261023/. Restore both public-diner and server together. The new private module folder can remain unused after rollback; preserve the database and catalog.
-
-Hosted verification after deployment confirmed five PHP category panels, 35 products, the package driven cart and order SG-8FBF4C91398D with inline tracking. Only fictional test details were used. No payment was taken.
-
-## Admin tabs and catalog editor
-
-Deploy modules/dyws/php first, then public_html. The five admin pages use dyws browser package version 0.3.0. Existing credentials are unchanged. Account overrides are created only when an administrator saves driver settings or changes the admin password. Keep accounts-*.json private, and never overwrite these files during code deployments. No database or catalog migration is needed.
-
-The catalog editor loads the runtime JSON and saves through the existing revision checked API. Tests use temporary data rather than the hosted business catalog. Catalog items are edited at catalog/, while Stripe settings are at settings/#plugin-stripe.
-
-October 23 admin upgrade validation: 144 checks passed, including account creation, duplicate ID rejection, password verification and session revocation, disabled driver access, assignment rules, stale revisions and catalog decimal conversion. Browser testing used a separate temporary backend and saved edited item fields, new categories, new items and option prices back to JSON, then updated a driver name. Reports, catalog, drivers, Stripe and password navigation were checked. Password changes were tested against isolated backend fixtures; deployment does not change the owner's passwords.
-
-Backup: domains/sltd.ca/private/deploy-backups/dyws-admin-20261023/. Restore the public-diner and php code directories together if needed. Preserve runtime accounts files, catalog and SQLite data. Older code will not read account overrides, so reconcile credentials deliberately before rolling back after a password change.
-
-## General Settings page
-
-`settings/` adds the Settings tab. The page uses the clean `settings/` URL. Role labels default to Driver and Drivers until explicitly saved. Saves create `settings-<tenant hash>.json` beside the private database, with mode 0600. Preserve this file during deployments and backups alongside account overrides. Deploy `modules/dyws/php/Settings.php` with the other private modules. No database migration or credential reset is needed.
-
-## GPS, maps and optional realtime upgrade
-
-Deploy private modules/dyws/php and server/cleanup.php first, then public_html, excluding api/bootstrap-path.php. Preserve all private var files, credentials, catalog, accounts and settings. The idempotent schema creates location_shares and realtime_versions on first access; no existing orders are replaced. Maps settings use a new private maps-<tenant hash>.json file only when saved.
-
-The hosted demo stays on HTTPS polling. WebSocket hosting is deferred to the owner's separate server. No relay URL or relay secret is inserted by deployment. The owner subsequently saved a Google key through Settings. See gps-maps-realtime.md for setup, pricing and caching behaviour. Google maps and routes were then verified in the live admin and customer views.
-
-Rollback backup: domains/sltd.ca/private/deploy-backups/dyws-gps-maps-20261023/. Restore public-diner and php together; preserve live SQLite and all runtime JSON. New tables can remain during rollback. Backups contain code, not a consistent database snapshot.
-
-The destination upgrade also adds orders.address_json idempotently. Preserve driver_test_location in this test deployment until the owner requests real device GPS again. It is a private test setting, not a default for other installations. The driver page no longer artificially stops an active session when visibility changes; browser permission and background limits still apply.
-
-Final GPS, maps and routing validation: 239 automated checks passed across the core and relay suites. Browser verification confirmed a Google map and route on the live Drivers tab and customer order page, and a full structured address checkout with its private page redirect. Source changes and the hosted key remain separate.
-
-## dyws rename and compact administration
-
-The private repository is now Starlit-Digital/dyws. The hosted private storage directory retains its existing infrastructure path. Application identifiers now use dyws and page URLs use directory paths. The storefront is still the Starlit Diner example.
-
-Deploy the updated public files and the private Catalog.php and api.php modules. Keep api/bootstrap-path.php and all private runtime files. Update only the catalog platformName through its revision checked manager API to adopt the dyws name; never replace a merchant catalog with the example seed.
-
-All six admin pages share the same compact header, current page navigation and sign out. On narrow screens navigation uses an expandable menu with keyboard dismissal. Detailed report definitions and connection instructions remain available in disclosures. The driver editor opens only on Add or Edit. The logo derives from the approved Community Central SVG family with a D monogram; the editable SVG and 2048px PNG master are in public_html/assets.
-
-Validation: 238 automated checks passed. Browser checks covered all six pages, the driver editor, sign out, mobile navigation at 320px and 390px, Escape dismissal, and the live Google map and route. The release backup is domains/sltd.ca/private/deploy-backups/dyws-admin-simple-20261023/.
-
-## Browser installer and SQLite accounts, version 0.4.0
-
-See INSTALL.md for fresh setup. Use the Git checkout with Composer as the primary deployment source. For an optional install download, publish dist/dyws.zip and dist/SHA256SUMS built by scripts/build-release.py as GitHub release assets. Generated downloads are not committed. It contains tracked application code and locked Composer dependencies, with no runtime var data. The initial storefront redirects to setup when its configuration is absent. A fresh install verifies the environment and private ownership key, creates a SQLite database and JSON site configuration, and removes public_html/setup. Configuration and installed.lock both prevent reinstallation, even after setup is uploaded again.
-
-Existing installations keep their current database filename and tenant. Deploy AdminAccounts.php and accounts.sql together, then run server/migrate-accounts.php with the existing configuration path. The CLI takes a consistent SQLite backup and private JSON backups before importing. It preserves existing passwords, driver IDs, active state, assignments and sessions, then removes credentials from active JSON. New account writes go only to SQLite; site settings and catalog writes remain JSON. Never upload the fresh setup directory over an existing hosted demo or replace its private data.
-
-Public changes include the new setup directory for fresh installations, optional generic storefront template, and an unconfigured homepage redirect. Existing diner configuration still selects its original website.
-
-Validation: 314 automated checks passed, including fresh HTTP installation, installer removal, reinstall protection, private storage boundaries, SQLite account migration, preserved passwords and inactive drivers, JSON business settings, and order persistence. The extracted ZIP also passes the 40 HTTP installation checks. A preupgrade code backup, consistent database snapshot and private JSON backups are in domains/sltd.ca/private/deploy-backups/dyws-installer-20261023/.
-
-## Customer delivery flow, version 0.4.1
-
-Deploy the changed public files only, retaining api/bootstrap-path.php and excluding setup. No schema or private settings change is required. The tracking page uses the existing private URL token and stops GPS display when the backend confirms completion. Orders still require recorded payment before completion; this change does not bypass that rule or enable real payments.
-
-Validation includes a full driver completion via the HTTP API, customer state updates and polling shutdown, delayed GPS, failed routing, expired estimates and Google route request caching. A separate browser fixture verified driver pickup, automatic customer progress and delivery completion without refreshing the customer page. The original hosted demo order is preserved.
-
-Rollback code backup: domains/sltd.ca/private/deploy-backups/dyws-delivery-flow-20261023/public-diner/.
-
-Final verification: 327 automated checks passed, plus 40 checks against the rebuilt install ZIP. The live Google route preview returned a traffic based arrival estimate and destination marker. A 390px customer preview was checked for legible progress and completion. Temporary route preview files were removed after verification.
-
-## Plugins, version 0.5.0
-
-Deploy private plugins/ first beside server and modules, then modules/dyws/php, then public_html. Retain api/bootstrap-path.php, exclude setup on existing sites and preserve all private var files. No database or Maps key migration is needed. The bundled activation manifest enables Google Maps unless the tenant has saved a different plugin state. Admin → Plugins changes activation; Admin → Settings contains active plugin forms. Reload other open pages after activation changes.
-
-Back up code before deploying. Both plugin halves are required; uploading only the browser files will leave the plugin undiscovered. Application ZIP packaging includes private plugin code and public assets. Removing or disabling Google Maps leaves core orders, driver GPS and customer progress functional. Preserve plugins-<tenant hash>.json alongside site settings on backup and restore.
-
-Rollback backup: domains/sltd.ca/private/deploy-backups/dyws-plugins-20261023/. Restore public-diner and php together, preserving private settings and SQLite. The old release ignores plugin activation settings and always has its original built in map feature.
-
-Validation: 376 automated checks passed, including manager only activation, namespaced route access, ordered hooks, tenant isolation, failed activation, corrupt plugin state, deactivation and preserved Maps settings. The rebuilt ZIP passed 41 fresh installation checks. Browser verification covered activation, deactivation, settings removal and restoration, and live Google map, destination and traffic estimate rendering through the plugin host. The live saved Maps configuration fingerprint was unchanged. No existing orders or credentials were changed.
-
-## Stripe plugin and hooks, version 0.6.0
-
-Deploy both private plugins and modules together, then the matching public assets. Stripe now owns its settings, Checkout and webhook code. The old PHP and JS entry points remain compatibility shims. The browser graph uses version 30 asset URLs. Preserve every runtime var file and api/bootstrap-path.php; exclude setup from existing sites. The bundled manifest adopts Stripe as an active plugin without enabling its checkout setting or rewriting keys. Explicit plugin deactivation remains persistent.
-
-This upgrade renames three old Stripe ledger tables to neutral payment table names and adds plugin_data_json to orders. Take a consistent SQLite backup and private JSON backup before deployment. Pause API writes briefly while replacing the matching code, so old payment code cannot run against renamed tables. Rollback requires restoring both the code and that database snapshot, accounting for any later orders first. Do not restore a stale database over newly accepted orders.
-
-Deactivate through the Plugins page to stop new Stripe checkouts. Its two signed webhook routes intentionally remain available for pending confirmations and refunds. Do not delete plugin files or signing secrets while payments remain unresolved. Core reports and online payment guards continue working without provider UI code. Stripe remains sandbox only.
-
-The bundled release includes the 25 hook catalog and developer reference, and an inactive gift note example under examples/plugins. Do not deploy that example as an active merchant plugin unless intended. The local browser fixture exercised product badges, checkout fields, validation, persisted plugin data and a manager order panel. It is separate from hosted customer data.
-
-Live deployment completed on 2026-10-23. Backup: domains/sltd.ca/private/deploy-backups/dyws-stripe-hooks-20261023/. It contains public-diner, private php and plugins, JSON settings and a consistent orders.sqlite snapshot. The live API advertises both plugins and all 25 hooks. Before and after fingerprints matched for all five orders, payment records, admin credentials, drivers, catalog, site configuration and Maps settings. Stripe checkout remains unconfigured and disabled.
-
-Validation: 497 automated checks passed, plus 42 fresh installation checks against the rebuilt ZIP. Browser verification covered the plugin Settings link, both live plugin cards, the unchanged Maps settings, and a separate gift note checkout through to its saved manager order panel. No external Stripe charge was attempted; payment reconciliation used locally signed sandbox fixtures.
-
-## Version 0.7 reporting plugins
-
-Deploy private plugins/order-reporting, plugins/datatables, the updated bundled.json and hook catalog, plus their matching public_html/plugins assets and version 31 browser adapters. Preserve var, the hosted bootstrap path and setup removal. No schema or order migration is required. Both new bundled plugins are adopted once through upgradeDefaults; explicit deactivation persists. Rebuild dyws.zip from staged source and run the archive installer test. DataTables assets and their MIT license are included locally, without a runtime CDN dependency.
-
-## Version 0.8.0
-
-Adds compact admin orders and the timezone preference. Deploy PHP, both changed plugins and browser assets together, preserving private configuration, catalogs, SQLite and settings JSON. Assets use cache version 32. Existing optional WebSocket relay deployments should also update server.js so timezone metadata is forwarded. The hosted demo continues to use HTTPS polling. No database migration or timestamp conversion is needed. Existing installations default to America/Edmonton until an admin saves another timezone. Back up public files, private PHP and plugins, settings JSON and a consistent SQLite snapshot before replacing files. Build and verify the installation ZIP after staging the new date-time.js and order-list.js modules.
-
-Version 0.8.1 moves Business details from Catalog to Settings. Deploy the affected admin HTML, platform/admin.js and the catalog, general and new business settings modules. The affected imports use version 33. No data migration is needed, and both editors retain the existing catalog revision guard.
-
-Version 0.8.2 separates Orders from Reports. Deploy orders/, platform/orders.js, dyws/orders.js, the revised reporting controller and the shared navigation entrypoints together. The new page uses the existing manager session and API permissions. No storage or API migration is required. Rebuild dyws.zip with the new modules staged.
-
-## Version 0.9, clean PHP pages
-
-This is a development route change. There are no legacy HTML redirects. Each subpage is a directory with page.php, served through DirectoryIndex. The storefront uses home.php, the API uses api/endpoint.php at api/, and setup uses setup/install.php at setup/. Public source contains no .html or index.php files. Update all saved bookmarks and any configured webhook or relay backend URLs to api/.
-
-Deploy the PHP modules, plugins and public assets together. Remove the previous root HTML files, root index.php, api/index.php and plugin settings.html fragments after backing them up. Retain api/bootstrap-path.php, private var state and merchant data, and exclude setup from an existing installation. DirectoryIndex must be honored by the host. For PHP's development server use server/router.php, which serves only known PHP entrypoints and preserves trailing slashes.
-
-Admin entry is orders/. Reports, catalog, drivers, password, settings and plugins are sibling paths. Driver sign in is driver/ and customer tracking is tracking/, with its private token still in the fragment. Orders defaults to active and the server selects active orders before recent finished history. Status, assignment, payment and tracking APIs keep their existing authorization rules.
-
-## Internal naming, 0.9.0
-
-PHP classes use the lowercase `dyws` namespace, with `dyws_config_path()` and `dyws_app_bootstrap()` in the host adapter. Only `DYWS_CONFIG` and `DYWS_BOOTSTRAP` are supported environment overrides. Browser storage uses dyws names, so users sign in again and start a new local cart after this update. The component exports `DYWSOrdering` and registers `<dyws-ordering>`. New order references use `DYWS-`. Existing references remain valid stored business data. Diner branding and package publisher identity remain unchanged.
-
-Stripe credential encryption now derives its key using the `dyws-stripe:` context. Before replacing an existing installation with encrypted Stripe settings, decrypt them with the running version and reencrypt with the new context under a private backup. Do not overwrite the catalog, config, SQLite database or other saved settings. This demo had no saved Stripe credential file at the naming update.
-
-The 0.9.0 live update passed the full test suite, relay integration and all 42 extracted installer checks. Live backup: `domains/sltd.ca/private/deploy-backups/dyws-clean-php-20261023/`. The deployed PHP 8.1 code passed syntax and bootstrap checks. Before and after digests matched for orders, accounts, payments and private JSON settings.
-
-## Administrator entry, 0.9.1
-
-Use `/admin/` under the installation URL. Every admin PHP page validates the manager session cookie against the tenant scoped SQLite session before returning markup. Signed out, revoked and expired sessions redirect to `/auth/`. The sign in form has CSRF protection and shares the API login rate limit. Successful sign in redirects to Orders. The secure HTTPS cookie is HttpOnly and scoped to the installation path. Authenticated pages supply the same bearer session to browser API and WebSocket clients; API calls still require explicit bearer authorization. Sign out and password changes revoke the underlying session. Protected pages and authentication responses use no store caching.
-
-## Backend startup and diagnostics, 0.9.2
-
-The authenticated PHP response supplies initial admin data, navigation and readable previews. JavaScript consumes each initial snapshot once and requests current data for refreshes and saves. The skeleton covers interactive controls until initialization finishes. Active plugin code loads concurrently while registration keeps manifest order. Generated module preload graphs avoid serial dependency discovery. Static files use cache revalidation, while HTML and API responses keep `no-store`. See `load-diagnostics.md` for the opt in timing panel and measured results. Live backup: `domains/sltd.ca/private/deploy-backups/dyws-backend-startup-20261023/`.
-
-## Customer and driver startup, 0.9.3
-
-Deploy `PageData.php`, the revised API and module include, both PHP pages, tracking handoff, JavaScript graph and Google Maps plugin 1.1.3 together. Assets use cache version 38. No database or settings migration is needed. Existing driver passwords are unchanged; drivers sign in once through the new PHP form to establish their page session. Private tracking links remain compatible and exchange their fragment token through POST for an order scoped HttpOnly cookie. The redirected URL contains only the order reference. See `load-diagnostics.md` for the access flow and diagnostics.
-
-Preserve runtime JSON, SQLite, credentials and `api/bootstrap-path.php`. Exclude `/setup/` when updating the installed demo. Back up code and private state, lint with the host PHP version, compare business record digests after publishing, and verify the extracted installation ZIP. Live backup: `domains/sltd.ca/private/deploy-backups/dyws-driver-tracking-startup-20261023/`.
-
-## Page feature loading, 0.9.4
-
-Deploy `Features.php`, plugin registration attributes, the page data modules, storefront templates, catalog snapshot loader and generated preload graph together. Assets use version 39. Both PHP attribute classes require PHP 8.1, which is already the project's deployment baseline. Backend plugin registration remains global; the page resolver restricts browser assets only. No database or merchant configuration migration is needed. Preserve private JSON, SQLite, bootstrap paths and installed setup removal. Backup: `domains/sltd.ca/private/deploy-backups/dyws-page-features-20261023/`.
-
-### Tracking refresh recovery
-
-Customer tracking now reads immediately when its tab becomes visible or the browser comes back online. HTTP reads and the read only realtime access check have a 15 second deadline, including response body consumption, so a stalled connection cannot hold the polling loop indefinitely. Mutations are not automatically retried. Tracking labels updates delayed after 15 seconds without a successful read and removes resume listeners once the order is terminal. Deploy `public_html/dyws/api.js`, `realtime.js` and `tracking.js` together, then reload existing tracking tabs once. No data or settings migration is required.
-
-The reported live order was already Delivered in both customer and driver tabs when inspected, with no captured browser errors. These changes close identified recovery gaps; the original delay could not be reproduced. Regression checks cover stalled response headers and bodies, cancellation, foreground refresh, connectivity recovery, and completion cleanup.
-
-### Orders and driver resume updates
-
-Orders and the driver console fetch current data on `visibilitychange` when visible, window `focus`, and `online`. Existing load guards serialize overlapping refreshes. Orders defers a resume during a save until that action settles. List updates preserve editing fields and filter values, while focus on an ordinary order button no longer blocks new status rows. Resume listeners are removed when controllers are destroyed. The existing HTTP read deadline also applies to these pages. Upload `public_html/dyws/orders.js`, `order-list.js` and `driver.js` together. Reload tabs opened before this code update once; later tab and window switches refresh data without page navigation. No settings or stored order changes are required.
-
-### Guarded refresh across administration
-
-Reports refreshes on visibility, window focus and reconnection while retaining the selected reporting range. Catalog, Drivers, Settings and Plugins share one page subscription and a guarded refresh registry. Forms are refreshed independently. Unsaved values, focused input fields, open catalog item panels and an open driver editor defer replacement; independent maps and other clean settings still update. A notice identifies deferred changes. The Password page refreshes shared navigation and session monitoring without reading or resetting password fields.
-
-A read that overlaps typing, a save or a manual reload cannot replace the newer state. Saved revision tokens remain attached to protected drafts, so server conflict checks still apply. Plugin settings participate through `adminPage().autoRefresh({read, apply, forms, initial, blocked})`; call the returned `reset(data)` after explicit save or reload to establish the new clean baseline. Form snapshots stay only in memory. Bundled Google Maps and Stripe settings implement this contract.
-
-Deploy the new `dyws/admin-refresh.js`, updated page controllers, shared admin navigation, platform admin adapter, both bundled plugin settings scripts and generated preload manifest together. No private data or schema changes are required. Reload already open pages once to load the code. Fresh installation ZIP and automated tests cover the guards, asynchronous read races, lifecycle events and selected reporting dates.
+Tests cover authentication, pricing, idempotency, tenant boundaries, catalog revisions, plugin lifecycle and hooks, payment verification, reporting, installation, GPS, refresh recovery and edit protection. Stripe tests use a fake transport and the SDK signature verifier; they do not prove an external sandbox Checkout has succeeded. Browser measurements in [the timing review](performance-2026-10-23.md) are dated samples, not current performance guarantees.

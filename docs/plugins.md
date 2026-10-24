@@ -1,6 +1,6 @@
 # dyws plugins
 
-dyws 0.5 introduces installed plugins, an Admin Plugins page, activation and deactivation hooks, PHP actions and filters, registered API routes, and browser contributions. The structure follows the concepts in the [WordPress plugin handbook](https://developer.wordpress.org/plugins/plugin-basics/) and its [lifecycle hooks](https://developer.wordpress.org/plugins/plugin-basics/activation-deactivation-hooks/). These are dyws plugins; WordPress plugin code cannot run unchanged.
+dyws provides installed plugins, an Admin Plugins page, activation and deactivation hooks, PHP actions and filters, registered API routes, and browser contributions. The structure follows the concepts in the [WordPress plugin handbook](https://developer.wordpress.org/plugins/plugin-basics/) and its [lifecycle hooks](https://developer.wordpress.org/plugins/plugin-basics/activation-deactivation-hooks/). These are dyws plugins; WordPress plugin code cannot run unchanged.
 
 ## Installation and activation
 
@@ -13,7 +13,7 @@ Copy both parts from a trusted source, then open **Admin → Plugins** and activ
 
 Plugin state is tenant scoped private JSON beside the database, with revision checking and file locking. A corrupt state file disables plugins and produces an admin warning. Missing optional display plugins do not stop orders. Required payment and validation failures reject affected operations. Reinstall a plugin's files before attempting to activate it again. Removing files does not erase its settings.
 
-This first version installs code through Git or file upload using the hosting file manager. There is no browser ZIP uploader, marketplace, automatic updater or uninstall data deletion. The main dyws.zip includes both halves of all four bundled plugins.
+The current implementation installs code through Git or file upload using the hosting file manager. There is no browser ZIP uploader, marketplace, automatic updater or uninstall data deletion. Both the Git checkout and optional install ZIP include both halves of all four bundled plugins.
 
 ## Manifest
 
@@ -63,7 +63,7 @@ Routes use `/plugins/<id>/...` or `/manager/plugins/<id>/...`. GET and POST are 
 
 The context exposes the private site configuration as `$plugin->config` and the tenant Store as `$plugin->store`. Keep all files and secrets private. Route callbacks receive the JSON body and authorised session. POST uses the same JSON body limits, bearer authentication and realtime invalidation as core requests. Plugins must add their own validation, resource scoping, rate limits and idempotency where needed.
 
-Hooks use ascending priority, default 10. `addAction(name, callback, priority)` observes events; `addFilter(name, callback, priority)` returns an updated array. Available core events are `order.created(receipt, store)`, `order.status_changed(order, store)` and `api.respond(route, method, result)`. The `api.response(result, route, method)` filter runs before serialization. Hooks can also be invoked by a host through `doAction` and `applyFilters`.
+Hooks use ascending priority, default 10. `addAction(name, callback, priority)` observes events; `addFilter(name, callback, priority)` returns an updated array. Core observation events include `order.created(receipt, store)`, `order.status_changed(order, store)` and `api.respond(route, method, result)`. The `api.response(result, route, method)` filter runs before serialization. Hooks can also be invoked by a host through `doAction` and `applyFilters`.
 
 Order hooks run after successful persistence, including successful retries of an idempotent request. They are not an exactly once job queue. Use an order ID and a durable deduplication record for external side effects. Do not issue charges from response hooks. Lifecycle callbacks must also be idempotent. Activation failure leaves activation state unchanged, but plugin authored side effects are the plugin's responsibility. Errors in observation hooks are logged and do not undo a completed order. Broken plugin registration is isolated; deactivation is still permitted when loading its code fails.
 
@@ -102,7 +102,7 @@ The host's existing CSP allowlist permits Google Maps resources. Hosts installin
 
 Plugins execute trusted PHP and JavaScript with the site's authority. Activation is not a sandbox or security review. Only the site owner should install code, and only managers can change activation. Never install third party code supplied by a customer or driver. The framework protects route namespaces and caller roles, but a trusted plugin can access configuration and the database directly.
 
-## Stripe plugin, version 0.6
+## Stripe plugin
 
 Stripe's PHP settings, encrypted credential storage, Checkout integration, webhook verification and reconciliation, browser payment controls, and settings form live in plugins/stripe and public_html/plugins/stripe. Core no longer imports Stripe services or dispatches Stripe routes. The old PHP classes and browser exports are compatibility includes.
 
@@ -130,9 +130,9 @@ The public browser capability is `payment.renderer`. The core tracker injects an
 
 Plugin route callbacks receive `(body, session, request)`. Request contains `raw`, the exact request bytes, `params` for named path segments, and `server` for request headers. Use `{name}` for one alphanumeric, underscore or hyphen path segment, then validate the resource ID in the handler. Route options accept `maxBody` up to 262144 bytes and `rateLimit: [bucket, count, seconds]`. Authentication happens before handler invocation and rate limiting. Only the trusted bundled manifest can allow old route aliases and retained callbacks.
 
-## 25 built in hooks
+## 32 hook contracts
 
-See [Hook reference](plugin-hooks.md) for all 25 hooks, payloads, timing and examples. GET /plugins advertises the same catalog from modules/dyws/php/hooks.json. Core and website adapters call these hooks; they are not reserved names without implementations.
+See [Hook reference](plugin-hooks.md) for all 32 hook contracts, payloads, timing and examples. GET /plugins advertises the same catalog from modules/dyws/php/hooks.json. Core and website adapters call these hooks; they are not reserved names without implementations.
 
 Actions observe or display. Filters return an adjusted value. Validators can reject an operation. Priorities run in ascending order, default 10; equal priorities retain registration order. PHP and browser contexts support addAction, addFilter, addValidator and corresponding remove methods. PHP observation errors are logged, browser errors are collected, and other optional hooks continue. Validators fail the operation, preserving the cart or server transaction. Declare validation capability so a failed or missing required plugin cannot silently bypass server checks. Browser checks improve the form; repeat required rules on the server.
 
@@ -144,9 +144,15 @@ Example source in examples/plugins/gift-note includes a checkout field, browser 
 
 ## Order Reporting and DataTables
 
-Version 0.7 bundles Order Reporting and DataTables as independent optional plugins. New installations activate both. Existing installations adopt them once through upgradeDefaults; later deactivation persists. Reports stay at reports/. Disabling Order Reporting restores core summaries while Orders remains on its own page. Disabling DataTables leaves semantic tables with CSV exports and SVG charts. DataTables loads its local library only when a marked admin table needs it, with no CDN request, analytics, stored search state or commercial add ons.
+dyws bundles Order Reporting and DataTables as independent optional plugins. New installations activate both. Existing installations adopt them once through upgradeDefaults; later deactivation persists. Reports stay at reports/. Disabling Order Reporting restores core summaries while Orders remains on its own page. Disabling DataTables leaves semantic tables with CSV exports and SVG charts. DataTables loads its local library only when a marked admin table needs it, with no CDN request, analytics, stored search state or commercial add ons.
 
 See [reporting definitions and PayCal research](order-reporting.md) and [hook contracts](plugin-hooks.md). No runtime order migration or external reporting service is required.
+
+## Settings refresh and edit protection
+
+The shipped admin host refreshes on polling, return to a visible tab, window focus and reconnection. Plugin settings can join its guarded refresh registry through `adminPage().autoRefresh({read, apply, forms, initial, blocked})` from `public_html/dyws/admin-refresh.js`. Call the returned `reset(data)` after an explicit save or reload to establish the new clean baseline.
+
+Dirty values, focused fields and open editors defer replacement. Independent clean forms and location views can still refresh. A read that overlaps typing, a save or manual reload cannot replace newer state. Revision tokens stay attached to drafts so server conflict checks remain effective. Form snapshots are kept only in memory. Google Maps and Stripe settings implement this contract. Dispose registrations when the owning controller is destroyed.
 
 ## Page feature manifests
 

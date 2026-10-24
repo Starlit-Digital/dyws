@@ -1,6 +1,6 @@
 # HTTP API
 
-Entry point: `/diner/api/?route=/health`. Routes below are values of the `route` query parameter, not separate rewritten paths. Send JSON for POST requests. Responses use JSON, no store caching and meaningful 4xx status codes. Request body limit: 32 KiB. State is scoped to the configured restaurant tenant.
+Entry point: `/diner/api/?route=/health`. Routes below are values of the `route` query parameter, not separate rewritten paths. Send JSON for POST requests. Responses use JSON, no store caching and meaningful 4xx status codes. Request body limit: 32 KiB. State is scoped to the configured business tenant. The current application release is recorded in [VERSION](../VERSION).
 
 | Method | Route | Access | Purpose |
 | --- | --- | --- | --- |
@@ -9,7 +9,7 @@ Entry point: `/diner/api/?route=/health`. Routes below are values of the `route`
 | POST | /logout | Bearer | Revoke current session |
 | POST | /orders | Public, rate limited | Create idempotent test order |
 | GET | /tracking/ORDER_ID | X-Tracking-Token | Minimal customer status and current GPS |
-| GET | /manager/orders | Manager bearer | Latest orders and configured drivers |
+| GET | /manager/orders | Manager bearer | Up to 200 orders, active before finished, and configured drivers |
 | GET | /manager/reports | Manager bearer | Date filtered sales and order metrics |
 | POST | /manager/orders/ORDER_ID/status | Manager bearer | Transition order |
 | POST | /manager/orders/ORDER_ID/assign | Manager bearer | Assign driver |
@@ -28,13 +28,13 @@ Order body:
   "demoAcknowledged": true,
   "customer": {"name": "Test Guest", "phone": "7805550142"},
   "fulfillment": "delivery",
-  "address": "15320 Example Lane NW, Edmonton, fictional",
+  "addressDetails": {"line1": "123 Example Avenue NW", "line2": "", "city": "Edmonton", "region": "AB", "postalCode": "T5A 1A1", "country": "CA"},
   "notes": "Test only",
   "lines": [{"id": "breakfast0", "variant": "", "quantity": 1}]
 }
 ```
 
-Response: `{id, demo, total, trackingToken}`. Values are integer cents. A duplicate request with the same key returns the existing order. A different canonical order with that key receives 409. Duplicate item and variant lines are rejected; combine their quantities. The server ignores prices and totals provided by the browser.
+Response: `{id, demo, total, paymentProvider, currency, trackingToken}`. Values are integer cents. A duplicate request with the same key returns the existing order. A different canonical order with that key receives 409. Duplicate item and variant lines are rejected; combine their quantities. The server ignores prices and totals provided by the browser.
 
 Status body: `{status: "accepted"}`. See architecture.md for allowed transitions.
 
@@ -60,10 +60,10 @@ No CORS wildcard is provided. The existing example operates on the same origin. 
 | --- | --- | --- |
 | GET | /catalog | Public active product catalog |
 | GET, POST | /manager/catalog | Manager, save `{catalog, revision}` with revision from GET |
-| GET, POST | /manager/stripe | Manager, redacted summary or write `{apiKey, webhookSecret, enabled}` |
-| POST | /manager/stripe/verify | Manager, checks saved sandbox key |
-| POST | /orders/DYWS-ID/checkout | Order tracking token in X-Tracking-Token header |
-| POST | /stripe/webhook | Stripe signature over the raw JSON request |
+| GET, POST | /manager/plugins/stripe/settings | Manager, redacted summary or write `{apiKey, webhookSecret, enabled}` |
+| POST | /manager/plugins/stripe/verify | Manager, checks saved sandbox key |
+| POST | /plugins/stripe/orders/{orderId}/checkout | Order tracking token in X-Tracking-Token header |
+| POST | /plugins/stripe/webhook | Stripe signature over the raw JSON request |
 
 Order receipts include paymentProvider and currency. Tracking adds paymentProvider and checkoutStatus. Stripe order payments are webhook controlled. See catalog-and-payments.md for schema and reconciliation rules.
 
@@ -75,21 +75,21 @@ All three endpoints require a manager bearer session. Driver sessions receive 40
 * POST /manager/drivers accepts id, name, active, password and the loaded revision. A new driver needs a password. A blank password on an existing driver keeps the old one. IDs remain stable. A stale revision returns 409. Deactivation is reversible and is blocked while the driver has unfinished assigned orders. Password resets and deactivation revoke that driver's sessions. Inactive drivers cannot sign in or receive new assignments.
 * POST /manager/password accepts currentPassword, newPassword and confirmPassword. The current password must verify. Success returns ok and signInRequired, and revokes all manager sessions. New passwords are limited to 12 through 72 bytes, with the browser also enforcing at least 12 characters. No existing credentials are changed by deployment.
 
-Account changes use a private accounts file identified by the tenant hash alongside the database. It overrides the initial deployment credentials and driver list without rewriting config.json. File locking serializes login, account updates and assignment eligibility checks. Passwords are hashed using PHP password_hash and the file is written atomically with mode 0600. Account changes and password attempts are rate limited. Keep account overrides in private backups together with the database and base configuration.
+Account records and password hashes are stored in SQLite. Credential changes and session revocation commit together; file locking serializes login, updates and assignment eligibility checks. Passwords use PHP password_hash. Account changes and password attempts are rate limited. Back up the database and private configuration together. Older JSON credentials are imported once per tenant; current account writes do not update JSON.
 
 ## General settings
 
-`GET /settings` returns only public display labels: `{"driverRole":{"singular":"Driver","plural":"Drivers"}}`. `GET /manager/settings` requires a manager session and returns `{settings, revision}`. `POST /manager/settings` accepts that same shape. Both names are required, with up to 60 characters and no control characters. A stale revision returns 409.
+`GET /settings` returns public role labels and the display timezone: `{"driverRole":{"singular":"Driver","plural":"Drivers"},"timeZone":"America/Edmonton"}`. `GET /manager/settings` requires a manager session and returns `{settings, revision, timeZones}`. `POST /manager/settings` accepts `{settings, revision}`. Both names are required, with up to 60 characters and no control characters. A stale revision returns 409.
 
 Settings are private tenant scoped JSON, updated atomically under a file lock. No credential fields are accepted or returned. Display names never alter the internal `driver` role, API paths, account IDs or permissions. A role displayed as Admin still cannot access manager endpoints.
 
 ## Maps and realtime
 
-GET /maps/config exposes only the enabled browser map configuration. GET /manager/maps requires manager authentication and returns enabled, hasKey, mapId and revision. POST accepts enabled, browserKey, mapId and revision. Blank key retains the saved value. A stale revision is 409; enabling without a key is rejected. The private maps JSON is tenant scoped and mode 0600. See gps-maps-realtime.md for restrictions and caching.
+GET /plugins/google-maps/config exposes only the enabled browser map configuration. GET /manager/plugins/google-maps/settings requires manager authentication and returns enabled, hasKey, mapId and revision. POST accepts enabled, browserKey, mapId and revision. Blank key retains the saved value. A stale revision is 409; enabling without a key is rejected. The private maps JSON is tenant scoped and mode 0600. See gps-maps-realtime.md for restrictions and caching.
 
 GET /realtime/config returns the optional public WebSocket URL and fallback: polling. POST /realtime/access takes scope public, operator or tracking, with orderId for tracking. Operator uses bearer authentication; tracking uses X-Tracking-Token. The result includes authorized channels, revision and expiresAt. This grants notifications only; data requests still require their normal credentials. Notifications contain no order or GPS data.
 
-Manager and driver order responses include gps: {sharing, source, recordedAt, accuracy, stale, location}. Public tracking adds locationSource and retains its existing location and gpsStale fields. Demo checkout now navigates to tracking/#ORDER_ID.TOKEN immediately after order creation. The fragment keeps the private token out of server request URLs and referrer headers.
+Manager and driver order responses include gps: {sharing, source, recordedAt, accuracy, stale, location}. Public tracking adds locationSource and retains its existing location and gpsStale fields. Demo checkout navigates to `tracking/#ORDER_ID.TOKEN`. A local script POSTs the credentials to PHP, which verifies them, sets an order scoped HttpOnly cookie and redirects to `tracking/?order=ORDER_ID`. The token stays out of request URLs and referrer headers; JavaScript API reads use X-Tracking-Token.
 
 GET /manager/driver-locations requires manager authentication and returns active delivery entries containing driverId, orderId and gps. It powers the per driver map cards without returning customer contact details.
 
@@ -99,7 +99,7 @@ GET /driver/gps-config requires driver authentication. It returns testLocation o
 
 ## Account storage
 
-Version 0.4.0 stores driver records and admin password hashes in the same private SQLite database as orders. HTTP request and response contracts are unchanged. Credential changes and session revocation commit in the same transaction. Each tenant imports legacy account configuration only once. Business settings, map settings, encrypted Stripe configuration and product catalogs remain private JSON.
+dyws stores driver records and admin password hashes in the same private SQLite database as orders. HTTP request and response contracts are unchanged. Credential changes and session revocation commit in the same transaction. Each tenant imports legacy account configuration only once. Business settings, map settings, encrypted Stripe configuration and product catalogs remain private JSON.
 
 ## Plugins
 
@@ -107,17 +107,17 @@ GET /plugins returns apiVersion 1 and active compatible browser plugin metadata,
 
 Active plugin routes are dispatched after core routes. Core enforces the route's public, manager or driver access before calling it. Google Maps now uses GET /plugins/google-maps/config and manager authenticated GET/POST /manager/plugins/google-maps/settings. Existing Maps aliases work only while the plugin is active. Inactive plugin routes return 404. Plugin POST mutations notify operator and public subscriptions; no keys or location payloads are put in invalidation messages. See plugins.md for lifecycle and hook contracts.
 
-## Plugins and payment providers, 0.6
+## Plugins and payment providers
 
 Stripe endpoints are registered by the bundled plugin. Use GET/POST /manager/plugins/stripe/settings, POST /manager/plugins/stripe/verify, POST /plugins/stripe/orders/{id}/checkout and POST /plugins/stripe/webhook. Manager settings require a bearer token, Checkout requires the order tracking token, and webhooks require the original raw body and valid Stripe signature. Existing Stripe URLs remain aliases. Deactivation disables new checkout, retains signed webhook processing for in flight payments, and preserves encrypted settings. The ledger and reporting stay available independently.
 
-GET /plugins also returns hooks, the 25 built in hook descriptions. GET /manager/lookup?q=...&kind=all supports manager only search, with products, orders and drivers as native kinds and lookup.results for plugin kinds. Query length is 1 to 100 bytes. Results are bounded and tenant scoped.
+GET /plugins also returns hooks, the 32 hook descriptions. GET /manager/lookup?q=...&kind=all supports manager only search, with products, orders and drivers as native kinds and lookup.results for plugin kinds. Query length is 1 to 100 bytes. Results are bounded and tenant scoped.
 
 POST /orders accepts an optional pluginData object keyed by installed plugin convention. Values are objects or arrays, up to 20 keys and 8192 encoded bytes in total. Plugins validate their own data with order.validating. Values participate in idempotency and remain in SQLite; authorised manager and driver order projections include pluginData, while public tracking omits it by default. Unknown plugin data does not execute code or create a capability.
 
 See [the hook reference](plugin-hooks.md) for validation timing and response filters. Core pricing, manager authorization, driver assignment, tracking tokens and online payment guards run before relevant plugin hooks.
 
-## Order Reporting, version 0.7
+## Order Reporting
 
 Manager only GET /manager/plugins/order-reporting/dashboard accepts from, to, currency and fulfillment. It returns a schemaVersion 1 aggregate with current metrics, previous period metrics, daily series, item totals, status, fulfilment and hourly counts. It excludes customer contact and location data. See [report definitions](order-reporting.md). The existing /manager/reports adds orderReporting when the plugin is active. Disabling the plugin leaves core reports available. DataTables has no API routes or server data access.
 
