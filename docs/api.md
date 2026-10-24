@@ -134,3 +134,24 @@ Browser administration starts at `/admin/`, with a standalone `/auth/` form and 
 ## Hosted public demo policy
 
 The hosted `/diner-demo/` installation additionally requires `username: "admin"` with the manager login. Driver login uses `driverId: "driver"`. Both public passwords match their identifiers. This behavior belongs to Demo Lockdown, not the normal authentication contract. Critical mutations, payment callbacks, integration reads and unknown endpoints return 403 even with the public manager token. Order contacts, delivery address, notes and plugin data are normalized to fictional values before storage. See [Demo Lockdown](demo-lockdown.md).
+
+
+## Delivery runs
+
+`GET /manager/orders` includes `runs`, the planned and active runs for this tenant. `GET /driver/orders` includes only the authenticated driver's runs. Both remain PHP startup data sources. Authorized order objects include a nullable `deliveryRun` membership with ID, state, driver and stop position.
+
+| Endpoint | Access | Body / behavior |
+| --- | --- | --- |
+| `POST /manager/runs` | Manager | `driverId`, ordered `orderIds` (1 to 20), `idempotencyKey` (16 to 80 letters, digits or hyphens). Creates and assigns a planned run. Same request key and stops return the original run. |
+| `POST /manager/runs/RUN_ID` | Manager | `action: reorder`, current integer `revision`, and the same `orderIds` in the new order; or `action: cancel` with `revision`. Planned runs only. |
+| `POST /driver/runs/RUN_ID/start` | Assigned driver | Empty JSON object. Starts all ready, paid stops atomically. Retrying an active run is safe. |
+| `POST /driver/runs/RUN_ID/location/start` | Assigned driver | `source: device` or `simulated`. Returns `sharingToken` and `expiresIn: 120`. |
+| `POST /driver/runs/RUN_ID/location` | Assigned driver | Same coordinates, accuracy, measurement timestamp and `sharingToken` as the individual delivery endpoint. One upload updates all remaining stops in one transaction. |
+| `POST /driver/runs/RUN_ID/location/heartbeat` | Assigned driver | `sharingToken`. Renews remaining leases without redating measurements. |
+| `POST /driver/runs/RUN_ID/location/stop` | Assigned driver | `sharingToken`. Ends only matching leases; stale tabs cannot end replacement shares. |
+
+Complete a stop with the existing `POST /driver/orders/ORDER_ID/status`, `status: delivered`. Only the next stop may complete. Completion removes that customer's GPS, advances the run revision and invalidates every affected tracking channel. The last stop completes the run. Existing payment and plugin status validators still apply. Manager status changes obey the same run ordering rules.
+
+One driver may have one planned or active run. An order cannot belong to two open runs. A driver with a standalone delivery already on the road must finish it before a run is created. A planned run must be cancelled before its individual orders can be reassigned or cancelled. Run cancellation keeps each order ready and its driver assignment intact. Stale edits and conflicting assignments return 409; unauthorized drivers receive 403. Run IDs use `RUN-` and twelve uppercase hexadecimal characters.
+
+Public tracking adds nullable `deliveryRun: {stopsAhead, isNext}` only while that order remains on an active run. It exposes no run IDs, other orders, addresses or contacts. Run location endpoints require both driver authentication and the current sharing token. Configured test coordinates override client coordinates just as they do for individual deliveries. Lease expiry, logout and delivery completion retain the existing GPS cleanup rules. The public Demo Lockdown plugin does not allow these new mutation endpoints yet.

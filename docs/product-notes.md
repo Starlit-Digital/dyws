@@ -34,7 +34,7 @@ Plugin settings belong to their plugins and survive deactivation. Stripe's signe
 1. Business hours, delivery zones, address validation, preparation estimates, kitchen notifications and robust inventory requirements.
 2. Add named administrator and device accounts, stronger session management, production payment enablement, tips, discounts and operational refund workflows. Sandbox Checkout and webhook reconciliation already exist; payouts and marketplace settlement do not.
 3. Native iOS and Android driver apps, secure device storage, reliable background GPS, offline recovery and physical device testing.
-4. Dispatch offers, capacity rules, acceptance races and route planning beyond the current single active delivery view.
+4. Dispatch offers, capacity rules, acceptance races and route planning beyond manually ordered delivery runs.
 5. Durable queues and outbox, notifications, monitoring, load tests, deployment automation, scheduled cleanup, backups and restore drills. Review database capacity before expanding beyond a small pilot.
 
 The current build is a demonstration. Manual payment actions create test ledger entries; Stripe accepts sandbox keys only. No real driver is dispatched, and native apps have not been built. See the [complete feature breakdown](../README.md) and [driver app plan](mobile-driver-plan.md).

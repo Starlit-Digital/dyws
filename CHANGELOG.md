@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Add manually ordered delivery runs, atomic pickup, one active run per driver, per stop completion, shared GPS and private stops ahead tracking. Start rollout on the private diner installation.
+- Add shared semantic status badges to Orders, delivery runs, driver accounts, plugin states, provider settings, reports and customer payment status. Labels and glyphs accompany every colour.
+- Connect the customer progress steps into a responsive timeline with clear completed, current and upcoming states, accessible labels and theme aware contrast.
+
 - Move the hosted example to `/diner-demo/` with isolated fictional data and public `admin / admin` and `driver / driver` accounts.
 - Bundle an optional Demo Lockdown plugin with server enforced critical setting restrictions, simulated GPS, disabled external payments and maps, bounded temporary records and fictional checkout data.
 - Add mandatory installation plugins and five policy, input and presentation hooks. Required protection cannot be deactivated in Admin and fails closed when its files are missing or broken.

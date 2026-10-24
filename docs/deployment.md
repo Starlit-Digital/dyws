@@ -87,3 +87,8 @@ Tests cover authentication, pricing, idempotency, tenant boundaries, catalog rev
 Deploy the matching `plugins/stripe/StripePayments.php` to the private plugin directory. This change needs no database migration or public asset update. New Checkout sessions return to the installation's `tracking/?order=ORDER_REFERENCE` page using the existing order cookie. Webhooks remain responsible for payment state. Existing Stripe sessions retain their original return URLs and continue to be reused; do not erase payment attempts to force a replacement.
 
 The hosted public demo now uses an isolated database and the mandatory [Demo Lockdown plugin](demo-lockdown.md). Its bootstrap adapter selects that private configuration. Earlier runtime records are preserved privately and are not exposed through the public demo. Do not copy real orders, credentials, payment settings or customer contacts into this installation.
+
+
+### Delivery run schema upgrade
+
+The current development build adds `delivery_runs` and `delivery_run_stops` with tenant scoped foreign keys and partial unique indexes for open driver runs and order membership. Startup creates these tables without rewriting existing orders, credentials, catalog or settings. Existing individual deliveries remain usable. Back up SQLite with its backup API or `VACUUM INTO`, not by copying an open database without its WAL. Deploy `DeliveryRuns.php` with the rest of the PHP module and the matching Orders, driver and tracking assets. The rollout starts on the private `/diner/` installation; `/diner-demo/` is unchanged.
