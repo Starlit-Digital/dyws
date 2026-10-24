@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Move the hosted example to `/diner-demo/` with isolated fictional data and public `admin / admin` and `driver / driver` accounts.
+- Bundle an optional Demo Lockdown plugin with server enforced critical setting restrictions, simulated GPS, disabled external payments and maps, bounded temporary records and fictional checkout data.
+- Add mandatory installation plugins and five policy, input and presentation hooks. Required protection cannot be deactivated in Admin and fails closed when its files are missing or broken.
+
 - Return newly created Stripe Checkout sessions to the correct private order page after payment or cancellation, using the existing order cookie and preserving webhook payment verification.
 
 - Make the complete Git checkout the primary development and installation workflow.

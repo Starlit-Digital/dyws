@@ -42,7 +42,7 @@ Run on the future server with Node 22 or newer:
 cd modules/dyws/realtime
 npm ci --omit=dev
 # Set these using the host's private environment configuration:
-# DYWS_BACKEND_URL=https://sltd.ca/diner/api/
+# DYWS_BACKEND_URL=https://sltd.ca/diner-demo/api/
 # DYWS_REALTIME_SECRET=<at least 32 random characters, shared with PHP>
 # DYWS_ORIGINS=https://sltd.ca
 # HOST=127.0.0.1
@@ -90,7 +90,7 @@ The currently displayed route is reused. For the same destination, recomputation
 
 Checkout now collects street, optional unit, city, region, postal code, country and phone. The backend validates and combines the address, keeps structured fields in address_json and preserves older clients that submit a freeform address. The cleanup job scrubs both address formats. The migration adds address_json without replacing orders.
 
-The inherited Hostinger CSP blocked Google scripts on the first live attempt. The diner .htaccess now overrides it within /diner/, allowing the Maps SDK from maps.googleapis.com and maps.gstatic.com, Google map data, fonts and styles. Other site folders are unchanged.
+The inherited Hostinger CSP blocked Google scripts on the first live attempt. The diner .htaccess now overrides it within /diner-demo/, allowing the Maps SDK from maps.googleapis.com and maps.gstatic.com, Google map data, fonts and styles. Other site folders are unchanged.
 
 ## Customer arrival and completion
 
@@ -99,3 +99,5 @@ The customer tracking page shows Received, Preparing, Ready, On the way and Deli
 Arrival estimates use the Google Maps JavaScript Routes library with DRIVING, TRAFFIC_AWARE and fields path, durationMillis and distanceMeters. This uses the existing browser key and enabled Routes API. See Google's [Routes reference](https://developers.google.com/maps/documentation/javascript/reference/route). Requests reuse the existing map and in memory route for at least one minute, or two minutes while movement is under 100 metres. Google route data is not saved to local storage or the server. API usage remains billed under the configured Google project.
 
 No preparation time is invented. Before departure, the customer sees that an estimate will become available after departure. Once underway, a fresh GPS fix and a route duration produce an approximate number of minutes and arrival time. Simulated GPS is explicitly labelled Demo arrival estimate. GPS older than 60 seconds, route results older than two minutes, network failures and unavailable routing suppress the estimate. The page never claims arrival merely because the estimated time passed.
+
+The public `/diner-demo/` install overrides this with Demo Lockdown: no Google Maps SDK, geocoding, routing, device GPS or billable API calls. It displays the bundled Manning reference image and a fixed simulated position. Other installations retain the Google Maps plugin and their configured permissions.

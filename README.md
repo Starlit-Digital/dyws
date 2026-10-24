@@ -2,7 +2,7 @@
 
 **Do You Want Something?** A reusable ordering and delivery system for a business’s own website.
 
-**Release: [0.10.0](VERSION)** · [Optional install ZIP](https://github.com/Starlit-Digital/dyws/releases/download/v0.10.0/dyws.zip) · [Release notes](CHANGELOG.md) · [Installation guide](INSTALL.md) · [Hosted diner example](https://sltd.ca/diner/)
+**Release: [0.10.0](VERSION)** · [Optional install ZIP](https://github.com/Starlit-Digital/dyws/releases/download/v0.10.0/dyws.zip) · [Release notes](CHANGELOG.md) · [Installation guide](INSTALL.md) · [Hosted diner example](https://sltd.ca/diner-demo/)
 
 The customer orders on your website, the business manages the order, and an assigned driver handles the delivery. Starlit Diner is the fictional restaurant example. The catalog also supports general products and services sold in whole units.
 
@@ -31,6 +31,12 @@ npm run serve
 ```
 
 Open `http://127.0.0.1:8097/`. The CLI creates a disposable demo driver and generated credentials in ignored `var/LOCAL-ACCESS.txt`. Browser installation creates no default password or driver account. Node.js and Python 3 run tests and packaging tools; Node.js is unnecessary for ordinary PHP hosting. The optional WebSocket relay requires Node.js 22 or newer on a separate compatible server.
+
+## Public demo
+
+Try [the storefront](https://sltd.ca/diner-demo/), [Admin](https://sltd.ca/diner-demo/admin/) with **admin / admin**, or [Driver](https://sltd.ca/diner-demo/driver/) with **driver / driver**.
+
+This hosted install uses the mandatory [Demo Lockdown plugin](docs/demo-lockdown.md). Visitors can place and process shared fictional orders. Catalog, business settings, accounts, passwords and plugin configuration are locked on the server. Checkout uses fixed fictional contacts; device GPS and paid integrations are disabled. The map is a local reference image with a simulated driver position. Orders expire after 24 hours. Ordinary installations retain their own private credentials and configurable plugins.
 
 ## Complete feature breakdown
 
@@ -79,12 +85,13 @@ The console refreshes on tab return, window focus and reconnection. Reliable GPS
 
 | Plugin | Features |
 | --- | --- |
+| Demo Lockdown | Optional mandatory policy for an isolated public demo, protected settings, fictional checkout data, simulated GPS and temporary records. |
 | Google Maps | Driver and destination markers, driving routes, estimated travel time, location and route caching, fallback links, and private plugin settings for the browser key and map ID. |
 | Stripe | Optional sandbox hosted Checkout, signed webhooks, server payment verification, idempotency, encrypted credentials and settings owned by the plugin. Success and cancellation return to the private order page. No live payment keys in this demo. |
 | Order Reporting | Reporting dataset, business metrics, period comparisons, charts, CSV and SVG exports, dashboard controls and report integration hooks. |
 | DataTables | Locally bundled table search, sort, pagination and in memory table state. No runtime CDN dependency or customer records in browser table storage. |
 
-The [plugin system](docs/plugins.md) provides lifecycle, discovery, settings, authenticated routes, validators, filters, actions, UI slots and providers. The [32 hook contracts](docs/plugin-hooks.md) cover catalog validation and display, checkout fields and validation, order creation and transitions, assignment, tracking, lookup, API responses, driver tools, reporting datasets, controls, cards, exports and tables. The [gift note example](examples/plugins/gift-note) demonstrates a custom plugin.
+The [plugin system](docs/plugins.md) provides lifecycle, discovery, settings, authenticated routes, validators, filters, actions, UI slots and providers. The [37 hook contracts](docs/plugin-hooks.md) cover catalog validation and display, checkout fields and validation, order creation and transitions, assignment, tracking, lookup, API responses, driver tools, reporting datasets, controls, cards, exports and tables. The [gift note example](examples/plugins/gift-note) demonstrates a custom plugin.
 
 Native PHP `#[Provides(...)]` attributes describe plugin features. Page `#[Requires(...)]` attributes declare what each page consumes. The resolver loads matching browser assets while keeping required backend validation and authorization active. A new page does not need every plugin’s browser code.
 

@@ -50,7 +50,7 @@ The dataset has schemaVersion, demo, currency, currencies, fulfillment, timeZone
 
 ## Browser integration
 
-Order Reporting provides reports.renderer. The PHP host owns sign in; core owns date controls, requests and fallback summaries. Order actions live on Orders. Seven reporting and table contracts are part of the 32 hook catalog, covering aggregate filters, completion observers, report controls, query parameters, summary cards, export rows and table lifecycle. See plugin-hooks.md.
+Order Reporting provides reports.renderer. The PHP host owns sign in; core owns date controls, requests and fallback summaries. Order actions live on Orders. Seven reporting and table contracts are part of the 37 hook catalog, covering aggregate filters, completion observers, report controls, query parameters, summary cards, export rows and table lifecycle. See plugin-hooks.md.
 
 CSV buttons export the complete selected dataset, not only the searched or paginated DataTables rows. Summary CSV includes units, dates, currency and fulfilment; item and daily exports include scope metadata and cent units. SVG buttons download standalone charts with titles and descriptions. Tables provide exact values without requiring hover or colour recognition.
 

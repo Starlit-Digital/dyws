@@ -13,7 +13,9 @@ Copy both parts from a trusted source, then open **Admin → Plugins** and activ
 
 Plugin state is tenant scoped private JSON beside the database, with revision checking and file locking. A corrupt state file disables plugins and produces an admin warning. Missing optional display plugins do not stop orders. Required payment and validation failures reject affected operations. Reinstall a plugin's files before attempting to activate it again. Removing files does not erase its settings.
 
-The current implementation installs code through Git or file upload using the hosting file manager. There is no browser ZIP uploader, marketplace, automatic updater or uninstall data deletion. Both the Git checkout and optional install ZIP include both halves of all four bundled plugins.
+The current implementation installs code through Git or file upload using the hosting file manager. There is no browser ZIP uploader, marketplace, automatic updater or uninstall data deletion. Both the Git checkout and optional install ZIP include both halves of all five bundled plugins.
+
+The fifth bundled plugin, [Demo Lockdown](demo-lockdown.md), is inactive by default and requires explicit private configuration. It cannot be enabled accidentally from the Plugins page. A private `required_plugins` list pins installation policies active before other plugins. Missing or broken required code stops PHP bootstrap with 503, and its deactivation is forbidden.
 
 ## Manifest
 
@@ -130,9 +132,9 @@ The public browser capability is `payment.renderer`. The core tracker injects an
 
 Plugin route callbacks receive `(body, session, request)`. Request contains `raw`, the exact request bytes, `params` for named path segments, and `server` for request headers. Use `{name}` for one alphanumeric, underscore or hyphen path segment, then validate the resource ID in the handler. Route options accept `maxBody` up to 262144 bytes and `rateLimit: [bucket, count, seconds]`. Authentication happens before handler invocation and rate limiting. Only the trusted bundled manifest can allow old route aliases and retained callbacks.
 
-## 32 hook contracts
+## 37 hook contracts
 
-See [Hook reference](plugin-hooks.md) for all 32 hook contracts, payloads, timing and examples. GET /plugins advertises the same catalog from modules/dyws/php/hooks.json. Core and website adapters call these hooks; they are not reserved names without implementations.
+See [Hook reference](plugin-hooks.md) for all 37 hook contracts, payloads, timing and examples. GET /plugins advertises the same catalog from modules/dyws/php/hooks.json. Core and website adapters call these hooks; they are not reserved names without implementations.
 
 Actions observe or display. Filters return an adjusted value. Validators can reject an operation. Priorities run in ascending order, default 10; equal priorities retain registration order. PHP and browser contexts support addAction, addFilter, addValidator and corresponding remove methods. PHP observation errors are logged, browser errors are collected, and other optional hooks continue. Validators fail the operation, preserving the cart or server transaction. Declare validation capability so a failed or missing required plugin cannot silently bypass server checks. Browser checks improve the form; repeat required rules on the server.
 

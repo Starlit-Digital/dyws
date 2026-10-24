@@ -1,6 +1,6 @@
 # HTTP API
 
-Entry point: `/diner/api/?route=/health`. Routes below are values of the `route` query parameter, not separate rewritten paths. Send JSON for POST requests. Responses use JSON, no store caching and meaningful 4xx status codes. Request body limit: 32 KiB. State is scoped to the configured business tenant. The current application release is recorded in [VERSION](../VERSION).
+Entry point: `/diner-demo/api/?route=/health`. Routes below are values of the `route` query parameter, not separate rewritten paths. Send JSON for POST requests. Responses use JSON, no store caching and meaningful 4xx status codes. Request body limit: 32 KiB. State is scoped to the configured business tenant. The current application release is recorded in [VERSION](../VERSION).
 
 | Method | Route | Access | Purpose |
 | --- | --- | --- | --- |
@@ -111,7 +111,7 @@ Active plugin routes are dispatched after core routes. Core enforces the route's
 
 Stripe endpoints are registered by the bundled plugin. Use GET/POST /manager/plugins/stripe/settings, POST /manager/plugins/stripe/verify, POST /plugins/stripe/orders/{id}/checkout and POST /plugins/stripe/webhook. Manager settings require a bearer token, Checkout requires the order tracking token, and webhooks require the original raw body and valid Stripe signature. Existing Stripe URLs remain aliases. Deactivation disables new checkout, retains signed webhook processing for in flight payments, and preserves encrypted settings. The ledger and reporting stay available independently.
 
-GET /plugins also returns hooks, the 32 hook descriptions. GET /manager/lookup?q=...&kind=all supports manager only search, with products, orders and drivers as native kinds and lookup.results for plugin kinds. Query length is 1 to 100 bytes. Results are bounded and tenant scoped.
+GET /plugins also returns hooks, the 37 hook descriptions. GET /manager/lookup?q=...&kind=all supports manager only search, with products, orders and drivers as native kinds and lookup.results for plugin kinds. Query length is 1 to 100 bytes. Results are bounded and tenant scoped.
 
 POST /orders accepts an optional pluginData object keyed by installed plugin convention. Values are objects or arrays, up to 20 keys and 8192 encoded bytes in total. Plugins validate their own data with order.validating. Values participate in idempotency and remain in SQLite; authorised manager and driver order projections include pluginData, while public tracking omits it by default. Unknown plugin data does not execute code or create a capability.
 
@@ -130,3 +130,7 @@ Successful API responses include `X-DYWS-Time-Zone`. The optional WebSocket rela
 Business details are edited from Settings using the existing manager catalog API. Business name, ordering system name, pickup address, tax rate and delivery fee remain catalog fields; currency is read only. The editor submits the loaded catalog revision and preserves categories and items. A concurrent catalog or business edit returns 409 rather than overwriting another edit. General display preferences continue to use the separate settings JSON API.
 
 Browser administration starts at `/admin/`, with a standalone `/auth/` form and server checked page access. Page cookies do not authorize API calls. API clients continue to use bearer tokens, including WebSocket requests.
+
+## Hosted public demo policy
+
+The hosted `/diner-demo/` installation additionally requires `username: "admin"` with the manager login. Driver login uses `driverId: "driver"`. Both public passwords match their identifiers. This behavior belongs to Demo Lockdown, not the normal authentication contract. Critical mutations, payment callbacks, integration reads and unknown endpoints return 403 even with the public manager token. Order contacts, delivery address, notes and plugin data are normalized to fictional values before storage. See [Demo Lockdown](demo-lockdown.md).

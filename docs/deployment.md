@@ -32,7 +32,7 @@ PHP 8.1 or newer needs PDO SQLite, OpenSSL, curl and mbstring. Node.js and Pytho
 | `/tracking/` | Private order page entered through a checkout tracking link. |
 | `/setup/` | Fresh installation only; removed after setup. |
 
-The hosted diner is at `https://sltd.ca/diner/`, with administrator entry at `https://sltd.ca/diner/admin/`. Its private installation path is resolved by the host's ignored `public_html/api/bootstrap-path.php` adapter. Read that adapter when maintaining the host rather than assuming a directory name. Do not commit host credentials or copy a local configuration over hosted data.
+The hosted diner is at `https://sltd.ca/diner-demo/`, with administrator entry at `https://sltd.ca/diner-demo/admin/`. Its private installation path is resolved by the host's ignored `public_html/api/bootstrap-path.php` adapter. Read that adapter when maintaining the host rather than assuming a directory name. Do not commit host credentials or copy a local configuration over hosted data.
 
 ## Code deployment
 
@@ -85,3 +85,5 @@ Tests cover authentication, pricing, idempotency, tenant boundaries, catalog rev
 ## Stripe tracking return fix
 
 Deploy the matching `plugins/stripe/StripePayments.php` to the private plugin directory. This change needs no database migration or public asset update. New Checkout sessions return to the installation's `tracking/?order=ORDER_REFERENCE` page using the existing order cookie. Webhooks remain responsible for payment state. Existing Stripe sessions retain their original return URLs and continue to be reused; do not erase payment attempts to force a replacement.
+
+The hosted public demo now uses an isolated database and the mandatory [Demo Lockdown plugin](demo-lockdown.md). Its bootstrap adapter selects that private configuration. Earlier runtime records are preserved privately and are not exposed through the public demo. Do not copy real orders, credentials, payment settings or customer contacts into this installation.
