@@ -10,10 +10,10 @@
 .dyws-ordering h2 { margin-top: 0; }
 .dyws-ordering header { display: flex; align-items: start; justify-content: space-between; gap: 16px; }
 .dyws-ordering .dyws-muted { background: var(--dyws-color-raised); color: var(--dyws-color-text); }
-.dyws-ordering .dyws-line { padding: 20px 0; border-bottom: 1px solid var(--dyws-color-border); }
+.dyws-ordering .dyws-line { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:12px; padding: 20px 0; border-bottom: 1px solid var(--dyws-color-border); }
 .dyws-ordering .dyws-line strong { display: block; }
-.dyws-ordering .dyws-quantity { display: flex; justify-content: flex-end; align-items: center; gap: 16px; margin-top: 12px; }
-.dyws-ordering .dyws-quantity button { min-width: 48px; }
+.dyws-ordering .dyws-quantity { display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-top: 0; }
+.dyws-ordering .dyws-quantity button { display:inline-flex; align-items:center; justify-content:center; width:48px; min-width:48px; height:48px; padding:10px; }
 .dyws-ordering .dyws-summary { display: grid; grid-template-columns: 1fr auto; gap: 10px; margin: 24px 0; }
 .dyws-ordering .dyws-summary dd { margin: 0; text-align: right; }
 .dyws-ordering .dyws-summary dt:last-of-type, .dyws-ordering .dyws-summary dd:last-of-type { font-weight: 800; }
@@ -31,14 +31,14 @@
   .dyws-ordering .dyws-cart-launch { left: 12px; right: 12px; bottom: 12px; }
   .dyws-ordering dialog { padding: 20px; }
   .dyws-ordering header { flex-wrap: wrap; }
-  .dyws-ordering .dyws-quantity { gap: 10px; flex-wrap: wrap; }
+  .dyws-ordering .dyws-quantity { gap: 8px; flex-wrap: nowrap; }
 }
 .dyws-delivery-address{border:0;margin:0;padding:0;min-width:0}
 .dyws-delivery-address legend{font-weight:700;margin-block:1rem}
 .dyws-delivery-address[hidden]{display:none}
 [data-dyws-checkout-fields]:empty { display: none; }
 
-.dyws-ordering .dyws-remove{display:inline-flex;align-items:center;justify-content:center;padding:12px;min-width:48px;min-height:48px}
+.dyws-ordering .dyws-line-info { min-width:0; overflow-wrap:anywhere; }
 
 /* Native radios retain keyboard and screen reader behavior inside the pill selector. */
 .dyws-fulfillment{border:0;padding:0;margin:16px 0;min-width:0}
@@ -61,7 +61,7 @@
 .dyws-ordering button { border-radius:999px; background:var(--dyws-action-fill); color:var(--dyws-color-bg); }
 .dyws-ordering .dyws-muted { border:1px solid var(--dyws-line-soft); }
 .dyws-ordering .dyws-line { border-color:var(--dyws-line-soft); }
-.dyws-ordering .dyws-line > span { color:var(--dyws-color-warm); font-variant-numeric:tabular-nums; }
+.dyws-ordering .dyws-line-info > span { color:var(--dyws-color-warm); font-variant-numeric:tabular-nums; }
 .dyws-ordering .dyws-summary { padding:20px; border-radius:20px; background:var(--dyws-color-bg); }
 .dyws-ordering .dyws-summary dt:last-of-type,.dyws-ordering .dyws-summary dd:last-of-type { color:var(--dyws-color-warm); padding-top:12px; border-top:1px solid var(--dyws-line-soft); }
 .dyws-ordering .dyws-actions button { flex:1 1 auto; }
