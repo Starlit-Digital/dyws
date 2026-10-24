@@ -12,8 +12,9 @@
 .dyws-ordering .dyws-muted { background: var(--dyws-color-raised); color: var(--dyws-color-text); }
 .dyws-ordering .dyws-line { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:12px; padding: 20px 0; border-bottom: 1px solid var(--dyws-color-border); }
 .dyws-ordering .dyws-line strong { display: block; }
-.dyws-ordering .dyws-quantity { display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-top: 0; }
+.dyws-ordering .dyws-quantity { display:grid; grid-template-columns:48px 32px 48px; align-items:center; gap:12px; margin-top:0; }
 .dyws-ordering .dyws-quantity button { display:inline-flex; align-items:center; justify-content:center; width:48px; min-width:48px; height:48px; padding:10px; }
+.dyws-ordering .dyws-quantity > span { width:32px; text-align:center; font-variant-numeric:tabular-nums; }
 .dyws-ordering .dyws-summary { display: grid; grid-template-columns: 1fr auto; gap: 10px; margin: 24px 0; }
 .dyws-ordering .dyws-summary dd { margin: 0; text-align: right; }
 .dyws-ordering .dyws-summary dt:last-of-type, .dyws-ordering .dyws-summary dd:last-of-type { font-weight: 800; }
