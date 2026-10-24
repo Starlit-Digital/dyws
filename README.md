@@ -115,13 +115,21 @@ Native PHP `#[Provides(...)]` attributes describe plugin features. Page `#[Requi
 
 ## Screenshot examples
 
-All images below were captured from this release’s local demo on October 23, 2026. Names, phone numbers and addresses are fictional. No live customer records, real credentials, Maps keys or tracking tokens appear. The Google Maps API is unconfigured in this screenshot fixture, so its screens do not demonstrate a live route estimate.
+These browser screenshots were captured from isolated local fixtures on October 23, 2026. The Orders, delivery run, driver, reporting, plugin, checkout and tracking images show the current development build. Names, phone numbers and addresses are fictional. No live customer records, real credentials, Maps keys or tracking tokens appear. The Google Maps API is unconfigured in this screenshot fixture, so its screens do not demonstrate a live route estimate.
 
 ### Business owner
 
-**Orders:** active work appears first, with filters and searchable rows.
+**Orders:** active work appears first, with searchable rows and distinct status, fulfillment and payment badges.
 
-![Admin Orders with fictional orders](docs/screenshots/admin-orders.jpg)
+![Admin Orders with coloured status, fulfillment and payment badges](docs/screenshots/admin-orders.jpg)
+
+**Delivery runs:** one driver follows an ordered list of stops, with each customer seeing only their own delivery progress.
+
+![Admin delivery run with two fictional stops](docs/screenshots/admin-delivery-runs.jpg)
+
+**Order details:** grouped customer information, item prices and clearly labelled actions.
+
+![Expanded order with customer details and status badges](docs/screenshots/admin-order-detail.jpg)
 
 <details>
 <summary>Reports, Catalog and Plugins examples</summary>
@@ -146,9 +154,9 @@ All images below were captured from this release’s local demo on October 23, 2
 
 ![Driver login example with an empty password](docs/screenshots/driver-login.jpg)
 
-**Assigned delivery:** customer details and the action to start the test delivery.
+**Delivery run:** ordered stops, payment and delivery badges, and a clear action to complete the next stop.
 
-![Driver console with a fictional assigned delivery](docs/screenshots/driver-console.jpg)
+![Driver console with a two stop delivery run](docs/screenshots/driver-console.jpg)
 
 ### Customer ordering process
 
@@ -160,13 +168,15 @@ All images below were captured from this release’s local demo on October 23, 2
 
 ![Customer cart with quantity and removal controls](docs/screenshots/customer-cart.jpg)
 
-3. Choose pickup or delivery and provide contact and address details. This example shows the final checkout section with the test acknowledgement.
+3. Choose Pickup or Delivery with the pill selector, then provide contact and address details. The delivery fee is shown with the choice.
 
 ![Customer checkout with fictional contact information](docs/screenshots/customer-checkout.jpg)
 
-4. Place the test order and follow its private status page.
+4. Follow the connected progress timeline. Later stops show how many deliveries are ahead.
 
-![Customer order received and progress timeline](docs/screenshots/customer-tracking.jpg)
+![Customer order received with an arrival card and connected timeline](docs/screenshots/customer-tracking.jpg)
+
+![Customer delivery run tracking with one stop ahead](docs/screenshots/customer-delivery-run.jpg)
 
 5. When the assigned driver completes delivery, the same page confirms completion and removes active location tracking.
 

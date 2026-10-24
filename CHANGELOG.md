@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Refine customer tracking and expanded order details with warm theme aware accents, stronger typography, grouped information and rounded controls.
+
+- Replace the checkout Order type dropdown with an accessible Pickup and Delivery pill selector, preserving address validation and fee calculation.
+- Refresh the screenshot gallery with delivery runs, semantic status badges and connected customer tracking.
+
 - Allow public demo delivery runs through precise lockdown endpoints, retain simulated GPS and critical setting restrictions, and clean up expiring run stops and bounded history.
 
 - Add manually ordered delivery runs, atomic pickup, one active run per driver, per stop completion, shared GPS and private stops ahead tracking. Validated first on the private diner installation, then enabled on the public demo with lockdown preserved.
