@@ -89,3 +89,5 @@ The public `role-labels.js` module provides `loadRole(api)`, `defaultRole` and `
 `mountGeneralSettings({root, api, storageKey, onSave})` in `general-settings.js` mounts the authenticated Settings editor. The PHP `dyws\Settings` class persists tenant scoped labels independently of accounts and the catalog. This is a display name for the existing assignment role, not a permissions editor or multiple custom roles.
 
 `mountManager` mounts only the Reports dashboard. `mountOrders` from orders.js mounts the order table, detail actions and active deliveries using the same manager session storage key. The shipped PHP host handles sign in before mounting either controller. Both refresh their own data, including when returning to a visible tab or reconnecting.
+
+The ordering component accepts a `site-logo` slot for the host website mark, for example `<img slot="site-logo" src="assets/logo.svg" alt="">`. The cart header displays the catalog business name, a centred Your Order title and Close. The diner supplies its existing star mark. On narrow screens the title uses its own centred row below the brand and Close.

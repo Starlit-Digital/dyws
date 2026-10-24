@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Brand the cart header with the site logo and business name, centre Your Order, and retain Close on the right. The reusable component accepts a site-logo slot. Centre Continue to checkout in the first stage and place Back to cart before Place order in checkout. Double and centre totals in both stages, with grouped currency formatting.
+
 - Add Item Order Cap to Business details, defaulting to 10 per product across options. Enforce it in the cart and API, and show a call the store dialog for larger orders. Add editable business phone and email fields.
 
 - Reserve fixed widths for cart buttons and the quantity, using tabular digits to prevent movement between one and two digit counts.
