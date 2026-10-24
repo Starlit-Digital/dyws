@@ -45,3 +45,17 @@ test('Returning online refreshes and clears a failed update warning',async()=>{
  const tracker=createTracking({api,container,document:doc});
  try{tracker.show('order','token');await settle();const panel=container.children[0];assert.match(panel.querySelector('.dyws-tracking-error').textContent,/Retrying/);fail=false;doc.defaultView.dispatchEvent(new Event('online'));await settle();assert.equal(panel.querySelector('.dyws-tracking-error').textContent,'');assert.equal(panel.querySelector('.dyws-tracking-status').textContent,'Driver is on the way');}finally{tracker.destroy();}
 });
+
+test('Assigned driver details refresh and clear without exposing stale identity',async()=>{
+ const container=element();let notify,fail=false;
+ let data={status:'preparing',fulfillment:'delivery',paymentStatus:'unpaid',events:[],driver:null};
+ const api=async()=>{if(fail)throw Object.assign(new Error('expired'),{status:404});return data;};api.watch=(_,fn)=>{notify=fn;return ()=>{};};
+ const tracker=createTracking({api,container,document:{createElement:element}});
+ try{
+  tracker.show('order','token');await settle();const panel=container.children[0];assert.equal(panel.querySelector('.dyws-tracking-driver').hidden,true);
+  data={...data,driver:{name:'Alex <Morgan>',vehicleType:'Sedan',vehicleColor:'Blue'}};notify();await settle();
+  assert.equal(panel.querySelector('.dyws-tracking-driver').hidden,false);assert.equal(panel.querySelector('.dyws-driver-name').textContent,'Alex <Morgan>');assert.equal(panel.querySelector('.dyws-driver-vehicle').textContent,'Blue · Sedan');
+  data={...data,driver:{name:'Taylor',vehicleType:'',vehicleColor:''}};notify();await settle();assert.equal(panel.querySelector('.dyws-driver-name').textContent,'Taylor');assert.equal(panel.querySelector('.dyws-driver-vehicle').hidden,true);
+  fail=true;notify();await settle();assert.equal(panel.querySelector('.dyws-tracking-driver').hidden,true);assert.equal(panel.querySelector('.dyws-driver-name').textContent,'');
+ }finally{tracker.destroy();}
+});

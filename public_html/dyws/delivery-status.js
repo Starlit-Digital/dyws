@@ -21,7 +21,7 @@ export function deliveryStatus(order,{estimate=undefined,now=Date.now(),role='Dr
  if(estimate===null){view.etaValue='Arrival estimate unavailable';view.etaDetail='Your delivery is still on the way. Follow the latest location below.';return view;}
  if(!estimate||!Number.isFinite(estimate.durationMillis)||estimate.durationMillis<0||!Number.isFinite(estimate.calculatedAt)||now-estimate.calculatedAt>120000){view.etaValue='Calculating arrival';view.etaDetail='An estimate will appear when the driving route is available.';return view;}
  const minutes=Math.max(1,Math.ceil(estimate.durationMillis/60000));
- view.etaTitle=order.locationSource==='simulated'?'Demo arrival estimate':'Estimated arrival';
+ view.etaTitle=order.locationSource==='simulated'?'Estimated arrival':'Estimated arrival';
  view.etaValue=minutes<=2?'Arriving soon':'About '+minutes+' min';
  const time=formatTime((estimate.calculatedAt+estimate.durationMillis)/1000);
  view.etaDetail=(order.locationSource==='simulated'?'Simulated location. ':'')+'Around '+time+'. Based on the driving route and traffic. Timing may change.';

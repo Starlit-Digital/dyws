@@ -71,3 +71,9 @@
  .dyws-tracking-timeline .dyws-step-marker { border-color:CanvasText; }
  .dyws-tracking-timeline .dyws-step-current .dyws-step-marker { outline-color:Highlight; }
 }
+
+.dyws-tracking-panel .dyws-tracking-driver { padding:20px; margin-block:24px; border-radius:20px; background:var(--dyws-color-bg); border:1px solid var(--dyws-line-soft); }
+.dyws-tracking-panel .dyws-tracking-driver p { margin:4px 0; }
+.dyws-tracking-panel .dyws-driver-label { font-size:.85em; color:var(--dyws-color-muted); }
+.dyws-tracking-panel .dyws-driver-name { font-size:1.15em; }
+.dyws-tracking-panel .dyws-tracking-driver[hidden] { display:none; }

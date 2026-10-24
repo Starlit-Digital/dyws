@@ -6,7 +6,7 @@ const order={status:'out_for_delivery',fulfillment:'delivery',location:{recorded
 const estimate={durationMillis:480000,calculatedAt:now};
 test('Arrival uses a finite Google duration, labels simulated GPS and never invents preparation time',()=>{
  const live=deliveryStatus(order,{now,estimate});assert.equal(live.etaValue,'About 8 min');assert.match(live.etaDetail,/traffic/);
- const demo=deliveryStatus({...order,locationSource:'simulated'},{now,estimate});assert.equal(demo.etaTitle,'Demo arrival estimate');assert.match(demo.etaDetail,/Simulated/);
+ const demo=deliveryStatus({...order,locationSource:'simulated'},{now,estimate});assert.equal(demo.etaTitle,'Estimated arrival');assert.match(demo.etaDetail,/Simulated/);
  assert.equal(deliveryStatus({...order,status:'preparing'},{now,estimate}).etaValue,'Available after departure');
  assert.equal(deliveryStatus(order,{now,estimate:{...estimate,durationMillis:30000}}).etaValue,'Arriving soon');
  assert.equal(deliveryStatus({...order,fulfillment:'pickup',status:'ready'},{now}).etaValue,'Ready now');

@@ -4,7 +4,7 @@ const states={
  out_for_delivery:['On the way','info','→'],delivered:['Delivered','success','✓'],completed:['Completed','success','✓'],cancelled:['Cancelled','neutral','×'],
  unpaid:['Unpaid','warning','!'],paid:['Paid','success','✓'],partially_refunded:['Partly refunded','warning','↩'],refunded:['Refunded','neutral','↩'],failed:['Failed','danger','!'],
  pickup:['Pickup','ready','↗'],delivery:['Delivery','info','→'],planned:['Planned','ready','•'],active:['Active','success','✓'],inactive:['Inactive','neutral','–'],
- enabled:['Enabled','success','✓'],disabled:['Disabled','neutral','–'],locked:['Locked','neutral','•'],demo:['Demo','warning','•'],live:['Live','success','•'],delayed:['Delayed','warning','!']
+ enabled:['Enabled','success','✓'],disabled:['Disabled','neutral','–'],locked:['Locked','neutral','•'],demo:['Manual','warning','•'],live:['Live','success','•'],delayed:['Delayed','warning','!']
 };
 /** Labels and shapes communicate state even without colour. Never accept markup. */
 export function statusBadge(value,label){

@@ -13,6 +13,8 @@ final class AdminAccounts {
   $db->exec('PRAGMA busy_timeout=5000');$db->exec(file_get_contents(__DIR__.'/accounts.sql'));
   $db->exec('BEGIN IMMEDIATE');
   try{
+   $columns=array_column($db->query('PRAGMA table_info(drivers)')->fetchAll(),'name');
+   foreach(['vehicle_type','vehicle_color'] as $column)if(!in_array($column,$columns,true))$db->exec("ALTER TABLE drivers ADD COLUMN $column TEXT NOT NULL DEFAULT ''");
    $check=$db->prepare('SELECT 1 FROM account_migrations WHERE tenant=?');$check->execute([$this->config['tenant']]);
    if(!$check->fetchColumn()){
     $saved=is_file($this->path)?json_decode(file_get_contents($this->path),true,64,JSON_THROW_ON_ERROR):[];
@@ -30,7 +32,7 @@ final class AdminAccounts {
  }
  public function effective():array {
   $db=$this->database();$config=$this->config;$config['drivers']=[];
-  $query=$db->prepare('SELECT id,name,password_hash,active FROM drivers WHERE tenant=? ORDER BY id');$query->execute([$config['tenant']]);
+  $query=$db->prepare('SELECT id,name,password_hash,active,vehicle_type AS vehicleType,vehicle_color AS vehicleColor FROM drivers WHERE tenant=? ORDER BY id');$query->execute([$config['tenant']]);
   foreach($query as $row){$id=$row['id'];unset($row['id']);$row['active']=(bool)$row['active'];$config['drivers'][$id]=$row;}
   $query=$db->prepare('SELECT password_hash FROM admin_credentials WHERE tenant=?');$query->execute([$config['tenant']]);
   $config['manager_password_hash']=$query->fetchColumn()?:'';
@@ -47,7 +49,7 @@ final class AdminAccounts {
  }
  public function summary(Store $store):array {
   $drivers=$this->effective()['drivers'];$out=[];
-  foreach($drivers as $id=>$driver){$count=$store->query("SELECT count(*) AS n FROM orders WHERE tenant=? AND driver_id=? AND status NOT IN ('delivered','completed','cancelled')",[$store->tenant,$id])[0]['n'];$out[]=['id'=>$id,'name'=>$driver['name'],'active'=>$driver['active']??true,'activeOrders'=>(int)$count];}
+  foreach($drivers as $id=>$driver){$count=$store->query("SELECT count(*) AS n FROM orders WHERE tenant=? AND driver_id=? AND status NOT IN ('delivered','completed','cancelled')",[$store->tenant,$id])[0]['n'];$out[]=['id'=>$id,'name'=>$driver['name'],'vehicleType'=>$driver['vehicleType'],'vehicleColor'=>$driver['vehicleColor'],'active'=>$driver['active']??true,'activeOrders'=>(int)$count];}
   return ['drivers'=>$out,'revision'=>hash('sha256',json_encode($drivers,JSON_THROW_ON_ERROR))];
  }
  public function saveDriver(Store $store,array $body):array {
@@ -56,12 +58,13 @@ final class AdminAccounts {
    $id=$body['id']??null;if(!is_string($id)||!preg_match('/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,79}$/',$id))throw new ApiError('Use letters, numbers and underscores for the driver ID.');
    $name=Store::text($body['name']??null,120);$active=$body['active']??null;if(!is_bool($active))throw new ApiError('Choose whether the driver is active.');
    $drivers=$this->effective()['drivers'];$existing=$drivers[$id]??null;
+   $vehicleType=Store::text($body['vehicleType']??$existing['vehicleType']??'',60,false);$vehicleColor=Store::text($body['vehicleColor']??$existing['vehicleColor']??'',60,false);
    if(($body['create']??false)===true&&$existing)throw new ApiError('That driver ID already exists. Choose another ID or edit the existing driver.',409);
-   if(!$existing&&count($drivers)>=200)throw new ApiError('This demo supports up to 200 drivers.');
+   if(!$existing&&count($drivers)>=200)throw new ApiError('This installation supports up to 200 drivers.');
    if(!$active&&$store->query("SELECT id FROM orders WHERE tenant=? AND driver_id=? AND status NOT IN ('delivered','completed','cancelled') LIMIT 1",[$store->tenant,$id]))throw new ApiError('Reassign or finish this driver’s active orders before deactivating them.',409);
    $password=$body['password']??'';if(!is_string($password))throw new ApiError('Invalid password.');
    if(!$existing||$password!=='')$hash=password_hash(self::password($password),PASSWORD_DEFAULT);else $hash=$existing['password_hash'];
-   $store->execute('INSERT INTO drivers(tenant,id,name,password_hash,active) VALUES(?,?,?,?,?) ON CONFLICT(tenant,id) DO UPDATE SET name=excluded.name,password_hash=excluded.password_hash,active=excluded.active',[$store->tenant,$id,$name,$hash,$active?1:0]);
+   $store->execute('INSERT INTO drivers(tenant,id,name,password_hash,active,vehicle_type,vehicle_color) VALUES(?,?,?,?,?,?,?) ON CONFLICT(tenant,id) DO UPDATE SET name=excluded.name,password_hash=excluded.password_hash,active=excluded.active,vehicle_type=excluded.vehicle_type,vehicle_color=excluded.vehicle_color',[$store->tenant,$id,$name,$hash,$active?1:0,$vehicleType,$vehicleColor]);
    if(!$active||$password!=='')$store->execute("DELETE FROM sessions WHERE tenant=? AND role='driver' AND subject=?",[$store->tenant,$id]);
    return $this->summary($store);
   },true);

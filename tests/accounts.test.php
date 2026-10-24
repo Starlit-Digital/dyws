@@ -25,6 +25,16 @@ try{
  $order=$store->create(['idempotencyKey'=>bin2hex(random_bytes(16)),'customer'=>['name'=>'Example','phone'=>'7805550142'],'lines'=>[['id'=>'notebook','variant'=>'','quantity'=>1]],'fulfillment'=>'delivery','address'=>'Fictional address']);
  denied(fn()=>$accounts->assign($store,$order['id'],'new-driver'));
  $accounts->assign($store,$order['id'],'original');
+ check($store->tracking($order['id'],$order['trackingToken'])['driver']===['name'=>'Original Driver','vehicleType'=>'','vehicleColor'=>''],'Tracking uses assigned driver name with optional empty vehicle fields');
+ $summary=$accounts->saveDriver($store,['id'=>'original','name'=>'Alex <Morgan>','active'=>true,'password'=>'','vehicleType'=>'Sedan','vehicleColor'=>'Blue','revision'=>$summary['revision']]);
+ $public=$store->tracking($order['id'],$order['trackingToken'])['driver'];check($public===['name'=>'Alex <Morgan>','vehicleType'=>'Sedan','vehicleColor'=>'Blue'],'Tracking exposes only driver display fields');
+ check((new AdminAccounts($config))->effective()['drivers']['original']['vehicleType']==='Sedan','Vehicle persists across requests');
+ foreach(['vehicleType','vehicleColor'] as $field)denied(fn()=>$accounts->saveDriver($store,['id'=>'original','name'=>'Alex','active'=>true,'password'=>'',$field=>str_repeat('x',61),'revision'=>$summary['revision']]));
+ $summary=$accounts->saveDriver($store,['id'=>'original','name'=>'Alex <Morgan>','active'=>true,'password'=>'','revision'=>$summary['revision']]);check($store->tracking($order['id'],$order['trackingToken'])['driver']['vehicleColor']==='Blue','Omitted vehicle values are preserved');
+ denied(fn()=>$store->tracking($order['id'],'wrong-token'),404);
+ $store->execute("INSERT INTO drivers(tenant,id,name,password_hash,active,vehicle_type,vehicle_color) VALUES('other','original','Other Driver','private',1,'Van','Red')");check($store->tracking($order['id'],$order['trackingToken'])['driver']['name']==='Alex <Morgan>','Driver lookup remains tenant scoped');
+ $pickup=$store->create(['idempotencyKey'=>bin2hex(random_bytes(16)),'customer'=>['name'=>'Example','phone'=>'7805550142'],'lines'=>[['id'=>'notebook','quantity'=>1]],'fulfillment'=>'pickup']);check($store->tracking($pickup['id'],$pickup['trackingToken'])['driver']===null,'Pickup has no driver profile');
+
  denied(fn()=>$accounts->saveDriver($store,['id'=>'original','name'=>'Original Driver','active'=>false,'password'=>'','revision'=>$summary['revision']]),409);
  denied(fn()=>$accounts->saveDriver($store,['id'=>'short','name'=>'Invalid','active'=>true,'password'=>'short','revision'=>$summary['revision']]));
  $manager=$accounts->login($store,['role'=>'manager','password'=>'original-manager-password']);

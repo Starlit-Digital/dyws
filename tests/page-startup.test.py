@@ -41,6 +41,8 @@ with tempfile.TemporaryDirectory(prefix='dyws-pages-') as work:
   cat=api('/catalog');item=cat['categories'][0]['items'][0]['id']
   def order(name):return api('/orders',{'idempotencyKey':str(uuid.uuid4()),'demoAcknowledged':True,'lines':[{'id':item,'variant':'','quantity':1}],'fulfillment':'delivery','customer':{'name':name,'phone':'7805550142'},'addressDetails':{'line1':'123 Test Street','line2':'','city':'Edmonton','region':'AB','postalCode':'T5A 1A1','country':'Canada'}})
   one=order('Visible Test Customer');two=order('Other Private Customer')
+  driver_summary=api('/manager/drivers',None,mt)
+  api('/manager/drivers',{'id':'demo-driver','name':'Alex <Morgan>','active':True,'password':'','vehicleType':'Sedan','vehicleColor':'Blue','revision':driver_summary['revision']},mt)
   api('/manager/orders/'+one['id']+'/assign',{'driverId':'demo-driver'},mt)
   for state in ['accepted','preparing','ready']:api('/manager/orders/'+one['id']+'/status',{'status':state},mt)
   status,headers,body=req('/driver/');data=boot(body)
@@ -59,6 +61,7 @@ with tempfile.TemporaryDirectory(prefix='dyws-pages-') as work:
   status,headers,body=req(headers['Location']);data=boot(body)
   check(status==200 and 'Ready for delivery' in body and 'no-store' in headers['Cache-Control'] and headers['Referrer-Policy']=='no-referrer')
   check(data['responses']['/tracking/'+one['id']]['status']=='ready' and two['id'] not in body and 'Other Private Customer' not in body)
+  check('Alex &lt;Morgan&gt;' in body and 'Blue · Sedan' in body and data['responses']['/tracking/'+one['id']]['driver']['name']=='Alex <Morgan>')
   check('customer_phone' not in body and 'tracking_secret' not in body and 'data-dyws-initial-preview' in body)
   check(req('/tracking/?order='+two['id'])[0]==404)
   # Exercise the actual plugin Checkout parameters and both browser return paths.

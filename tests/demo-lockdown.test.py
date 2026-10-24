@@ -50,7 +50,7 @@ with tempfile.TemporaryDirectory(prefix='dyws-lockdown-') as temp:
    html=r.read().decode();check('name="username"' in html and '<header' not in html)
    csrf=re.search('name="csrf" value="([a-f0-9]+)"',html)[1]
   with browser.open(urllib.request.Request(base+'/auth/',data=urllib.parse.urlencode({'csrf':csrf,'username':'admin','password':'admin'}).encode())) as r:
-   html=r.read().decode();check(r.url.endswith('/orders/') and 'Demo Customer' in html)
+   html=r.read().decode();check(r.url.endswith('/orders/') and 'Jordan Taylor' in html)
   for page in ['catalog','settings','drivers','password','plugins','reports']:
    with browser.open(base+'/'+page+'/') as r:check(r.status==200 and 'demo-lockdown' in r.read().decode())
   with urllib.request.urlopen(base+'/driver/') as r:check('value="driver"' in r.read().decode())
@@ -96,7 +96,7 @@ with tempfile.TemporaryDirectory(prefix='dyws-lockdown-') as temp:
   request('/tracking/'+oid,status=404)
   check(request('/tracking/'+oid,tracking=receipt['trackingToken'])['status']=='placed')
   row=db.execute('SELECT customer_name,customer_phone,address,notes,plugin_data_json FROM orders WHERE id=?',(oid,)).fetchone()
-  check('DO NOT STORE THIS' not in str(row) and row[0]=='Demo Customer' and '123 Example Avenue' in row[2])
+  check('DO NOT STORE THIS' not in str(row) and row[0]=='Jordan Taylor' and '123 Example Avenue' in row[2])
   request('/manager/orders/'+oid+'/assign',{'driverId':'driver'},manager)
   request('/manager/orders/'+oid+'/payment',{'kind':'capture'},manager)
   for status in ['accepted','preparing','ready']:request('/manager/orders/'+oid+'/status',{'status':status},manager)

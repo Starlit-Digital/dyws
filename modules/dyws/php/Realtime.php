@@ -31,7 +31,7 @@ final class Realtime {
  public function mutation(string $route,array $result):void {
   if(in_array($route,['/realtime/access','/login'],true))return;
   $prefix=$this->store->tenant.':';$channels=[$prefix.'operators'];
-  if(in_array($route,['/manager/catalog','/manager/settings','/manager/plugins'],true)||str_starts_with($route,'/manager/plugins/'))$channels[]=$prefix.'public';
+  if(in_array($route,['/manager/catalog','/manager/settings','/manager/plugins','/manager/drivers'],true)||str_starts_with($route,'/manager/plugins/'))$channels[]=$prefix.'public';
   if(preg_match('~/([A-Z]{2,7}-[A-F0-9]{12})(?:/|$)~',$route,$m))$channels[]=$prefix.'order:'.$m[1];
   elseif(isset($result['id'])&&preg_match('/^[A-Z]{2,7}-[A-F0-9]{12}$/',$result['id']))$channels[]=$prefix.'order:'.$result['id'];
   if(str_contains($route,'/runs/'))foreach($result['orderIds']??[] as $id)$channels[]=$prefix.'order:'.$id;

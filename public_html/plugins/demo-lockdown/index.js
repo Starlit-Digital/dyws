@@ -1,19 +1,19 @@
-/** Public demo presentation. The PHP policy independently enforces every restriction. */
+/** Locked installation presentation. The PHP policy independently enforces every restriction. */
 export function register(plugin){
  const doc=plugin.document;
  const banner=doc.createElement('p');banner.className='dyws-note';banner.dataset.dywsDemo='';
- banner.textContent='Public demo. Admin: admin / admin. Driver: driver / driver. Orders are shared fictional examples and expire after 24 hours. Settings are locked.';
+ banner.textContent='Admin: admin / admin. Driver: driver / driver. Settings are locked.';
  (doc.querySelector('main')||doc.body).prepend(banner);
  const locked=['catalog','drivers','password','settings','plugins'].includes(doc.body.dataset.adminPage);
  const lock=()=>{if(!locked)return;for(const el of doc.querySelectorAll('main input,main select,main textarea,main button')){
   if(/reload|refresh|cancel/.test(el.id)||el.hasAttribute('data-dyws-reload-plugins')||el.closest('#category-list'))continue;
   if(!el.disabled)el.disabled=true;
-  el.title='Locked in the public demo';
+  el.title='Locked by the installation owner';
  }};
  lock();const observer=new MutationObserver(lock);if(locked)observer.observe(doc.querySelector('main'),{childList:true,subtree:true,attributes:true,attributeFilter:['disabled']});
  plugin.onDestroy(()=>{observer.disconnect();banner.remove();});
  plugin.addAction('checkout:fields',({form})=>{
-  const fields={customer:'Demo Customer',phone:'7805550142',addressLine1:'123 Example Avenue NW',addressLine2:'',addressCity:'Edmonton',addressRegion:'AB',addressPostal:'T5A 1A1',addressCountry:'Canada',notes:'Public demonstration only.'};
+  const fields={customer:'Jordan Taylor',phone:'7805550142',addressLine1:'123 Example Avenue NW',addressLine2:'',addressCity:'Edmonton',addressRegion:'AB',addressPostal:'T5A 1A1',addressCountry:'Canada',notes:''};
   for(const [name,value]of Object.entries(fields)){const input=form.elements.namedItem(name);if(input){input.value=value;input.readOnly=true;input.autocomplete='off';}}
  });
  plugin.provide('location.renderer',()=>{

@@ -3,7 +3,7 @@
 @import url('./status.css?v=1');
 @import url('./catalog.css?v=22');
 @import url('./admin.css?v=29');
-@import url('./tracking.css?v=28');
+@import url('./tracking.css?v=29');
 .dyws-plugin-area:empty { display: none; }
 .dyws-catalog .dyws-product > .dyws-plugin-area { grid-column: 1 / -1; }
 
