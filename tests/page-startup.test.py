@@ -61,6 +61,43 @@ with tempfile.TemporaryDirectory(prefix='dyws-pages-') as work:
   check(data['responses']['/tracking/'+one['id']]['status']=='ready' and two['id'] not in body and 'Other Private Customer' not in body)
   check('customer_phone' not in body and 'tracking_secret' not in body and 'data-dyws-initial-preview' in body)
   check(req('/tracking/?order='+two['id'])[0]==404)
+  # Exercise the actual plugin Checkout parameters and both browser return paths.
+  # No Stripe network request is made; the injected transport captures the URLs.
+  checkout_script = r"""
+  require $argv[1].'/server/bootstrap.php';
+  require $argv[1].'/plugins/stripe/StripeSettings.php';
+  require $argv[1].'/plugins/stripe/StripePayments.php';
+  $config=json_decode(file_get_contents($argv[2]),true);
+  $config['public_base_url']=$argv[3];$GLOBALS['dyws_config']=$config;
+  $store=new \dyws\Store($config['database'],\dyws\Catalog::load($config['catalog']),$config['tenant']);
+  $settings=new \dyws\Plugins\Stripe\StripeSettings($config);
+  $settings->save(['enabled'=>true,'apiKey'=>'rk_test_'.str_repeat('a',32),'webhookSecret'=>'whsec_'.str_repeat('b',32)]);
+  $receipt=$store->create(['idempotencyKey'=>bin2hex(random_bytes(16)),'customer'=>['name'=>'Stripe Return Test','phone'=>'7805550142'],'fulfillment'=>'pickup','lines'=>[['id'=>$argv[4],'variant'=>'','quantity'=>1]]],'stripe');
+  $params=[];
+  $stripe=new \dyws\Plugins\Stripe\StripePayments($store,$config,$settings,function($parameters,$key)use(&$params){$params=$parameters;return ['id'=>'cs_test_return','url'=>'https://checkout.stripe.com/c/pay/example'];});
+  $stripe->checkout($receipt['id'],$receipt['trackingToken']);
+  echo json_encode(['receipt'=>$receipt,'success'=>$params['success_url'],'cancel'=>$params['cancel_url']]);
+  """
+  checkout=json.loads(subprocess.check_output(['php','-r',checkout_script,str(root),work+'/config.json',base,item],text=True))
+  receipt=checkout['receipt'];order_id=receipt['id']
+  # This is the same cookie handoff customers complete before opening Stripe.
+  status,headers,_=form('/tracking/',{'orderId':order_id,'trackingToken':receipt['trackingToken']})
+  check(status==303 and headers['Location']=='/tracking/?order='+order_id)
+  for outcome in ['success','cancel']:
+   returned=urllib.parse.urlsplit(checkout[outcome]);path=returned.path+'?'+returned.query
+   check(returned.scheme+'://'+returned.netloc==base and not returned.fragment and receipt['trackingToken'] not in checkout[outcome])
+   status,headers,body=req(path);data=boot(body)
+   check(status==200 and data['tracking']['id']==order_id and one['id'] not in body and two['id'] not in body)
+   check(data['responses']['/tracking/'+order_id]['paymentStatus']=='unpaid' and data['responses']['/tracking/'+order_id]['status']=='placed')
+   check('no-store' in headers['Cache-Control'] and headers['Referrer-Policy']=='no-referrer')
+   check(req(path,client=plain)[0]==404)
+  # A forged return flag cannot confirm payment or cancel the order.
+  status,_,body=req('/tracking/?order='+order_id+'&payment=paid')
+  check(status==200 and boot(body)['responses']['/tracking/'+order_id]['paymentStatus']=='unpaid')
+  check(db.execute('SELECT count(*) FROM payments WHERE order_id=?',(order_id,)).fetchone()[0]==0)
+  # An expired private session cannot be revived by a Stripe return.
+  db.execute('UPDATE orders SET tracking_expires=0 WHERE id=?',(order_id,));db.commit()
+  check(req('/tracking/?order='+order_id)[0]==404)
   db.execute('UPDATE orders SET tracking_expires=0 WHERE id=?',(one['id'],));db.commit();check(req('/tracking/?order='+one['id'])[0]==404)
   api('/logout',{},token);check('dyws-page-data' not in req('/driver/')[2])
   check('dyws-page-data' not in req('/driver/',headers={'Cookie':'dyws_driver_session='+token},client=plain)[2])

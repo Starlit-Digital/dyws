@@ -30,6 +30,13 @@ try{
  $stripe=new StripePayments($store,$config,$settings,function($p,$key)use(&$calls,&$params){$calls++;$params=$p;return ['id'=>'cs_test_session','url'=>'https://checkout.stripe.com/c/pay/example'];});
  rejects(fn()=>$stripe->checkout($id,'wrong'),404);
  $url=$stripe->checkout($id,$token);check($url===$stripe->checkout($id,$token)&&$calls===1,'Checkout reuse prevents duplicate sessions');
+ check($params['success_url']==='https://example.test/shop/tracking/?order='.$id,'Success returns to the order within the installation subdirectory');
+ check($params['cancel_url']===$params['success_url'],'Checkout cancellation returns to the same private order');
+ foreach(['success_url','cancel_url'] as $field)check(!str_contains($params[$field],$token)&&!str_contains($params[$field],$config['tracking_secret'])&&!str_contains($params[$field],'#'),'Return URLs contain no tracking credentials');
+ foreach(['https://example.test','https://example.test/','https://example.test/nested/shop/','http://127.0.0.1:8097'] as $base){
+  $returns=(new StripePayments($store,array_replace($config,['public_base_url'=>$base]),$settings))->parameters($o,['nonce'=>str_repeat('a',32)]);
+  check($returns['success_url']===rtrim($base,'/').'/tracking/?order='.$id&&$returns['cancel_url']===$returns['success_url'],'Return URLs support root, nested and local installations');
+ }
  check(!isset($params['payment_method_types'])&&$params['mode']==='payment','Hosted Checkout with dynamic methods');
  check(array_sum(array_map(fn($i)=>$i['quantity']*$i['price_data']['unit_amount'],$params['line_items']))===1880,'Stripe amount equals immutable order total');
  rejects(fn()=>$store->payment($id,'capture'),409);rejects(fn()=>$store->change($id,'accepted','manager'),409);rejects(fn()=>$store->change($id,'cancelled','manager'),409);
