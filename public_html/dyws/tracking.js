@@ -1,3 +1,4 @@
+import {statusBadge} from './status-badge.js';
 import {formatTime} from './date-time.js';
 import {pluginSlot} from './plugin-ui.js?v=39';
 import {statusText,escapeHTML} from './api.js';
@@ -20,7 +21,10 @@ export function createTracking({api,container,role=defaultRole,trackingPage,rend
   const arrival=panel.querySelector('.dyws-tracking-arrival');arrival.hidden=view.terminal;
   write('.dyws-arrival-label',view.etaTitle);write('.dyws-arrival-value',view.etaValue);write('.dyws-arrival-detail',view.etaDetail);
   const stages=panel.querySelector('.dyws-tracking-timeline');stages.hidden=lastData.status==='cancelled';
-  const html=view.stages.map(step=>`<li class="dyws-step-${step.state}" ${step.state==='current'?'aria-current="step"':''}><span aria-hidden="true">${step.state==='done'||(view.complete&&step.state==='current')?'✓':'○'}</span>${escapeHTML(step.label)}</li>`).join('');
+  const html=view.stages.map((step,index)=>{
+   const done=step.state==='done'||(view.complete&&step.state==='current');
+   return `<li class="dyws-step-${done?'done':step.state}" ${step.state==='current'?'aria-current="step"':''}><span class="dyws-step-marker" aria-hidden="true">${done?'✓':index+1}</span><span class="dyws-step-label">${escapeHTML(step.label)}<small>${done?'Complete':step.state==='current'?'Current':'Upcoming'}</small></span></li>`;
+  }).join('');
   if(stages.innerHTML!==html)stages.innerHTML=html;
   write('.dyws-tracking-updated',view.terminal?(view.title+' at '+time(view.stamp)):delayed?'Updates delayed. Reconnecting…':'Updates automatically · Last checked '+time(lastChecked/1000));
   panel.querySelector('.dyws-tracking-complete').hidden=!view.complete;
@@ -41,7 +45,7 @@ export function createTracking({api,container,role=defaultRole,trackingPage,rend
    lastData=data;lastChecked=now();unavailable=false;write('.dyws-tracking-error','');summary();
   const payment=panel.querySelector('.dyws-tracking-payment');
   if(!payment.querySelector('button:disabled')){
-   payment.replaceChildren();const label=doc.createElement('p');label.textContent='Payment: '+statusText(data.paymentStatus);payment.append(label);
+   payment.replaceChildren();const label=doc.createElement('p');label.className='dyws-status-row';label.innerHTML='Payment '+statusBadge(data.paymentStatus);payment.append(label);
    if(data.paymentProvider!=='demo'&&data.paymentStatus==='unpaid'&&data.status==='placed'){
     if(renderPayment)renderPayment({order:data,container:payment,trackingToken:current.token,onError:message=>write('.dyws-tracking-error',message)});
     else{const note=doc.createElement('p');note.textContent='Online payment is unavailable. Contact the business for help with this order.';payment.append(note);}
@@ -51,7 +55,7 @@ export function createTracking({api,container,role=defaultRole,trackingPage,rend
    if(data.location&&data.status==='out_for_delivery'){
     const l=data.location,stale=data.gpsStale||now()-l.recorded_at*1000>60000;
     gps.innerHTML=`<p>${data.locationSource==='simulated'?'Demo location · ':''}${escapeHTML(stale?'Last known '+role.singular.toLowerCase()+' location':role.singular+' location')} · updated ${time(l.recorded_at)}</p>${stale?'<p>Location updates are delayed. The position may have changed.</p>':''}`;
-    if(renderLocation){const map=renderLocation(l,role,{destinationAddress:data.deliveryAddress,onEstimate:value=>{if(active!==current||lastData!==data||terminalStatuses.has(data.status))return;estimate=value;summary();}});const mapRoot=panel.querySelector('.dyws-tracking-map');if(map&&!mapRoot.contains(map))mapRoot.replaceChildren(map);}
+    if(renderLocation){const map=renderLocation(l,role,{destinationAddress:data.deliveryRun?.stopsAhead>0?undefined:data.deliveryAddress,onEstimate:value=>{if(active!==current||lastData!==data||terminalStatuses.has(data.status))return;estimate=value;summary();}});const mapRoot=panel.querySelector('.dyws-tracking-map');if(map&&!mapRoot.contains(map))mapRoot.replaceChildren(map);}
     else {estimate=null;summary();}
    }else{
     renderLocation?.clear?.();estimate=undefined;panel.querySelector('.dyws-tracking-map').replaceChildren();

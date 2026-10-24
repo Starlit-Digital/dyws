@@ -16,6 +16,7 @@ export function deliveryStatus(order,{estimate=undefined,now=Date.now(),role='Dr
  if(status!=='out_for_delivery')return view;
  const point=order.location,stale=order.gpsStale||!point||now-point.recorded_at*1000>60000;
  if(unavailable){view.etaValue='Reconnecting';view.etaDetail='The last order update is shown. Trying again automatically.';return view;}
+ if(order.deliveryRun?.stopsAhead>0){const n=order.deliveryRun.stopsAhead;view.etaTitle='Delivery progress';view.etaValue=n+' stop'+(n===1?'':'s')+' before yours';view.etaDetail='Your '+role.toLowerCase()+' is making earlier deliveries. An arrival estimate appears when your stop is next.';return view;}
  if(stale){view.etaValue=point?'Location update delayed':'Waiting for location';view.etaDetail='Your delivery is on the way. The estimate will return with a fresh location.';return view;}
  if(estimate===null){view.etaValue='Arrival estimate unavailable';view.etaDetail='Your delivery is still on the way. Follow the latest location below.';return view;}
  if(!estimate||!Number.isFinite(estimate.durationMillis)||estimate.durationMillis<0||!Number.isFinite(estimate.calculatedAt)||now-estimate.calculatedAt>120000){view.etaValue='Calculating arrival';view.etaDetail='An estimate will appear when the driving route is available.';return view;}

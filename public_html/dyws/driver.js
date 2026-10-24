@@ -1,3 +1,4 @@
+import {statusBadge} from './status-badge.js';
 import {formatTime} from './date-time.js';
 import {pluginSlot} from './plugin-ui.js?v=39';
 import {escapeHTML as esc,money,statusText} from './api.js';
@@ -23,25 +24,39 @@ export function mountDriver({root=document,api,storageKey='dyws-driver',renderLo
    await api('/driver/orders/'+id+'/status',{method:'POST',token,body:{status}});revision++;
    if(status==='delivered'){
     if(gps.orderId===id)gps.stop('Delivery complete. GPS is off.');
-    latestPosition=null;renderLocation?.clear?.();
+    if(gps.scope!=='run'){latestPosition=null;renderLocation?.clear?.();}
     if(feedback)feedback.textContent='Delivery complete · '+id+'. The customer can now see Delivered.';
    }else if(feedback)feedback.textContent='Delivery started. The customer can follow your progress.';
    await load();
   }catch(e){error.textContent=e.message;if(e.status===401){gps.stop();signedOut();}}
   finally{changing=false;root.querySelectorAll('[data-status]').forEach(button=>{button.disabled=false;});}
  }
+ async function startRun(id){
+  if(changing)return;changing=true;error.textContent='';
+  root.querySelectorAll('[data-start-run]').forEach(b=>b.disabled=true);
+  try{await api('/driver/runs/'+id+'/start',{method:'POST',token,body:{}});revision++;if(feedback)feedback.textContent='Run started. Every customer can follow their delivery.';await load();}
+  catch(e){error.textContent=e.message;if(e.status===401){gps.stop();signedOut();}}
+  finally{changing=false;root.querySelectorAll('[data-start-run],[data-status]').forEach(b=>b.disabled=false);}
+ }
  async function load(){if(!token)return;if(loading){reloadPending=true;return;}loading=true;const login=token,readRevision=revision;try{
   const data=await api('/driver/orders',{token:login});if(token!==login)return;if(readRevision!==revision){reloadPending=true;return;}error.textContent='';
-  if(gps.orderId&&!data.orders.some(o=>o.id===gps.orderId&&o.status==='out_for_delivery'))gps.stop('This delivery is no longer active. GPS is off.');
-  root.querySelector('#deliveries').innerHTML=data.orders.length?data.orders.map(o=>`<article data-order="${o.id}"><h2>${o.id}</h2><p>${esc(statusText(o.status))} · ${money(o.total)}</p><p>${esc(o.customer_name)} · ${esc(o.customer_phone)}<br>${esc(o.address)}</p><p>${esc(o.notes)}</p><div class="dyws-actions">${o.status==='ready'?'<button data-status="out_for_delivery">Picked up, start delivery</button>':'<button data-status="delivered">Complete delivery</button>'}</div></article>`).join(''):'<p>No active deliveries. You’re all caught up.</p>';
-  root.querySelectorAll('[data-order]').forEach(card=>{
-   const id=card.dataset.order;
-   card.querySelector('[data-status]')?.addEventListener('click',e=>change(id,e.target.dataset.status));
-  });
+  const runs=data.runs||[],run=runs.find(r=>r.status==='active'),planned=runs.find(r=>r.status==='planned');
+  const activeIds=new Set(data.orders.filter(o=>o.status==='out_for_delivery'&&!o.deliveryRun).map(o=>o.id));if(run)activeIds.add(run.id);
+  if(gps.orderId&&!activeIds.has(gps.orderId))gps.stop('This delivery is no longer active. GPS is off.');
+  const ordered=[...data.orders].sort((a,b)=>(a.deliveryRun?.position||999)-(b.deliveryRun?.position||999));
+  const runHeader=run?`<article><h2>Delivery run</h2><p>${run.stops.filter(s=>s.status==='delivered').length} of ${run.stops.length} stops complete</p></article>`:planned?`<article><h2>Delivery run</h2><p>${planned.stops.length} stops · Collect every order before leaving.</p><button data-start-run="${planned.id}" ${changing?'disabled':''}>Picked up all orders, start run</button></article>`:'';
+  root.querySelector('#deliveries').innerHTML=runHeader+(ordered.length?ordered.map(o=>{
+   const member=o.deliveryRun,next=!member||run?.nextOrderId===o.id;
+   const action=member?(run&&next?'<button data-status="delivered">Complete stop</button>':''):(o.status==='ready'?'<button data-status="out_for_delivery">Picked up, start delivery</button>':'<button data-status="delivered">Complete delivery</button>');
+   return `<article data-order="${o.id}"><h2>${member?'Stop '+member.position+(next&&run?' · Next':''):o.id}</h2>${member?`<p>${o.id}</p>`:''}<p class="dyws-status-row">${statusBadge(o.status)}${statusBadge(o.payment_status)}<strong>${money(o.total)}</strong></p><p>${esc(o.customer_name)} · ${esc(o.customer_phone)}<br>${esc(o.address)}</p><p>${esc(o.notes)}</p><div class="dyws-actions">${action}</div></article>`;
+  }).join(''):'<p>No active deliveries. You’re all caught up.</p>');
+  root.querySelectorAll('[data-order]').forEach(card=>{const id=card.dataset.order;card.querySelector('[data-status]')?.addEventListener('click',e=>change(id,e.target.dataset.status));});
+  root.querySelectorAll('[data-start-run]').forEach(button=>button.onclick=()=>startRun(button.dataset.startRun));
   root.querySelectorAll('[data-status]').forEach(button=>{button.disabled=changing;});
-  const current=data.orders.find(o=>o.id===gps.orderId&&o.status==='out_for_delivery')||data.orders.find(o=>o.status==='out_for_delivery');
-  currentDelivery=current;if(!current)latestPosition=null;if(simulatePosition&&current?.gps?.location){latestPosition=current.gps.location;state.textContent='Test location: '+testLocationName+'. Device GPS is not used.';details.textContent=current.id+' · Updated '+formatTime(latestPosition.recorded_at);}const mapRoot=root.querySelector('#driver-map');if(mapRoot&&renderLocation){const view=renderLocation(latestPosition,undefined,{destinationAddress:current?.address});if(view&&!mapRoot.contains(view))mapRoot.replaceChildren(view);}
-  if(current&&(simulatePosition||permission?.state!=='denied')&&!document.hidden&&!gps.orderId&&(attemptedOrder!==current.id||Date.now()>retryAfter)){attemptedOrder=current.id;retryAfter=Date.now()+60000;void gps.start(current.id,{simulatePosition});}
+  const current=run?data.orders.find(o=>o.id===run.nextOrderId):data.orders.find(o=>o.id===gps.orderId&&o.status==='out_for_delivery')||data.orders.find(o=>o.status==='out_for_delivery');
+  const gpsId=run?.id||current?.id;
+  currentDelivery=current;if(!current)latestPosition=null;if(simulatePosition&&current?.gps?.location){latestPosition=current.gps.location;state.textContent='Test location: '+testLocationName+'. Device GPS is not used.';if(details)details.textContent=current.id+' · Updated '+formatTime(latestPosition.recorded_at);}const mapRoot=root.querySelector('#driver-map');if(mapRoot&&renderLocation){const view=renderLocation(latestPosition,undefined,{destinationAddress:current?.address});if(view&&!mapRoot.contains(view))mapRoot.replaceChildren(view);}
+  if(current&&(simulatePosition||permission?.state!=='denied')&&!document.hidden&&!gps.orderId&&(attemptedOrder!==gpsId||Date.now()>retryAfter)){attemptedOrder=gpsId;retryAfter=Date.now()+60000;void gps.start(gpsId,{simulatePosition,scope:run?'run':'order'});}
   if(!current){attemptedOrder=null;state.textContent=simulatePosition?'Simulated location starts when an assigned delivery is on the way. Device GPS is not used.':'GPS starts automatically when an assigned delivery is on the way.';}
   if(plugins)void plugins.runAction('driver:orders',{root:pluginSlot(root.querySelector('#deliveries'),'driver'),orders:data.orders});
  }catch(e){if(token!==login)return;error.textContent=e.message;if(e.status===401||e.status===403){gps.stop('Please sign in again before sharing GPS.');signedOut();}}finally{loading=false;onReady();if(reloadPending){reloadPending=false;void load();}}}

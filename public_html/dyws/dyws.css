@@ -1,5 +1,6 @@
 /* DYWS light DOM styles. Cart styles load separately inside its shadow root. */
 @import url('./tokens.css?v=21');
+@import url('./status.css?v=1');
 @import url('./catalog.css?v=21');
 @import url('./admin.css?v=28');
 @import url('./tracking.css?v=28');

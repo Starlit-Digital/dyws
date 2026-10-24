@@ -26,3 +26,8 @@ test('Only a confirmed terminal status completes the customer order and hides it
  assert.equal(done.stages.at(-1).state,'current');
  assert.equal(deliveryStatus({...order,status:'cancelled'},{now}).complete,false);
 });
+
+test('Later run stops show queue progress instead of a misleading direct travel estimate',()=>{
+ const later=deliveryStatus({...order,deliveryRun:{stopsAhead:2,isNext:false}},{now,estimate});assert.equal(later.etaValue,'2 stops before yours');assert.doesNotMatch(later.etaDetail,/8 min/);
+ const next=deliveryStatus({...order,deliveryRun:{stopsAhead:0,isNext:true}},{now,estimate});assert.equal(next.etaValue,'About 8 min');
+});

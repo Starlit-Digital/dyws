@@ -1,3 +1,5 @@
+import {statusBadge} from './status-badge.js';
+import {mountDeliveryRuns} from './delivery-runs.js';
 import {markReady,traceLoad} from './diagnostics.js';
 import {redirectToAuth} from './admin-session.js?v=39';
 import {mountOrderList} from './order-list.js?v=39';
@@ -13,6 +15,8 @@ const mapOrder=mapPanel.querySelector('select'),mapMessage=mapPanel.querySelecto
 function updateMap(){mapPanel.hidden=!orders.length;if(!orders.length){renderLocation?.clear?.();return;}const order=orders.find(o=>o.id===mapOrder.value),gps=order?.gps;mapMessage.textContent=gps?.location?(gps.source==='simulated'?'Simulated GPS test':'Device GPS')+' · '+formatTime(gps.recordedAt):order?'Waiting for a GPS fix.':'No deliveries on the way.';const node=renderLocation?.(gps?.location||null,role,{destinationAddress:order?.address});if(node&&!mapContainer.contains(node))mapContainer.replaceChildren(node);}
 mapOrder.onchange=()=>{renderLocation?.clear?.();updateMap();};
 const error=root.querySelector('#error');
+const runRoot=root.querySelector('#delivery-runs');
+const runs=runRoot?mountDeliveryRuns({root:runRoot,api,getToken:()=>token,onSaved:load,onError:message=>{error.textContent=message;},role}):null;
 const orderList=mountOrderList({root:root.querySelector('#orders'),plugins,renderOrder});
 function display(){if(!token){renderLocation?.clear?.();orders=[];void orderList.clear();redirectToAuth(root);return;}if(token!==watchedToken){unwatch?.();watchedToken=token;unwatch=token?api.watch?.({scope:'operator',token,interval:10000},()=>{if(!busy)return load();}):null;}root.querySelector('#dashboard').hidden=!token;root.querySelector('#logout').hidden=!token;}
 root.querySelector('#logout').onclick=async()=>{try{await api('/logout',{method:'POST',body:{},token});}catch{}token=null;sessionStorage.removeItem(storageKey);display();};
@@ -21,8 +25,8 @@ async function mutate(route,body){if(busy)return;busy=true;root.querySelectorAll
 
 function renderOrder(o,data,container){
   const money=n=>formatMoney(n,o.currency);
-  const next=(statuses[o.status]||[]).filter(s=>!(s==='completed'&&o.fulfillment!=='pickup')&&!(s==='out_for_delivery'&&o.fulfillment!=='delivery'));
-  container.innerHTML=`<article data-order="${o.id}"><h3>${o.id} · ${money(o.total)}</h3><p>${esc(statusText(o.status))} · ${esc(o.fulfillment)} · payment ${esc(o.payment_status)}</p><p>${esc(o.customer_name)} · ${esc(o.customer_phone)}<br>${esc(o.address)}</p><ul>${o.lines.map(l=>`<li>${l.quantity} × ${esc(l.name)} ${esc(l.option)} · ${money(l.price*l.quantity)}</li>`).join('')}</ul>${o.notes?`<p>Notes: ${esc(o.notes)}</p>`:''}<p><small>${formatDateTime(o.created_at)} · ${esc(role.singular)}: ${esc(o.driver_id||'Not assigned')}</small></p><div class="dyws-order-gps"></div><div class="dyws-actions">${next.map(s=>`<button data-status="${s}">${esc(statusText(s))}</button>`).join('')}${o.payment_provider==='demo'&&o.payment_status==='unpaid'&&o.status!=='cancelled'?'<button data-payment="capture">Record test payment</button>':''}${o.payment_provider==='demo'&&o.payment_status==='paid'?'<button data-payment="refund">Record full test refund</button>':''}</div>${o.payment_provider!=='demo'?'<p>Online test payment. Manage refunds with the payment provider.</p>':''}${o.fulfillment==='delivery'&&!['out_for_delivery','delivered','cancelled'].includes(o.status)?`<label>${esc(role.singular)} <select class="dyws-driver-select">${data.drivers.map(d=>`<option value="${esc(d.id)}" ${d.id===o.driver_id?'selected':''}>${esc(d.name)}</option>`).join('')}</select></label><button data-assign>Assign ${esc(role.singular)}</button>`:''}</article>`;
+  const next=(o.deliveryRun?[]:statuses[o.status]||[]).filter(s=>!(s==='completed'&&o.fulfillment!=='pickup')&&!(s==='out_for_delivery'&&o.fulfillment!=='delivery'));
+  container.innerHTML=`<article data-order="${o.id}"><h3>${o.id} · ${money(o.total)}</h3><p class="dyws-status-row">${statusBadge(o.status)}${statusBadge(o.fulfillment)}${statusBadge(o.payment_status)}</p><p>${esc(o.customer_name)} · ${esc(o.customer_phone)}<br>${esc(o.address)}</p><ul>${o.lines.map(l=>`<li>${l.quantity} × ${esc(l.name)} ${esc(l.option)} · ${money(l.price*l.quantity)}</li>`).join('')}</ul>${o.notes?`<p>Notes: ${esc(o.notes)}</p>`:''}${o.deliveryRun?`<p>Run ${esc(o.deliveryRun.id)} · Stop ${o.deliveryRun.position}</p>`:''}<p><small>${formatDateTime(o.created_at)} · ${esc(role.singular)}: ${esc(o.driver_id||'Not assigned')}</small></p><div class="dyws-order-gps"></div><div class="dyws-actions">${next.map(s=>`<button data-status="${s}">${esc(statusText(s))}</button>`).join('')}${o.payment_provider==='demo'&&o.payment_status==='unpaid'&&o.status!=='cancelled'?'<button data-payment="capture">Record test payment</button>':''}${o.payment_provider==='demo'&&o.payment_status==='paid'?'<button data-payment="refund">Record full test refund</button>':''}</div>${o.payment_provider!=='demo'?'<p>Online test payment. Manage refunds with the payment provider.</p>':''}${!o.deliveryRun&&o.fulfillment==='delivery'&&!['out_for_delivery','delivered','cancelled'].includes(o.status)?`<label>${esc(role.singular)} <select class="dyws-driver-select">${data.drivers.map(d=>`<option value="${esc(d.id)}" ${d.id===o.driver_id?'selected':''}>${esc(d.name)}</option>`).join('')}</select></label><button data-assign>Assign ${esc(role.singular)}</button>`:''}</article>`;
 
  container.querySelectorAll('article[data-order]').forEach(card=>{
   const gps=data.orders.find(o=>o.id===card.dataset.order)?.gps,block=card.querySelector('.dyws-order-gps');
@@ -35,6 +39,7 @@ function renderOrder(o,data,container){
 }
 async function load(){if(!token)return;if(loading){loadAgain=true;return;}loading=true;try{
  const data=await api('/manager/orders',{token});error.textContent='';
+ runs?.update(data);
  await traceLoad('Orders render',()=>orderList.update(data,{force:busy}));markReady();
  orders=data.orders.filter(o=>o.status==='out_for_delivery');const selected=mapOrder.value;mapOrder.innerHTML=orders.map(o=>`<option value="${o.id}">${o.id} · ${esc(o.driver_id||role.singular)}</option>`).join('');if(orders.some(o=>o.id===selected))mapOrder.value=selected;mapOrder.disabled=!orders.length;updateMap();
  root.querySelectorAll('#orders [data-order-content] button').forEach(b=>b.disabled=busy);

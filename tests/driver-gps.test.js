@@ -42,3 +42,10 @@ test('Simulation uses the same authenticated upload without requesting device GP
 test('Stationary fixes reuse the cached point until the 30 second heartbeat',async()=>{
  const h=harness();await h.gps.start('order');h.fix();await settle();await h.advance(5000);h.fix();await settle();assert.equal(h.calls.filter(c=>c.route.endsWith('/location')).length,1);await h.advance(25000);assert.equal(h.calls.filter(c=>c.route.endsWith('/location')).length,2);h.gps.stop();
 });
+
+test('A delivery run uses one watcher and one authenticated upload for all stops',async()=>{
+ const h=harness();await h.gps.start('RUN-000000000001',{scope:'run'});h.fix();await settle();
+ assert.equal(h.gps.scope,'run');assert.equal(h.calls.filter(c=>c.route.endsWith('/location')).length,1);
+ assert.equal(h.calls.find(c=>c.route.endsWith('/location')).route,'/driver/runs/RUN-000000000001/location');
+ h.gps.stop();assert.equal(h.cleared(),1);assert.ok(h.calls.some(c=>c.route==='/driver/runs/RUN-000000000001/location/stop'));
+});

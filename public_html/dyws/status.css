@@ -1,0 +1,24 @@
+/* Shared semantic indicators. Text and glyphs remain meaningful without colour. */
+.dyws-status-badge {
+ --dyws-status-color:#7a8492;
+ display:inline-flex; align-items:center; gap:.4em; vertical-align:middle;
+ max-width:100%; min-height:28px; padding:.18em .65em;
+ border:1px solid color-mix(in srgb,var(--dyws-status-color) 30%,transparent);
+ border-radius:999px; white-space:nowrap; font-size:.84em; font-weight:650; line-height:1.45;
+ color:color-mix(in srgb,var(--dyws-status-color) 52%,var(--dyws-color-text));
+ background:color-mix(in srgb,var(--dyws-status-color) 12%,var(--dyws-color-surface));
+ font-variant-numeric:tabular-nums; letter-spacing:.01em;
+}
+.dyws-status-badge[data-tone="info"] { --dyws-status-color:#2389e8; }
+.dyws-status-badge[data-tone="warning"] { --dyws-status-color:#b98108; }
+.dyws-status-badge[data-tone="ready"] { --dyws-status-color:#9360d9; }
+.dyws-status-badge[data-tone="success"] { --dyws-status-color:#158b72; }
+.dyws-status-badge[data-tone="danger"] { --dyws-status-color:#dc4253; }
+.dyws-status-glyph { display:inline-grid; place-items:center; inline-size:1em; font-weight:800; line-height:1; }
+.dyws-status-row { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.dyws-order-table .dyws-status-badge { font-size:.85em; }
+.dyws-order-table tbody tr { transition:background-color .15s ease; }
+.dyws-order-table tbody tr:hover { background-color:var(--dyws-color-raised); }
+.dyws-order-table button[data-open-order] { font-weight:650; letter-spacing:.01em; }
+@media(prefers-reduced-motion:reduce) { .dyws-order-table tbody tr { transition:none; } }
+@media(forced-colors:active) { .dyws-status-badge { color:CanvasText; background:Canvas; border-color:CanvasText; } }
