@@ -39,3 +39,17 @@
 [data-dyws-checkout-fields]:empty { display: none; }
 
 .dyws-ordering .dyws-remove{display:inline-flex;align-items:center;justify-content:center;padding:12px;min-width:48px;min-height:48px}
+
+/* Native radios retain keyboard and screen reader behavior inside the pill selector. */
+.dyws-fulfillment{border:0;padding:0;margin:16px 0;min-width:0}
+.dyws-fulfillment legend{font-weight:700;margin-bottom:10px}
+.dyws-pillbox{display:flex;gap:4px;padding:5px;border-radius:999px;background:var(--dyws-color-raised)}
+.dyws-ordering .dyws-pillbox label{flex:1;min-width:0;position:relative;margin:0;cursor:pointer}
+.dyws-ordering .dyws-pillbox input{position:absolute;width:1px;height:1px;min-height:0;padding:0;border:0;overflow:hidden;clip-path:inset(50%)}
+.dyws-pillbox span{display:flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:8px 12px;border-radius:999px;color:var(--dyws-color-text);font-weight:700;box-sizing:border-box}
+.dyws-pillbox span::before{content:'✓';visibility:hidden}
+.dyws-pillbox input:checked+span{background:var(--dyws-color-accent);color:var(--dyws-color-button-text);box-shadow:0 2px 6px #0002}
+.dyws-pillbox input:checked+span::before{visibility:visible}
+.dyws-pillbox input:focus-visible+span{outline:3px solid var(--dyws-color-emphasis);outline-offset:3px}
+.dyws-ordering .dyws-fulfillment .dyws-note{margin:10px 0 0}
+@media(forced-colors:active){.dyws-pillbox{border:1px solid ButtonText}.dyws-pillbox input:checked+span{outline:2px solid Highlight;outline-offset:-3px}}

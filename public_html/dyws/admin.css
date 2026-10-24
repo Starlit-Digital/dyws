@@ -156,3 +156,25 @@
 .dyws-run-draft { margin-block: 0; }
 .dyws-shell .dyws-delivery-runs { padding:0; margin-block:0 1rem; background:transparent; }
 .dyws-delivery-runs details { margin:0; }
+
+/* Focused order detail, with hierarchy independent of status colour. */
+.dyws-shell .dyws-order-detail{--dyws-detail-accent:color-mix(in srgb,var(--dyws-color-text) 60%,#d59170);padding:clamp(20px,3vw,36px);border:1px solid color-mix(in srgb,var(--dyws-color-border) 40%,transparent);border-radius:28px;background:linear-gradient(135deg,var(--dyws-color-surface),color-mix(in srgb,var(--dyws-color-bg) 50%,var(--dyws-color-surface)));box-shadow:inset 0 1px 0 #fff1,0 12px 32px #0002}
+.dyws-order-detail button{border-radius:999px}
+.dyws-order-detail [data-close-order]{display:inline-flex;align-items:center;gap:10px;border:1px solid var(--dyws-color-border);background:transparent;font-size:.9em}
+.dyws-order-detail [data-close-order] span{font-size:1.4em;line-height:1}
+.dyws-order-detail .dyws-order-heading{display:flex;align-items:baseline;flex-wrap:wrap;gap:8px 20px;font:500 clamp(1.3rem,3vw,1.9rem)/1.3 Georgia,serif;margin:28px 0 20px;overflow-wrap:anywhere}
+.dyws-order-total{color:var(--dyws-detail-accent);white-space:nowrap}
+.dyws-order-detail .dyws-status-row{gap:10px;margin:20px 0 28px}
+.dyws-order-detail .dyws-status-badge{padding:.4em .8em;font-size:.95em;background:linear-gradient(135deg,color-mix(in srgb,var(--dyws-status-color) 20%,var(--dyws-color-surface)),color-mix(in srgb,var(--dyws-status-color) 9%,var(--dyws-color-bg)));box-shadow:inset 0 1px 0 #fff1}
+.dyws-order-customer{border-block:1px solid color-mix(in srgb,var(--dyws-color-border) 35%,transparent);padding:24px 0;margin:24px 0}
+.dyws-order-customer p{margin:6px 0;color:var(--dyws-color-muted)}
+.dyws-order-customer .dyws-order-label{text-transform:uppercase;letter-spacing:.12em;font-size:.75em;margin:0 0 14px}
+.dyws-order-customer .dyws-order-name{font-size:1.2em;color:var(--dyws-color-text)}
+.dyws-order-items{list-style:none;padding:0;margin:24px 0}
+.dyws-order-items li{display:flex;justify-content:space-between;align-items:baseline;gap:16px;padding:8px 0}
+.dyws-order-items strong{font-family:Georgia,serif;font-weight:500;color:var(--dyws-detail-accent);white-space:nowrap}
+.dyws-order-gps{font-size:.9em;color:var(--dyws-color-muted)}
+.dyws-order-detail .dyws-actions button{flex:1 1 auto;min-height:52px}
+@media(forced-colors:active){.dyws-shell .dyws-order-detail{border-color:CanvasText}.dyws-order-detail .dyws-status-badge{background:Canvas;color:CanvasText;border-color:CanvasText}.dyws-order-total,.dyws-order-items strong{color:CanvasText}}
+.dyws-order-detail .dyws-actions button{background:linear-gradient(135deg,var(--dyws-detail-accent),color-mix(in srgb,var(--dyws-detail-accent) 88%,var(--dyws-color-bg)));color:var(--dyws-color-bg);border:1px solid color-mix(in srgb,var(--dyws-detail-accent) 60%,var(--dyws-color-text));box-shadow:inset 0 1px 0 #fff3,0 6px 18px #0002}
+.dyws-order-detail .dyws-actions [data-status='cancelled']{background:var(--dyws-color-raised);color:var(--dyws-color-text);box-shadow:none}
