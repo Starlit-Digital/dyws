@@ -5,6 +5,7 @@
 - Make the complete Git checkout the primary development and installation workflow.
 - Keep the optional install ZIP and checksum in ignored `dist/`, published as release assets instead of committed binaries.
 - Update installation, development and packaging instructions. Existing 0.10.0 release downloads remain available.
+- Audit current documentation against the implementation: correct account storage, authentication, tracking, plugin hooks, routes, module paths and map behavior; consolidate deployment guidance and remove obsolete naming history.
 
 ## 0.10.0 · October 23, 2026
 
@@ -41,7 +42,7 @@ Release verification runs the complete application suite, the WebSocket relay in
 
 ### Upgrade notes
 
-Back up code and private storage before deployment. Preserve runtime JSON, SQLite, credentials and the host's private bootstrap adapter. Do not deploy setup over an installed merchant site. Update both private plugin implementations and their public assets, PHP modules and browser modules together. This release's final preparation changes packaging and documentation; it does not require a database migration from the current 0.9.4 development checkout.
+Back up code and private storage before deployment. Preserve runtime JSON, SQLite, credentials and the host's private bootstrap adapter. Do not deploy setup over an installed merchant site. Update both private plugin implementations and their public assets, PHP modules and browser modules together. This release's final preparation changes packaging and documentation; it does not require a database migration from the 0.9.4 development checkout that preceded this release.
 
 Use directory routes such as `/admin/`, `/orders/`, `/driver/` and `/tracking/`, and current dyws identifiers. Obsolete HTML routes, index.php links and earlier component aliases are intentionally unsupported. Existing pages should be reopened once after uploading updated scripts.
 

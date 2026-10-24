@@ -1,6 +1,6 @@
 # Generic catalog and Stripe connector
 
-The product can be called anything. dyws is the working repository name. “Do You Want Something?” is the owner's novelty name candidate. `platformName` configures the product display label and `businessName` identifies the business. The fictional diner keeps its own branding.
+dyws means Do You Want Something? and is the confirmed product name. `platformName` configures the product display label and `businessName` identifies the business. The fictional diner keeps its own branding.
 
 ## Catalog
 
@@ -34,9 +34,9 @@ Admin opens `catalog/`, edits categories and items and saves. The API validates 
 1. Create a separate Stripe sandbox for testing. Use a restricted sandbox API key with Checkout Sessions read and write access and the linked permissions required for creating Checkout Products, Prices and PaymentIntents. The connection check checks session read access only; complete a sandbox checkout to verify the complete permission set.
 2. Register the webhook URL shown in settings. Subscribe to `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`, `checkout.session.expired` and `charge.refunded`.
 3. Save the sandbox key and webhook signing secret in the authenticated admin settings. Blank inputs retain the existing secrets. Enable Stripe test checkout when the endpoint is registered.
-4. Place a new test order and use its Stripe payment button in inline tracking. Checkout returns to the original page. The tab retains its private tracking token. A return URL is not evidence of payment.
+4. Place a new test order and use its Stripe payment button on the private tracking page. The current Stripe success and cancel URLs return to the storefront with `#customer-tracking`. The storefront no longer mounts inline tracking, so this return does not reopen the dedicated order page automatically. Reopen the original private order link to see the verified payment status. Updating the Stripe return destination is still needed. A return URL is not evidence of payment.
 
-Hosted Checkout uses the official Stripe PHP SDK, currently locked at 22.0.0 and its default API version. Checkout handles card data. No publishable key or card input is needed on this site. Dynamic payment methods remain enabled. Adaptive pricing is disabled to preserve the server order currency. The example tax is sent as a separate configured amount; this is not Stripe Tax or a tax compliance engine.
+Hosted Checkout uses the official Stripe PHP SDK, pinned by `composer.lock`, with the SDK default API version. Checkout handles card data. No publishable key or card input is needed on this site. Dynamic payment methods remain enabled. Adaptive pricing is disabled to preserve the server order currency. The example tax is sent as a separate configured amount; this is not Stripe Tax or a tax compliance engine.
 
 The connector is a merchant owned account integration. It does not create Stripe Connect accounts, split funds, pay drivers or retain a platform commission. Those commercial choices remain future work.
 
@@ -54,8 +54,8 @@ Keys are never returned through an API, placed in browser storage or committed. 
 
 ## Verification
 
-Automated tests use the official SDK signature verifier and a fake session transport, not real Stripe credentials. They cover private catalog authorization, revisions, nonfood products, inactive items, prices, secret redaction and encryption, session reuse, webhook signatures, replay, amount and tenant mismatch, async payments, refunds and report reconciliation. An actual sandbox charge still requires the owner's Stripe credentials and registered webhook. None were supplied or retrieved from unrelated accounts.
+Automated tests use the official SDK signature verifier and a fake session transport, not real Stripe credentials. They cover private catalog authorization, revisions, nonfood products, inactive items, prices, secret redaction and encryption, session reuse, webhook signatures, replay, amount and tenant mismatch, async payments, refunds and report reconciliation. An actual sandbox charge still requires the owner's Stripe credentials and registered webhook. No unrelated account credentials are needed for the automated suite.
 
 References: [Checkout Sessions](https://docs.stripe.com/api/checkout/sessions/create), [payment fulfillment](https://docs.stripe.com/checkout/fulfillment), [webhook verification](https://docs.stripe.com/events/manage-webhook-endpoints), [API keys](https://docs.stripe.com/keys).
 
-As of 0.6, use Admin → Plugins → Stripe → Settings for payment configuration. Stripe is bundled and active by default but does not enable checkout until configured. Its settings, Checkout and webhook implementation are owned by the plugin. The plugin form is available at settings/#plugin-stripe. See [plugin documentation](plugins.md) for deactivation, preserved encrypted credentials and pending payment callbacks.
+Use Admin → Plugins → Stripe → Settings for payment configuration. Stripe is bundled and active by default but does not enable checkout until configured. Its settings, Checkout and webhook implementation are owned by the plugin. The plugin form is available at settings/#plugin-stripe. See [plugin documentation](plugins.md) for deactivation, preserved encrypted credentials and pending payment callbacks.

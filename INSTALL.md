@@ -88,12 +88,12 @@ The flow follows MediaWiki's [browser installer](https://www.mediawiki.org/wiki/
 
 ## Plugins
 
-Both Git and the optional install ZIP include Google Maps and Stripe as active bundled plugins. Stripe checkout remains disabled until configured. After setup, open Admin → Plugins to manage activation and Settings to configure active plugins. Upload private plugins/ beside server and modules, and public_html/plugins/ with the website. Preserve both parts when using split shared hosting. See [Plugin documentation](docs/plugins.md) to install or develop additional plugins.
+Both Git and the optional install ZIP include Google Maps, Stripe, Order Reporting and DataTables as active bundled plugins. Stripe checkout remains disabled until configured. After setup, open Admin → Plugins to manage activation and Settings to configure active plugins. Upload private plugins/ beside server and modules, and public_html/plugins/ with the website. Preserve both parts when using split shared hosting. See [Plugin documentation](docs/plugins.md) to install or develop additional plugins.
 
 After setup, use `/admin/` under your installation URL. The sign in page is `/auth/`; successful authentication opens Orders.
 
 ## Release identity and verification
 
-The root `VERSION` file identifies the application release and matches both application package manifests. Component plugins and the optional relay have independent versions. Official release assets are `dyws.zip` and `SHA256SUMS`; verify the downloaded archive with `shasum -a 256 -c SHA256SUMS` before uploading.
+The root [VERSION](VERSION) file identifies the application release and matches both application package manifests. Component plugins and the optional relay have independent versions. Official release assets are `dyws.zip` and `SHA256SUMS`; verify the downloaded archive with `shasum -a 256 -c SHA256SUMS` before uploading.
 
 Maintainers run `npm run verify:release` after building. It checks archive checksums, every manifest entry against the checkout, version consistency, private file exclusions and screenshot links. The ZIP also contains the optional relay source and lockfile under `modules/dyws/realtime`; hosting it requires a separate Node.js 22 or newer service and `npm ci` in that directory. Ordinary PHP installations continue using HTTPS polling.

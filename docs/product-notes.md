@@ -1,77 +1,40 @@
-# dyws product notes
+# dyws product direction
 
-Recorded October 23, 2026 from the owner’s direction.
+dyws means **Do You Want Something?** The confirmed product and repository name is lowercase dyws. The current application version is recorded in [VERSION](../VERSION). The private repository is [Starlit-Digital/dyws](https://github.com/Starlit-Digital/dyws).
 
 ## Product
 
-dyws is a restaurant ordering and delivery platform sold as an addition to a restaurant’s own website. It connects three surfaces: the customer’s menu and order tracking page, restaurant management, and the delivery driver. The customer stays on the restaurant website after checkout and sees status updates and the driver’s latest position there.
+dyws adds ordering and delivery to a business's own website. The customer shops and tracks an order, the business manages fulfillment, and an assigned driver handles delivery. Catalogs support generic products and services sold in whole units, not only food.
+
+Starlit Diner is the fictional reference host at `https://sltd.ca/diner/`. Its five categories, 35 items, generated food images and diner exterior demonstrate integration. The diner name and theme belong to the example, not the reusable platform.
 
 Working line: Your website. Your orders. Delivered.
 
-Starlit Diner is the fictional reference restaurant, not the product name. Its 35 example items, five categories, original generated food imagery, fictional Edmonton address and diner exterior remain the demonstration.
+## Current implementation
 
-The existing private restaurant-ordering repository was renamed to Starlit-Digital/starlit-go, preserving its history. The owner subsequently renamed it to Starlit-Digital/dyws. Local checkout: /private/var/www/starlit-digital/dyws. Demo stays at https://sltd.ca/diner/ .
+- Reusable PHP menu, category and item rendering, browser modules, a cart component and scoped CSS. Host pages supply branding, placement and endpoints.
+- Private JSON catalogs with categories, images, descriptions, prices, SKU, unit, availability and variants. Settings owns business details; Catalog owns items and categories.
+- SQLite orders, accounts, sessions, payment ledger, events and active GPS. Server pricing, idempotency, tenant scope and guarded status transitions remain authoritative.
+- Seven protected admin pages: Orders, Reports, Catalog, Drivers, Password, Settings and Plugins. `/admin/` is the entry, `/auth/` handles sign in and Orders is the default.
+- A driver console with assigned addresses, pickup and completion actions, and automatic GPS for active deliveries. A private simulated origin is available for test deployments.
+- A dedicated private customer status page after checkout. Google Maps can show driver and destination markers, a traffic aware route and an approximate arrival time. Completion comes only from backend status.
+- Four bundled plugins: Google Maps, Stripe sandbox Checkout, Order Reporting and DataTables. The plugin API has 32 hook contracts, namespaced routes, providers, validators, filters and actions. PHP feature attributes select browser assets per page.
+- PHP initial data, skeletons, HTTPS polling, optional WebSocket plumbing and refresh on tab return. Admin guards preserve unsaved edits and server revisions.
+- UTC storage and a selectable display timezone. Reports include comparisons, charts, CSV and SVG exports, with definitions separating ordered value from test collections.
+- Git plus Composer as the primary installation path. The optional ZIP is a release download. Browser setup verifies a private ownership key, creates the admin account and removes itself.
 
-## Names and domains
+## Configurable roles and presentation
 
-Names considered originally: Starlit Orders, Starlit Go, Starlit Direct, Starlit Delivery, Starlit Dash. Starlit Go was initially preferred for the broader platform; Dash felt too close to DoorDash.
+Businesses can rename Driver and Drivers using arbitrary singular and plural labels. This changes display text, not permissions or API roles. The diner uses the default labels. dyws CSS classes and theme tokens remain independent of the diner palette.
 
-Preliminary registry checks on October 23, 2026 returned no registration record for starlitgo.com, starlitgo.ca, starlitdirect.com, starlitdirect.ca, starlitorders.com, starlitorders.ca, starlitdelivery.com, starlitdelivery.ca, starlitdash.com and starlitdash.ca. getstarlit.com was registered. These were preliminary checks, not purchase confirmation or trademark clearance. No domain has been purchased.
+Plugin settings belong to their plugins and survive deactivation. Stripe's signed callbacks can reconcile existing sandbox attempts after deactivation; new Checkout requests stop. GPS capture, authentication and the order state machine remain core features.
 
-## Foundation delivered
+## Work still needed for a commercial pilot
 
-Persistent SQLite orders with tenant identifiers, authoritative catalog pricing, integer cent totals, request idempotency, immutable status events, manager status workflow, driver assignment, separate test payment capture and full refund ledger, order totals, average order value, top items, paid collections, tax and fee breakdown, date filtering in the configured site timezone, observed preparation and delivery durations, CSV report export, role scoped manager and driver sessions, and customer tracking links that expire after 24 hours.
+1. Business hours, delivery zones, address validation, preparation estimates, kitchen notifications and robust inventory requirements.
+2. Correct the Stripe Checkout return to reopen the private status page. Add named administrator and device accounts, stronger session management, production payment enablement, tips, discounts and operational refund workflows. Sandbox Checkout and webhook reconciliation already exist; payouts and marketplace settlement do not.
+3. Native iOS and Android driver apps, secure device storage, reliable background GPS, offline recovery and physical device testing.
+4. Dispatch offers, capacity rules, acceptance races and route planning beyond the current single active delivery view.
+5. Durable queues and outbox, notifications, monitoring, load tests, deployment automation, scheduled cleanup, backups and restore drills. Review database capacity before expanding beyond a small pilot.
 
-Customers choose pickup or delivery in the example checkout. Delivery has a fixed $3.95 demonstration fee. The driver console automatically starts browser GPS during active deliveries, with a fixed test origin configured for this demo. Only the assigned driver can update an active delivery. Customer tracking polls the same API and displays a timeline, Google map and driving route on a private status page. It shows a stale warning after 60 seconds and hides locations older than 15 minutes. Terminal orders delete their stored position.
-
-## Next commercial milestones
-
-1. Restaurant pilot with proper user accounts, per restaurant menus and configuration, business hours, availability, delivery zones, address validation, preparation estimates and kitchen notifications.
-2. Real payment integration, server verified webhooks, payment reconciliation, refunds, tips, discounts, payouts and fee agreements. Test ledger entries are not actual charges.
-3. Native iOS and Android driver apps with secure device authentication, assignment offers, acceptance, pickup, location sharing, delivery completion and offline recovery.
-4. Add preparation and travel estimates to the existing Google Maps route display.
-5. Platform operations: PostgreSQL migration, queue and outbox, push notifications, dispatch tools, support workflows, backups and restore drills, monitoring, deployment automation and load testing.
-
-Do not call the platform production ready. No actual money is moved and no drivers are dispatched. Native apps are planned, not built in this foundation.
-
-## Generic ordering direction
-
-The owner requested server JSON products with name, image, description and price, suitable for any business, plus admin managed Stripe credentials. The platform now has validated product JSON, SKU, unit, availability, options and public metadata; an authenticated editor; and sandbox Stripe Checkout with signed webhook reconciliation. “Do You Want Something?” is the exact novelty name candidate. Keep the repository name dyws pending a confirmed rename. There is no requested governor feature; that wording meant “just go from there.”
-
-## dyws presentation boundary
-
-The owner requested a separate CSS system named dyws, short for Do You Want Something. Reusable catalog, cart, admin and tracking presentation now lives in public_html/dyws with dyws class names and theme tokens. The diner remains a host example. Driver trip, admin, backend and installer runtime packages are ideas for later, not part of this CSS extraction.
-
-The owner requested JavaScript and PHP extraction into dyws. Host pages now include the private PHP module and call full menu, category or item render functions. Browser modules add cart behavior to those selected panels. Public assets and private backend code are separated for deployment.
-
-The owner requested administration tabs with separate pages for the reports dashboard, catalog editor, drivers, Stripe settings and admin password changes. The first catalog editor exposes structured fields backed by the existing private JSON, with category/item/option management and a single Save catalog action. The controls and services remain in dyws modules; the host owns page links and layout.
-
-## Configurable role naming, October 23, 2026
-
-dyws now has a basic Admin Settings page. Businesses can rename Driver and Drivers using their own singular and plural terms, such as Handler and Handlers or Admin and Admins. The name appears in account management, admin navigation, order assignments, the team console, storefront console link and customer tracking. Existing accounts and permissions are preserved. The demo keeps Driver as its default.
-
-## Confirmed name and simpler administration
-
-The owner confirmed lowercase dyws on October 23, 2026. The private GitHub repository and package metadata use this name. A compact shared admin header links back to the diner through its D monogram. Repeated introductions are removed, setup guidance is expandable, and all six pages retain accessible labels and full size controls.
-
-## Installer and durable storage
-
-The complete project is maintained as an ordinary Git repository. Git clone plus Composer is the primary installation path. An optional dyws.zip with dependencies is available as a release download; generated downloads live in ignored dist/ locally. The /setup wizard checks hosting, verifies a private one time ownership key, collects the business name, URL and admin password, creates private storage, then removes itself. Existing configuration blocks repeat setup. Orders already used SQLite and remain there; driver accounts and admin password hashes now use SQLite too. Overall site settings and product catalogs remain JSON. Legacy account migration preserves credentials, driver IDs, assignments, active state and sessions.
-
-## Customer delivery polish
-
-The private order page now prioritises progress and an approximate arrival time from the driver's current route. Until departure it explains when that estimate becomes available. Simulated locations, stale GPS and connection errors are explicit. Driver completion automatically displays Delivered with its time and removes the customer map. The customer retains a confirmation and a Back to menu action. No preparation duration or automatic completion is fabricated.
-
-## Plugins
-
-Version 0.5 adds installed plugins, an Admin Plugins page, lifecycle hooks, PHP actions and filters, browser providers and manager protected plugin routes. Google Maps is the first bundled plugin and is active by default. Its implementation and settings form are outside core, while orders, GPS capture and customer progress remain usable without it. Additional plugins are installed through trusted files and activated in Admin. There is no marketplace or browser code uploader in this first version.
-
-## 2026-10-23, Stripe plugin and 25 hooks
-
-Stripe is a bundled plugin alongside Google Maps. Its encrypted configuration, admin form, verification, Checkout, signed webhooks and customer payment button belong to the plugin. The old settings URL redirects to its settings panel. Deactivation stops new checkouts but retains signed reconciliation for existing attempts. Core owns neutral payment records, reports and the protection against manually marking online orders paid.
-
-The plugin API now exposes 25 implemented hooks covering lifecycle, catalog, validation, order events, tracking, reporting, searches, admin navigation and panels, product presentation, cart changes, checkout fields and driver tools. Required validators can reject operations; optional observer errors do not undo successful orders. Extra checkout data is bounded, stored with the order and omitted from public tracking by default. A gift note example demonstrates the full field to order panel flow.
-
-## 2026-10-23, reporting
-
-Reviewed the private PayCal reporting implementation and added Order Reporting for business summaries, comparisons, SVG charts, CSV exports and operational metrics. DataTables is an independent bundled plugin. Added seven reporting and table hooks, bringing the documented catalog to 32. Report data stays scoped to the authenticated tenant, selected currency and fulfilment. Demo data remains labelled and live orders are preserved.
+The current build is a demonstration. Manual payment actions create test ledger entries; Stripe accepts sandbox keys only. No real driver is dispatched, and native apps have not been built. See the [complete feature breakdown](../README.md) and [driver app plan](mobile-driver-plan.md).

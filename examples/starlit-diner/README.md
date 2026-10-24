@@ -1,10 +1,16 @@
 # Starlit Diner reference integration
 
-The fictional diner is the working example of dyws. Its deployed assets live in `../../public_html/`, which is kept as the web root for the existing https://sltd.ca/diner/ hosting path.
+Starlit Diner is the fictional working example of dyws. Its host pages and assets live in `../../public_html/`. The example has five categories with seven items each and is hosted at `https://sltd.ca/diner/`.
 
-Customer: `/diner/`
-Restaurant manager: `/diner/reports/`
-Driver test console: `/diner/driver/`
-Private customer tracking: generated after a test checkout, on the original menu page or `tracking/` with an order specific fragment token.
+| Surface | Hosted URL |
+| --- | --- |
+| Customer storefront | `/diner/` |
+| Administrator entry | `/diner/admin/`, sign in then Orders |
+| Driver console | `/diner/driver/` |
+| Private customer tracking | `/diner/tracking/`, entered through the link created after checkout |
 
-Use fictional names, phone numbers and addresses. All payment actions are test records. The driver simulator sends invented Manning area coordinates and does not dispatch a person. The Share my GPS button asks for browser permission and sends actual device coordinates only after an explicit user action for an assigned active delivery.
+Tracking exchanges the private fragment token for an order scoped HttpOnly cookie and then shows only the order reference in its URL. See [access details](../../docs/api.md).
+
+Use fictional customer details. Manual payments are test records; optional Stripe payments use sandbox Checkout. Drivers see assigned addresses and pickup or completion actions. GPS starts automatically for an assigned active delivery, subject to browser permission. There are no sharing buttons. The hosted test configuration uses a labelled Manning area simulated origin; fresh installations do not enable that override. No real driver is dispatched.
+
+See [installation](../../INSTALL.md) for browser setup or the separate CLI demo fixture, and [maps and GPS](../../docs/gps-maps-realtime.md) for location behavior.

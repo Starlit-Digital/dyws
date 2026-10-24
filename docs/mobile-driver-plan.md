@@ -34,7 +34,7 @@ Add device sequence IDs, deduplication, bounded local queues, exponential retry 
 
 ## Customer tracking
 
-Preserve checkout and tracking on the restaurant’s original page. The current build uses polling, a timeline, an expiring private tracking token and an approximate map marker. Move to server events or sockets when the hosting runtime supports reliable fanout, retaining polling as recovery. Add ETA only after integrating a real route service and measuring restaurant readiness and driver progress. Never present straight line distance as road arrival time.
+Preserve checkout and the private order status page on the business website. The current browser build already has a timeline, an expiring tracking token, Google Maps routes and traffic aware travel estimates, plus optional WebSocket plumbing with HTTPS polling fallback. Native apps must feed the same authorized location API and terminal status flow. Preparation estimates, production relay hosting and physical device reliability tests remain future work. Never present straight line distance as road arrival time.
 
 ## Delivery milestones and acceptance tests
 
