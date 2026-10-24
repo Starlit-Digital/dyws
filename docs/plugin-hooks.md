@@ -1,6 +1,6 @@
 # dyws hook reference
 
-dyws 0.7 includes 32 built in hook features. The names below are live integration points. The machine readable catalog is modules/dyws/php/hooks.json and is also returned by GET /plugins. Actions, filters and validators use priorities, default 10, with lower values first.
+dyws includes 32 built in hook features. The current application release is recorded in [VERSION](../VERSION). The names below are live integration points. The machine readable catalog is modules/dyws/php/hooks.json and is also returned by GET /plugins. Actions, filters and validators use priorities, default 10, with lower values first.
 
 ## Server hooks
 

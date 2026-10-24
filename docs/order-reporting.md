@@ -1,6 +1,6 @@
 # Order Reporting
 
-Version 0.7.0 adds two bundled plugins: Order Reporting and DataTables. Both use the existing Admin Reports page and manager authentication. No data is sent to a reporting service.
+dyws bundles Order Reporting and DataTables. Order Reporting provides the Admin Reports dashboard; DataTables supports tables in Reports and Orders. Both require manager authentication. The current application release is recorded in [VERSION](../VERSION). No data is sent to a reporting service.
 
 ## PayCal inspiration
 
