@@ -34,6 +34,12 @@ final class Realtime {
   if(in_array($route,['/manager/catalog','/manager/settings','/manager/plugins'],true)||str_starts_with($route,'/manager/plugins/'))$channels[]=$prefix.'public';
   if(preg_match('~/([A-Z]{2,7}-[A-F0-9]{12})(?:/|$)~',$route,$m))$channels[]=$prefix.'order:'.$m[1];
   elseif(isset($result['id'])&&preg_match('/^[A-Z]{2,7}-[A-F0-9]{12}$/',$result['id']))$channels[]=$prefix.'order:'.$result['id'];
+  if(str_contains($route,'/runs/'))foreach($result['orderIds']??[] as $id)$channels[]=$prefix.'order:'.$id;
+  if($route==='/manager/runs')foreach($result['orderIds']??[] as $id)$channels[]=$prefix.'order:'.$id;
+  if(preg_match('~/orders/(DYWS-[A-F0-9]{12})/status$~',$route,$order)){
+   $stops=$this->store->query('SELECT DISTINCT other.order_id FROM delivery_run_stops member JOIN delivery_run_stops other ON other.tenant=member.tenant AND other.run_id=member.run_id WHERE member.tenant=? AND member.order_id=?',[$this->store->tenant,$order[1]]);
+   foreach($stops as $stop)$channels[]=$prefix.'order:'.$stop['order_id'];
+  }
   $this->changed($channels);
  }
 }

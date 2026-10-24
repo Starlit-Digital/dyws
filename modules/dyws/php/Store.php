@@ -2,9 +2,11 @@
 declare(strict_types=1);
 namespace dyws;
 use PDO;
+require_once __DIR__.'/DeliveryRuns.php';
 use RuntimeException;
 final class ApiError extends RuntimeException {public int $http; public function __construct(string $message,int $http=422){parent::__construct($message);$this->http=$http;}}
 final class Store {
+ private int $transactionDepth=0;
  public PDO $db; private array $catalog; public string $tenant; public ?Plugins $plugins=null;
  public function __construct(string $path,array $catalog,string $tenant='dyws-diner') {
   if(strlen($GLOBALS['dyws_config']['tracking_secret']??'')<32)throw new RuntimeException('Tracking secret must be configured.');$this->catalog=$catalog;$this->tenant=$tenant;
@@ -20,7 +22,13 @@ final class Store {
   $columns=array_column($this->query('PRAGMA table_info(orders)'),'name');
   foreach(['currency'=>"TEXT NOT NULL DEFAULT 'CAD'",'payment_provider'=>"TEXT NOT NULL DEFAULT 'demo'",'address_json'=>"TEXT NOT NULL DEFAULT '{}'",'plugin_data_json'=>"TEXT NOT NULL DEFAULT '{}'"] as $column=>$definition)if(!in_array($column,$columns,true))$this->db->exec("ALTER TABLE orders ADD COLUMN $column $definition");
  }
- public function transaction(callable $fn){$this->db->exec('BEGIN IMMEDIATE');try{$r=$fn();$this->db->exec('COMMIT');return $r;}catch(\Throwable $e){$this->db->exec('ROLLBACK');throw $e;}}
+ public function transaction(callable $fn){
+  $depth=$this->transactionDepth;$savepoint='dyws_tx_'.$depth;
+  $this->db->exec($depth?'SAVEPOINT '.$savepoint:'BEGIN IMMEDIATE');$this->transactionDepth++;
+  try{$r=$fn();$this->db->exec($depth?'RELEASE SAVEPOINT '.$savepoint:'COMMIT');return $r;}
+  catch(\Throwable $e){if($depth){$this->db->exec('ROLLBACK TO SAVEPOINT '.$savepoint);$this->db->exec('RELEASE SAVEPOINT '.$savepoint);}else $this->db->exec('ROLLBACK');throw $e;}
+  finally{$this->transactionDepth--;}
+ }
  public function query(string $sql,array $args=[]):array{$s=$this->db->prepare($sql);$s->execute($args);return $s->fetchAll();}
  public function execute(string $sql,array $args=[]):void{$s=$this->db->prepare($sql);$s->execute($args);}
  public static function text($value,int $max,bool $required=true):string {if(!is_string($value)||strlen(trim($value))>$max||($required&&trim($value)===''))throw new ApiError('Check the required fields.');return trim($value);}
@@ -58,8 +66,9 @@ final class Store {
  private function receipt(array $order,string $key):array{return ['id'=>$order['id'],'demo'=>true,'total'=>(int)$order['total'],'paymentProvider'=>$order['payment_provider'],'currency'=>$order['currency'],'trackingToken'=>hash_hmac('sha256',$order['id'].'|'.$key,$GLOBALS['dyws_config']['tracking_secret'])];}
  public function get(string $id):array{$rows=$this->query('SELECT * FROM orders WHERE tenant=? AND id=?',[$this->tenant,$id]);if(!$rows)throw new ApiError('Order not found.',404);return $rows[0];}
  public function event(string $id,string $status,string $actor):void{$this->execute('INSERT INTO events(tenant,order_id,status,actor,created_at) VALUES(?,?,?,?,?)',[$this->tenant,$id,$status,$actor,time()]);}
- public function change(string $id,string $status,string $actor,?string $driver=null):array{return $this->transaction(function()use($id,$status,$actor,$driver){
-  $o=$this->get($id);
+ public function change(string $id,string $status,string $actor,?string $driver=null,?string $startingRun=null):array{return $this->transaction(function()use($id,$status,$actor,$driver,$startingRun){
+  $o=$this->get($id);$runs=new DeliveryRuns($this);if($driver!==null&&$o['driver_id']!==$driver)throw new ApiError('This delivery is not assigned to you.',403);$runs->guardChange($id,$status,$startingRun);
+  if($status==='out_for_delivery'&&!$startingRun&&$runs->listing($o['driver_id']??''))throw new ApiError('Finish the assigned delivery run first.',409);
   if($o['payment_provider']!=='demo'&&$o['payment_status']==='unpaid'){
    $attempt=$this->query('SELECT status FROM payment_attempts WHERE tenant=? AND order_id=?',[$this->tenant,$id]);
    if($status!=='cancelled'||($attempt&&!in_array($attempt[0]['status'],['failed','expired'],true)))throw new ApiError('Wait for payment confirmation or checkout expiry before changing this order.',409);
@@ -72,9 +81,10 @@ final class Store {
   $this->plugins?->validate('order.status_changing',$this->safeOrder($o),$status,$actor);
   $this->execute('UPDATE orders SET status=?,updated_at=? WHERE tenant=? AND id=?',[$status,time(),$this->tenant,$id]);
   if(in_array($status,['cancelled','delivered','completed'],true)){$this->execute('DELETE FROM locations WHERE tenant=? AND order_id=?',[$this->tenant,$id]);$this->execute('DELETE FROM location_shares WHERE tenant=? AND order_id=?',[$this->tenant,$id]);}
+  if($status==='delivered')$runs->completed($id);
   $this->event($id,$status,$actor);return $this->safeOrder($this->get($id));
  });}
- public function assign(string $id,string $driver):void{$this->transaction(function()use($id,$driver){$o=$this->get($id);if($o['fulfillment']!=='delivery'||in_array($o['status'],['out_for_delivery','delivered','completed','cancelled'],true))throw new ApiError('Driver assignment is not available for this order.',409);$this->execute('UPDATE orders SET driver_id=?,updated_at=? WHERE tenant=? AND id=?',[$driver,time(),$this->tenant,$id]);$this->event($id,'driver_assigned','manager');});}
+ public function assign(string $id,string $driver):void{$this->transaction(function()use($id,$driver){$o=$this->get($id);if((new DeliveryRuns($this))->membership($id))throw new ApiError('Cancel the planned run before reassigning this order.',409);if($o['fulfillment']!=='delivery'||in_array($o['status'],['out_for_delivery','delivered','completed','cancelled'],true))throw new ApiError('Driver assignment is not available for this order.',409);$this->execute('UPDATE orders SET driver_id=?,updated_at=? WHERE tenant=? AND id=?',[$driver,time(),$this->tenant,$id]);$this->event($id,'driver_assigned','manager');});}
  public function payment(string $id,string $kind):void{$this->transaction(function()use($id,$kind){$o=$this->get($id);if($o['payment_provider']!=='demo')throw new ApiError('Online payments are confirmed by the payment provider. Manage refunds with that provider.',409);if($kind==='capture'&&($o['payment_status']!=='unpaid'||$o['status']==='cancelled'))throw new ApiError('Payment cannot be recorded.',409);if($kind==='refund'&&$o['payment_status']!=='paid')throw new ApiError('Only a paid order can be refunded.',409);if(!in_array($kind,['capture','refund'],true))throw new ApiError('Unknown payment action.');$this->execute('INSERT INTO payments(tenant,order_id,kind,amount,created_at) VALUES(?,?,?,?,?)',[$this->tenant,$id,$kind,$o['total'],time()]);$this->execute('UPDATE orders SET payment_status=?,updated_at=? WHERE tenant=? AND id=?',[$kind==='capture'?'paid':'refunded',time(),$this->tenant,$id]);$this->event($id,'test_payment_'.$kind,'manager');});}
  public function startLocation(string $id,array $session,string $source):array {
   if(!in_array($source,['device','simulated'],true))throw new ApiError('Choose a GPS source.');
@@ -142,8 +152,8 @@ final class Store {
   return ['sharing'=>$row!==null,'source'=>$row['source']??null,'recordedAt'=>isset($row['recorded_at'])?(int)$row['recorded_at']:null,'accuracy'=>$row['accuracy']??null,'location'=>isset($row['recorded_at'])?['latitude'=>(float)$row['latitude'],'longitude'=>(float)$row['longitude'],'accuracy'=>(float)$row['accuracy'],'recorded_at'=>(int)$row['recorded_at']]:null,'stale'=>!isset($row['recorded_at'])||time()-(int)$row['recorded_at']>60];
  }
  public function tracking(string $id,string $token):array{$rows=$this->query('SELECT * FROM orders WHERE tenant=? AND id=? AND tracking_hash=? AND tracking_expires>?',[$this->tenant,$id,hash('sha256',$token),time()]);if(!$rows)throw new ApiError('Tracking link is unavailable or expired.',404);$o=$rows[0];$location=null;if($o['status']==='out_for_delivery'){$locations=$this->query('SELECT latitude,longitude,accuracy,recorded_at FROM locations WHERE tenant=? AND order_id=? AND recorded_at>?',[$this->tenant,$id,time()-900]);$location=$locations[0]??null;}
- return ['id'=>$id,'demo'=>true,'status'=>$o['status'],'paymentStatus'=>$o['payment_status'],'paymentProvider'=>$o['payment_provider'],'checkoutStatus'=>$this->query('SELECT status FROM payment_attempts WHERE tenant=? AND order_id=?',[$this->tenant,$id])[0]['status']??null,'fulfillment'=>$o['fulfillment'],'deliveryAddress'=>$o['address'],'updatedAt'=>(int)$o['updated_at'],'events'=>$this->query('SELECT status,created_at FROM events WHERE tenant=? AND order_id=? ORDER BY id',[$this->tenant,$id]),'location'=>$location,'locationSource'=>$this->locationSummary($id)['source'],'gpsStale'=>$location?time()-(int)$location['recorded_at']>60:true];}
- public function safeOrder(array $o):array{$o['pluginData']=json_decode($o['plugin_data_json']??'{}',true);unset($o['plugin_data_json']);$o['addressDetails']=json_decode($o['address_json']??'{}',true);unset($o['address_json']);$o['gps']=$this->locationSummary($o['id']);unset($o['request_key'],$o['fingerprint'],$o['tracking_hash'],$o['tracking_expires']);$o['lines']=json_decode($o['lines_json'],true);unset($o['lines_json']);return $o;}
+ return ['id'=>$id,'demo'=>true,'status'=>$o['status'],'paymentStatus'=>$o['payment_status'],'paymentProvider'=>$o['payment_provider'],'checkoutStatus'=>$this->query('SELECT status FROM payment_attempts WHERE tenant=? AND order_id=?',[$this->tenant,$id])[0]['status']??null,'fulfillment'=>$o['fulfillment'],'deliveryAddress'=>$o['address'],'updatedAt'=>(int)$o['updated_at'],'events'=>$this->query('SELECT status,created_at FROM events WHERE tenant=? AND order_id=? ORDER BY id',[$this->tenant,$id]),'location'=>$location,'locationSource'=>$this->locationSummary($id)['source'],'deliveryRun'=>(new DeliveryRuns($this))->progress($id),'gpsStale'=>$location?time()-(int)$location['recorded_at']>60:true];}
+ public function safeOrder(array $o):array{$o['pluginData']=json_decode($o['plugin_data_json']??'{}',true);unset($o['plugin_data_json']);$o['addressDetails']=json_decode($o['address_json']??'{}',true);unset($o['address_json']);$o['gps']=$this->locationSummary($o['id']);$o['deliveryRun']=(new DeliveryRuns($this))->membership($o['id']);unset($o['request_key'],$o['fingerprint'],$o['tracking_hash'],$o['tracking_expires']);$o['lines']=json_decode($o['lines_json'],true);unset($o['lines_json']);return $o;}
  public function orders(?string $driver=null):array{$args=[$this->tenant];$sql='SELECT * FROM orders WHERE tenant=?';if($driver!==null){$sql.=' AND driver_id=? AND status IN (\'ready\',\'out_for_delivery\')';$args[]=$driver;}$sql.=" ORDER BY CASE WHEN status IN ('completed','delivered','cancelled') THEN 1 ELSE 0 END, created_at DESC, id LIMIT 200";return array_map(fn($o)=>$this->safeOrder($o),$this->query($sql,$args));}
  public function reports(int $from,int $to):array{
   $o=$this->query('SELECT count(*) AS orderCount,coalesce(sum(total),0) AS orderedValue,coalesce(sum(CASE WHEN status NOT IN (\'completed\',\'delivered\',\'cancelled\') THEN 1 ELSE 0 END),0) AS activeOrders,coalesce(sum(CASE WHEN status=\'cancelled\' THEN 1 ELSE 0 END),0) AS cancelledOrders FROM orders WHERE tenant=? AND created_at>=? AND created_at<?',[$this->tenant,$from,$to])[0];

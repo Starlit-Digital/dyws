@@ -3,7 +3,11 @@ declare(strict_types=1);
 
 function dyws_admin_orders(array $config,\dyws\Store $store):array {
  $drivers=[];foreach($config['drivers'] as $id=>$driver)if($driver['active']??true)$drivers[]=['id'=>$id,'name'=>$driver['name']];
- return ['orders'=>$store->orders(),'drivers'=>$drivers];
+ return ['orders'=>$store->orders(),'drivers'=>$drivers,'runs'=>(new \dyws\DeliveryRuns($store))->listing()];
+}
+function dyws_driver_locations(\dyws\Store $store):array {
+ $orders=$store->query("SELECT o.id,o.driver_id,o.address FROM orders o LEFT JOIN delivery_run_stops ds ON ds.tenant=o.tenant AND ds.order_id=o.id AND ds.active=1 WHERE o.tenant=? AND o.status='out_for_delivery' AND o.driver_id IS NOT NULL ORDER BY o.driver_id,coalesce(ds.position,999),o.updated_at DESC",[$store->tenant]);
+ return ['locations'=>array_map(fn($o)=>['driverId'=>$o['driver_id'],'orderId'=>$o['id'],'deliveryAddress'=>$o['address'],'gps'=>$store->locationSummary($o['id'])],$orders)];
 }
 function dyws_admin_report(array $config,\dyws\Store $store,\dyws\Plugins $plugins,array $query):array {
  $tz=new DateTimeZone((new \dyws\Settings($config))->read()['timeZone']);$start=$query['from']??(new DateTimeImmutable('today',$tz))->format('Y-m-d');$end=$query['to']??$start;
@@ -23,7 +27,7 @@ function dyws_admin_data(array $config,\dyws\Store $store,string $page):array {
  if($page==='settings')$boot['responses']['/manager/settings']=(new \dyws\Settings($config))->summary();
  if($page==='drivers'){
   $boot['responses']['/manager/drivers']=(new \dyws\AdminAccounts($config))->summary($store);
-  $boot['responses']['/manager/driver-locations']=['locations'=>array_map(fn($o)=>['driverId'=>$o['driver_id'],'orderId'=>$o['id'],'deliveryAddress'=>$o['address'],'gps'=>$store->locationSummary($o['id'])],$store->query("SELECT id,driver_id,address FROM orders WHERE tenant=? AND status='out_for_delivery' AND driver_id IS NOT NULL ORDER BY updated_at DESC",[$store->tenant]))];
+  $boot['responses']['/manager/driver-locations']=dyws_driver_locations($store);
  }
  if($page==='plugins')$boot['responses']['/manager/plugins']=$plugins->summary();
  if($page==='reports'){

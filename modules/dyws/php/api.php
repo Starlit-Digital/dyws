@@ -39,7 +39,7 @@ try {
  elseif($method==='GET'&&$route==='/catalog')$result=$plugins->applyFilters('catalog.public',\dyws\Catalog::publicData(\dyws\Catalog::load($config['catalog'])));
  elseif($method==='GET'&&$route==='/manager/catalog'){dyws_authorize($store,['manager']);$catalog=\dyws\Catalog::load($config['catalog']);$result=['catalog'=>$catalog,'revision'=>\dyws\Catalog::revision($catalog)];}
  elseif($method==='POST'&&$route==='/manager/catalog'){dyws_authorize($store,['manager']);if(!is_array($body['catalog']??null))throw new \dyws\ApiError('Provide a catalog object.');$plugins->validate('catalog.validating',\dyws\Catalog::validate($body['catalog']));$catalog=\dyws\Catalog::save($config['catalog'],$body['catalog'],\dyws\Store::text($body['revision']??null,64));$result=['catalog'=>$catalog,'revision'=>\dyws\Catalog::revision($catalog)];}
- elseif($method==='GET'&&$route==='/manager/driver-locations'){dyws_authorize($store,['manager']);$result=['locations'=>array_map(fn($o)=>['driverId'=>$o['driver_id'],'orderId'=>$o['id'],'deliveryAddress'=>$o['address'],'gps'=>$store->locationSummary($o['id'])],$store->query("SELECT id,driver_id,address FROM orders WHERE tenant=? AND status='out_for_delivery' AND driver_id IS NOT NULL ORDER BY updated_at DESC",[$store->tenant]))];}
+ elseif($method==='GET'&&$route==='/manager/driver-locations'){dyws_authorize($store,['manager']);$result=dyws_driver_locations($store);}
  elseif($method==='GET'&&$route==='/manager/drivers'){dyws_authorize($store,['manager']);$result=$accounts->summary($store);}
  elseif($method==='POST'&&$route==='/manager/drivers'){dyws_authorize($store,['manager']);dyws_limit_requests($store,$config,'driver-settings',30,900);$result=$accounts->saveDriver($store,$body);}
  elseif($method==='POST'&&$route==='/manager/password'){dyws_authorize($store,['manager']);dyws_limit_requests($store,$config,'manager-password',10,900);$result=$accounts->changePassword($store,$body);}
@@ -59,6 +59,20 @@ try {
  elseif($method==='GET'&&$route==='/manager/reports'){
   dyws_authorize($store,['manager']);$result=dyws_admin_report($config,$store,$plugins,$_GET);
  }
+ elseif($method==='POST'&&$route==='/manager/runs'){
+  dyws_authorize($store,['manager']);$result=$accounts->createRun($store,$body);
+ }
+ elseif($method==='POST'&&preg_match('~^/manager/runs/(RUN-[A-F0-9]{12})$~',$route,$m)){
+  dyws_authorize($store,['manager']);$result=(new \dyws\DeliveryRuns($store))->edit($m[1],$body);
+ }
+ elseif($method==='POST'&&preg_match('~^/driver/runs/(RUN-[A-F0-9]{12})/start$~',$route,$m)){
+  $session=dyws_authorize($store,['driver']);$result=(new \dyws\DeliveryRuns($store))->start($m[1],$session['subject']);
+ }
+ elseif($method==='POST'&&preg_match('~^/driver/runs/(RUN-[A-F0-9]{12})/location(?:/(start|stop|heartbeat))?$~',$route,$m)){
+  $session=dyws_authorize($store,['driver']);dyws_limit_requests($store,$config,'gps-run',120,60);$action=$m[2]??'update';
+  if(isset($config['driver_test_location'])){$body['source']='simulated';$body=array_replace($body,array_intersect_key($config['driver_test_location'],array_flip(['latitude','longitude','accuracy'])));}
+  $result=(new \dyws\DeliveryRuns($store))->location($m[1],$session,$action,$body);
+ }
  elseif($method==='POST'&&preg_match('~^/manager/orders/([A-Z]{2,7}-[A-F0-9]{12})/(status|assign|payment)$~',$route,$m)){
   dyws_authorize($store,['manager']);if($m[2]==='status')$result=$store->change($m[1],\dyws\Store::text($body['status']??null,30),'manager');
   elseif($m[2]==='assign'){$driver=$body['driverId']??'';if(!is_string($driver))throw new \dyws\ApiError('Unknown driver.');$accounts->assign($store,$m[1],$driver);$result=['ok'=>true];}
@@ -66,6 +80,7 @@ try {
  }
  elseif($method==='POST'&&preg_match('~^/driver/orders/([A-Z]{2,7}-[A-F0-9]{12})/location/(start|stop|heartbeat)$~',$route,$m)){
   $s=dyws_authorize($store,['driver']);dyws_limit_requests($store,$config,'gps-control',60,60);
+  if((new \dyws\DeliveryRuns($store))->membership($m[1]))throw new \dyws\ApiError('Use the delivery run GPS connection.',409);
   if($m[2]==='start')$result=$store->startLocation($m[1],$s,isset($config['driver_test_location'])?'simulated':\dyws\Store::text($body['source']??'device',20));
   elseif($m[2]==='heartbeat'){$store->heartbeatLocation($m[1],$s,\dyws\Store::text($body['sharingToken']??null,64));$result=['ok'=>true];}
   else{$store->stopLocation($m[1],$s,\dyws\Store::text($body['sharingToken']??null,64));$result=['ok'=>true];}
@@ -73,7 +88,7 @@ try {
  elseif($method==='GET'&&$route==='/driver/gps-config'){dyws_authorize($store,['driver']);$result=['testLocation'=>$config['driver_test_location']??null];}
  elseif($method==='GET'&&$route==='/driver/orders'){$s=dyws_authorize($store,['driver']);$result=dyws_driver_orders($config,$store,$s);}
  elseif($method==='POST'&&preg_match('~^/driver/orders/([A-Z]{2,7}-[A-F0-9]{12})/(status|location)$~',$route,$m)){
-  $s=dyws_authorize($store,['driver']);if($m[2]==='status')$result=$store->change($m[1],\dyws\Store::text($body['status']??null,30),'driver:'.$s['subject'],$s['subject']);else{dyws_limit_requests($store,$config,'gps',120,60);if(isset($config['driver_test_location'])){$body=array_replace($body,array_intersect_key($config['driver_test_location'],array_flip(['latitude','longitude','accuracy'])));}$store->locate($m[1],$s['subject'],$body,$s);$result=['ok'=>true,'recordedAt'=>$body['recordedAt'],'receivedAt'=>time()];}
+  $s=dyws_authorize($store,['driver']);if($m[2]==='status')$result=$store->change($m[1],\dyws\Store::text($body['status']??null,30),'driver:'.$s['subject'],$s['subject']);else{if((new \dyws\DeliveryRuns($store))->membership($m[1]))throw new \dyws\ApiError('Use the delivery run GPS connection.',409);dyws_limit_requests($store,$config,'gps',120,60);if(isset($config['driver_test_location'])){$body=array_replace($body,array_intersect_key($config['driver_test_location'],array_flip(['latitude','longitude','accuracy'])));}$store->locate($m[1],$s['subject'],$body,$s);$result=['ok'=>true,'recordedAt'=>$body['recordedAt'],'receivedAt'=>time()];}
  }elseif($pluginRoute){
   $session=$pluginRoute['access']==='public'?null:dyws_authorize($store,[$pluginRoute['access']]);
   if($pluginRoute['rateLimit'])dyws_limit_requests($store,$config,...$pluginRoute['rateLimit']);
@@ -84,6 +99,8 @@ try {
   if(isset($pluginRoute))$realtime->changed([$store->tenant.':public']);
   if($route==='/manager/catalog')$plugins->doAction('catalog.saved',$result['catalog'],$result['revision']);
   if(preg_match('~^/manager/orders/([A-Z]{2,7}-[A-F0-9]{12})/assign$~',$route,$assigned))$plugins->doAction('order.assigned',$store->safeOrder($store->get($assigned[1])));
+  if(preg_match('~^/driver/runs/RUN-[A-F0-9]{12}/start$~',$route))foreach($result['orderIds'] as $orderId)$plugins->doAction('order.status_changed',$store->safeOrder($store->get($orderId)),$store);
+  if($route==='/manager/runs')foreach($result['orderIds'] as $orderId)$plugins->doAction('order.assigned',$store->safeOrder($store->get($orderId)));
   if($route==='/orders')$plugins->doAction('order.created',$result,$store);
   if(str_ends_with($route,'/status'))$plugins->doAction('order.status_changed',$result,$store);
  }

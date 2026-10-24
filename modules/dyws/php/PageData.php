@@ -24,8 +24,8 @@ function dyws_driver_auth(array $config,\dyws\Store $store):array {
  return ['session'=>null,'error'=>$error,'csrf'=>$csrf];
 }
 function dyws_driver_orders(array $config,\dyws\Store $store,array $session):array {
- if(isset($config['driver_test_location']))foreach($store->orders($session['subject']) as $order)if($order['status']==='out_for_delivery')$store->testLocation($order['id'],$session,$config['driver_test_location']);
- return ['orders'=>$store->orders($session['subject'])];
+ if(isset($config['driver_test_location']))foreach($store->orders($session['subject']) as $order)if($order['status']==='out_for_delivery'&&!$order['deliveryRun'])$store->testLocation($order['id'],$session,$config['driver_test_location']);
+ return ['orders'=>$store->orders($session['subject']),'runs'=>(new \dyws\DeliveryRuns($store))->listing($session['subject'])];
 }
 function dyws_tracking_access(array $config,\dyws\Store $store):?array {
  $post=($_SERVER['REQUEST_METHOD']??'GET')==='POST';$id=$post?($_POST['orderId']??''):($_GET['order']??'');

@@ -30,3 +30,18 @@ CREATE TABLE IF NOT EXISTS location_shares (
 );
 
 CREATE TABLE IF NOT EXISTS realtime_versions(channel TEXT PRIMARY KEY,revision TEXT NOT NULL);
+
+CREATE TABLE IF NOT EXISTS delivery_runs (
+ tenant TEXT NOT NULL,id TEXT NOT NULL,driver_id TEXT NOT NULL,
+ status TEXT NOT NULL CHECK(status IN ('planned','active','completed','cancelled')),
+ request_key TEXT NOT NULL,revision INTEGER NOT NULL,created_at INTEGER NOT NULL,updated_at INTEGER NOT NULL,
+ PRIMARY KEY(tenant,id),UNIQUE(tenant,request_key)
+);
+CREATE UNIQUE INDEX IF NOT EXISTS delivery_runs_one_open_driver ON delivery_runs(tenant,driver_id) WHERE status IN ('planned','active');
+CREATE TABLE IF NOT EXISTS delivery_run_stops (
+ tenant TEXT NOT NULL,run_id TEXT NOT NULL,order_id TEXT NOT NULL,position INTEGER NOT NULL CHECK(position>0),active INTEGER NOT NULL CHECK(active IN (0,1)),
+ PRIMARY KEY(tenant,run_id,order_id),
+ FOREIGN KEY(tenant,run_id) REFERENCES delivery_runs(tenant,id),FOREIGN KEY(tenant,order_id) REFERENCES orders(tenant,id)
+);
+CREATE UNIQUE INDEX IF NOT EXISTS delivery_run_one_open_order ON delivery_run_stops(tenant,order_id) WHERE active=1;
+CREATE INDEX IF NOT EXISTS delivery_run_stop_order ON delivery_run_stops(tenant,run_id,position);
