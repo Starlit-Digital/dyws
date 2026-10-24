@@ -53,5 +53,6 @@ export async function createPluginHost({api,baseURL=new URL('../plugins/',import
   try{if(await provider({...options,applyFilters,runAction})===true)return true;}catch{recordError('The report plugin could not render.');}
   await runAction('admin:tables',{root:options.root,phase:'dispose'});options.root.replaceChildren();return false;
  }
- return {runAction,applyFilters,validate,createLocationRenderer,renderPayment,renderReports,errors,removeAction:(name,fn)=>remove(actions,name,fn),removeFilter:(name,fn)=>remove(filters,name,fn),removeValidator:(name,fn)=>remove(validators,name,fn),destroy(){for(const fn of cleanup)try{fn();}catch{}styles.forEach(style=>style.remove());actions.clear();filters.clear();validators.clear();providers.clear();}};
+ const orderLayout=stage=>{try{return providers.get('order.layout')?.(stage)||null;}catch{return null;}};
+ return {runAction,applyFilters,validate,orderLayout,createLocationRenderer,renderPayment,renderReports,errors,removeAction:(name,fn)=>remove(actions,name,fn),removeFilter:(name,fn)=>remove(filters,name,fn),removeValidator:(name,fn)=>remove(validators,name,fn),destroy(){for(const fn of cleanup)try{fn();}catch{}styles.forEach(style=>style.remove());actions.clear();filters.clear();validators.clear();providers.clear();}};
 }

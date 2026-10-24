@@ -32,6 +32,10 @@ npm run serve
 
 Open `http://127.0.0.1:8097/`. The CLI creates a disposable demo driver and generated credentials in ignored `var/LOCAL-ACCESS.txt`. Browser installation creates no default password or driver account. Node.js and Python 3 run tests and packaging tools; Node.js is unnecessary for ordinary PHP hosting. The optional WebSocket relay requires Node.js 22 or newer on a separate compatible server.
 
+## Order forms
+
+The optional [Order Format plugin](docs/order-format.md) adds a visual editor for Cart, Customer details and Final review. Arrange fields on a two column canvas, save named templates and assign a template to each stage. The existing order formats remain available whenever a stage has no template or the plugin is disabled.
+
 ## Public demo
 
 Try [the storefront](https://sltd.ca/diner-demo/), [Admin](https://sltd.ca/diner-demo/admin/) with **admin / admin**, or [Driver](https://sltd.ca/diner-demo/driver/) with **driver / driver**.

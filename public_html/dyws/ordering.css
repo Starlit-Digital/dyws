@@ -129,3 +129,25 @@
 .dyws-review-charges > div { display:flex; justify-content:space-between; gap:16px; padding:4.5px 0; }
 .dyws-review-charges dt { color:var(--dyws-color-muted); }
 .dyws-review-charges dd { margin:0; font-variant-numeric:tabular-nums; white-space:nowrap; }
+
+/* The fallback layout stays unchanged. These styles apply only to an assigned template. */
+.dyws-order-pair { display:contents; }
+.dyws-order-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px 20px; align-items:start; }
+.dyws-order-cell { min-width:0; }
+.dyws-order-cell:has(> [hidden]),.dyws-order-cell:has(> .dyws-order-amount > [hidden]) { display:none; }
+.dyws-order-cell[data-align='left'] { text-align:left; }
+.dyws-order-cell[data-align='center'] { text-align:center; }
+.dyws-order-cell[data-align='right'] { text-align:right; }
+.dyws-order-cell[data-vertical='center'] { align-self:center; }
+.dyws-order-cell[data-vertical='bottom'] { align-self:end; }
+.dyws-order-cell > label,.dyws-order-cell > p,.dyws-order-cell > fieldset,.dyws-order-cell > .dyws-actions { margin:0; }
+.dyws-order-amount { margin:0; }
+.dyws-order-amount > div { display:flex; justify-content:space-between; gap:16px; }
+.dyws-order-cell dd { margin:0; }
+.dyws-order-cell > [data-dyws-order-field='items'] { margin:0; }
+.dyws-order-cell[data-align] .dyws-grand-total,.dyws-order-cell[data-align] .dyws-checkout-total { text-align:inherit; }
+.dyws-order-cell > button { display:inline-flex; margin:0; }
+.dyws-order-cell[data-field='actions'] > .dyws-actions { display:flex; }
+.dyws-order-cell[data-field='actions'] .dyws-actions button { min-width:0; }
+.dyws-order-cell .dyws-review-pause { margin:0; }
+@media(max-width:400px) { .dyws-order-grid { gap:10px 12px; }.dyws-order-cell .dyws-actions button { padding-inline:10px; } }

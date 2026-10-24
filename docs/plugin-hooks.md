@@ -121,3 +121,11 @@ These five additional PHP contracts bring the catalog to 37. Installation, reque
 | 35 | auth.validating | Validator | `(body)` before core password verification and session creation, for both API and PHP form sign in. Add requirements; never bypass the core credential check. |
 | 36 | order.input | Filter | `(body)` before field validation, pricing and idempotency fingerprinting. Normalize input. Pair enforced restrictions with `order.validating`, since optional filters isolate errors. |
 | 37 | page.presentation | Filter | `(presentation, page)` on sign in pages. Fields are plain text `notice`, `username`, `driverId` and `gpsMessage`. PHP escapes every displayed value. |
+
+## Optional order layout provider
+
+The browser provider `order.layout` receives a stage ID, `cart`, `checkout` or `review`, and returns a synchronous declarative layout or `null`. Order Format loads its assigned layouts during registration and provides this capability. The storefront includes this feature in its PHP page requirements.
+
+A layout is `{rows, fields: [{id, row, column, span, align, vertical}]}`. Rows are 1 through 30, columns and spans are 1 or 2, alignment is `left`, `center` or `right`, and vertical alignment is `top`, `center` or `bottom`. Positions must not overlap. The core allowlist and essential fields are exported by `public_html/dyws/order-layout.js`; the plugin schema mirrors that contract. Action groups always span both columns.
+
+The core validates the entire layout before moving its existing DOM controls. Invalid or absent layouts leave the built in stage intact. This provider cannot replace validation, amounts, event handlers or submission behavior. Checkout extension roots and status messages are preserved. This is a provider capability, not an additional action or filter in the 37 hook catalog.

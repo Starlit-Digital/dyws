@@ -165,3 +165,17 @@ Private tracking responses include `driver: {name, vehicleType, vehicleColor}` f
 The token protected tracking response also includes `createdAt` as UTC seconds, `business: {name, phone, pickupAddress}` and `summary: {lines, currency, subtotal, tax, deliveryFee, total}`. Summary amounts are saved integer cents. Each line exposes only `name`, `option`, `quantity` and `price`; changing the catalog never rewrites an existing receipt. Tenant, token and expiry checks apply before these fields are returned. Customer names, phone numbers, notes, credentials and plugin order data are not added to the response. The existing delivery address remains available only through the authorized tracking response.
 
 Checkout makes no order creation request during the final review. The ten second countdown or an explicit Looks good! click submits the reviewed order once. Back and closing the dialog cancel the timer. Taking more time or hiding the page pauses it until the customer deliberately confirms. Submission failures retain the cart and reuse the existing idempotency key when the order is unchanged.
+
+## Order Format templates
+
+These endpoints exist only while Order Format is active:
+
+| Endpoint | Access | Contract |
+| --- | --- | --- |
+| `GET /plugins/order-format/layouts` | Public | `{layouts: {cart?: layout, checkout?: layout, review?: layout}}`. Only assigned layouts, without template names, drafts or revisions. Empty or corrupt settings return no layouts, selecting built in defaults. |
+| `GET /manager/plugins/order-format/templates` | Manager | `{templates, assignments, schema, revision}`. Schema lists stage labels, field IDs and essential fields. |
+| `POST /manager/plugins/order-format/templates` | Manager | Replace `{templates, assignments, revision}`, maximum 65536 bytes. Returns the current manager projection. |
+
+Each template is `{id, name, stage, layout}`. IDs contain 1 to 64 ASCII letters, digits or hyphens; names are nonempty and at most 80 bytes. Stage is `cart`, `checkout` or `review`. Layout contains `rows` and `fields`, each with `id`, `row`, `column`, `span`, `align` and `vertical`. See [Order Format](order-format.md) for placement limits and required controls. At most 30 templates are accepted. Assignments map each stage to a saved template of that same stage, or `null` for its built in default. Saving an unassigned draft alone has no storefront effect.
+
+Stale revisions return 409. Invalid, overlapping or incomplete layouts return 422. Unreadable settings return 503 to managers while the public projection falls back safely. Deactivation removes the routes and preserves the private tenant file. The public demo permits reads but rejects template writes with 403, including authenticated manager writes.

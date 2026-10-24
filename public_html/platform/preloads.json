@@ -168,6 +168,7 @@
       "dyws/date-time.js",
       "dyws/delivery-status.js?v=40",
       "dyws/diagnostics.js",
+      "dyws/order-layout.js",
       "dyws/plugin-ui.js?v=39",
       "dyws/plugins.js?v=39",
       "dyws/realtime.js",
@@ -207,6 +208,9 @@
       "plugins/google-maps/index.js?v=1.1.4",
       "plugins/google-maps/maps.js",
       "plugins/google-maps/settings.js"
+    ],
+    "order-format": [
+      "plugins/order-format/index.js?v=1.0.0"
     ],
     "stripe": [
       "dyws/admin-navigation.js?v=39",

@@ -120,6 +120,16 @@ with tempfile.TemporaryDirectory(prefix='dyws-lockdown-') as temp:
   state=next(work.glob('plugins-*.json'));saved=state.read_text();state.write_text(json.dumps({'active':[],'known':['demo-lockdown','google-maps','stripe','datatables','order-reporting']}))
   check(request('/plugins')['plugins'][0]['id']=='demo-lockdown');request('/manager/password',{},manager,status=403)
   state.write_text(saved)
+  # Owner may enable the layout preview, while manager saving remains locked.
+  approved=json.loads(saved);approved['active'].append('order-format');state.write_text(json.dumps(approved))
+  check(not request('/plugins/order-format/layouts')['layouts'])
+  request('/manager/plugins/order-format/templates',status=401)
+  request('/manager/plugins/order-format/templates',token=driver,status=403)
+  templates=request('/manager/plugins/order-format/templates',token=manager)
+  request('/manager/plugins/order-format/templates',templates,manager,status=403)
+  with browser.open(base+'/plugins/order-format/editor.php') as r:
+   html=r.read().decode();check('data-order-format-active="true"' in html and 'data-order-format-locked="true"' in html)
+  state.write_text(saved)
   # Missing files and registration failures cannot silently turn protection off.
   entry=work/'plugins/demo-lockdown/plugin.php';source=entry.read_text();entry.unlink()
   request('/health',status=503);request('/login',{'role':'manager','password':'admin'},status=503)

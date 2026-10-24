@@ -1,0 +1,5 @@
+{
+ "id":"order-format", "name":"Order Format", "version":"1.0.0", "apiVersion":1,
+ "description":"Design named layouts for each order stage, with built in defaults whenever no template is assigned.",
+ "entry":"plugin.php", "browserModule":"index.js", "settingsAnchor":"plugin-order-format"
+}

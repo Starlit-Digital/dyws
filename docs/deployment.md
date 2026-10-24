@@ -100,3 +100,11 @@ Driver vehicle details add two optional text columns to the SQLite drivers table
 Deploy the matching PHP Store and page preview modules, customer tracking and ordering JavaScript and styles, new confirmation countdown, tracking details and order date filter modules, and regenerated preload manifest together. No schema or catalog migration is needed. Preserve existing adapters, private settings and business records. The date presets filter the currently loaded board, which remains limited to 200 orders with active orders first. This week starts Monday in the configured business timezone.
 
 The compact delivery checkout requires the matching Store update: only the structured street address is required, while unit and locality fields are optional. Existing full addresses and freeform requests remain supported; no stored addresses are rewritten. Deploy this backend before or alongside the simplified form.
+
+## Order Format plugin
+
+Deploy both `plugins/order-format/` and `public_html/plugins/order-format/`, together with the matching `Features.php`, browser plugin host, ordering component, `order-layout.js`, ordering styles and regenerated preload manifest. The private plugin directory includes `Templates.php` and `schema.json`. No database migration is needed. The release builder checks for both halves of this plugin.
+
+Activate Order Format through Admin → Plugins on ordinary installations. Activation does not assign a template, so every stage retains its existing format. Never replace a merchant's private `order-format-*.json` during code deployment. Back up that file with the other settings. Deactivation is the immediate rollback for new page loads and preserves all saved templates and assignments.
+
+For the public demo, deploy the matching Installation Lockdown policy before owner activation. It allows Order Format and its read endpoints, but rejects all template writes. The editor exposes a locked saving notice while still permitting layout previews. Keep `required_plugins`, account settings, catalogs and runtime databases intact.

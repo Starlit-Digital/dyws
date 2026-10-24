@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Add the optional Order Format plugin with named stage templates, a field palette, two column drag and drop canvas, desktop and phone previews, alignment and spanning controls, and stage assignments. Preserve built in stage formats when disabled, unassigned or invalid. Protect essential checkout controls, preserve drafts on deactivation and keep public demo saving locked.
 
 - Add a final checkout review with Back on the left and Looks good! on the right. Count down from 10 before submission, allow immediate confirmation or more time, cancel on Back or close, and pause when the page is hidden.
 - Simplify final checkout with delivery fee and tax directly beneath the items. Remove the earlier fee notice and visible address heading, keep the review free of extra headings and notice boxes, and retain screen reader status updates. Put the customer name first, format their phone number, and collect street address, optional unit and optional postal code for local delivery. Show the postal code beneath the street in the final review and reduce vertical review spacing by 25 percent.

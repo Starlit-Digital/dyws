@@ -13,9 +13,11 @@ Copy both parts from a trusted source, then open **Admin → Plugins** and activ
 
 Plugin state is tenant scoped private JSON beside the database, with revision checking and file locking. A corrupt state file disables plugins and produces an admin warning. Missing optional display plugins do not stop orders. Required payment and validation failures reject affected operations. Reinstall a plugin's files before attempting to activate it again. Removing files does not erase its settings.
 
-The current implementation installs code through Git or file upload using the hosting file manager. There is no browser ZIP uploader, marketplace, automatic updater or uninstall data deletion. Both the Git checkout and optional install ZIP include both halves of all five bundled plugins.
+The current implementation installs code through Git or file upload using the hosting file manager. There is no browser ZIP uploader, marketplace, automatic updater or uninstall data deletion. Both the Git checkout and optional install ZIP include both halves of all six bundled plugins.
 
 The fifth bundled plugin, [Installation Lockdown](demo-lockdown.md), is inactive by default and requires explicit private configuration. It cannot be enabled accidentally from the Plugins page. A private `required_plugins` list pins installation policies active before other plugins. Missing or broken required code stops PHP bootstrap with 503, and its deactivation is forbidden.
+
+The sixth bundled plugin, [Order Format](order-format.md), starts inactive. It provides an authenticated order forms editor and optional stage layouts. Disabling it retains templates and restores the existing order formats on the next storefront page load.
 
 ## Manifest
 
@@ -180,6 +182,7 @@ Bundled features:
 | Google Maps | `location.renderer`, `admin:settings` |
 | Stripe | `payment.renderer`, `admin:settings` |
 | DataTables | `admin:tables` |
+| Order Format | `order.layout`, `admin:navigation`, `admin:settings` |
 | Order Reporting | `reports.renderer`, `admin:report-controls`, `reports:query`, `reports:export` |
 
 The storefront consumes catalog, cart and checkout hooks. Orders consumes tables, order details and maps. Reports consumes reporting and table hooks. Drivers and the driver console consume location features. Tracking consumes location, payment and tracking hooks. Settings consumes settings hooks. Other admin pages consume navigation hooks. Auth, admin entry and setup have empty browser requirements. To add a feature, update its provider declaration and the consumers that use it, then regenerate preload graphs and run the feature manifest tests.
