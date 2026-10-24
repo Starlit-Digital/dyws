@@ -178,3 +178,95 @@
 @media(forced-colors:active){.dyws-shell .dyws-order-detail{border-color:CanvasText}.dyws-order-detail .dyws-status-badge{background:Canvas;color:CanvasText;border-color:CanvasText}.dyws-order-total,.dyws-order-items strong{color:CanvasText}}
 .dyws-order-detail .dyws-actions button{background:linear-gradient(135deg,var(--dyws-detail-accent),color-mix(in srgb,var(--dyws-detail-accent) 88%,var(--dyws-color-bg)));color:var(--dyws-color-bg);border:1px solid color-mix(in srgb,var(--dyws-detail-accent) 60%,var(--dyws-color-text));box-shadow:inset 0 1px 0 #fff3,0 6px 18px #0002}
 .dyws-order-detail .dyws-actions [data-status='cancelled']{background:var(--dyws-color-raised);color:var(--dyws-color-text);box-shadow:none}
+
+.dyws-shell { color-scheme:dark; }
+.dyws-shell section,.dyws-shell article { background:var(--dyws-panel-fill); border:1px solid var(--dyws-line-soft); border-radius:24px; box-shadow:var(--dyws-panel-shadow); }
+.dyws-shell button { border-radius:999px; background:var(--dyws-action-fill); color:var(--dyws-color-bg); font-weight:600; box-shadow:inset 0 1px 0 #fff2; }
+.dyws-shell button:disabled { cursor:not-allowed; }
+.dyws-shell input,.dyws-shell select,.dyws-shell textarea { border-radius:14px; background:var(--dyws-color-bg); border-color:var(--dyws-color-border); }
+.dyws-shell input:not([type='checkbox']):not([type='radio']),.dyws-shell select,.dyws-shell textarea { margin-top:6px; }
+.dyws-shell input[type='checkbox'],.dyws-shell input[type='radio'],.dyws-shell progress { accent-color:var(--dyws-color-warm); }
+.dyws-shell label { font-weight:600; }
+.dyws-shell label small { display:block; font-weight:400; margin-top:6px; }
+.dyws-shell :focus-visible { outline-color:var(--dyws-color-warm); }
+.dyws-shell .dyws-stat { border:1px solid var(--dyws-line-soft); border-radius:20px; }
+.dyws-shell .dyws-stat strong { color:var(--dyws-color-warm); font-variant-numeric:tabular-nums; }
+.dyws-shell .dyws-error:not(:empty) { padding:12px 16px; border-inline-start:3px solid currentColor; border-radius:12px; background:var(--dyws-color-surface); }
+.dyws-shell [role='status']:empty,.dyws-shell [role='alert']:empty { display:none; }
+@media(forced-colors:active) {
+ .dyws-shell section,.dyws-shell article { background:Canvas; border-color:CanvasText; box-shadow:none; }
+ .dyws-shell button { background:ButtonFace; color:ButtonText; border:1px solid ButtonText; box-shadow:none; }
+ .dyws-shell :focus-visible { outline-color:Highlight; }
+}
+
+/* One compact visual language across administration and the driver workspace. */
+.dyws-admin .dyws-admin-header { padding-bottom:16px; border-bottom:1px solid var(--dyws-line-soft); }
+.dyws-admin .dyws-admin-tabs a,.dyws-admin .dyws-admin-menu > summary { border-radius:999px; }
+.dyws-admin .dyws-admin-tabs a[aria-current='page'] { color:var(--dyws-color-warm); text-decoration-color:var(--dyws-color-warm); }
+.dyws-admin .dyws-sign-out { color:var(--dyws-color-muted); box-shadow:none; }
+.dyws-shell .dyws-secondary { border:1px solid var(--dyws-line-soft); box-shadow:none; }
+.dyws-admin h2 { font:500 1.5rem/1.25 Georgia,serif; letter-spacing:-.015em; }
+.dyws-admin h3 { font-weight:650; }
+.dyws-shell .dyws-editor-heading > div { min-width:0; flex:1 1 22rem; }
+.dyws-shell .dyws-editor-heading > button { flex-shrink:0; }
+.dyws-admin .dyws-link-button { border-radius:999px; background:var(--dyws-action-fill); color:var(--dyws-color-bg); font-weight:600; }
+.dyws-admin .dyws-link-button.dyws-secondary { background:var(--dyws-color-raised); color:var(--dyws-color-text); }
+.dyws-shell .dyws-category-list button { border-radius:14px; border:1px solid transparent; box-shadow:none; }
+.dyws-shell .dyws-category-list button[aria-pressed='true'] { background:var(--dyws-color-raised); color:var(--dyws-color-warm); border-color:var(--dyws-color-warm); }
+.dyws-shell .dyws-item-editor { border-radius:18px; border:1px solid var(--dyws-line-soft); }
+.dyws-shell .dyws-item-editor[open] > summary { border-bottom:1px solid var(--dyws-line-soft); padding-bottom:16px; margin-bottom:12px; }
+.dyws-shell .dyws-save-bar { border:1px solid var(--dyws-line-soft); border-radius:20px; box-shadow:0 -4px 24px #0003; }
+.dyws-admin [data-admin-content] > section > h2 { color:var(--dyws-color-warm); }
+.dyws-admin[data-admin-page='password'] [data-admin-content] > section { max-width:40rem; margin-inline:auto; }
+.dyws-shell .dyws-driver-location,.dyws-shell .dyws-gps-panel { border:1px solid var(--dyws-line-soft); border-radius:20px; }
+.dyws-shell .dyws-update-notice:not(:empty) { border-inline-start:3px solid var(--dyws-color-warm); border-radius:14px; }
+.dyws-shell .dyws-delivery-runs { border:0; box-shadow:none; }
+.dyws-run-form { padding:20px; border-radius:20px; background:var(--dyws-color-bg); margin-top:16px; }
+.dyws-run-list ol { padding-inline-start:1.5rem; }
+.dyws-run-list li + li { border-top:1px solid var(--dyws-line-soft); }
+.dyws-run-list li::marker { color:var(--dyws-color-warm); font-weight:700; }
+.dyws-shell .dyws-order-detail article { background:transparent; border:0; box-shadow:none; }
+.dyws-auth main { width:100%; max-width:32rem; }
+.dyws-auth main > section { padding:clamp(24px,5vw,40px); }
+.dyws-auth h1 { font:500 2rem/1.2 Georgia,serif; color:var(--dyws-color-warm); }
+.dyws-auth form label { margin:0; }
+.dyws-auth form input { width:100%; }
+.dyws-auth form button { justify-self:stretch; }
+.dyws-shell[data-dyws-driver-page] > header { padding:8px 0 20px; border-bottom:1px solid var(--dyws-line-soft); }
+.dyws-shell[data-dyws-driver-page] > header a { color:var(--dyws-color-warm); }
+.dyws-shell[data-dyws-driver-page] > header h1 { margin:16px 0 0; font-weight:500; }
+.dyws-shell[data-dyws-driver-page] #login { max-width:32rem; margin:clamp(24px,6vh,60px) auto; padding:clamp(24px,5vw,40px); }
+.dyws-shell[data-dyws-driver-page] #login h1 { font:500 2rem/1.2 Georgia,serif; color:var(--dyws-color-warm); }
+.dyws-shell[data-dyws-driver-page] #login input { display:block; width:100%; }
+.dyws-shell[data-dyws-driver-page] #login button { width:100%; }
+.dyws-shell #driver-board { padding:0; background:transparent; border:0; box-shadow:none; }
+.dyws-shell #driver-board > .dyws-actions { justify-content:flex-end; }
+.dyws-shell #deliveries article:first-child { margin-top:0; }
+.dyws-shell #deliveries article { padding:22px; }
+.dyws-shell #deliveries h2 { font-weight:500; margin:0 0 14px; }
+.dyws-shell .dyws-next-stop { border-color:var(--dyws-color-warm); }
+.dyws-stop-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+.dyws-stop-heading .dyws-status-badge { font-size:.85rem; }
+.dyws-stop-contact { padding-block:16px; border-block:1px solid var(--dyws-line-soft); margin-block:20px; }
+.dyws-stop-contact p { margin:6px 0; }
+.dyws-stop-contact p:not(:first-child) { color:var(--dyws-color-muted); }
+.dyws-stop-total { margin-inline-start:auto; color:var(--dyws-color-warm); font-variant-numeric:tabular-nums; }
+.dyws-shell #deliveries .dyws-actions button { width:100%; }
+.dyws-run-progress { width:100%; height:10px; border:0; border-radius:999px; overflow:hidden; background:var(--dyws-color-raised); }
+.dyws-run-progress::-webkit-progress-bar { background:var(--dyws-color-raised); border-radius:999px; }
+.dyws-run-progress::-webkit-progress-value { background:var(--dyws-color-warm); border-radius:999px; }
+.dyws-run-progress::-moz-progress-bar { background:var(--dyws-color-warm); border-radius:999px; }
+.dyws-shell .dyws-gps-panel > details { color:var(--dyws-color-muted); font-size:.9em; }
+@media(max-width:600px) {
+ .dyws-shell #deliveries article,.dyws-shell .dyws-gps-panel,.dyws-run-form { padding:18px; }
+ .dyws-shell .dyws-editor-heading { align-items:start; }
+ .dyws-shell .dyws-run-form { min-width:0; }
+ .dyws-admin .dyws-admin-tabs { border:1px solid var(--dyws-line-soft); }
+}
+@media(forced-colors:active) {
+ .dyws-shell .dyws-next-stop { border:2px solid Highlight; }
+ .dyws-admin .dyws-link-button { background:ButtonFace; color:ButtonText; border:1px solid ButtonText; }
+}
+.dyws-shell input,.dyws-shell select,.dyws-shell textarea { font-weight:400; }
+/* The tracking arrival card already supplies the outer visual hierarchy. */
+.dyws-shell .dyws-tracking-panel { border:0; box-shadow:none; }

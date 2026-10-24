@@ -1,4 +1,4 @@
-@import url('./tokens.css?v=21');
+@import url('./tokens.css?v=22');
 /* Loaded inside the ordering element's shadow root. No host page selectors. */
 .dyws-ordering button, .dyws-ordering input, .dyws-ordering textarea, .dyws-ordering select { font: inherit; touch-action: manipulation; }
 .dyws-ordering button { cursor: pointer; min-height: 48px; border: 0; border-radius: 12px; padding: 10px 18px; background: var(--dyws-color-accent); color: var(--dyws-color-button-text); font-weight: 700; }
@@ -53,3 +53,22 @@
 .dyws-pillbox input:focus-visible+span{outline:3px solid var(--dyws-color-emphasis);outline-offset:3px}
 .dyws-ordering .dyws-fulfillment .dyws-note{margin:10px 0 0}
 @media(forced-colors:active){.dyws-pillbox{border:1px solid ButtonText}.dyws-pillbox input:checked+span{outline:2px solid Highlight;outline-offset:-3px}}
+
+/* Carry the same card and action hierarchy into the cart and checkout. */
+.dyws-ordering dialog { background:var(--dyws-panel-fill); border-color:var(--dyws-line-soft); border-radius:28px; box-shadow:var(--dyws-panel-shadow),0 24px 80px #0005; }
+.dyws-ordering h2 { font:500 1.8em/1.2 Georgia,serif; color:var(--dyws-color-warm); }
+.dyws-ordering h3 { font-weight:600; }
+.dyws-ordering button { border-radius:999px; background:var(--dyws-action-fill); color:var(--dyws-color-bg); }
+.dyws-ordering .dyws-muted { border:1px solid var(--dyws-line-soft); }
+.dyws-ordering .dyws-line { border-color:var(--dyws-line-soft); }
+.dyws-ordering .dyws-line > span { color:var(--dyws-color-warm); font-variant-numeric:tabular-nums; }
+.dyws-ordering .dyws-summary { padding:20px; border-radius:20px; background:var(--dyws-color-bg); }
+.dyws-ordering .dyws-summary dt:last-of-type,.dyws-ordering .dyws-summary dd:last-of-type { color:var(--dyws-color-warm); padding-top:12px; border-top:1px solid var(--dyws-line-soft); }
+.dyws-ordering .dyws-actions button { flex:1 1 auto; }
+.dyws-ordering input,.dyws-ordering textarea,.dyws-ordering select { border-radius:14px; }
+.dyws-ordering .dyws-pillbox input:checked+span { background:var(--dyws-action-fill); color:var(--dyws-color-bg); }
+.dyws-ordering :focus-visible,.dyws-pillbox input:focus-visible+span { outline-color:var(--dyws-color-warm); }
+@media(forced-colors:active) { .dyws-ordering button { background:ButtonFace; color:ButtonText; border:1px solid ButtonText; }.dyws-ordering dialog { background:Canvas; border-color:CanvasText; } }
+.dyws-ordering header { align-items:center; margin-bottom:24px; }
+.dyws-ordering header h2 { margin:0; }
+@media(max-width:500px) { .dyws-ordering header { flex-wrap:nowrap; gap:8px; }.dyws-ordering header small { display:none; }.dyws-ordering header h2 { font-size:1.5em; }.dyws-ordering .dyws-close { padding-inline:14px; } }

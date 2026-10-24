@@ -53,7 +53,7 @@ function dyws_admin_initial_head(array $boot,string $publicRoot,string $prefix='
  $preloads=json_decode(file_get_contents($file),true,64,JSON_THROW_ON_ERROR);$urls=$preloads['pages'][$boot['page']]??[];
  foreach($boot['responses']['/plugins']['plugins'] as $plugin)$urls=array_merge($urls,$preloads['plugins'][$plugin['id']]??[]);
  foreach($boot['responses']['/plugins']['plugins'] as $plugin)foreach($preloads['styles'][$plugin['id']]??[] as $url)$html.='<link rel="preload" as="style" href="'.$prefix.htmlspecialchars($url,ENT_QUOTES,'UTF-8').'">';
- if($boot['page']==='storefront')$html.='<link rel="preload" as="style" href="'.$prefix.'dyws/ordering.css?v=39">';
+ if($boot['page']==='storefront')$html.='<link rel="preload" as="style" href="'.$prefix.'dyws/ordering.css?v=40">';
  foreach(array_unique($urls) as $url)$html.='<link rel="modulepreload" href="'.$prefix.htmlspecialchars($url,ENT_QUOTES,'UTF-8').'">';
  return $html;
 }
@@ -82,7 +82,7 @@ function dyws_admin_preview(array $boot):string {
 }
 
 function dyws_style_preloads(string $prefix='../'):string {
- $html='';foreach(['tokens.css?v=21','catalog.css?v=21','admin.css?v=28','tracking.css?v=28'] as $css)$html.='<link rel="preload" as="style" href="'.$prefix.'dyws/'.$css.'">';return $html;
+ $html='';foreach(['tokens.css?v=22','catalog.css?v=22','admin.css?v=29','tracking.css?v=28'] as $css)$html.='<link rel="preload" as="style" href="'.$prefix.'dyws/'.$css.'">';return $html;
 }
 
 function dyws_requires_meta(string $page):string {

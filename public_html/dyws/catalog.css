@@ -53,3 +53,14 @@
   .dyws-catalog .dyws-product h3, .dyws-catalog .dyws-product p { overflow-wrap: anywhere; }
 }
 .dyws-catalog .dyws-category-layout:not(:has(> .dyws-category-photo)) { grid-template-columns: minmax(0,1fr); }
+
+/* Keep the diner imagery and layout; refine the reusable catalog surfaces. */
+.dyws-catalog .dyws-category { background:var(--dyws-panel-fill); border-radius:28px; box-shadow:var(--dyws-panel-shadow); }
+.dyws-catalog h2 { font-weight:500; }
+.dyws-catalog h2::after { background:var(--dyws-color-warm); height:3px; }
+.dyws-catalog button { border-radius:999px; background:var(--dyws-action-fill); color:var(--dyws-color-bg); }
+.dyws-catalog .dyws-item-stepper { border-radius:999px; }
+.dyws-catalog .dyws-product-action > span { color:var(--dyws-color-warm); font-weight:600; font-variant-numeric:tabular-nums; }
+.dyws-catalog select { border-radius:14px; }
+.dyws-catalog :focus-visible { outline-color:var(--dyws-color-warm); }
+@media(forced-colors:active) { .dyws-catalog button { background:ButtonFace; color:ButtonText; border:1px solid ButtonText; } }

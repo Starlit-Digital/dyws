@@ -19,3 +19,12 @@
 .dyws-catalog *,
 .dyws-tracking-panel *,
 .dyws-ordering * { box-sizing: border-box; }
+
+/* Shared presentation tokens adapt to the host's light or dark palette. */
+.dyws-shell,.dyws-catalog,.dyws-ordering,.dyws-tracking-panel {
+ --dyws-color-warm:var(--dyws-warm,color-mix(in srgb,var(--dyws-color-text) 60%,#d59170));
+ --dyws-line-soft:color-mix(in srgb,var(--dyws-color-border) 38%,transparent);
+ --dyws-panel-fill:linear-gradient(135deg,var(--dyws-color-surface),color-mix(in srgb,var(--dyws-color-bg) 40%,var(--dyws-color-surface)));
+ --dyws-action-fill:linear-gradient(135deg,var(--dyws-color-warm),color-mix(in srgb,var(--dyws-color-warm) 88%,var(--dyws-color-bg)));
+ --dyws-panel-shadow:inset 0 1px 0 #fff1,0 8px 24px #0002;
+}

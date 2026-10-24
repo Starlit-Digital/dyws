@@ -3,3 +3,18 @@
 @media(max-width:750px){.dyws-report-cards{grid-template-columns:repeat(2,minmax(0,1fr))}.dyws-report-grid{grid-template-columns:minmax(0,1fr)}.dyws-report-card{padding:14px}.dyws-report-card strong{font-size:1.45rem}.dyws-report section{padding:16px}.dyws-report-heading{flex-wrap:wrap}.dyws-report-facts>div{flex-wrap:wrap}.dyws-report-facts dd{text-align:left}.dyws-report-controls{gap:8px}.dyws-report-controls label{min-width:120px}}
 .dyws-admin .dyws-toolbar .dyws-report-controls{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}.dyws-admin .dyws-toolbar .dyws-report-controls label{min-width:0}
 @media(max-width:750px){.dyws-admin .dyws-toolbar .dyws-report-controls{grid-template-columns:repeat(2,minmax(0,1fr))}.dyws-admin .dyws-toolbar .dyws-report-controls label:first-child{grid-column:1/-1}}
+
+/* Reporting uses the host presentation tokens without changing chart meaning. */
+.dyws-report-card { background:var(--dyws-panel-fill); border:1px solid var(--dyws-line-soft); border-radius:22px; box-shadow:var(--dyws-panel-shadow); }
+.dyws-report-card strong { color:var(--dyws-color-warm); font-weight:600; letter-spacing:-.025em; margin-block:8px; overflow-wrap:anywhere; }
+.dyws-report-card small { line-height:1.5; }
+.dyws-report details { border:1px solid var(--dyws-line-soft); border-radius:20px; }
+.dyws-report .dyws-report-chart { background:var(--dyws-color-bg); border:1px solid var(--dyws-line-soft); border-radius:18px; }
+.dyws-report-facts > div + div { border-top:1px solid var(--dyws-line-soft); }
+.dyws-report-heading button { flex-shrink:0; }
+.dyws-report th { color:var(--dyws-color-muted); }
+@media(forced-colors:active) { .dyws-report-card { background:Canvas; border-color:CanvasText; }.dyws-report-card strong { color:CanvasText; } }
+/* Browser charts follow the theme; exported SVGs retain their standalone palette. */
+.dyws-report-chart svg { color:var(--dyws-color-muted)!important; background:var(--dyws-color-bg)!important; }
+.dyws-report-chart svg [fill='#9b5b11'] { fill:var(--dyws-color-warm); }
+.dyws-report-chart svg [stroke='#9b5b11'] { stroke:var(--dyws-color-warm); }
