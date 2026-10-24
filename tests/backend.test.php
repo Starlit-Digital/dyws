@@ -15,6 +15,11 @@ try {
  rejects(fn()=>$store->create(order(['lines'=>[['id'=>'sweet1','variant'=>'invalid','quantity'=>1]]])),422);
  rejects(fn()=>$store->tracking($id,'wrong-token'),404);
  check(!isset($store->tracking($id,$token)['customer_name']),'Public tracking excludes personal details');
+ $tracked=$store->tracking($id,$token);$summary=$tracked['summary'];
+ check($summary['subtotal']===2990&&$summary['deliveryFee']===395&&$summary['tax']===169&&$summary['total']===3554&&$summary['currency']==='CAD','Private receipt uses authoritative saved totals');
+ check(array_keys($summary['lines'][0])===['name','option','price','quantity']&&$summary['lines'][0]['quantity']===2&&$summary['lines'][0]['price']===1495,'Receipt exposes only whitelisted line fields');
+ check($tracked['business']['pickupAddress']===$catalog['pickupAddress']&&is_int($tracked['createdAt']),'Tracking includes business pickup details and creation time');
+ $changedCatalog=$catalog;$changedCatalog['categories'][0]['items'][0]['price']=1;$changedStore=new Store($path,$changedCatalog);check($changedStore->tracking($id,$token)['summary']===$summary,'Catalog price changes cannot rewrite the receipt');unset($changedStore);
  rejects(fn()=>$store->change($id,'delivered','manager'),409);
  $store->assign($id,'driver-one');$store->change($id,'accepted','manager');$store->change($id,'preparing','manager');$store->change($id,'ready','manager');
  rejects(fn()=>$store->change($id,'out_for_delivery','driver','driver-two'),403);

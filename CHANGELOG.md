@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+
+- Add a final checkout review with Back on the left and Looks good! on the right. Count down from 10 before submission, allow immediate confirmation or more time, cancel on Back or close, and pause when the page is hidden.
+- Simplify final checkout with delivery fee and tax directly beneath the items. Remove the earlier fee notice and visible address heading, keep the review free of extra headings and notice boxes, and retain screen reader status updates. Put the customer name first, format their phone number, and collect street address, optional unit and optional postal code for local delivery. Show the postal code beneath the street in the final review and reduce vertical review spacing by 25 percent.
+- Enrich customer tracking with a pending confirmation notice, brief motion that respects reduced motion, a Confirmed step, saved receipt, fulfillment information and business contact link. Announce meaningful updates once through a polite live region and preserve payment controls during polling.
+- Add All dates, Today, Yesterday, This week and This month to Orders. Use the business timezone, a Monday week boundary and calendar dates across daylight saving changes. Preserve the selection during refresh.
+
 - Add optional driver vehicle type and colour, stored in SQLite without changing credentials. Private customer tracking shows the assigned driver name and vehicle, including initial PHP output and live updates.
 - Remove demonstration wording from visible storefront, driver, tracking and admin labels. Keep installation restrictions, simulated location labels and payment safeguards intact.
 

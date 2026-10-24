@@ -77,3 +77,51 @@
 .dyws-tracking-panel .dyws-driver-label { font-size:.85em; color:var(--dyws-color-muted); }
 .dyws-tracking-panel .dyws-driver-name { font-size:1.15em; }
 .dyws-tracking-panel .dyws-tracking-driver[hidden] { display:none; }
+
+.dyws-tracking-meta { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+.dyws-tracking-panel .dyws-tracking-meta .dyws-tracking-reference { margin:0; overflow-wrap:anywhere; }
+.dyws-tracking-kind { font-size:.8em; font-weight:650; padding:6px 12px; border:1px solid var(--dyws-line-soft); border-radius:999px; }
+.dyws-tracking-kind:empty { display:none; }
+.dyws-tracking-panel .dyws-tracking-arrival { margin-bottom:14px; }
+.dyws-tracking-updated { text-align:center; margin:0 0 24px; }
+.dyws-pending-indicator { display:flex; align-items:center; justify-content:center; gap:7px; color:var(--dyws-color-emphasis); margin:0 auto 18px; }
+.dyws-pending-indicator svg { width:54px; height:54px; margin-inline-end:6px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.dyws-pending-indicator span { width:7px; height:7px; border-radius:50%; background:currentColor; animation:dyws-confirmation-pulse 2s ease-in-out 2; }
+.dyws-pending-indicator span:nth-of-type(2) { animation-delay:.2s; }
+.dyws-pending-indicator span:nth-of-type(3) { animation-delay:.4s; }
+@keyframes dyws-confirmation-pulse { 0%,100% { opacity:.5; transform:translateY(0); } 50% { opacity:1; transform:translateY(-4px); } }
+.dyws-tracking-details { display:grid; align-items:start; grid-template-columns:minmax(0,1.25fr) minmax(0,1fr); gap:24px; margin-top:32px; }
+.dyws-tracking-panel .dyws-tracking-receipt { margin:0; }
+.dyws-tracking-receipt,.dyws-tracking-service { min-width:0; padding:24px; border:1px solid var(--dyws-line-soft); border-radius:24px; background:var(--dyws-panel-fill); }
+.dyws-tracking-panel .dyws-tracking-details h3 { font:650 1.05em/1.35 var(--dyws-heading-font,Georgia,serif); margin:0 0 18px; }
+.dyws-tracking-details p { margin:10px 0; }
+.dyws-tracking-items { list-style:none; padding:0; margin:0; }
+.dyws-tracking-items li { display:flex; justify-content:space-between; align-items:baseline; gap:16px; padding-block:12px; border-bottom:1px solid var(--dyws-line-soft); }
+.dyws-tracking-items li:first-child { padding-top:0; }
+.dyws-tracking-items li > span:first-child { min-width:0; overflow-wrap:anywhere; }
+.dyws-tracking-items li > span:last-child,.dyws-tracking-totals dd { white-space:nowrap; font-variant-numeric:tabular-nums; }
+.dyws-tracking-items strong { font-weight:550; }
+.dyws-tracking-items small { display:block; color:var(--dyws-color-muted); margin-top:4px; }
+.dyws-tracking-totals { margin:18px 0 0; }
+.dyws-tracking-totals > div { display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:4px 16px; margin-top:8px; }
+.dyws-tracking-totals dt { color:var(--dyws-color-muted); }
+.dyws-tracking-totals dd { margin:0; }
+.dyws-tracking-totals .dyws-tracking-total { border-top:1px solid var(--dyws-line-soft); padding-top:16px; margin-top:16px; font-size:1.15em; font-weight:750; }
+.dyws-tracking-total dt { color:var(--dyws-color-text); }
+.dyws-tracking-total small { font-size:.65em; font-weight:400; }
+.dyws-tracking-address { overflow-wrap:anywhere; }
+.dyws-tracking-help { border-top:1px solid var(--dyws-line-soft); margin-top:24px; padding-top:24px; }
+.dyws-tracking-help p { color:var(--dyws-color-muted); font-size:.9em; }
+.dyws-tracking-contact { display:flex; flex-direction:column; justify-content:center; min-height:48px; width:fit-content; margin-top:14px; font-weight:650; text-underline-offset:4px; }
+.dyws-tracking-contact small { font-weight:400; }
+@media(max-width:700px) {
+ .dyws-tracking-details { grid-template-columns:minmax(0,1fr); gap:16px; }
+ .dyws-tracking-receipt,.dyws-tracking-service { padding:20px; }
+}
+@media(prefers-reduced-motion:reduce) {
+ .dyws-pending-indicator span { animation:none; }
+}
+@media(forced-colors:active) {
+ .dyws-pending-indicator { color:CanvasText; }
+ .dyws-pending-indicator span { background:CanvasText; }
+}

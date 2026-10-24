@@ -31,3 +31,15 @@ test('Later run stops show queue progress instead of a misleading direct travel 
  const later=deliveryStatus({...order,deliveryRun:{stopsAhead:2,isNext:false}},{now,estimate});assert.equal(later.etaValue,'2 stops before yours');assert.doesNotMatch(later.etaDetail,/8 min/);
  const next=deliveryStatus({...order,deliveryRun:{stopsAhead:0,isNext:true}},{now,estimate});assert.equal(next.etaValue,'About 8 min');
 });
+
+test('Pending confirmation, payment and connectivity have distinct customer guidance',()=>{
+ for(const fulfillment of ['pickup','delivery']){
+  const pending={...order,status:'placed',fulfillment,paymentProvider:'demo',paymentStatus:'unpaid'};
+  const view=deliveryStatus(pending,{now});assert.equal(view.pending,true);assert.equal(view.etaValue,'Waiting for acceptance');assert.match(view.etaDetail,/no need to order again/);
+  const paid=deliveryStatus({...pending,paymentProvider:'stripe',paymentStatus:'paid'},{now});assert.equal(paid.pending,true);
+  const payment=deliveryStatus({...pending,paymentProvider:'stripe'},{now});assert.equal(payment.pending,false);assert.equal(payment.etaValue,'Waiting for payment');assert.doesNotMatch(payment.etaDetail,/departure/);
+  const offline=deliveryStatus(pending,{now,unavailable:true});assert.equal(offline.pending,false);assert.equal(offline.etaValue,'Reconnecting');
+  const accepted=deliveryStatus({...pending,status:'accepted'},{now});assert.equal(accepted.pending,false);assert.equal(accepted.stages.find(s=>s.state==='current').key,'accepted');assert.equal(accepted.etaValue,'Preparation');
+  for(const status of ['preparing','ready','completed','delivered','cancelled'])assert.equal(deliveryStatus({...pending,status},{now}).pending,false);
+ }
+});

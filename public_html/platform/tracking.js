@@ -1,4 +1,4 @@
-import {createTracking} from '../dyws/tracking.js?v=39';
+import {createTracking} from '../dyws/tracking.js?v=40';
 import {api,bootstrap} from './api.js';
 import {markReady} from '../dyws/diagnostics.js';
 import {plugins} from './plugins.js?v=39';

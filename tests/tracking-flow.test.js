@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createTracking} from '../public_html/dyws/tracking.js';
 const settle=async()=>{for(let i=0;i<30;i++)await Promise.resolve();};
-function element(){return {dataset:{},ownerDocument:{createElement:()=>element()},replaceWith(){},children:[],nodes:new Map(),textContent:'',innerHTML:'',hidden:false,setAttribute(){},prepend(n){this.children.unshift(n);},append(n){this.children.push(n);},replaceChildren(...n){this.children=n;},contains(n){return this.children.includes(n);},remove(){this.removed=true;},querySelector(s){if(s==='button:disabled'||s==='.dyws-dismiss-tracking')return null;if(!this.nodes.has(s))this.nodes.set(s,element());return this.nodes.get(s);}};}
+function element(){return {dataset:{},ownerDocument:{createElement:()=>element()},replaceWith(){},children:[],nodes:new Map(),textWrites:0,_text:'',get textContent(){return this._text;},set textContent(value){this.textWrites++;this._text=value;},innerHTML:'',hidden:false,setAttribute(){},prepend(n){this.children.unshift(n);},append(n){this.children.push(n);},replaceChildren(...n){this.children=n;},contains(n){return this.children.includes(n);},remove(){this.removed=true;},querySelector(s){if(s==='button:disabled'||s==='.dyws-dismiss-tracking')return null;if(!this.nodes.has(s))this.nodes.set(s,element());return this.nodes.get(s);}};}
 test('Customer observes driver completion, clears map and estimate, stops polling and retains confirmation',async()=>{
  const container=element();let notify,stop=0,clears=0,mapCallback,reads=0;const hooks=[];
  const now=Date.now();let data={status:'out_for_delivery',fulfillment:'delivery',paymentStatus:'paid',location:{recorded_at:now/1000,latitude:53,longitude:-113},gpsStale:false,events:[],updatedAt:now/1000};
@@ -24,7 +24,7 @@ test('Network failures keep the last status and retry without pretending the ord
  const container=element();let notify,fail=false;
  const api=async()=>{if(fail)throw new Error('offline');return {status:'out_for_delivery',paymentStatus:'paid',fulfillment:'delivery',events:[],location:null};};api.watch=(_,fn)=>{notify=fn;return ()=>{};};
  const tracker=createTracking({api,container,document:{createElement:element}});
- try{tracker.show('order','token');await settle();fail=true;notify();await settle();const panel=container.children[0];assert.equal(panel.querySelector('.dyws-tracking-status').textContent,'Driver is on the way');assert.equal(panel.querySelector('.dyws-arrival-value').textContent,'Reconnecting');assert.match(panel.querySelector('.dyws-tracking-error').textContent,/Retrying/);assert.equal(panel.querySelector('.dyws-tracking-complete').hidden,true);fail=false;notify();await settle();assert.equal(panel.querySelector('.dyws-tracking-error').textContent,'');}finally{tracker.destroy();}
+ try{tracker.show('order','token');await settle();fail=true;notify();await settle();const panel=container.children[0];assert.equal(panel.querySelector('.dyws-tracking-status').textContent,'Driver is on the way');assert.equal(panel.querySelector('.dyws-arrival-value').textContent,'Reconnecting');assert.match(panel.querySelector('.dyws-tracking-announcement').textContent,/automatically/);assert.equal(panel.querySelector('.dyws-tracking-complete').hidden,true);fail=false;notify();await settle();assert.equal(panel.querySelector('.dyws-tracking-error').textContent,'');}finally{tracker.destroy();}
 });
 test('Returning to a visible customer page immediately fetches completion without waiting for polling',async()=>{
  const container=element(),doc=Object.assign(new EventTarget(),{hidden:false,createElement:element,defaultView:new EventTarget()});
@@ -43,7 +43,7 @@ test('Returning online refreshes and clears a failed update warning',async()=>{
  const container=element(),doc=Object.assign(new EventTarget(),{hidden:false,createElement:element,defaultView:new EventTarget()});
  let fail=true;const api=async()=>{if(fail)throw new Error('offline');return {status:'out_for_delivery',paymentStatus:'paid',fulfillment:'delivery',events:[],location:null};};api.watch=()=>()=>{};
  const tracker=createTracking({api,container,document:doc});
- try{tracker.show('order','token');await settle();const panel=container.children[0];assert.match(panel.querySelector('.dyws-tracking-error').textContent,/Retrying/);fail=false;doc.defaultView.dispatchEvent(new Event('online'));await settle();assert.equal(panel.querySelector('.dyws-tracking-error').textContent,'');assert.equal(panel.querySelector('.dyws-tracking-status').textContent,'Driver is on the way');}finally{tracker.destroy();}
+ try{tracker.show('order','token');await settle();const panel=container.children[0];assert.match(panel.querySelector('.dyws-tracking-announcement').textContent,/automatically/);fail=false;doc.defaultView.dispatchEvent(new Event('online'));await settle();assert.equal(panel.querySelector('.dyws-tracking-error').textContent,'');assert.equal(panel.querySelector('.dyws-tracking-status').textContent,'Driver is on the way');}finally{tracker.destroy();}
 });
 
 test('Assigned driver details refresh and clear without exposing stale identity',async()=>{
@@ -57,5 +57,24 @@ test('Assigned driver details refresh and clear without exposing stale identity'
   assert.equal(panel.querySelector('.dyws-tracking-driver').hidden,false);assert.equal(panel.querySelector('.dyws-driver-name').textContent,'Alex <Morgan>');assert.equal(panel.querySelector('.dyws-driver-vehicle').textContent,'Blue · Sedan');
   data={...data,driver:{name:'Taylor',vehicleType:'',vehicleColor:''}};notify();await settle();assert.equal(panel.querySelector('.dyws-driver-name').textContent,'Taylor');assert.equal(panel.querySelector('.dyws-driver-vehicle').hidden,true);
   fail=true;notify();await settle();assert.equal(panel.querySelector('.dyws-tracking-driver').hidden,true);assert.equal(panel.querySelector('.dyws-driver-name').textContent,'');
+ }finally{tracker.destroy();}
+});
+
+test('Pending notices announce changes once, preserve payment controls and stop on expiry',async()=>{
+ const container=element();let notify,clock=1800000000000,fail=0,renders=0;
+ let data={status:'placed',fulfillment:'pickup',paymentProvider:'demo',paymentStatus:'unpaid',events:[]};
+ const api=async()=>{if(fail)throw Object.assign(new Error('failure'),{status:fail});return data;};api.watch=(_,fn)=>{notify=fn;return ()=>{};};
+ const tracker=createTracking({api,container,document:{createElement:element},now:()=>clock,renderPayment:()=>renders++});
+ try{
+  tracker.show('order','token');await settle();const panel=container.children[0],live=panel.querySelector('.dyws-tracking-announcement');
+  assert.equal(panel.dataset.pending,'true');assert.equal(panel.querySelector('.dyws-pending-indicator').hidden,false);const writes=live.textWrites;
+  clock+=5000;notify();await settle();assert.equal(live.textWrites,writes);
+  fail=503;notify();await settle();assert.equal(panel.dataset.pending,'false');assert.match(live.textContent,/Reconnecting/);const failedWrites=live.textWrites;
+  notify();await settle();assert.equal(live.textWrites,failedWrites);
+  fail=0;notify();await settle();assert.equal(panel.dataset.pending,'true');assert.ok(live.textWrites>failedWrites);
+  data={...data,paymentProvider:'stripe'};notify();await settle();assert.equal(panel.dataset.pending,'false');assert.match(live.textContent,/Waiting for payment/);assert.equal(renders,1);
+  notify();await settle();assert.equal(renders,1);
+  data={...data,paymentStatus:'paid',status:'accepted'};notify();await settle();assert.match(live.textContent,/Order accepted/);assert.equal(panel.querySelector('.dyws-pending-indicator').hidden,true);
+  fail=404;notify();await settle();assert.match(live.textContent,/expired/);assert.equal(panel.querySelector('.dyws-tracking-details').hidden,true);assert.equal(panel.querySelector('.dyws-tracking-timeline').hidden,true);assert.equal(panel.querySelector('.dyws-tracking-updated').textContent,'');
  }finally{tracker.destroy();}
 });

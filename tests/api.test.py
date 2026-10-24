@@ -174,7 +174,19 @@ with tempfile.TemporaryDirectory(prefix='dyws-api-') as work:
   complete=request('/orders',full,status=201)
   detail=next(o for o in request('/manager/orders',token=manager_token)['orders'] if o['id']==complete['id']);assert detail['addressDetails']==full['addressDetails'] and 'T5A 0A1' in detail['address']
   assert request('/orders',full,status=201)['id']==complete['id']
-  full['addressDetails']['postalCode']='';request('/orders',full,status=422)
+  full['addressDetails']['postalCode']='invalid';request('/orders',full,status=422)
+  # Local checkout requires only the street, with an optional unit.
+  compact={**gps_order,'idempotencyKey':str(uuid.uuid4()),'addressDetails':{'line1':'123 Fictional Road','line2':'Unit 4'}}
+  local=request('/orders',compact,status=201)
+  detail=next(o for o in request('/manager/orders',token=manager_token)['orders'] if o['id']==local['id'])
+  assert detail['address']=='123 Fictional Road, Unit 4'
+  assert detail['addressDetails']=={**compact['addressDetails'],'city':'','region':'','postalCode':'','country':''}
+  assert request('/orders',compact,status=201)['id']==local['id']
+  assert request('/tracking/'+local['id'],tracking=local['trackingToken'])['deliveryAddress']=='123 Fictional Road, Unit 4'
+  compact['idempotencyKey']=str(uuid.uuid4());compact['addressDetails']={'line1':'123 Fictional Road'}
+  request('/orders',compact,status=201)
+  compact['idempotencyKey']=str(uuid.uuid4());compact['addressDetails']={'line1':'   ','line2':'Unit 4'}
+  request('/orders',compact,status=422)
   request('/logout',{},token=manager_token)
   request('/manager/orders',token=manager_token,status=401)
   print(f'HTTP API: {checks} checks passed.')

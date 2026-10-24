@@ -8,7 +8,7 @@ Entry point: `/diner-demo/api/?route=/health`. Routes below are values of the `r
 | POST | /login | Public, rate limited | Manager or driver session |
 | POST | /logout | Bearer | Revoke current session |
 | POST | /orders | Public, rate limited | Create idempotent test order |
-| GET | /tracking/ORDER_ID | X-Tracking-Token | Minimal customer status and current GPS |
+| GET | /tracking/ORDER_ID | X-Tracking-Token | Customer status, saved receipt, public business details and current GPS |
 | GET | /manager/orders | Manager bearer | Up to 200 orders, active before finished, and configured drivers |
 | GET | /manager/reports | Manager bearer | Date filtered sales and order metrics |
 | POST | /manager/orders/ORDER_ID/status | Manager bearer | Transition order |
@@ -28,7 +28,7 @@ Order body:
   "demoAcknowledged": true,
   "customer": {"name": "Test Guest", "phone": "7805550142"},
   "fulfillment": "delivery",
-  "addressDetails": {"line1": "123 Example Avenue NW", "line2": "", "city": "Edmonton", "region": "AB", "postalCode": "T5A 1A1", "country": "CA"},
+  "addressDetails": {"line1": "123 Example Avenue NW", "line2": "Unit 4"},
   "notes": "Test only",
   "lines": [{"id": "breakfast0", "variant": "", "quantity": 1}]
 }
@@ -93,7 +93,7 @@ Manager and driver order responses include gps: {sharing, source, recordedAt, ac
 
 GET /manager/driver-locations requires manager authentication and returns active delivery entries containing driverId, orderId and gps. It powers the per driver map cards without returning customer contact details.
 
-Full checkout addresses may use addressDetails: {line1, line2, city, region, postalCode, country}. All fields except line2 are required for this shape. Canadian postal codes are validated. The backend assembles address, persists addressDetails and keeps older freeform address requests working. Authorized tracking responses include deliveryAddress so the customer can view their own destination and route. Driver locations include the assigned deliveryAddress for admin routing.
+Checkout collects street address, optional unit and optional postal code in addressDetails: {line1, line2, postalCode}. Only line1 is required. The API also accepts optional city, region, postalCode and country for integrations and existing full addresses, and normalizes omitted fields to empty strings. A supplied Canadian postal code is validated when country is CA or Canada. The backend assembles address, persists addressDetails and keeps older freeform address requests working. Authorized tracking responses include deliveryAddress so the customer can view their own destination and route. Driver locations include the assigned deliveryAddress for admin routing.
 
 GET /driver/gps-config requires driver authentication. It returns testLocation only when a private deployment explicitly configures a test origin. In this mode, authenticated driver order reads renew the simulated fix for assigned active deliveries. No anonymous endpoint publishes a simulated point or driver coordinates.
 
@@ -159,3 +159,9 @@ Public tracking adds nullable `deliveryRun: {stopsAhead, isNext}` only while tha
 Driver profiles accept optional `vehicleType` and `vehicleColor` strings, up to 60 bytes each, through `POST /manager/drivers`. Omitted fields retain saved values; empty strings clear them. The driver listing includes both fields. Changing display details preserves existing sessions and credentials.
 
 Private tracking responses include `driver: {name, vehicleType, vehicleColor}` for an assigned delivery, or `null` for an unassigned order, pickup or cancellation. Profiles are looked up within the order tenant only after tracking authorization. No driver login IDs, credentials or contact details are included. Driver edits invalidate live tracking views.
+
+## Customer tracking receipt
+
+The token protected tracking response also includes `createdAt` as UTC seconds, `business: {name, phone, pickupAddress}` and `summary: {lines, currency, subtotal, tax, deliveryFee, total}`. Summary amounts are saved integer cents. Each line exposes only `name`, `option`, `quantity` and `price`; changing the catalog never rewrites an existing receipt. Tenant, token and expiry checks apply before these fields are returned. Customer names, phone numbers, notes, credentials and plugin order data are not added to the response. The existing delivery address remains available only through the authorized tracking response.
+
+Checkout makes no order creation request during the final review. The ten second countdown or an explicit Looks good! click submits the reviewed order once. Back and closing the dialog cancel the timer. Taking more time or hiding the page pauses it until the customer deliberately confirms. Submission failures retain the cart and reuse the existing idempotency key when the order is unchanged.

@@ -53,8 +53,8 @@ The hosted public demo includes delivery runs, the connected tracking timeline a
 | Cart | Visible item quantities, increment and decrement controls, removal icons, options, subtotal, tax, delivery fee and final total. |
 | Checkout | Configurable per item cap, default 10 across options, with a call the store prompt for larger orders. Pickup or delivery, customer name, phone, structured street address, optional unit, city, province or state, postal code, country and order notes. |
 | Server validation | Product and option validation, quantity limits, integer cent calculations, authoritative pricing and idempotent order submission. Client totals are not trusted. |
-| Confirmation | A unique order reference and a private order status page after checkout. The tracking token handoff leaves only the order reference in the page URL. |
-| Progress | A connected, accessible timeline for Received, Preparing, Ready, On the way and Delivered, plus pickup and cancellation states. Run customers see how many stops remain ahead. Driver completion updates the customer view. |
+| Confirmation | A final review with item prices, delivery fee, tax and total, plus Back and Looks good!, counting down from 10 before sending. Click to send sooner, pause for more time, or go back without creating an order. Closing or hiding the page cancels or pauses the countdown. A unique order reference and a private order status page after checkout. The tracking token handoff leaves only the order reference in the page URL. |
+| Progress | A connected, accessible timeline for Received, Confirmed, Preparing, Ready, On the way and Delivered, plus pickup and cancellation states. Run customers see how many stops remain ahead. Driver completion updates the customer view. A pending confirmation notice, order receipt, fulfillment details and business contact link keep the page useful while waiting. Polite announcements report meaningful changes, with reduced motion support. |
 | Arrival estimates | Google route estimates when a current driver location and usable route are available. Otherwise the page explains when an estimate can be shown. |
 | Update recovery | Automatic polling or optional WebSocket updates, refresh on return to tracking, recovery from stalled reads and clear delayed update messages. |
 
@@ -65,7 +65,7 @@ Driver profiles include optional vehicle type and colour. Customers see their as
 | Page | Included behavior |
 | --- | --- |
 | Entry and sign in | `/admin/` is the natural entry. Protected PHP pages redirect to `/auth/` before emitting admin markup. Successful sign in opens Orders. |
-| Orders | Active orders first, compact DataTables search, sorting, pagination and filters for status, fulfillment and payment. Completed and cancelled orders remain accessible. Colour coded badges distinguish status, fulfillment and payment. |
+| Orders | Active orders first, compact DataTables search, sorting, pagination and filters for date, status, fulfillment and payment. Date presets include Today, Yesterday, This week and This month, using the business timezone. Completed and cancelled orders remain accessible. Colour coded badges distinguish status, fulfillment and payment. |
 | Delivery runs | Group up to twenty ready deliveries for one driver, arrange stops before departure, start all stops together and complete them in order. One browser GPS stream serves every remaining active delivery. |
 | Order details | Customer contact and delivery address, ordered items, notes, allowed status transitions, driver assignment, payment status and delivery location details. |
 | Reports | Date range, currency and fulfillment filters; previous period comparisons; order and payment charts; active, completed and cancelled totals; popular items; preparation and delivery durations; daily and hourly tables. |
