@@ -54,6 +54,42 @@ with tempfile.TemporaryDirectory(prefix='dyws-lockdown-') as temp:
   for page in ['catalog','settings','drivers','password','plugins','reports']:
    with browser.open(base+'/'+page+'/') as r:check(r.status==200 and 'demo-lockdown' in r.read().decode())
   with urllib.request.urlopen(base+'/driver/') as r:check('value="driver"' in r.read().decode())
+  # The precise run allowlist keeps core authentication and rejects adjacent endpoints.
+  request('/manager/runs',{},status=401)
+  request('/manager/runs',{},driver,status=403)
+  for route in ['/manager/runs/RUN-ABCDEF123456/delete','/driver/runs/RUN-ABCDEF123456/settings','/driver/runs/RUN-ABCDEF123456/location/device','/manager/runs/invalid']:
+   request(route,{},manager,status=403)
+  seed_ids=[o['id'] for o in request('/driver/orders',token=driver)['orders']]
+  draft={'driverId':'driver','orderIds':seed_ids,'idempotencyKey':str(uuid.uuid4())}
+  run=request('/manager/runs',draft,manager);rid=run['id']
+  db.executemany("INSERT INTO delivery_runs(tenant,id,driver_id,status,request_key,revision,created_at,updated_at) VALUES(?,?,?,'cancelled',?,1,?,?)",[(config['tenant'],f'CAP-{i}','driver',f'cap-request-{i}',int(time.time()),int(time.time())) for i in range(499)]);db.commit()
+  request('/manager/runs',{**draft,'idempotencyKey':str(uuid.uuid4())},manager,status=429)
+  check(request('/manager/runs',draft,manager)['id']==rid)
+  db.execute("DELETE FROM delivery_runs WHERE id LIKE 'CAP-%'");db.commit()
+  request('/manager/runs/'+rid,{'action':'cancel','revision':run['revision']},manager)
+  # Expired cancelled run history is bounded independently from retained orders.
+  db.execute('UPDATE delivery_runs SET created_at=? WHERE id=?',(int(time.time())-90000,rid));db.commit()
+  request('/health');check(db.execute('SELECT count(*) FROM delivery_runs WHERE id=?',(rid,)).fetchone()[0]==0)
+  draft['idempotencyKey']=str(uuid.uuid4());run=request('/manager/runs',draft,manager);rid=run['id']
+  seed_ids.reverse()
+  run=request('/manager/runs/'+rid,{'action':'reorder','orderIds':seed_ids,'revision':run['revision']},manager)
+  request('/driver/runs/'+rid+'/start',{},manager,status=403)
+  request('/driver/runs/'+rid+'/start',{},driver)
+  sharing=request('/driver/runs/'+rid+'/location/start',{'source':'device'},driver)
+  check(sharing['source']=='simulated')
+  request('/driver/runs/'+rid+'/location',{'latitude':1,'longitude':2,'accuracy':3,'recordedAt':int(time.time()),'sharingToken':sharing['sharingToken']},driver)
+  check(all(db.execute('SELECT latitude,longitude FROM locations WHERE order_id=?',(oid,)).fetchone()==(53.61665,-113.39804) for oid in seed_ids))
+  request('/driver/runs/'+rid+'/location/heartbeat',{'sharingToken':sharing['sharingToken']},driver)
+  # Expiring the next active stop advances the run without leaking or stranding GPS.
+  db.execute('UPDATE orders SET created_at=? WHERE id=?',(int(time.time())-90000,seed_ids[0]));db.commit()
+  request('/health');remaining=request('/driver/orders',token=driver)['runs'][0]
+  check(remaining['nextOrderId']==seed_ids[1] and remaining['stops'][0]['position']==1)
+  check(db.execute('SELECT count(*) FROM locations WHERE order_id=?',(seed_ids[0],)).fetchone()[0]==0)
+  request('/driver/orders/'+seed_ids[1]+'/status',{'status':'delivered'},driver)
+  check(request('/driver/orders',token=driver)['runs']==[])
+  db.execute('UPDATE orders SET created_at=? WHERE id=?',(int(time.time())-90000,seed_ids[1]));db.commit()
+  request('/health');check(db.execute('SELECT count(*) FROM delivery_runs WHERE id=?',(rid,)).fetchone()[0]==0)
+  check(db.execute('PRAGMA foreign_key_check').fetchall()==[])
   order={'idempotencyKey':str(uuid.uuid4()),'customer':{'name':'DO NOT STORE THIS','phone':'7805550199'},'address':'DO NOT STORE THIS','notes':'DO NOT STORE THIS','pluginData':{'test':{'private':'DO NOT STORE THIS'}},'fulfillment':'delivery','demoAcknowledged':True,'lines':[{'id':'breakfast0','quantity':1,'price':1}]}
   receipt=request('/orders',order,status=201);oid=receipt['id'];check(receipt['paymentProvider']=='demo' and receipt['total']>1495)
   check(request('/orders',order,status=201)['id']==oid)
@@ -71,10 +107,15 @@ with tempfile.TemporaryDirectory(prefix='dyws-lockdown-') as temp:
   check(db.execute('SELECT latitude,longitude FROM locations WHERE order_id=?',(oid,)).fetchone()==(53.61665,-113.39804))
   request('/driver/orders/'+oid+'/status',{'status':'delivered'},driver)
   check(request('/tracking/'+oid,tracking=receipt['trackingToken'])['status']=='delivered')
+  # A planned run also expires without leaving a driver occupied forever.
+  db.execute("UPDATE orders SET status='ready' WHERE id=?",(oid,));db.commit()
+  planned=request('/manager/runs',{'driverId':'driver','orderIds':[oid],'idempotencyKey':str(uuid.uuid4())},manager)
   # Retention removes child records too, without breaking foreign key constraints.
   db.execute('UPDATE orders SET created_at=? WHERE id=?',(int(time.time())-90000,oid));db.commit()
   request('/health');check(db.execute('SELECT count(*) FROM orders WHERE id=?',(oid,)).fetchone()[0]==0)
   check(db.execute('SELECT count(*) FROM payments WHERE order_id=?',(oid,)).fetchone()[0]==0)
+  check(db.execute('SELECT count(*) FROM delivery_runs WHERE id=?',(planned['id'],)).fetchone()[0]==0)
+  check(db.execute('PRAGMA foreign_key_check').fetchall()==[])
   # Required policy survives an attempted state-file deactivation.
   state=next(work.glob('plugins-*.json'));saved=state.read_text();state.write_text(json.dumps({'active':[],'known':['demo-lockdown','google-maps','stripe','datatables','order-reporting']}))
   check(request('/plugins')['plugins'][0]['id']=='demo-lockdown');request('/manager/password',{},manager,status=403)

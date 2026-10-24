@@ -16,7 +16,19 @@ final class DemoPolicy {
   // This database is dedicated to disposable examples. Never enable this on merchant data.
   $this->store->transaction(function(){
    $ids=$this->store->query('SELECT id FROM orders WHERE tenant=? AND created_at<?',[$this->store->tenant,time()-86400]);
-   foreach($ids as $row){foreach(['locations','location_shares','events','payments','payment_attempts','payment_refund_deltas'] as $table)$this->store->execute("DELETE FROM $table WHERE tenant=? AND order_id=?",[$this->store->tenant,$row['id']]);$this->store->execute('DELETE FROM orders WHERE tenant=? AND id=?',[$this->store->tenant,$row['id']]);$this->store->execute('DELETE FROM realtime_versions WHERE channel=?',[$this->store->tenant.':order:'.$row['id']]);}
+   $runs=[];foreach($ids as $row)foreach($this->store->query('SELECT run_id FROM delivery_run_stops WHERE tenant=? AND order_id=?',[$this->store->tenant,$row['id']]) as $stop)$runs[$stop['run_id']]=true;
+   foreach($ids as $row){foreach(['delivery_run_stops','locations','location_shares','events','payments','payment_attempts','payment_refund_deltas'] as $table)$this->store->execute("DELETE FROM $table WHERE tenant=? AND order_id=?",[$this->store->tenant,$row['id']]);$this->store->execute('DELETE FROM orders WHERE tenant=? AND id=?',[$this->store->tenant,$row['id']]);$this->store->execute('DELETE FROM realtime_versions WHERE channel=?',[$this->store->tenant.':order:'.$row['id']]);}
+   // Expiring one example must not strand the remaining stops or block the driver.
+   $channels=[];foreach(array_keys($runs) as $id){
+    $stops=$this->store->query('SELECT order_id,active FROM delivery_run_stops WHERE tenant=? AND run_id=? ORDER BY position',[$this->store->tenant,$id]);
+    if(!$stops){$this->store->execute('DELETE FROM delivery_runs WHERE tenant=? AND id=?',[$this->store->tenant,$id]);continue;}
+    foreach($stops as $position=>$stop){$this->store->execute('UPDATE delivery_run_stops SET position=? WHERE tenant=? AND run_id=? AND order_id=?',[$position+1,$this->store->tenant,$id,$stop['order_id']]);$channels[]=$this->store->tenant.':order:'.$stop['order_id'];}
+    $this->store->execute("UPDATE delivery_runs SET status=CASE WHEN status IN ('planned','active') AND ?=0 THEN 'completed' ELSE status END,revision=revision+1,updated_at=? WHERE tenant=? AND id=?",[array_sum(array_column($stops,'active')),time(),$this->store->tenant,$id]);
+   }
+   // Cancel and recreate attempts must not accumulate unbounded run history.
+   $old=$this->store->query("SELECT id FROM delivery_runs WHERE tenant=? AND status IN ('completed','cancelled') AND created_at<?",[$this->store->tenant,time()-86400]);
+   foreach($old as $run){$this->store->execute('DELETE FROM delivery_run_stops WHERE tenant=? AND run_id=?',[$this->store->tenant,$run['id']]);$this->store->execute('DELETE FROM delivery_runs WHERE tenant=? AND id=?',[$this->store->tenant,$run['id']]);}
+   if($ids)(new \dyws\Realtime($this->config,$this->store))->changed(array_merge([$this->store->tenant.':operators'],$channels));
    $this->store->execute('DELETE FROM sessions WHERE expires_at<?',[time()]);$this->store->execute('DELETE FROM limits WHERE expires_at<?',[time()]);
   });
  }
@@ -25,7 +37,9 @@ final class DemoPolicy {
   $reads=['/health','/plugins','/catalog','/settings','/realtime/config','/manager/orders','/manager/reports','/manager/lookup','/manager/catalog','/manager/settings','/manager/drivers','/manager/driver-locations','/manager/plugins','/manager/plugins/order-reporting/dashboard','/driver/orders','/driver/gps-config'];
   $allowed=$method==='GET'&&(in_array($route,$reads,true)||preg_match('~^/tracking/[A-Z]{2,7}-[A-F0-9]{12}$~D',$route));
   if($method==='POST')$allowed=in_array($route,['/login','/logout','/orders','/realtime/access'],true)||preg_match('~^/manager/orders/[A-Z]{2,7}-[A-F0-9]{12}/(status|assign|payment)$~D',$route)||preg_match('~^/driver/orders/[A-Z]{2,7}-[A-F0-9]{12}/(status|location(?:/(?:start|stop|heartbeat))?)$~D',$route);
+  if($method==='POST'&&($route==='/manager/runs'||preg_match('~^/manager/runs/RUN-[A-F0-9]{12}$~D',$route)||preg_match('~^/driver/runs/RUN-[A-F0-9]{12}/(?:start|location(?:/(?:start|stop|heartbeat))?)$~D',$route)))$allowed=true;
   if(!$allowed)throw new ApiError('This setting is locked in the public demo.',403);
+  if($method==='POST'&&$route==='/manager/runs'&&$this->store->query('SELECT count(*) AS n FROM delivery_runs WHERE tenant=?',[$this->store->tenant])[0]['n']>=500&&!$this->store->query('SELECT id FROM delivery_runs WHERE tenant=? AND request_key=?',[$this->store->tenant,is_string($body['idempotencyKey']??null)?$body['idempotencyKey']:'']))throw new ApiError('The demo is full. Examples expire after 24 hours.',429);
   if($method==='POST'&&!in_array($route,['/login','/realtime/access'],true))\dyws_limit_requests($this->store,$this->config,'demo-writes',60,60);
  }
  public function login(array $body):void {
