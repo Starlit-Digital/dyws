@@ -8,6 +8,10 @@ function rejects(callable $fn,int $code=422){try{$fn();throw new RuntimeExceptio
 function orderBody($id='notebook'):array{return ['idempotencyKey'=>bin2hex(random_bytes(16)),'customer'=>['name'=>'Example Customer','phone'=>'7805550142'],'lines'=>[['id'=>$id,'variant'=>'','quantity'=>1,'price'=>1]],'fulfillment'=>'delivery','address'=>'100 Example Avenue'];}
 try{
  $catalog=Catalog::load(__DIR__.'/../examples/general-store/catalog.json');Catalog::write($dir.'/catalog.json',$catalog);
+ check($catalog['itemOrderCap']===10,'Default item order cap');
+ foreach([0,100,1.5,'10',false] as $cap){$bad=$catalog;$bad['itemOrderCap']=$cap;rejects(fn()=>Catalog::validate($bad));}
+ foreach(['javascript:alert(1)','abc'] as $phone){$bad=$catalog;$bad['businessPhone']=$phone;rejects(fn()=>Catalog::validate($bad));}
+ $bad=$catalog;$bad['businessEmail']='bad-address';rejects(fn()=>Catalog::validate($bad));
  check($catalog['businessName']==='The Example Shop','Nonfood business name');check($catalog['categories'][0]['items'][0]['image']['alt']==='Notebook example placeholder','Product image supported');
  $bad=$catalog;$bad['categories'][0]['items'][0]['price']=12.95;rejects(fn()=>Catalog::validate($bad));
  $bad=$catalog;$bad['categories'][0]['items'][0]['image']['src']='javascript:alert(1)';rejects(fn()=>Catalog::validate($bad));
@@ -17,6 +21,12 @@ try{
  $config=['tracking_secret'=>bin2hex(random_bytes(32)),'database'=>$dir.'/orders.sqlite','tenant'=>'example-shop','public_base_url'=>'https://example.test/shop','payment_provider'=>'stripe'];$GLOBALS['dyws_config']=$config;
  $disabledStore=new Store($config['database'],$changed,$config['tenant']);rejects(fn()=>$disabledStore->create(orderBody()));unset($disabledStore);
  $store=new Store($config['database'],$catalog,$config['tenant']);$settings=new StripeSettings($config);
+ $capStore=new Store($config['database'],$catalog,'cap-checks');
+ $atCap=orderBody();$atCap['lines'][0]['quantity']=10;check(isset($capStore->create($atCap)['id']),'Exact cap accepted');
+ $tooMany=orderBody();$tooMany['lines'][0]['quantity']=11;rejects(fn()=>$capStore->create($tooMany));
+ $options=orderBody();$options['lines']=[['id'=>'tote','variant'=>'natural','quantity'=>6],['id'=>'tote','variant'=>'navy','quantity'=>5]];rejects(fn()=>$capStore->create($options));
+ $higher=$catalog;$higher['itemOrderCap']=12;$higherStore=new Store($config['database'],$higher,'higher-cap');check(isset($higherStore->create($tooMany)['id']),'Configured cap respected');
+ check(count($capStore->query("SELECT id FROM orders WHERE tenant='cap-checks'"))===1,'Rejected quantities leave no orders');
  check(!$settings->summary()['enabled'],'Stripe starts disabled');
  $key='rk_test_'.bin2hex(random_bytes(16));$secret='whsec_'.bin2hex(random_bytes(16));
  rejects(fn()=>$settings->save(['enabled'=>true,'apiKey'=>'rk_live_'.bin2hex(random_bytes(16))]));

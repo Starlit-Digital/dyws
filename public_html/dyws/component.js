@@ -1,5 +1,5 @@
 import {readCatalog} from './catalog-data.js';
-import {lineKey,resolveItem,restoreCart,totals} from './cart.js';
+import {lineKey,resolveItem,restoreCart,totals,itemOrderCap,itemQuantity} from './cart.js';
 const escapeHTML = value => String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export class DYWSOrdering extends HTMLElement {
   constructor(){super();this.attachShadow({mode:'open'});this.lines=[];this.busy=false;}
@@ -21,7 +21,8 @@ export class DYWSOrdering extends HTMLElement {
     if(!this.catalog || this.busy)return;
     const item=resolveItem(this.catalog,id,variant);const key=lineKey(id,variant);
     const row=this.lines.find(l=>lineKey(l.id,l.variant)===key);
-    if(row){if(row.quantity>=99){this.announce('Maximum quantity is 99.');return;}row.quantity++;}else this.lines.push({...item,quantity:1});
+    if(itemQuantity(this.lines,id)>=itemOrderCap(this.catalog)){this.showItemLimit();return;}
+    if(row)row.quantity++;else this.lines.push({...item,quantity:1});
     this.persist();this.announce(`${item.name} added to your order.`);
   }
   remove(id,variant=''){
@@ -34,7 +35,7 @@ export class DYWSOrdering extends HTMLElement {
   }
   announce(text){this.shadowRoot.querySelector('[role="status"]').textContent=text;}
   render(){
-    this.shadowRoot.innerHTML=`<link rel="stylesheet" href="${new URL('./ordering.css?v=43',import.meta.url).href}"><div class="dyws-ordering"><button class="dyws-cart-launch" type="button">Your order</button><p id="dyws-status" role="status" aria-live="polite"></p><dialog aria-labelledby="dyws-order-title"><header><h2 id="dyws-order-title">Your order</h2><small>${escapeHTML(this.catalog.platformName || 'DYWS')}</small><button type="button" class="dyws-muted dyws-close" aria-label="Close order">Close</button></header><div class="dyws-content"></div></dialog></div>`;
+    this.shadowRoot.innerHTML=`<link rel="stylesheet" href="${new URL('./ordering.css?v=44',import.meta.url).href}"><div class="dyws-ordering"><button class="dyws-cart-launch" type="button">Your order</button><p id="dyws-status" role="status" aria-live="polite"></p><dialog aria-labelledby="dyws-order-title"><header><h2 id="dyws-order-title">Your order</h2><small>${escapeHTML(this.catalog.platformName || 'DYWS')}</small><button type="button" class="dyws-muted dyws-close" aria-label="Close order">Close</button></header><div class="dyws-content"></div></dialog></div>`;
     this.dialog=this.shadowRoot.querySelector('dialog');
     this.shadowRoot.querySelector('.dyws-cart-launch').onclick=()=>this.open();
     this.shadowRoot.querySelector('.dyws-close').onclick=()=>this.dialog.close();
@@ -42,10 +43,19 @@ export class DYWSOrdering extends HTMLElement {
     this.updateButton();
   }
   open(){this.showCart();this.dialog.showModal();}
+  showItemLimit(){
+    this.showCart();
+    const content=this.shadowRoot.querySelector('.dyws-content');
+    const phone=String(this.catalog.businessPhone||'');
+    const dial=/^[0-9+() .-]{7,30}$/.test(phone)?phone.replace(/[^0-9+]/g,''):'';
+    const notice=document.createElement('div');notice.className='dyws-cap-notice';notice.tabIndex=-1;notice.setAttribute('role','alert');
+    notice.innerHTML=`<p>Online orders are limited to ${itemOrderCap(this.catalog)} of each item. Please call the store for a larger order.</p>${dial?`<a href="tel:${escapeHTML(dial)}">Call ${escapeHTML(phone)}</a>`:''}`;
+    content.prepend(notice);if(!this.dialog.open)this.dialog.showModal();notice.focus();
+  }
   showCart(){
     const content=this.shadowRoot.querySelector('.dyws-content');const t=totals(this.lines,this.catalog.taxBasisPoints);
-    content.innerHTML=this.lines.length?this.lines.map((l,n)=>`<div class="dyws-line"><div class="dyws-line-info"><strong>${escapeHTML(l.name)}</strong>${escapeHTML(l.option)} <span>${this.amount(l.price*l.quantity)}</span></div><div class="dyws-quantity"><button data-change="${n}" data-delta="-1" aria-label="${l.quantity===1?'Remove':'Remove one'} ${escapeHTML(l.name)}">${l.quantity===1?'<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M9 6V4h6v2M5 6l1 14h12l1-14M10 10v6M14 10v6"/></svg>':'−'}</button><span aria-label="Quantity">${l.quantity}</span><button data-change="${n}" data-delta="1" aria-label="Add one ${escapeHTML(l.name)}" ${l.quantity>=99?'disabled':''}>+</button></div></div>`).join('')+`<dl class="dyws-summary"><dt>Subtotal</dt><dd>${this.amount(t.subtotal)}</dd><dt>Tax (${this.catalog.taxBasisPoints/100}%)</dt><dd>${this.amount(t.tax)}</dd><dt>Total</dt><dd>${this.amount(t.total)}</dd></dl><p class="dyws-note">Choose pickup or delivery at checkout.</p><button class="dyws-checkout" type="button">Continue to checkout</button>`:'<p>Your order is empty. Add something from the catalog.</p>';
-    content.querySelectorAll('[data-change]').forEach(b=>b.onclick=()=>{const n=Number(b.dataset.change);this.lines[n].quantity+=Number(b.dataset.delta);this.lines=this.lines.filter(l=>l.quantity>0);this.persist();this.showCart();});
+    content.innerHTML=this.lines.length?this.lines.map((l,n)=>`<div class="dyws-line"><div class="dyws-line-info"><strong>${escapeHTML(l.name)}</strong>${escapeHTML(l.option)} <span>${this.amount(l.price*l.quantity)}</span></div><div class="dyws-quantity"><button data-change="${n}" data-delta="-1" aria-label="${l.quantity===1?'Remove':'Remove one'} ${escapeHTML(l.name)}">${l.quantity===1?'<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M9 6V4h6v2M5 6l1 14h12l1-14M10 10v6M14 10v6"/></svg>':'−'}</button><span aria-label="Quantity">${l.quantity}</span><button data-change="${n}" data-delta="1" aria-label="Add one ${escapeHTML(l.name)}">+</button></div></div>`).join('')+`<dl class="dyws-summary"><dt>Subtotal</dt><dd>${this.amount(t.subtotal)}</dd><dt>Tax (${this.catalog.taxBasisPoints/100}%)</dt><dd>${this.amount(t.tax)}</dd><dt>Total</dt><dd>${this.amount(t.total)}</dd></dl><p class="dyws-note">Choose pickup or delivery at checkout.</p><button class="dyws-checkout" type="button">Continue to checkout</button>`:'<p>Your order is empty. Add something from the catalog.</p>';
+    content.querySelectorAll('[data-change]').forEach(b=>b.onclick=()=>{const n=Number(b.dataset.change);if(Number(b.dataset.delta)>0&&itemQuantity(this.lines,this.lines[n].id)>=itemOrderCap(this.catalog)){this.showItemLimit();return;}this.lines[n].quantity+=Number(b.dataset.delta);this.lines=this.lines.filter(l=>l.quantity>0);this.persist();this.showCart();});
     content.querySelector('.dyws-checkout')?.addEventListener('click',()=>this.checkout());
   }
   async checkout(){

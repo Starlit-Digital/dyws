@@ -108,6 +108,15 @@ with tempfile.TemporaryDirectory(prefix='dyws-api-') as work:
   updated=request('/manager/catalog',saved,token=manager_token)
   request('/manager/catalog',saved,token=manager_token,status=409)
   assert request('/catalog')['categories'][0]['items'][0]['price']==1595
+  assert updated['catalog']['itemOrderCap']==10
+  updated['catalog'].update(itemOrderCap=2,businessPhone='7805550142',businessEmail='orders@example.test')
+  updated=request('/manager/catalog',updated,token=manager_token)
+  public_catalog=request('/catalog')
+  assert public_catalog['itemOrderCap']==2 and public_catalog['businessPhone']=='7805550142' and public_catalog['businessEmail']=='orders@example.test'
+  oversized={**order,'idempotencyKey':str(uuid.uuid4()),'lines':[{'id':'breakfast0','variant':'','quantity':3}]}
+  assert 'call the store' in request('/orders',oversized,status=422)['error']
+  updated['catalog']['itemOrderCap']=10
+  request('/manager/catalog',updated,token=manager_token)
   request('/manager/stripe',status=401)
   request('/manager/stripe',{'enabled':False},token=driver_token,status=403)
   stripe=request('/manager/stripe',token=manager_token);assert not stripe['enabled'] and 'apiKey' not in stripe

@@ -51,7 +51,7 @@ The hosted public demo includes delivery runs, the connected tracking timeline a
 | Diner example | Five categories with seven items each, category photographs, a diner hero, responsive layout, and fictional business details. |
 | Display preferences | The diner provides an adjustable light to dark palette and an 18 to 24 pixel font size control, with generous touch targets. |
 | Cart | Visible item quantities, increment and decrement controls, removal icons, options, subtotal, tax, delivery fee and final total. |
-| Checkout | Pickup or delivery, customer name, phone, structured street address, optional unit, city, province or state, postal code, country and order notes. |
+| Checkout | Configurable per item cap, default 10 across options, with a call the store prompt for larger orders. Pickup or delivery, customer name, phone, structured street address, optional unit, city, province or state, postal code, country and order notes. |
 | Server validation | Product and option validation, quantity limits, integer cent calculations, authoritative pricing and idempotent order submission. Client totals are not trusted. |
 | Confirmation | A unique order reference and a private order status page after checkout. The tracking token handoff leaves only the order reference in the page URL. |
 | Progress | A connected, accessible timeline for Received, Preparing, Ready, On the way and Delivered, plus pickup and cancellation states. Run customers see how many stops remain ahead. Driver completion updates the customer view. |
@@ -71,7 +71,7 @@ The hosted public demo includes delivery runs, the connected tracking timeline a
 | Catalog editor | Add, rename, reorder and remove categories, items and options; edit descriptions, image paths, prices and availability; save validated JSON with revision conflict checks. |
 | Drivers | Add, edit and deactivate driver accounts, update credentials, inspect assigned active orders and view individual location panels. An open account editor remains protected during refreshes. |
 | Password | Change the administrator password using the current password. Password changes revoke admin sessions. Background refresh never repopulates password fields. |
-| Settings | Business name, platform display name, pickup address, tax, delivery fee, timezone, and arbitrary singular and plural role labels. Currency is displayed from the catalog. |
+| Settings | Business name, platform display name, pickup address, phone, email, Item Order Cap, tax, delivery fee, timezone, and arbitrary singular and plural role labels. Currency is displayed from the catalog. |
 | Plugins | Discover bundled plugins, activate or deactivate them, view status and open their settings. Stored plugin configuration survives deactivation. |
 | Automatic refresh | Admin views refresh when returning to a visible tab or window and when connectivity returns. Clean forms update independently; unsaved values, focused fields and open editors defer replacement. |
 | Edit protection | Saved revisions remain attached to drafts. A read that overlaps typing, saving or explicit reload cannot overwrite newer edits. Deferred changes produce a notice. |

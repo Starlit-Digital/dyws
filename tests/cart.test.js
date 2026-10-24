@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {resolveItem,restoreCart,totals,lineKey} from '../public_html/dyws/cart.js';
+import {resolveItem,restoreCart,totals,lineKey,itemOrderCap,itemQuantity} from '../public_html/dyws/cart.js';
 const catalog=JSON.parse(readFileSync(new URL('../examples/starlit-diner/catalog.json',import.meta.url)));
 test('currency uses integer cents and rounds tax once',()=>{
  assert.deepEqual(totals([{price:1495,quantity:2},{price:295,quantity:1}],500),{subtotal:3285,tax:164,total:3449});
@@ -27,4 +27,15 @@ test('generic catalogs retain options and discard inactive products and invalid 
  const restored=restoreCart(shop,[{id:'tote',variant:'navy',quantity:2,price:1},{id:'notebook',variant:'fake',quantity:1}]);
  assert.equal(restored.length,1);assert.equal(restored[0].price,1900);
  shop.categories[0].items[1].active=false;assert.deepEqual(restoreCart(shop,restored),[]);
+});
+
+test('item cap defaults to ten and aggregates variants and duplicate saved lines',()=>{
+ assert.equal(itemOrderCap({}),10);
+ const saved=[{id:'sweet1',variant:'vanilla',quantity:7},{id:'sweet1',variant:'chocolate',quantity:7},{id:'sweet1',variant:'vanilla',quantity:2}];
+ const restored=restoreCart(catalog,saved);
+ assert.equal(itemQuantity(restored,'sweet1'),10);
+ assert.deepEqual(restored.map(line=>line.quantity),[7,3]);
+ assert.equal(itemQuantity(restoreCart({...catalog,itemOrderCap:3},saved),'sweet1'),3);
+ assert.equal(itemQuantity(restoreCart({...catalog,itemOrderCap:20},saved),'sweet1'),16);
+ for(const value of [0,100,1.5,'20',null])assert.equal(itemOrderCap({itemOrderCap:value}),10);
 });

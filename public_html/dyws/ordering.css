@@ -78,3 +78,7 @@
 .dyws-ordering .dyws-checkout-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px 12px; margin-block:16px; }
 .dyws-ordering .dyws-checkout-grid label { display:grid; align-content:end; gap:6px; min-width:0; margin:0; }
 .dyws-ordering .dyws-checkout-grid input { min-width:0; }
+
+.dyws-ordering .dyws-cap-notice { padding:16px; margin-bottom:16px; border-radius:18px; background:var(--dyws-color-bg); }
+.dyws-ordering .dyws-cap-notice p { margin:0 0 12px; }
+.dyws-ordering .dyws-cap-notice a { display:inline-flex; align-items:center; min-height:48px; padding:10px 18px; box-sizing:border-box; border-radius:999px; background:var(--dyws-action-fill); color:var(--dyws-color-bg); font-weight:700; text-decoration:none; }

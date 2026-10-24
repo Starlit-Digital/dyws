@@ -1,3 +1,5 @@
+export function itemOrderCap(catalog) { return Number.isInteger(catalog.itemOrderCap) && catalog.itemOrderCap >= 1 && catalog.itemOrderCap <= 99 ? catalog.itemOrderCap : 10; }
+export function itemQuantity(lines, id) { return lines.filter(line=>line.id===id).reduce((sum,line)=>sum+line.quantity,0); }
 export function lineKey(id, variant = '') { return JSON.stringify([id, variant]); }
 export function resolveItem(catalog, id, variant = '') {
   const item = catalog.categories.flatMap(c => c.items).find(i => i.id === id);
@@ -17,8 +19,10 @@ export function restoreCart(catalog, saved) {
       if (!Number.isInteger(row.quantity) || row.quantity < 1 || row.quantity > 99) continue;
       const key = lineKey(item.id,item.variant);
       const existing=result.find(i => lineKey(i.id,i.variant)===key);
-      if(existing) existing.quantity=Math.min(99,existing.quantity+row.quantity);
-      else result.push({...item,quantity:row.quantity});
+      const quantity=Math.min(row.quantity,itemOrderCap(catalog)-itemQuantity(result,item.id));
+      if(quantity<=0)continue;
+      if(existing) existing.quantity+=quantity;
+      else result.push({...item,quantity});
     } catch {}
   }
   return result;

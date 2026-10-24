@@ -53,7 +53,7 @@ function dyws_admin_initial_head(array $boot,string $publicRoot,string $prefix='
  $preloads=json_decode(file_get_contents($file),true,64,JSON_THROW_ON_ERROR);$urls=$preloads['pages'][$boot['page']]??[];
  foreach($boot['responses']['/plugins']['plugins'] as $plugin)$urls=array_merge($urls,$preloads['plugins'][$plugin['id']]??[]);
  foreach($boot['responses']['/plugins']['plugins'] as $plugin)foreach($preloads['styles'][$plugin['id']]??[] as $url)$html.='<link rel="preload" as="style" href="'.$prefix.htmlspecialchars($url,ENT_QUOTES,'UTF-8').'">';
- if($boot['page']==='storefront')$html.='<link rel="preload" as="style" href="'.$prefix.'dyws/ordering.css?v=43">';
+ if($boot['page']==='storefront')$html.='<link rel="preload" as="style" href="'.$prefix.'dyws/ordering.css?v=44">';
  foreach(array_unique($urls) as $url)$html.='<link rel="modulepreload" href="'.$prefix.htmlspecialchars($url,ENT_QUOTES,'UTF-8').'">';
  return $html;
 }

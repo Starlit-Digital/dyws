@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add Item Order Cap to Business details, defaulting to 10 per product across options. Enforce it in the cart and API, and show a call the store dialog for larger orders. Add editable business phone and email fields.
+
 - Reserve fixed widths for cart buttons and the quantity, using tabular digits to prevent movement between one and two digit counts.
 
 - Combine the cart decrement and remove control: the left button shows trash at one item and minus for larger quantities, with the count always in the middle. Align the controls beside the item name and price.

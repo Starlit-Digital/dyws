@@ -14,6 +14,8 @@ The authoritative catalog is `var/catalog.json`, outside the web root. Initial e
 | taxBasisPoints | Configured flat example rate, 500 means 5% |
 | deliveryFee | Integer cents, used by both cart and server |
 | pickupAddress | Pickup text for this business |
+| businessPhone, businessEmail | Optional public contact details, edited under Settings |
+| itemOrderCap | Whole number from 1 to 99, default 10. Maximum quantity of one product across all its variants per order, enforced by the server |
 | categories | Groups with stable id, name, optional image and items |
 | items[].id | Stable unique product identifier |
 | sku | Optional business SKU |
@@ -61,3 +63,5 @@ Automated tests use the official SDK signature verifier and a fake session trans
 References: [Checkout Sessions](https://docs.stripe.com/api/checkout/sessions/create), [payment fulfillment](https://docs.stripe.com/checkout/fulfillment), [webhook verification](https://docs.stripe.com/events/manage-webhook-endpoints), [API keys](https://docs.stripe.com/keys).
 
 Use Admin → Plugins → Stripe → Settings for payment configuration. Stripe is bundled and active by default but does not enable checkout until configured. Its settings, Checkout and webhook implementation are owned by the plugin. The plugin form is available at settings/#plugin-stripe. See [plugin documentation](plugins.md) for deactivation, preserved encrypted credentials and pending payment callbacks.
+
+Customers who try to exceed Item Order Cap see a cart dialog asking them to call the store, with a telephone link when businessPhone is configured. Saved browser carts are trimmed to the current cap on load. API orders exceeding it receive 422, with no order created. Different products have separate caps. Settings saves these fields with the catalog revision and preserves items and categories.

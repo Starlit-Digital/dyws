@@ -13,7 +13,7 @@ function updateItemCounts(){
   const focused=document.activeElement;
   add.disabled=false;add.hidden=count>0;stepper.hidden=count===0;
   controls.querySelector('output').textContent=count;
-  plus.disabled=count>=99;
+  plus.disabled=false;
   if(count===0 && (focused===minus||focused===plus))add.focus();
   else if(count>0 && focused===add)plus.focus();
  }

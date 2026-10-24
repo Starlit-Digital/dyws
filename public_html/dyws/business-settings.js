@@ -7,16 +7,18 @@ export async function mountBusinessSettings({root,page}){
  let catalog,revision,dirty=false,refresh,latest;
  function display(data){latest=data;
   catalog=createCatalogDraft(data.catalog);revision=data.revision;
-  for(const key of ['businessName','platformName','pickupAddress','currency'])form.elements[key].value=catalog[key]??'';
+  for(const key of ['businessName','platformName','pickupAddress','businessPhone','businessEmail','currency'])form.elements[key].value=catalog[key]??'';
   for(const key of ['taxBasisPoints','deliveryFee'])form.elements[key].value=(catalog[key]/100).toFixed(2);
+  form.elements.itemOrderCap.value=catalog.itemOrderCap??10;
   fields.disabled=false;dirty=false;refresh?.reset(data);
  }
  async function reload(){display(await page.request('/manager/catalog'));message.textContent='';}
  form.oninput=()=>{dirty=true;message.textContent='Unsaved changes';};
  form.onsubmit=event=>{event.preventDefault();page.action(event.submitter,async()=>{
   const updated=createCatalogDraft(catalog);
-  for(const key of ['businessName','platformName','pickupAddress'])updated[key]=form.elements[key].value;
+  for(const key of ['businessName','platformName','pickupAddress','businessPhone','businessEmail'])updated[key]=form.elements[key].value;
   for(const key of ['taxBasisPoints','deliveryFee'])updated[key]=decimalToMinor(form.elements[key].value);
+  updated.itemOrderCap=Number(form.elements.itemOrderCap.value);
   fields.disabled=true;
   try{display(await page.request('/manager/catalog',{method:'POST',body:{catalog:updated,revision}}));message.textContent='Saved.';}
   finally{fields.disabled=false;}
