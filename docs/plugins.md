@@ -15,7 +15,7 @@ Plugin state is tenant scoped private JSON beside the database, with revision ch
 
 The current implementation installs code through Git or file upload using the hosting file manager. There is no browser ZIP uploader, marketplace, automatic updater or uninstall data deletion. Both the Git checkout and optional install ZIP include both halves of all five bundled plugins.
 
-The fifth bundled plugin, [Demo Lockdown](demo-lockdown.md), is inactive by default and requires explicit private configuration. It cannot be enabled accidentally from the Plugins page. A private `required_plugins` list pins installation policies active before other plugins. Missing or broken required code stops PHP bootstrap with 503, and its deactivation is forbidden.
+The fifth bundled plugin, [Installation Lockdown](demo-lockdown.md), is inactive by default and requires explicit private configuration. It cannot be enabled accidentally from the Plugins page. A private `required_plugins` list pins installation policies active before other plugins. Missing or broken required code stops PHP bootstrap with 503, and its deactivation is forbidden.
 
 ## Manifest
 

@@ -36,7 +36,7 @@ Open `http://127.0.0.1:8097/`. The CLI creates a disposable demo driver and gene
 
 Try [the storefront](https://sltd.ca/diner-demo/), [Admin](https://sltd.ca/diner-demo/admin/) with **admin / admin**, or [Driver](https://sltd.ca/diner-demo/driver/) with **driver / driver**.
 
-This hosted install uses the mandatory [Demo Lockdown plugin](docs/demo-lockdown.md). Visitors can place and process shared fictional orders. Catalog, business settings, accounts, passwords and plugin configuration are locked on the server. Checkout uses fixed fictional contacts; device GPS and paid integrations are disabled. The map is a local reference image with a simulated driver position. Orders expire after 24 hours. Ordinary installations retain their own private credentials and configurable plugins.
+This hosted install uses the mandatory [Installation Lockdown plugin](docs/demo-lockdown.md). Visitors can place and process shared fictional orders. Catalog, business settings, accounts, passwords and plugin configuration are locked on the server. Checkout uses fixed fictional contacts; device GPS and paid integrations are disabled. The map is a local reference image with a simulated driver position. Orders expire after 24 hours. Ordinary installations retain their own private credentials and configurable plugins.
 
 The hosted public demo includes delivery runs, the connected tracking timeline and colour coded status badges. Delivery runs use simulated GPS and a local reference map; no device location or external routing is requested.
 
@@ -57,6 +57,8 @@ The hosted public demo includes delivery runs, the connected tracking timeline a
 | Progress | A connected, accessible timeline for Received, Preparing, Ready, On the way and Delivered, plus pickup and cancellation states. Run customers see how many stops remain ahead. Driver completion updates the customer view. |
 | Arrival estimates | Google route estimates when a current driver location and usable route are available. Otherwise the page explains when an estimate can be shown. |
 | Update recovery | Automatic polling or optional WebSocket updates, refresh on return to tracking, recovery from stalled reads and clear delayed update messages. |
+
+Driver profiles include optional vehicle type and colour. Customers see their assigned driver and vehicle on their private tracking page.
 
 ### Business administration
 
@@ -88,7 +90,7 @@ The console refreshes on tab return, window focus and reconnection. Reliable GPS
 
 | Plugin | Features |
 | --- | --- |
-| Demo Lockdown | Optional mandatory policy for an isolated public demo, protected settings, fictional checkout data, simulated GPS and temporary records. |
+| Installation Lockdown | Optional mandatory policy for an isolated public demo, protected settings, fictional checkout data, simulated GPS and temporary records. |
 | Google Maps | Driver and destination markers, driving routes, estimated travel time, location and route caching, fallback links, and private plugin settings for the browser key and map ID. |
 | Stripe | Optional sandbox hosted Checkout, signed webhooks, server payment verification, idempotency, encrypted credentials and settings owned by the plugin. Success and cancellation return to the private order page. No live payment keys in this demo. |
 | Order Reporting | Reporting dataset, business metrics, period comparisons, charts, CSV and SVG exports, dashboard controls and report integration hooks. |

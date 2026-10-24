@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add optional driver vehicle type and colour, stored in SQLite without changing credentials. Private customer tracking shows the assigned driver name and vehicle, including initial PHP output and live updates.
+- Remove demonstration wording from visible storefront, driver, tracking and admin labels. Keep installation restrictions, simulated location labels and payment safeguards intact.
+
 - Brand the cart header with the site logo and business name, centre Your Order, and retain Close on the right. The reusable component accepts a site-logo slot. Centre Continue to checkout in the first stage and place Back to cart before Place order in checkout. Double and centre totals in both stages, with grouped currency formatting.
 
 - Add Item Order Cap to Business details, defaulting to 10 per product across options. Enforce it in the cart and API, and show a call the store dialog for larger orders. Add editable business phone and email fields.

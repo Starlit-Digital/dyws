@@ -1,6 +1,6 @@
 # Public demo lockdown
 
-Demo Lockdown is an optional bundled plugin for disposable public demonstrations. It is inactive on ordinary installs. The public example is https://sltd.ca/diner-demo/ with Admin at `/admin/` and Driver at `/driver/`.
+Installation Lockdown is an optional bundled plugin for disposable public demonstrations. It is inactive on ordinary installs. The public example is https://sltd.ca/diner-demo/ with Admin at `/admin/` and Driver at `/driver/`.
 
 | Login | Identifier | Password |
 |---|---|---|
@@ -17,7 +17,7 @@ Catalog, business settings, password changes, driver management, integration set
 
 The server replaces customer name, phone, address, notes and custom plugin data with fixed fictional values before storage. Checkout prepopulates the same readonly fields. It never imports an existing installation's data. Web server request metadata and browser submitted bytes still reach the host; this is not an anonymous or private personal data entry service.
 
-Only Demo Lockdown, Order Reporting and DataTables can be active. Stripe and Google Maps stay installed but inactive, and their endpoints are denied. No real payments, external API credentials, WebSocket relay or device GPS are configured. The local Manning Town Centre reference image represents the fixed simulated driver location; there is no live routing or traffic estimate. The host sends `Permissions-Policy: geolocation=()` as an additional browser safeguard.
+Only Installation Lockdown, Order Reporting and DataTables can be active. Stripe and Google Maps stay installed but inactive, and their endpoints are denied. No real payments, external API credentials, WebSocket relay or device GPS are configured. The local Manning Town Centre reference image represents the fixed simulated driver location; there is no live routing or traffic estimate. The host sends `Permissions-Policy: geolocation=()` as an additional browser safeguard.
 
 Orders expire 24 hours after creation and are removed on the next PHP request, together with their dependent ledger, status, GPS and run stop records. Expiring a stop advances and renumbers any remaining stops; empty runs are removed. Completed and cancelled run history also expires after 24 hours. The installation caps retained orders, runs and active sessions at 500 each. Existing login and order rate limits remain, with an additional 60 demo writes per minute per IP. These are abuse limits, not a guarantee against downtime or denial of service.
 

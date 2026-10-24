@@ -133,7 +133,7 @@ Browser administration starts at `/admin/`, with a standalone `/auth/` form and 
 
 ## Hosted public demo policy
 
-The hosted `/diner-demo/` installation additionally requires `username: "admin"` with the manager login. Driver login uses `driverId: "driver"`. Both public passwords match their identifiers. This behavior belongs to Demo Lockdown, not the normal authentication contract. Critical mutations, payment callbacks, integration reads and unknown endpoints return 403 even with the public manager token. Order contacts, delivery address, notes and plugin data are normalized to fictional values before storage. See [Demo Lockdown](demo-lockdown.md).
+The hosted `/diner-demo/` installation additionally requires `username: "admin"` with the manager login. Driver login uses `driverId: "driver"`. Both public passwords match their identifiers. This behavior belongs to Installation Lockdown, not the normal authentication contract. Critical mutations, payment callbacks, integration reads and unknown endpoints return 403 even with the public manager token. Order contacts, delivery address, notes and plugin data are normalized to fictional values before storage. See [Installation Lockdown](demo-lockdown.md).
 
 
 ## Delivery runs
@@ -154,4 +154,8 @@ Complete a stop with the existing `POST /driver/orders/ORDER_ID/status`, `status
 
 One driver may have one planned or active run. An order cannot belong to two open runs. A driver with a standalone delivery already on the road must finish it before a run is created. A planned run must be cancelled before its individual orders can be reassigned or cancelled. Run cancellation keeps each order ready and its driver assignment intact. Stale edits and conflicting assignments return 409; unauthorized drivers receive 403. Run IDs use `RUN-` and twelve uppercase hexadecimal characters.
 
-Public tracking adds nullable `deliveryRun: {stopsAhead, isNext}` only while that order remains on an active run. It exposes no run IDs, other orders, addresses or contacts. Run location endpoints require both driver authentication and the current sharing token. Configured test coordinates override client coordinates just as they do for individual deliveries. Lease expiry, logout and delivery completion retain the existing GPS cleanup rules. The public Demo Lockdown plugin does not allow these new mutation endpoints yet.
+Public tracking adds nullable `deliveryRun: {stopsAhead, isNext}` only while that order remains on an active run. It exposes no run IDs, other orders, addresses or contacts. Run location endpoints require both driver authentication and the current sharing token. Configured test coordinates override client coordinates just as they do for individual deliveries. Lease expiry, logout and delivery completion retain the existing GPS cleanup rules. The public Installation Lockdown plugin does not allow these new mutation endpoints yet.
+
+Driver profiles accept optional `vehicleType` and `vehicleColor` strings, up to 60 bytes each, through `POST /manager/drivers`. Omitted fields retain saved values; empty strings clear them. The driver listing includes both fields. Changing display details preserves existing sessions and credentials.
+
+Private tracking responses include `driver: {name, vehicleType, vehicleColor}` for an assigned delivery, or `null` for an unassigned order, pickup or cancellation. Profiles are looked up within the order tenant only after tracking authorization. No driver login IDs, credentials or contact details are included. Driver edits invalidate live tracking views.
