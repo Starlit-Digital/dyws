@@ -8,7 +8,7 @@ dyws is a restaurant ordering and delivery platform sold as an addition to a res
 
 Working line: Your website. Your orders. Delivered.
 
-Starlit Diner is the fictional reference restaurant, not the product name. Its 35 example items, five categories, original generated food imagery, fictional Edmonton address and diner exterior remain the demonstration. Cravings & Delight remains separately archived in its own private repository and is not converted into this platform.
+Starlit Diner is the fictional reference restaurant, not the product name. Its 35 example items, five categories, original generated food imagery, fictional Edmonton address and diner exterior remain the demonstration.
 
 The existing private restaurant-ordering repository was renamed to Starlit-Digital/starlit-go, preserving its history. The owner subsequently renamed it to Starlit-Digital/dyws. Local checkout: /private/var/www/starlit-digital/dyws. Demo stays at https://sltd.ca/diner/ .
 

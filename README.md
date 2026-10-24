@@ -222,4 +222,4 @@ The server enforces tenant boundaries, but the shipped installation is configure
 - [Driver mobile app plan](docs/mobile-driver-plan.md)
 - [Screenshot provenance](docs/screenshots/README.md)
 
-The private repository is [Starlit-Digital/dyws](https://github.com/Starlit-Digital/dyws). Earlier names were restaurant-ordering and starlit-go; Git history is preserved. The Cravings & Delight website remains a separate project.
+The private repository is [Starlit-Digital/dyws](https://github.com/Starlit-Digital/dyws).

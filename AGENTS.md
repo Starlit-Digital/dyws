@@ -1,6 +1,6 @@
 # dyws project instructions
 
-dyws is the platform. Starlit Diner is its fictional reference restaurant. Keep this repository separate from the original Cravings & Delight website. Preserve the existing diner visuals and accessibility preferences.
+dyws is the platform. Starlit Diner is its fictional reference restaurant. Preserve the existing diner visuals and accessibility preferences.
 
 All current orders, payment records and driver routes are demonstrations. Do not describe test payment ledger actions as real charges or refunds. Do not claim native apps or production dispatch exist. Use fictional customer details for tests.
 
