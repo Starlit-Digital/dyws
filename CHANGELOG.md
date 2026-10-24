@@ -2,7 +2,9 @@
 
 ## Unreleased
 
-- Add manually ordered delivery runs, atomic pickup, one active run per driver, per stop completion, shared GPS and private stops ahead tracking. Start rollout on the private diner installation.
+- Allow public demo delivery runs through precise lockdown endpoints, retain simulated GPS and critical setting restrictions, and clean up expiring run stops and bounded history.
+
+- Add manually ordered delivery runs, atomic pickup, one active run per driver, per stop completion, shared GPS and private stops ahead tracking. Validated first on the private diner installation, then enabled on the public demo with lockdown preserved.
 - Add shared semantic status badges to Orders, delivery runs, driver accounts, plugin states, provider settings, reports and customer payment status. Labels and glyphs accompany every colour.
 - Connect the customer progress steps into a responsive timeline with clear completed, current and upcoming states, accessible labels and theme aware contrast.
 

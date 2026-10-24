@@ -38,7 +38,7 @@ Try [the storefront](https://sltd.ca/diner-demo/), [Admin](https://sltd.ca/diner
 
 This hosted install uses the mandatory [Demo Lockdown plugin](docs/demo-lockdown.md). Visitors can place and process shared fictional orders. Catalog, business settings, accounts, passwords and plugin configuration are locked on the server. Checkout uses fixed fictional contacts; device GPS and paid integrations are disabled. The map is a local reference image with a simulated driver position. Orders expire after 24 hours. Ordinary installations retain their own private credentials and configurable plugins.
 
-Delivery runs and the connected tracking timeline are being tested first on the owner’s private installation. The hosted public demo remains on its existing delivery flow.
+The hosted public demo includes delivery runs, the connected tracking timeline and colour coded status badges. Delivery runs use simulated GPS and a local reference map; no device location or external routing is requested.
 
 ## Complete feature breakdown
 

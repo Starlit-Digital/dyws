@@ -11,7 +11,7 @@ These are intentionally public credentials. Core role checks, assignment scope, 
 
 ## What visitors can try
 
-Visitors can browse, place fictional pickup and delivery orders, use Orders and Reports, assign the demo driver, record test payment entries, and complete deliveries. No money moves. All visitors share this disposable workspace and can change its example order statuses. Private tracking access still requires that order's token.
+Visitors can browse, place fictional pickup and delivery orders, use Orders and Reports, assign the demo driver, record test payment entries, create and reorder delivery runs, and complete deliveries in stop order. Run tracking uses one simulated position shared across the remaining stops. No money moves. All visitors share this disposable workspace and can change its example order statuses. Private tracking access still requires that order's token.
 
 Catalog, business settings, password changes, driver management, integration settings and plugin toggles are blocked by a server request allowlist. Unknown endpoints are denied by default. The browser also disables editing controls. Removing a disabled attribute or calling the API directly does not bypass the policy.
 
@@ -19,7 +19,7 @@ The server replaces customer name, phone, address, notes and custom plugin data 
 
 Only Demo Lockdown, Order Reporting and DataTables can be active. Stripe and Google Maps stay installed but inactive, and their endpoints are denied. No real payments, external API credentials, WebSocket relay or device GPS are configured. The local Manning Town Centre reference image represents the fixed simulated driver location; there is no live routing or traffic estimate. The host sends `Permissions-Policy: geolocation=()` as an additional browser safeguard.
 
-Orders expire 24 hours after creation and are removed on the next PHP request, together with their dependent ledger, status and GPS records. The installation caps retained orders and active sessions at 500. Existing login and order rate limits remain, with an additional 60 demo writes per minute per IP. These are abuse limits, not a guarantee against downtime or denial of service.
+Orders expire 24 hours after creation and are removed on the next PHP request, together with their dependent ledger, status, GPS and run stop records. Expiring a stop advances and renumbers any remaining stops; empty runs are removed. Completed and cancelled run history also expires after 24 hours. The installation caps retained orders, runs and active sessions at 500 each. Existing login and order rate limits remain, with an additional 60 demo writes per minute per IP. These are abuse limits, not a guarantee against downtime or denial of service.
 
 ## Create a separate demo
 
@@ -35,4 +35,4 @@ Private configuration sets `demo_lockdown: true`, `required_plugins: ["demo-lock
 
 On Apache, set the demo location's `Permissions-Policy` header to `geolocation=()` rather than the distribution's device GPS permission. Keep database and catalog permissions private. Back up any prior installation separately before changing its public path or adapter. Do not turn an installation with real data into a public demo by manually changing its passwords.
 
-Validation: `python3 tests/demo-lockdown.test.py` covers both sign in surfaces, API restrictions, fictional data normalization, delivery completion, fixed GPS, retention, state tampering and missing or broken protection. The full `npm test` suite also checks that ordinary installations continue to work.
+Validation: `python3 tests/demo-lockdown.test.py` covers both sign in surfaces, API restrictions, fictional data normalization, individual and run delivery completion, fixed GPS, run limits, active and planned run expiry, retention, state tampering and missing or broken protection. The full `npm test` suite also checks that ordinary installations continue to work.
