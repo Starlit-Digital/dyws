@@ -81,3 +81,7 @@ DYWS_INSTALL_ARCHIVE="$PWD/dist/dyws.zip" python3 tests/installer.test.py
 The complete Git checkout is the primary distribution. Packaging is optional and produces ignored `dist/dyws.zip` and `dist/SHA256SUMS`. Stage new source before packaging. Publish these files as release assets alongside the tagged source; do not commit generated downloads. Verify downloaded assets with `shasum -a 256 -c SHA256SUMS` in their directory.
 
 Tests cover authentication, pricing, idempotency, tenant boundaries, catalog revisions, plugin lifecycle and hooks, payment verification, reporting, installation, GPS, refresh recovery and edit protection. Stripe tests use a fake transport and the SDK signature verifier; they do not prove an external sandbox Checkout has succeeded. Browser measurements in [the timing review](performance-2026-10-23.md) are dated samples, not current performance guarantees.
+
+## Stripe tracking return fix
+
+Deploy the matching `plugins/stripe/StripePayments.php` to the private plugin directory. This change needs no database migration or public asset update. New Checkout sessions return to the installation's `tracking/?order=ORDER_REFERENCE` page using the existing order cookie. Webhooks remain responsible for payment state. Existing Stripe sessions retain their original return URLs and continue to be reused; do not erase payment attempts to force a replacement.

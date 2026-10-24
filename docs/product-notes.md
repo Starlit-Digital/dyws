@@ -32,7 +32,7 @@ Plugin settings belong to their plugins and survive deactivation. Stripe's signe
 ## Work still needed for a commercial pilot
 
 1. Business hours, delivery zones, address validation, preparation estimates, kitchen notifications and robust inventory requirements.
-2. Correct the Stripe Checkout return to reopen the private status page. Add named administrator and device accounts, stronger session management, production payment enablement, tips, discounts and operational refund workflows. Sandbox Checkout and webhook reconciliation already exist; payouts and marketplace settlement do not.
+2. Add named administrator and device accounts, stronger session management, production payment enablement, tips, discounts and operational refund workflows. Sandbox Checkout and webhook reconciliation already exist; payouts and marketplace settlement do not.
 3. Native iOS and Android driver apps, secure device storage, reliable background GPS, offline recovery and physical device testing.
 4. Dispatch offers, capacity rules, acceptance races and route planning beyond the current single active delivery view.
 5. Durable queues and outbox, notifications, monitoring, load tests, deployment automation, scheduled cleanup, backups and restore drills. Review database capacity before expanding beyond a small pilot.

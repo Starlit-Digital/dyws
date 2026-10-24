@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Return newly created Stripe Checkout sessions to the correct private order page after payment or cancellation, using the existing order cookie and preserving webhook payment verification.
+
 - Make the complete Git checkout the primary development and installation workflow.
 - Keep the optional install ZIP and checksum in ignored `dist/`, published as release assets instead of committed binaries.
 - Update installation, development and packaging instructions. Existing 0.10.0 release downloads remain available.

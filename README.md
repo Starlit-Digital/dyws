@@ -80,7 +80,7 @@ The console refreshes on tab return, window focus and reconnection. Reliable GPS
 | Plugin | Features |
 | --- | --- |
 | Google Maps | Driver and destination markers, driving routes, estimated travel time, location and route caching, fallback links, and private plugin settings for the browser key and map ID. |
-| Stripe | Optional sandbox hosted Checkout, signed webhooks, server payment verification, idempotency, encrypted credentials and settings owned by the plugin. No live payment keys in this demo. |
+| Stripe | Optional sandbox hosted Checkout, signed webhooks, server payment verification, idempotency, encrypted credentials and settings owned by the plugin. Success and cancellation return to the private order page. No live payment keys in this demo. |
 | Order Reporting | Reporting dataset, business metrics, period comparisons, charts, CSV and SVG exports, dashboard controls and report integration hooks. |
 | DataTables | Locally bundled table search, sort, pagination and in memory table state. No runtime CDN dependency or customer records in browser table storage. |
 
@@ -203,8 +203,6 @@ DYWS_INSTALL_ARCHIVE="$PWD/dist/dyws.zip" python3 tests/installer.test.py
 Release work uses separate commits with detailed messages and annotated tags. For 0.10.0, the documentation and version preparation commits have `v0.10.0-docs` and `v0.10.0-version` tags. The final packaged commit is tagged `v0.10.0`. The GitHub release contains `dyws.zip` and `SHA256SUMS`. See [release notes](CHANGELOG.md) for included changes and verification.
 
 ## Current limits and next steps
-
-Stripe Checkout currently returns to the storefront; automatically returning to the dedicated private order page still needs implementation. Use the original private order link to review payment status.
 
 This preview does not include native iOS or Android apps, guaranteed background GPS, a hosted WebSocket service, automatic dispatch optimization, driver payouts, marketplace settlements, production payment processing, SMS or email notifications, stock management, or a managed backup service. Google Maps needs a configured key and billing account. Stripe requires configured sandbox credentials and signed webhook delivery.
 
