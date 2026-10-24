@@ -4,12 +4,12 @@ import {decimalToMinor,createCatalogDraft} from './catalog-editor.js?v=39';
 export async function mountBusinessSettings({root,page}){
  const form=root.querySelector('#business-settings');if(!form)return;
  const fields=form.querySelector('fieldset'),message=root.querySelector('#business-message');
- let catalog,revision,dirty=false;
- function display(data){
+ let catalog,revision,dirty=false,refresh,latest;
+ function display(data){latest=data;
   catalog=createCatalogDraft(data.catalog);revision=data.revision;
   for(const key of ['businessName','platformName','pickupAddress','currency'])form.elements[key].value=catalog[key]??'';
   for(const key of ['taxBasisPoints','deliveryFee'])form.elements[key].value=(catalog[key]/100).toFixed(2);
-  fields.disabled=false;dirty=false;
+  fields.disabled=false;dirty=false;refresh?.reset(data);
  }
  async function reload(){display(await page.request('/manager/catalog'));message.textContent='';}
  form.oninput=()=>{dirty=true;message.textContent='Unsaved changes';};
@@ -27,4 +27,5 @@ export async function mountBusinessSettings({root,page}){
  };
  window.addEventListener('beforeunload',event=>{if(dirty){event.preventDefault();event.returnValue='';}});
  await reload();
+ refresh=page.autoRefresh({read:()=>page.request('/manager/catalog'),apply:display,forms:[form],initial:latest,blocked:()=>dirty});
 }

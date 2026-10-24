@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mountOrders} from '../public_html/dyws/orders.js';
+import {mountManager} from '../public_html/dyws/manager.js';
 import {mountDriver} from '../public_html/dyws/driver.js';
 const settle=async()=>{for(let i=0;i<60;i++)await Promise.resolve();};
 function fixture(){
@@ -47,4 +48,10 @@ test('Orders refreshes a focused order button without discarding a driver select
   const select=detail.querySelector('select');select.matches=()=>true;select.value='second';f.doc.activeElement=select;const previous=content.innerHTML;
   status='ready';f.win.dispatchEvent(new Event('focus'));await settle();assert.equal(select.value,'second');assert.equal(content.innerHTML,previous);assert.match(table.innerHTML,/ready/);
  }finally{controller?.destroy();f.restore();}
+});
+
+test('Reports resumes with the chosen range intact and no page reload',async()=>{
+ const f=fixture();let controller,reads=0;const requests=[];
+ const api=async route=>{requests.push(route);reads++;return {currency:'CAD',orderCount:reads,activeOrders:0,cancelledOrders:0,orderedValue:0,averageOrderValue:0,captured:0,refunded:0,netCollected:0,netSales:0,netDeliveryFees:0,netTax:0,averagePreparationSeconds:null,averageDeliverySeconds:null,topItems:[]};};api.watch=()=>()=>{};
+ try{controller=mountManager({root:f.root,api});await settle();f.root.querySelector('#from').value='2026-10-01';f.root.querySelector('#to').value='2026-10-20';f.win.dispatchEvent(new Event('focus'));await settle();assert.equal(reads,2);assert.match(requests[1],/from=2026-10-01&to=2026-10-20/);assert.equal(f.root.querySelector('#from').value,'2026-10-01');assert.match(f.root.querySelector('#stats').innerHTML,/Orders<strong>2/);}finally{controller?.destroy();f.restore();}
 });

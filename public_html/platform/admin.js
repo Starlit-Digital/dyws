@@ -1,3 +1,4 @@
+import {mountAdminRefresh} from '../dyws/admin-refresh.js';
 import {markReady} from '../dyws/diagnostics.js';
 import {redirectToAuth} from '../dyws/admin-session.js?v=39';
 import {plugins} from './plugins.js?v=39';
@@ -18,16 +19,6 @@ if(current==='settings'&&sessionStorage.getItem('dyws-manager'))await plugins.ru
 markReady();
 if(plugins.errors.length)document.querySelector('[data-admin-error]').textContent=plugins.errors.join(' ');
 const operator=sessionStorage.getItem('dyws-manager');
-if(operator){
- let previous;
- const routes={catalog:'/manager/catalog',drivers:'/manager/drivers',settings:'/manager/settings',plugins:'/manager/plugins'};
- const seeded=JSON.parse(document.querySelector('meta[name="dyws-admin-data"]')?.content||'null');if(routes[current]&&seeded?.responses[routes[current]])previous=JSON.stringify(seeded.responses[routes[current]]);
- api.watch({scope:'operator',token:operator,interval:15000},async event=>{
-  if(event.type==='auth-error'&&[401,403].includes(event.status)){redirectToAuth();return;}
-  const settings=await api('/settings');mountNavigation(current,settings.driverRole);
-  if(!routes[current])return;
-  const data=await api(routes[current],{token:operator});const signature=JSON.stringify(data);
-  if(previous!==undefined&&signature!==previous){let notice=document.querySelector('[data-dyws-update-notice]');if(!notice){notice=document.createElement('p');notice.dataset.dywsUpdateNotice='true';notice.className='dyws-update-notice';notice.setAttribute('role','status');document.querySelector('main').prepend(notice);}notice.textContent='Updates available. Reload when ready.';}
-  previous=signature;
- });
-}
+if(operator)mountAdminRefresh({root:document.body,api,token:operator,onUnauthorized:()=>redirectToAuth(),onRefresh:async()=>{
+ const settings=await api('/settings');mountNavigation(current,settings.driverRole);
+}});

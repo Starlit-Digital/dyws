@@ -29,6 +29,8 @@ root.querySelector('#export').onclick=async()=>{if(!report)return;const fields=[
 void plugins?.runAction('admin:report-controls',{root:root.querySelector('.dyws-toolbar'),refresh:load});
 display();if(token)load();const refreshTimer=setInterval(()=>{if(!api.watch&&token&&!document.hidden)load();},10000);
 
-return {refresh:load,destroy(){clearInterval(refreshTimer);unwatch?.();}};
+const resume=()=>{if(!document.hidden)void load();};
+document.addEventListener('visibilitychange',resume);window.addEventListener('focus',resume);window.addEventListener('online',resume);
+return {refresh:load,destroy(){clearInterval(refreshTimer);unwatch?.();document.removeEventListener('visibilitychange',resume);window.removeEventListener('focus',resume);window.removeEventListener('online',resume);}};
 
 }

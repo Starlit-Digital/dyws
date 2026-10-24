@@ -1,3 +1,4 @@
+import {adminRefreshGroup} from './admin-refresh.js';
 import {redirectToAuth} from './admin-session.js?v=39';
 export function mountAdminNavigation({root=document,current,pages}) {
  const nav=root.querySelector('[data-dyws-admin-nav]');if(!nav)return;
@@ -24,6 +25,7 @@ export function adminPage({root=document,api,storageKey='dyws-manager'}) {
  if(!token)signOut();else if(content)content.hidden=false;
  if(logout){logout.hidden=!token;logout.onclick=async()=>{logout.disabled=true;try{await api('/logout',{method:'POST',body:{},token});}catch{}signOut();};}
  const request=async(route,options={})=>{try{return await api(route,{...options,token});}catch(e){if(e.status===401)signOut();throw e;}};
- const action=async(button,fn)=>{button.disabled=true;error.textContent='';try{await fn();}catch(e){error.textContent=e.message;}finally{button.disabled=false;}};
- return {token,request,action,error,signOut};
+ const refreshes=adminRefreshGroup(root);
+ const action=async(button,fn)=>{refreshes.actionStart();button.disabled=true;error.textContent='';try{await fn();}catch(e){error.textContent=e.message;}finally{button.disabled=false;refreshes.actionEnd();}};
+ return {token,request,action,error,signOut,autoRefresh:options=>refreshes.register({...options,onError:e=>{error.textContent=e.message;}})};
 }

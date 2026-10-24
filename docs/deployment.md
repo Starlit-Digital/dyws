@@ -206,3 +206,11 @@ The reported live order was already Delivered in both customer and driver tabs w
 ### Orders and driver resume updates
 
 Orders and the driver console fetch current data on `visibilitychange` when visible, window `focus`, and `online`. Existing load guards serialize overlapping refreshes. Orders defers a resume during a save until that action settles. List updates preserve editing fields and filter values, while focus on an ordinary order button no longer blocks new status rows. Resume listeners are removed when controllers are destroyed. The existing HTTP read deadline also applies to these pages. Upload `public_html/dyws/orders.js`, `order-list.js` and `driver.js` together. Reload tabs opened before this code update once; later tab and window switches refresh data without page navigation. No settings or stored order changes are required.
+
+### Guarded refresh across administration
+
+Reports refreshes on visibility, window focus and reconnection while retaining the selected reporting range. Catalog, Drivers, Settings and Plugins share one page subscription and a guarded refresh registry. Forms are refreshed independently. Unsaved values, focused input fields, open catalog item panels and an open driver editor defer replacement; independent maps and other clean settings still update. A notice identifies deferred changes. The Password page refreshes shared navigation and session monitoring without reading or resetting password fields.
+
+A read that overlaps typing, a save or a manual reload cannot replace the newer state. Saved revision tokens remain attached to protected drafts, so server conflict checks still apply. Plugin settings participate through `adminPage().autoRefresh({read, apply, forms, initial, blocked})`; call the returned `reset(data)` after explicit save or reload to establish the new clean baseline. Form snapshots stay only in memory. Bundled Google Maps and Stripe settings implement this contract.
+
+Deploy the new `dyws/admin-refresh.js`, updated page controllers, shared admin navigation, platform admin adapter, both bundled plugin settings scripts and generated preload manifest together. No private data or schema changes are required. Reload already open pages once to load the code. Fresh installation ZIP and automated tests cover the guards, asynchronous read races, lifecycle events and selected reporting dates.

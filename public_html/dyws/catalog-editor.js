@@ -10,7 +10,7 @@ export function createCatalogDraft(catalog){return structuredClone(catalog);}
 export async function mountCatalogEditor({root=document,api,storageKey}) {
  const page=adminPage({root,api,storageKey});if(!page.token)return;
  const form=root.querySelector('#catalog-editor'),list=root.querySelector('#category-list'),editor=root.querySelector('#category-editor'),message=root.querySelector('#catalog-message');
- let draft,revision,selected=0,dirty=false,busy=false;
+ let refresh,latest,draft,revision,selected=0,dirty=false,busy=false;
  const id=prefix=>prefix+'_'+crypto.randomUUID().replaceAll('-','').slice(0,16);
  const amount=n=>(n/100).toFixed(2);
  const mark=()=>{dirty=true;message.textContent='Unsaved changes';};
@@ -22,7 +22,7 @@ export async function mountCatalogEditor({root=document,api,storageKey}) {
  const check=(label,path)=>`<label class="dyws-checkbox"><input type="checkbox" data-field="${path}" ${get(path)?'checked':''}> ${esc(label)}</label>`;
  function imageFields(path){return field('Image URL',path+'.src',{max:1000})+field('Image description',path+'.alt',{max:250});}
  function renderCategories(){
-  list.replaceChildren(...draft.categories.map((c,index)=>{const b=document.createElement('button');b.type='button';b.textContent=c.name||'Untitled category';b.setAttribute('aria-pressed',String(index===selected));b.onclick=()=>{if(!form.reportValidity())return;selected=index;renderCategories();renderCategory();};return b;}));
+  list.replaceChildren(...draft.categories.map((c,index)=>{const b=document.createElement('button');b.type='button';b.textContent=c.name||'Untitled category';b.setAttribute('aria-pressed',String(index===selected));b.onclick=()=>{if(!form.reportValidity())return;selected=index;renderCategories();renderCategory();if(!dirty)refresh?.reset();};return b;}));
  }
  function renderCategory(){
   const category=draft.categories[selected];if(!category){editor.innerHTML='<p>Add a category to start building your catalog.</p>';return;}
@@ -43,7 +43,8 @@ export async function mountCatalogEditor({root=document,api,storageKey}) {
   for(const c of result.categories){if(!c.image?.src?.trim())delete c.image;for(const i of c.items){if(!i.image?.src?.trim())delete i.image;if(!i.variants?.length){delete i.variants;delete i.optionLabel;}else if(!i.optionLabel?.trim())i.optionLabel='Option';}}
   return result;
  }
- async function load(){const data=await page.request('/manager/catalog');draft=createCatalogDraft(data.catalog);revision=data.revision;selected=Math.min(selected,Math.max(0,draft.categories.length-1));dirty=false;render();message.textContent='';}
+ function display(data){latest=data;draft=createCatalogDraft(data.catalog);revision=data.revision;selected=Math.min(selected,Math.max(0,draft.categories.length-1));dirty=false;render();message.textContent='';refresh?.reset(data);}
+ async function load(){display(await page.request('/manager/catalog'));}
  form.addEventListener('input',event=>{
   const input=event.target;if(!input.dataset.field)return;
   mark();
@@ -69,8 +70,9 @@ export async function mountCatalogEditor({root=document,api,storageKey}) {
   if(Number.isInteger(focusItem))editor.querySelector(`[data-item-index="${focusItem}"]`)?.setAttribute('open','');
  }
  form.addEventListener('click',event=>{const button=event.target.closest('[data-action]');if(!button||busy||button.disabled)return;mutate(button.dataset.action,button.dataset.item===undefined?undefined:Number(button.dataset.item),Number(button.dataset.variant));});
- form.onsubmit=event=>{event.preventDefault();if(busy)return;page.action(event.submitter,async()=>{busy=true;form.querySelector('fieldset').disabled=true;try{const data=await page.request('/manager/catalog',{method:'POST',body:{catalog:cleaned(),revision}});draft=createCatalogDraft(data.catalog);revision=data.revision;dirty=false;render();message.textContent='Catalog saved. The storefront now uses these categories and items.';}finally{busy=false;form.querySelector('fieldset').disabled=false;}});};
+ form.onsubmit=event=>{event.preventDefault();if(busy)return;page.action(event.submitter,async()=>{busy=true;form.querySelector('fieldset').disabled=true;try{const data=await page.request('/manager/catalog',{method:'POST',body:{catalog:cleaned(),revision}});draft=createCatalogDraft(data.catalog);revision=data.revision;dirty=false;render();refresh?.reset(data);message.textContent='Catalog saved. The storefront now uses these categories and items.';}finally{busy=false;form.querySelector('fieldset').disabled=false;}});};
  root.querySelector('#reload-catalog').onclick=event=>{if(dirty&&!confirm('Discard your unsaved changes and reload the saved catalog?'))return;page.action(event.target,load);};
  window.addEventListener('beforeunload',event=>{if(dirty){event.preventDefault();event.returnValue='';}});
  try{await load();}catch(e){page.error.textContent=e.message;}
+ refresh=page.autoRefresh({read:()=>page.request('/manager/catalog'),apply:display,forms:[form],initial:latest,blocked:()=>dirty||busy||!!editor.querySelector('details[open]')});
 }
