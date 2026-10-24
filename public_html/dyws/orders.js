@@ -17,7 +17,7 @@ const orderList=mountOrderList({root:root.querySelector('#orders'),plugins,rende
 function display(){if(!token){renderLocation?.clear?.();orders=[];void orderList.clear();redirectToAuth(root);return;}if(token!==watchedToken){unwatch?.();watchedToken=token;unwatch=token?api.watch?.({scope:'operator',token,interval:10000},()=>{if(!busy)return load();}):null;}root.querySelector('#dashboard').hidden=!token;root.querySelector('#logout').hidden=!token;}
 root.querySelector('#logout').onclick=async()=>{try{await api('/logout',{method:'POST',body:{},token});}catch{}token=null;sessionStorage.removeItem(storageKey);display();};
 const statuses={placed:['accepted','cancelled'],accepted:['preparing','cancelled'],preparing:['ready','cancelled'],ready:['completed','out_for_delivery','cancelled'],out_for_delivery:['delivered']};
-async function mutate(route,body){if(busy)return;busy=true;root.querySelectorAll('#orders [data-order-content] button').forEach(b=>b.disabled=true);try{await api(route,{method:'POST',body,token});await load();}catch(e){error.textContent=e.message;}finally{busy=false;root.querySelectorAll('#orders [data-order-content] button').forEach(b=>b.disabled=false);}}
+async function mutate(route,body){if(busy)return;busy=true;root.querySelectorAll('#orders [data-order-content] button').forEach(b=>b.disabled=true);try{await api(route,{method:'POST',body,token});await load();}catch(e){error.textContent=e.message;}finally{busy=false;root.querySelectorAll('#orders [data-order-content] button').forEach(b=>b.disabled=false);if(loadAgain){loadAgain=false;void load();}}}
 
 function renderOrder(o,data,container){
   const money=n=>formatMoney(n,o.currency);
@@ -41,7 +41,9 @@ async function load(){if(!token)return;if(loading){loadAgain=true;return;}loadin
  }catch(e){if(e.status===401){token=null;sessionStorage.removeItem(storageKey);display();}error.textContent=e.message;}finally{loading=false;if(loadAgain){loadAgain=false;queueMicrotask(load);}}}
 root.querySelector('#refresh').onclick=load;
 display();if(token)load();const refreshTimer=setInterval(()=>{if(!api.watch&&token&&!document.hidden&&!busy&&!root.querySelector('#orders')?.contains(document.activeElement))load();},10000);
+function resume(){if(document.hidden||!token)return;if(busy){loadAgain=true;return;}void load();}
+document.addEventListener('visibilitychange',resume);window.addEventListener('focus',resume);window.addEventListener('online',resume);
 
-return {refresh:load,destroy(){void orderList.destroy();renderLocation?.clear?.();clearInterval(refreshTimer);unwatch?.();}};
+return {refresh:load,destroy(){void orderList.destroy();renderLocation?.clear?.();clearInterval(refreshTimer);unwatch?.();document.removeEventListener('visibilitychange',resume);window.removeEventListener('focus',resume);window.removeEventListener('online',resume);}};
 
 }

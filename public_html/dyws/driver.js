@@ -52,6 +52,6 @@ export function mountDriver({root=document,api,storageKey='dyws-driver',renderLo
  const initialMap=root.querySelector('#driver-map');if(initialMap&&renderLocation&&token)initialMap.replaceChildren(renderLocation(null));
  root.querySelector('#refresh').onclick=load;root.querySelector('#refresh').disabled=false;root.querySelector('#logout').disabled=false;display();if(token)void load();
  const refreshTimer=setInterval(()=>{if(!api.watch&&token&&!document.hidden)void load();},10000);
- document.addEventListener('visibilitychange',hidden);window.addEventListener('pagehide',pagehide);
- return {refresh:load,destroy(){clearInterval(refreshTimer);unwatch?.();gps.destroy();renderLocation?.destroy?.();permission?.removeEventListener('change',permissionChanged);document.removeEventListener('visibilitychange',hidden);window.removeEventListener('pagehide',pagehide);}};
+ document.addEventListener('visibilitychange',hidden);window.addEventListener('focus',hidden);window.addEventListener('online',hidden);window.addEventListener('pagehide',pagehide);
+ return {refresh:load,destroy(){clearInterval(refreshTimer);unwatch?.();gps.destroy();renderLocation?.destroy?.();permission?.removeEventListener('change',permissionChanged);document.removeEventListener('visibilitychange',hidden);window.removeEventListener('focus',hidden);window.removeEventListener('online',hidden);window.removeEventListener('pagehide',pagehide);}};
 }

@@ -25,16 +25,19 @@ export function mountOrderList({root,plugins,renderOrder}){
  return {
   async update(data,{force=false}={}){
    data={...data,orders:sortOrders(data.orders)};current=data;
+   const focused=root.ownerDocument.activeElement,editing=focused?.matches?.('input,select,textarea,[contenteditable="true"]');
    // Preserve a selection or typed value while an operator is working.
-   if(force||!detail.contains(root.ownerDocument.activeElement))show();
+   if(force||!editing||!detail.contains(focused))show();
    const key=JSON.stringify([getTimeZone(),data.orders.map(o=>[o.id,o.created_at,o.customer_name,o.status,o.fulfillment,o.payment_status,o.total,o.currency])]);
-   if(key===signature||(!force&&(tableRoot.contains(root.ownerDocument.activeElement)||filters.includes(root.ownerDocument.activeElement))))return;
+   if(key===signature||(!force&&editing&&(tableRoot.contains(focused)||filters.includes(focused))))return;
    signature=key;root.querySelector('[data-order-zone]').textContent=getTimeZone();
    await plugins?.runAction('admin:tables',{root:tableRoot,phase:'dispose'});instance=null;
+   const restoreOrderFocus=tableRoot.contains(root.ownerDocument.activeElement)?root.ownerDocument.activeElement?.dataset?.openOrder:null;
    for(const control of filters){if(control.dataset.orderFilter==='status')continue;const value=control.value,values=[...new Set(data.orders.map(o=>statusText(o[control.dataset.orderFilter])))].sort();if(value&&!values.includes(value))values.push(value);control.innerHTML='<option value="">All</option>'+values.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('');control.value=value;}
    tableRoot.innerHTML=`<div class="dyws-table-wrap"><table data-dyws-table="orders"><caption class="dyws-visually-hidden">Orders, active first</caption><thead><tr>${['Order','Placed','Customer','Status','Type','Payment','Total','Priority'].map(label=>`<th scope="col" ${label==='Priority'?'hidden':''}>${label}</th>`).join('')}</tr></thead><tbody>${data.orders.map(o=>`<tr data-order-id="${esc(o.id)}"><td><button type="button" class="dyws-secondary" data-open-order="${esc(o.id)}" aria-label="View order ${esc(o.id)}">${esc(o.id)}</button></td><td data-order="${Number(o.created_at)}">${esc(formatDateTime(o.created_at))}</td><td>${esc(o.customer_name)}</td><td>${esc(statusText(o.status))}</td><td>${esc(o.fulfillment)}</td><td>${esc(statusText(o.payment_status))}</td><td data-order="${Number(o.total)}">${esc(money(o.total,o.currency))}</td><td hidden>${isActiveOrder(o)?0:1}</td></tr>`).join('')}</tbody></table></div>`;
    await plugins?.runAction('admin:tables',{root:tableRoot,options:{language:{zeroRecords:'No matching orders. Try another status or search.'},order:[[1,'desc']],orderFixed:{pre:[[7,'asc']]},columnDefs:[{targets:7,visible:false,searchable:false}],layout:{topEnd:null}},ready:table=>{instance=table;instance.search(search.value);filters.forEach((control,i)=>instance.column(i+3).search(control.dataset.orderFilter==='status'?value=>matchesOrderStatus(value.replaceAll(' ','_'),control.value):control.value,{exact:true}));instance.draw(false);}});
    if(!instance)filter();
+   if(restoreOrderFocus&&(!root.ownerDocument.activeElement||root.ownerDocument.activeElement===root.ownerDocument.body||root.ownerDocument.activeElement===focused))tableRoot.querySelector(`[data-open-order="${restoreOrderFocus}"]`)?.focus({preventScroll:true});
   },
   async clear(){await plugins?.runAction('admin:tables',{root:tableRoot,phase:'dispose',forget:true});instance=null;signature='';selected=null;current={orders:[],drivers:[]};tableRoot.replaceChildren();show();search.value='';filters.forEach(control=>control.value=control.dataset.orderFilter==='status'?'active':'');},
   destroy(){return plugins?.runAction('admin:tables',{root:tableRoot,phase:'dispose',forget:true});}
