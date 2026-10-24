@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
-"""Verify the published ZIP's bytes, versions, source inventory and documentation assets."""
+"""Verify the optional install ZIP's bytes, versions, source inventory and documentation assets."""
 import hashlib,json,pathlib,re,stat,zipfile
 root=pathlib.Path(__file__).resolve().parents[1]
 version=(root/'VERSION').read_text().strip()
 assert re.fullmatch(r'\d+\.\d+\.\d+',version),'Invalid VERSION'
 for name in ['package.json','public_html/dyws/package.json']:
  assert json.loads((root/name).read_text())['version']==version,'Version mismatch: '+name
-archive=root/'dyws.zip'
-assert (root/'SHA256SUMS').read_text()==hashlib.sha256(archive.read_bytes()).hexdigest()+'  dyws.zip\n','Archive checksum mismatch'
+output=root/'dist'
+archive=output/'dyws.zip'
+assert (output/'SHA256SUMS').read_text()==hashlib.sha256(archive.read_bytes()).hexdigest()+'  dyws.zip\n','Archive checksum mismatch'
 with zipfile.ZipFile(archive) as z:
  assert not z.testzip(),'Corrupt ZIP'
  names=z.namelist();assert len(names)==len(set(names)),'Duplicate ZIP entries'

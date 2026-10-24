@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the single install ZIP from tracked source plus locked Composer dependencies."""
+"""Build an optional install ZIP in dist/ from tracked source plus locked Composer dependencies."""
 import hashlib,json,pathlib,subprocess,zipfile
 root=pathlib.Path(__file__).resolve().parents[1]
 version=(root/'VERSION').read_text().strip()
@@ -25,7 +25,9 @@ for needed in ['VERSION','CHANGELOG.md','modules/dyws/realtime/server.js','modul
 files['var/.gitkeep']=b''
 manifest={'version':version,'files':{name:hashlib.sha256(data).hexdigest() for name,data in sorted(files.items())}}
 files['MANIFEST.json']=(json.dumps(manifest,indent=2)+'\n').encode()
-archive=root/'dyws.zip'
+output=root/'dist'
+output.mkdir(exist_ok=True)
+archive=output/'dyws.zip'
 with zipfile.ZipFile(archive,'w',compression=zipfile.ZIP_DEFLATED,compresslevel=9) as z:
  for name,data in sorted(files.items()):
   entry=zipfile.ZipInfo('dyws/'+name,date_time=(2026,1,1,0,0,0));entry.compress_type=zipfile.ZIP_DEFLATED;entry.external_attr=0o100644<<16;z.writestr(entry,data)
@@ -33,5 +35,5 @@ with zipfile.ZipFile(archive) as z:
  if z.testzip():raise SystemExit('ZIP integrity check failed.')
 print(f'{archive}: {len(files)} files, {archive.stat().st_size:,} bytes')
 digest=hashlib.sha256(archive.read_bytes()).hexdigest()
-(root/'SHA256SUMS').write_text(digest+'  dyws.zip\n')
+(output/'SHA256SUMS').write_text(digest+'  dyws.zip\n')
 print('SHA256 '+digest)

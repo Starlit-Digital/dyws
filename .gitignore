@@ -7,3 +7,8 @@ node_modules/
 !/var/.gitkeep
 public_html/api/bootstrap-path.php
 /vendor/
+
+# Optional generated release downloads
+/dist/
+/dyws.zip
+/SHA256SUMS
