@@ -1,3 +1,4 @@
+import {captureCheckout,restoreCheckout} from './checkout-draft.js';
 import {splitAddress} from './address-lines.js';
 import {formatPhoneField} from './phone-input.js';
 import {readCatalog} from './catalog-data.js';
@@ -49,7 +50,7 @@ export class DYWSOrdering extends HTMLElement {
     this.shadowRoot.querySelector('.dyws-cart-launch').onclick=()=>this.open();
     this.shadowRoot.querySelector('.dyws-close').onclick=()=>this.dialog.close();
     this.dialog.addEventListener('cancel',e=>{if(this.busy)e.preventDefault();});
-    this.dialog.addEventListener('close',()=>this.cancelReview());
+    this.dialog.addEventListener('close',()=>{const form=this.shadowRoot.querySelector('form');if(form)this.checkoutDraft=captureCheckout(form);this.cancelReview();});
     this.updateButton();
   }
   open(){this.showCart();this.dialog.showModal();}
@@ -75,7 +76,7 @@ export class DYWSOrdering extends HTMLElement {
     const t=totals(this.lines,this.catalog.taxBasisPoints);const content=this.shadowRoot.querySelector('.dyws-content');
     const configuredLocations=this.catalog.locations||[],locations=configuredLocations.length?configuredLocations.filter(location=>location.active):[{id:'',name:this.catalog.businessName||this.catalog.restaurant||'Business',address:this.catalog.pickupAddress||'',phone:this.catalog.businessPhone||''}];
     content.innerHTML=`<form><label data-dyws-order-field="location"><select aria-label="Pickup location" name="locationId" ${configuredLocations.length?'required':''}>${locations.map(location=>`<option value="${escapeHTML(location.id)}">${escapeHTML(location.name)}${location.address?' · '+escapeHTML(location.address):''}</option>`).join('')}</select></label><div class="dyws-checkout-grid"><label data-dyws-order-field="name">Name<input name="customer" required maxlength="100" autocomplete="off"></label><label data-dyws-order-field="phone">Phone number<input name="phone" type="tel" required pattern="[0-9+() .-]{7,30}" maxlength="30" autocomplete="off"></label></div><fieldset class="dyws-fulfillment" data-dyws-order-field="fulfillment"><legend class="dyws-visually-hidden">Order type</legend><div class="dyws-pillbox"><label><input type="radio" name="fulfillment" value="pickup" aria-label="Pickup" checked><span>Pickup</span></label><label><input type="radio" name="fulfillment" value="delivery" aria-label="Delivery"><span>Delivery</span></label></div></fieldset><fieldset class="dyws-delivery-address" aria-label="Delivery address" hidden disabled><div class="dyws-checkout-grid"><label class="dyws-address-street" data-dyws-order-field="street" data-dyws-delivery>Street address<input name="addressLine1" required maxlength="120" autocomplete="address-line1"></label><label data-dyws-order-field="unit" data-dyws-delivery>Unit<input name="addressLine2" maxlength="60" autocomplete="address-line2"></label><input type="hidden" name="addressPostal"></div></fieldset><label data-dyws-order-field="notes">Order notes, optional<textarea name="notes" maxlength="500"></textarea></label><p class="dyws-pickup-location" data-dyws-order-field="pickup">Pickup at <a href="https://www.google.com/maps/search/?api=1&amp;query=${encodeURIComponent(this.catalog.pickupAddress || this.catalog.businessName || this.catalog.restaurant)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHTML(this.catalog.pickupAddress || this.catalog.businessName || this.catalog.restaurant)}, Google Maps, opens in a new tab">${escapeHTML(this.catalog.pickupAddress || this.catalog.businessName || this.catalog.restaurant)} ↗</a></p><p data-dyws-order-field="total"><strong class="dyws-checkout-total">Total ${this.amount(t.total)}</strong></p><div data-dyws-checkout-fields></div><p role="alert" class="dyws-error"></p><div class="dyws-actions" data-dyws-order-field="actions"><button type="button" class="dyws-muted dyws-back">Back</button><button type="submit">Review order</button></div></form>`;
-    content.querySelector('.dyws-back').onclick=()=>this.showCart();
+    content.querySelector('.dyws-back').onclick=()=>{this.checkoutDraft=captureCheckout(content.querySelector('form'));this.showCart();};
     const form=content.querySelector('form');
     form.addEventListener('input',formatPhoneField);
     const orderType=form.querySelector('.dyws-fulfillment'),customerFields=form.elements.customer.closest('.dyws-checkout-grid');
@@ -108,7 +109,7 @@ export class DYWSOrdering extends HTMLElement {
      await this.plugins.runAction('checkout:fields',{root:form.querySelector('[data-dyws-checkout-fields]'),form,pluginData});
      buttons.forEach(button=>button.disabled=false);
     }
-    this.applyLayout('checkout',form);form.querySelector('.dyws-fulfillment').onchange();
+    this.applyLayout('checkout',form);restoreCheckout(form,this.checkoutDraft||[]);form.elements.locationId.onchange();form.querySelector('.dyws-fulfillment').onchange();
     fieldsReady=true;form.querySelector('input').focus();
   }
   reviewOrder({order,form,content}){
@@ -140,7 +141,7 @@ export class DYWSOrdering extends HTMLElement {
         if(typeof this.submitOrder!=='function') throw new Error('No checkout adapter is configured.');
         const result=await this.submitOrder(order);
         if(!result?.id)throw new Error('Order confirmation was not received.');
-        this.lines=[];this.persist();
+        this.checkoutDraft=null;this.lines=[];this.persist();
         content.innerHTML=`<h3>Order received</h3><p>Reference <strong>${escapeHTML(result.id)}</strong></p><p>Your order is saved. ${result.paymentProvider!=='demo'?'Continue to payment in the tracking panel on this page.':'Follow its status on this page.'}</p><button type="button" class="dyws-done">Back to items</button>`;
         content.querySelector('.dyws-done').onclick=()=>{this.dialog.close();this.dispatchEvent(new CustomEvent('order-confirmation-closed',{bubbles:true}));};
         this.dispatchEvent(new CustomEvent('order-complete',{detail:{id:result.id,demo:result.demo===true,trackingToken:result.trackingToken},bubbles:true}));

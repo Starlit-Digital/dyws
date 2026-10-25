@@ -172,6 +172,7 @@
       "dyws/cart.js",
       "dyws/catalog-data.js",
       "dyws/catalog.js?v=39",
+      "dyws/checkout-draft.js",
       "dyws/component.js?v=39",
       "dyws/confirmation-countdown.js",
       "dyws/date-time.js",
