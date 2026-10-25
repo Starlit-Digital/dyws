@@ -32,7 +32,7 @@ export function register(plugin){
   if(!root||root.querySelector('.dyws-address-lookup'))return;
   const postal=form.elements.namedItem('addressPostal');if(postal?.type==='hidden')root.append(postal);
   const address=form.querySelector('.dyws-delivery-address');if(address)address.before(root);
-  const fieldset=element(doc,'div'),grid=element(doc,'div',null,'dyws-checkout-grid');fieldset.dataset.dywsDelivery='';fieldset.append(grid);root.append(fieldset);
+  const fieldset=element(doc,'div');fieldset.dataset.dywsDelivery='';root.append(fieldset);
   const link=element(doc,'link');link.rel='stylesheet';link.href=cssURL;fieldset.append(link);
   for(const [name,title,auto,max]of [['addressCity','City','address-level2',80],['addressRegion','Province','address-level1',60]]){
    if(form.elements.namedItem(name))continue;

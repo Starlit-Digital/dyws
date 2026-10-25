@@ -163,3 +163,24 @@
 
 .dyws-ordering .dyws-final-review .dyws-actions{grid-template-columns:minmax(0,1fr) minmax(7rem,auto) minmax(0,1.4fr);gap:.85rem}.dyws-ordering .dyws-final-review .dyws-actions .dyws-review-pause{min-width:7rem;padding:.65rem .7rem}.dyws-review-pause::before{content:"Ⅱ";display:inline-block;margin-right:.5rem;font-weight:700}
 @media(max-width:400px){.dyws-ordering .dyws-final-review .dyws-actions{grid-template-columns:minmax(0,1fr) minmax(6rem,auto) minmax(0,1.4fr);gap:.4rem}.dyws-ordering .dyws-final-review .dyws-actions .dyws-review-pause{min-width:6rem;padding-inline:.35rem}}
+
+.dyws-review-pause[data-paused="true"]::before{content:"▶"}
+
+/* Shared rhythm for cart, checkout and final review. */
+.dyws-ordering dialog,.dyws-ordering dialog:has(.dyws-final-review){--dyws-stage-space:20px;padding:24px}
+.dyws-ordering header,.dyws-ordering dialog:has(.dyws-final-review) header{margin-bottom:var(--dyws-stage-space);row-gap:12px}
+.dyws-ordering .dyws-line,.dyws-ordering .dyws-review-items li{padding:12px 0;border:0}
+.dyws-ordering .dyws-summary-panel{padding:0;margin:var(--dyws-stage-space) 0;background:transparent;border:0;border-radius:0}
+.dyws-ordering .dyws-grand-total,.dyws-ordering .dyws-final-review .dyws-grand-total{border:0;margin:var(--dyws-stage-space) 0;padding:0}
+.dyws-ordering .dyws-checkout-grid,.dyws-ordering .dyws-fulfillment{margin-block:var(--dyws-stage-space)}
+.dyws-ordering .dyws-checkout-grid{gap:12px}
+.dyws-ordering form>label{margin-block:var(--dyws-stage-space)}
+.dyws-ordering .dyws-review-details{margin-top:var(--dyws-stage-space);gap:12px 20px}
+.dyws-ordering .dyws-review-charges{border:0;padding:12px 0}
+.dyws-ordering .dyws-review-footer{border:0;margin-top:var(--dyws-stage-space);padding:0;box-shadow:none}
+.dyws-ordering .dyws-checkout-total{margin:var(--dyws-stage-space) 0}
+@media(max-width:500px){.dyws-ordering dialog,.dyws-ordering dialog:has(.dyws-final-review){--dyws-stage-space:16px;padding:20px}}
+
+/* Use the available viewport height consistently in every ordering stage. */
+.dyws-ordering dialog,.dyws-ordering dialog:has(.dyws-final-review){box-sizing:border-box;height:100dvh;max-height:100dvh;margin-block:0;border-radius:24px;overflow-y:auto;overscroll-behavior:contain;padding-top:max(24px,env(safe-area-inset-top));padding-bottom:max(24px,env(safe-area-inset-bottom))}
+@media(max-width:500px){.dyws-ordering dialog,.dyws-ordering dialog:has(.dyws-final-review){padding-top:max(20px,env(safe-area-inset-top));padding-bottom:max(20px,env(safe-area-inset-bottom))}}
