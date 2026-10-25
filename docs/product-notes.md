@@ -10,6 +10,12 @@ Starlit Diner is the fictional reference host at `https://sltd.ca/diner-demo/`. 
 
 Working line: Your website. Your orders. Delivered.
 
+## Product domain, October 24, 2026
+
+The owner registered `dyws.ca` at Namecheap and requested it on the existing Hostinger shared hosting account. Its PHP/HTML website was created on the Premium Web Hosting plan. The owner clarified that DNS stays at Namecheap, matching the other domains: use Namecheap BasicDNS, with `A @` pointing to Hostinger's `191.101.13.124` and `CNAME www` pointing to `dyws.ca`, both with a 300 second TTL. Do not switch this domain to Hostinger nameservers.
+
+This setup reserves the product's own web address and hosting space. It currently contains Hostinger's default page. Product website content and a DYWS runtime have not been deployed there. The existing product page at `https://sltd.ca/dyws/` and diner examples remain in place. See [domain hosting details and verification status](deployment.md#dywsca-hosting-october-24-2026).
+
 ## Starlit Developer Tools and SiteCraft
 
 DYWS is listed under Developer Tools on sltd.ca, including the homepage, Projects page and existing footer links. Its role is the reusable ordering and delivery platform behind suitable business websites.

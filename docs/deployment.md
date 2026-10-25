@@ -44,6 +44,32 @@ The hosted diner is at `https://sltd.ca/diner-demo/`, with administrator entry a
 
 Only `DYWS_CONFIG` and `DYWS_BOOTSTRAP` override private paths. Do not publish the repository root. Application pages use PHP and directory URLs; obsolete HTML entry points are not supported.
 
+## dyws.ca hosting, October 24, 2026
+
+The owner requested `dyws.ca` on the existing Hostinger shared hosting account. The PHP/HTML website was created in hPanel under Premium Web Hosting, bringing the plan to 22 of 100 websites. This is hosting provisioning only; the domain currently serves Hostinger's `default.php`, with no DYWS runtime or product website deployed.
+
+| Setting | Confirmed value |
+| --- | --- |
+| Domain registrar | Namecheap |
+| DNS provider | Namecheap BasicDNS |
+| Nameservers | `dns1.registrar-servers.com`, `dns2.registrar-servers.com` |
+| Root record | `A @ 191.101.13.124`, TTL 300 seconds |
+| www record | `CNAME www dyws.ca.`, TTL 300 seconds |
+| Hosting plan | Existing Hostinger Premium Web Hosting |
+| Website type | PHP/HTML website |
+| SSH alias | `pct-hostinger` |
+| Server | `191.101.13.124`, SSH port `65002` |
+| Hosting account | `u394197407` |
+| Document root | `/home/u394197407/domains/dyws.ca/public_html` |
+| hPanel dashboard | `https://hpanel.hostinger.com/websites/dyws.ca` |
+| Temporary preview | `https://orchid-chough-371816.hostingersite.com/` |
+
+The owner clarified that Namecheap must remain the DNS provider, matching the other domains. An initial change to Hostinger nameservers was reversed. Namecheap BasicDNS is restored. The former `www` parking CNAME was changed to `dyws.ca.`, and the apex URL redirect was changed into the Hostinger A record. Both web records use the 300 second TTL shown by Hostinger's Connect via DNS records guide. The existing email forwarding settings, registration and renewal settings were left as they were; no email forwarders were defined.
+
+Verification after correction: Namecheap displayed BasicDNS and the saved A and CNAME records. Both `dns1.registrar-servers.com` and `dns2.registrar-servers.com` returned the apex A record `191.101.13.124` and the `www` CNAME chain to that same IP, each with TTL 300. Hostinger's Connect via DNS records verification was started. Its website connection and SSL installation were still pending. The .ca parent zone and public resolver had not yet published or resolved this newly registered domain. Hostinger advised allowing up to 24 hours for connection. The earlier SSH check confirmed the document root and default page on the existing shared account, and an HTTP request for `dyws.ca` directed to `191.101.13.124` returned 200 and Hostinger's Default page.
+
+After propagation, verify the public Namecheap delegation, apex and `www` resolution, Hostinger's Connected status and a valid HTTPS certificate before describing the domain as live. Keep DNS records at Namecheap and hosting at Hostinger. No application, data, credentials or source repository was uploaded as part of this hosting setup. Keep future private application files and configuration outside `public_html`.
+
 ## Existing data and migrations
 
 Fresh installs already use SQLite for orders and accounts. `server/migrate-accounts.php` takes a consistent SQLite snapshot and private JSON backups, imports credentials and driver records once per tenant, and archives the imported account files. Run it with the existing configuration path when upgrading an installation that still has JSON credentials. Existing database filenames and tenant IDs are retained.
