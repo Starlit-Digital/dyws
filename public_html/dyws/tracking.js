@@ -1,3 +1,4 @@
+import {driverIconImage} from './driver-icons.js';
 import {statusBadge} from './status-badge.js';
 import {formatTime} from './date-time.js';
 import {pluginSlot} from './plugin-ui.js?v=39';
@@ -49,7 +50,7 @@ export function createTracking({api,container,role=defaultRole,trackingPage,rend
    <div class="dyws-tracking-heading"><${heading} class="dyws-tracking-status">Connecting…</${heading}><p class="dyws-tracking-message"></p></div>
    <div class="dyws-tracking-arrival"><div class="dyws-pending-indicator" aria-hidden="true" hidden><svg viewBox="0 0 48 48" focusable="false"><circle cx="24" cy="24" r="17"/><path d="M24 14v11l7 4"/></svg><span></span><span></span><span></span></div><p class="dyws-arrival-label">Order status</p><strong class="dyws-arrival-value">Checking your order</strong><p class="dyws-arrival-detail"></p></div>
    <p class="dyws-tracking-updated dyws-note"></p><ol class="dyws-tracking-timeline" aria-label="Order progress"></ol><p class="dyws-tracking-complete" hidden>Your order is complete. No further action is needed.</p>
-   <div class="dyws-tracking-driver" hidden><p class="dyws-driver-label"></p><strong class="dyws-driver-name"></strong><p class="dyws-driver-vehicle"></p></div><div class="dyws-tracking-gps"></div><div class="dyws-tracking-map"></div>
+   <div class="dyws-tracking-driver" hidden><span class="dyws-tracking-driver-icon"></span><p class="dyws-driver-label"></p><strong class="dyws-driver-name"></strong><p class="dyws-driver-vehicle"></p></div><div class="dyws-tracking-gps"></div><div class="dyws-tracking-map"></div>
    <div class="dyws-tracking-details" hidden><h2 class="dyws-visually-hidden">Order details</h2><article class="dyws-tracking-receipt"></article><div class="dyws-tracking-service"><div class="dyws-tracking-fulfillment-details"></div><div class="dyws-tracking-payment"></div><div class="dyws-tracking-help"></div></div></div>
    ${trackingPage?`<p><a class="dyws-tracking-link" href="${escapeHTML(trackingPage)}#${encodeURIComponent(id)}.${encodeURIComponent(token)}">Open private tracking page</a></p>`:''}<p class="dyws-tracking-error" role="alert"></p>${shopPage?`<a class="dyws-tracking-return" href="${escapeHTML(shopPage)}">Back to menu</a>`:'<button class="dyws-dismiss-tracking" type="button">Hide tracking</button>'}`;
   panel.dataset.pending='false';
@@ -65,6 +66,7 @@ export function createTracking({api,container,role=defaultRole,trackingPage,rend
    const details=trackingDetails(data);html('.dyws-tracking-receipt',details.receipt);html('.dyws-tracking-fulfillment-details',details.fulfillment);html('.dyws-tracking-help',details.help);
    panel.querySelector('.dyws-tracking-receipt').hidden=!details.receipt;panel.querySelector('.dyws-tracking-details').hidden=false;
   const driver=panel.querySelector('.dyws-tracking-driver');driver.hidden=!data.driver;
+  html('.dyws-tracking-driver-icon',data.driver?driverIconImage(data.driver.profileIcon):'');
   write('.dyws-driver-label',role.singular);write('.dyws-driver-name',data.driver?.name||'');
   const vehicle=[data.driver?.vehicleColor,data.driver?.vehicleType].filter(Boolean).join(' · ');write('.dyws-driver-vehicle',vehicle);panel.querySelector('.dyws-driver-vehicle').hidden=!vehicle;
   const payment=panel.querySelector('.dyws-tracking-payment');
@@ -81,7 +83,7 @@ export function createTracking({api,container,role=defaultRole,trackingPage,rend
    if(data.location&&data.status==='out_for_delivery'){
     const l=data.location,stale=data.gpsStale||now()-l.recorded_at*1000>60000;
     gps.innerHTML=`<p>${data.locationSource==='simulated'?'Simulated location · ':''}${escapeHTML(stale?'Last known '+role.singular.toLowerCase()+' location':role.singular+' location')} · updated ${time(l.recorded_at)}</p>${stale?'<p>Location updates are delayed. The position may have changed.</p>':''}`;
-    if(renderLocation){const map=renderLocation(l,role,{destinationAddress:data.deliveryRun?.stopsAhead>0?undefined:data.deliveryAddress,onEstimate:value=>{if(active!==current||lastData!==data||terminalStatuses.has(data.status))return;estimate=value;summary();}});const mapRoot=panel.querySelector('.dyws-tracking-map');if(map&&!mapRoot.contains(map))mapRoot.replaceChildren(map);}
+    if(renderLocation){const map=renderLocation(l,role,{profileIcon:data.driver?.profileIcon,destinationAddress:data.deliveryRun?.stopsAhead>0?undefined:data.deliveryAddress,onEstimate:value=>{if(active!==current||lastData!==data||terminalStatuses.has(data.status))return;estimate=value;summary();}});const mapRoot=panel.querySelector('.dyws-tracking-map');if(map&&!mapRoot.contains(map))mapRoot.replaceChildren(map);}
     else {estimate=null;summary();}
    }else{
     renderLocation?.clear?.();estimate=undefined;panel.querySelector('.dyws-tracking-map').replaceChildren();

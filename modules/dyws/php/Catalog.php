@@ -10,6 +10,15 @@ final class Catalog {
   if(!is_int($out['itemOrderCap'])||$out['itemOrderCap']<1||$out['itemOrderCap']>99)throw new ApiError('Item Order Cap must be a whole number from 1 to 99.');
   if($out['businessPhone']!==''&&!preg_match('/^[0-9+() .-]{7,30}$/D',$out['businessPhone']))throw new ApiError('Enter a valid business phone number.');
   if($out['businessEmail']!==''&&!filter_var($out['businessEmail'],FILTER_VALIDATE_EMAIL))throw new ApiError('Enter a valid business email address.');
+  $out['locations']=[];$locationIds=[];
+  if(!is_array($data['locations']??[])||!array_is_list($data['locations']??[])||count($data['locations']??[])>50)throw new ApiError('Use up to 50 business locations.');
+  foreach($data['locations']??[] as $location){
+   if(!is_array($location))throw new ApiError('Invalid business location.');
+   $location=['id'=>self::id($location['id']??null),'name'=>Store::text($location['name']??null,120),'address'=>Store::text($location['address']??null,240),'phone'=>Store::text($location['phone']??'',30,false),'active'=>$location['active']??true];
+   if(isset($locationIds[$location['id']]))throw new ApiError('Location IDs must be unique.');
+   if(!is_bool($location['active'])||($location['phone']!==''&&!preg_match('/^[0-9+() .-]{7,30}$/D',$location['phone'])))throw new ApiError('Check the location phone number and availability.');
+   $locationIds[$location['id']]=true;$out['locations'][]=$location;
+  }
   if(!in_array($out['currency'],['CAD','USD'],true))throw new ApiError('Use CAD or USD. Other currency decimal rules are not supported yet.');
   self::integer($out['taxBasisPoints'],0,10000);self::integer($out['deliveryFee'],0,100000);
   if(!isset($data['categories'])||!is_array($data['categories'])||!array_is_list($data['categories'])||count($data['categories'])>50)throw new ApiError('Use up to 50 categories.');
@@ -39,6 +48,14 @@ final class Catalog {
   return $out;
  }
  private static function integer($v,int $min,int $max):void {if(!is_int($v)||$v<$min||$v>$max)throw new ApiError('Prices, fees and tax rates must be whole numbers within the supported range.');}
+ public static function orderLocation(array $catalog,string $id):array {
+  if(!empty($catalog['locations'])){
+   foreach($catalog['locations'] as $location)if($location['id']===$id&&$location['active'])return array_intersect_key($location,array_flip(['id','name','address','phone']));
+   throw new ApiError('Choose an available location.');
+  }
+  if($id!=='')throw new ApiError('Choose an available location.');
+  return ['id'=>'','name'=>$catalog['businessName']??$catalog['restaurant']??'','address'=>$catalog['pickupAddress']??'','phone'=>$catalog['businessPhone']??''];
+ }
  private static function id($v):string {if(!is_string($v)||!preg_match('/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,79}$/',$v))throw new ApiError('Use letters, numbers and underscores for IDs.');return $v;}
  private static function image($v):array {
   if(!is_array($v))throw new ApiError('Image needs src and alt fields.');$src=Store::text($v['src']??null,1000);$alt=Store::text($v['alt']??'',250,false);

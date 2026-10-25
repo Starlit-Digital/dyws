@@ -3,6 +3,7 @@ declare(strict_types=1);
 namespace dyws;
 use PDO;
 require_once __DIR__.'/DeliveryRuns.php';
+require_once __DIR__.'/Catalog.php';
 use RuntimeException;
 final class ApiError extends RuntimeException {public int $http; public function __construct(string $message,int $http=422){parent::__construct($message);$this->http=$http;}}
 final class Store {
@@ -20,7 +21,7 @@ final class Store {
    $this->db->exec(file_get_contents(__DIR__.'/schema.sql'));
   });
   $columns=array_column($this->query('PRAGMA table_info(orders)'),'name');
-  foreach(['currency'=>"TEXT NOT NULL DEFAULT 'CAD'",'payment_provider'=>"TEXT NOT NULL DEFAULT 'demo'",'address_json'=>"TEXT NOT NULL DEFAULT '{}'",'plugin_data_json'=>"TEXT NOT NULL DEFAULT '{}'"] as $column=>$definition)if(!in_array($column,$columns,true))$this->db->exec("ALTER TABLE orders ADD COLUMN $column $definition");
+  foreach(['currency'=>"TEXT NOT NULL DEFAULT 'CAD'",'payment_provider'=>"TEXT NOT NULL DEFAULT 'demo'",'address_json'=>"TEXT NOT NULL DEFAULT '{}'",'plugin_data_json'=>"TEXT NOT NULL DEFAULT '{}'",'order_location_json'=>"TEXT NOT NULL DEFAULT '{}'"] as $column=>$definition)if(!in_array($column,$columns,true))$this->db->exec("ALTER TABLE orders ADD COLUMN $column $definition");
  }
  public function transaction(callable $fn){
   $depth=$this->transactionDepth;$savepoint='dyws_tx_'.$depth;
@@ -39,6 +40,8 @@ final class Store {
   $notes=self::text($body['notes']??'',500,false);$fulfillment=$body['fulfillment']??'pickup';if(!in_array($fulfillment,['pickup','delivery'],true))throw new ApiError('Choose pickup or delivery.');
   $addressDetails=null;if($fulfillment==='delivery'&&array_key_exists('addressDetails',$body)){if(!is_array($body['addressDetails']))throw new ApiError('Provide a delivery street address.');$addressDetails=[];foreach(['line1'=>120,'line2'=>60,'city'=>80,'region'=>60,'postalCode'=>20,'country'=>60] as $field=>$max)$addressDetails[$field]=self::text($body['addressDetails'][$field]??'', $max,$field==='line1');if($addressDetails['postalCode']!==''&&in_array(strtolower($addressDetails['country']),['ca','canada'],true)&&!preg_match('/^[A-Z]\d[A-Z] ?\d[A-Z]\d$/i',$addressDetails['postalCode']))throw new ApiError('Enter a valid Canadian postal code.');$body['address']=implode(', ',array_filter($addressDetails,fn($v)=>$v!==''));}
   $address=$fulfillment==='delivery'?self::text($body['address']??null,240):'';
+  $availableLocations=array_values(array_filter($this->catalog['locations']??[],fn($location)=>$location['active']));
+  $locationId=self::text($body['locationId']??(count($availableLocations)===1?$availableLocations[0]['id']:''),80,false);
   $input=$body['lines']??null;if(!is_array($input)||count($input)<1||count($input)>50)throw new ApiError('Choose between 1 and 50 items.');
   $menu=[];foreach($this->catalog['categories'] as $c)foreach($c['items'] as $i)$menu[$i['id']]=$i;
   $lines=[];$subtotal=0;$seen=[];$itemCounts=[];$itemOrderCap=$this->catalog['itemOrderCap']??10;
@@ -52,15 +55,17 @@ final class Store {
   $fee=$fulfillment==='delivery'?($this->catalog['deliveryFee']??395):0;$tax=(int)round(($subtotal+$fee)*$this->catalog['taxBasisPoints']/10000);$total=$subtotal+$fee+$tax;
   $pluginData=$body['pluginData']??[];if(!is_array($pluginData)||count($pluginData)>20||strlen(json_encode($pluginData,JSON_THROW_ON_ERROR))>8192)throw new ApiError('Additional order fields are too large.');
   foreach($pluginData as $plugin=>$value)if(!is_string($plugin)||!preg_match('/^[a-z][a-z0-9-]{0,59}$/D',$plugin)||!is_array($value))throw new ApiError('Invalid additional order fields.');
-  $canonical=['lines'=>$lines,'customer'=>['name'=>$name,'phone'=>$phone],'notes'=>$notes,'fulfillment'=>$fulfillment,'address'=>$address];if($addressDetails!==null)$canonical['addressDetails']=$addressDetails;if($pluginData)$canonical['pluginData']=$pluginData;$fingerprint=hash('sha256',json_encode($canonical));
+  $canonical=['lines'=>$lines,'customer'=>['name'=>$name,'phone'=>$phone],'notes'=>$notes,'fulfillment'=>$fulfillment,'address'=>$address];if($addressDetails!==null)$canonical['addressDetails']=$addressDetails;if($pluginData)$canonical['pluginData']=$pluginData;if($locationId!=='')$canonical['locationId']=$locationId;$fingerprint=hash('sha256',json_encode($canonical));
   return $this->transaction(function()use($key,$fingerprint,$canonical,$subtotal,$fee,$tax,$total,$paymentProvider){
    $existing=$this->query('SELECT * FROM orders WHERE tenant=? AND request_key=?',[$this->tenant,$key]);
    if($existing){if(!hash_equals($existing[0]['fingerprint'],$fingerprint))throw new ApiError('Request key was already used for a different order.',409);return $this->receipt($existing[0],$key);}
+   $orderLocation=Catalog::orderLocation($this->catalog,$canonical['locationId']??'');
    $this->plugins?->validate('order.validating',$canonical,['subtotal'=>$subtotal,'tax'=>$tax,'deliveryFee'=>$fee,'total'=>$total,'currency'=>$this->catalog['currency']]);
    $id='DYWS-'.strtoupper(bin2hex(random_bytes(6)));$token=hash_hmac('sha256',$id.'|'.$key,$GLOBALS['dyws_config']['tracking_secret']);
    $now=time();$this->execute('INSERT INTO orders(id,tenant,request_key,fingerprint,tracking_hash,tracking_expires,status,payment_status,fulfillment,customer_name,customer_phone,address,notes,lines_json,subtotal,tax,delivery_fee,total,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',[$id,$this->tenant,$key,$fingerprint,hash('sha256',$token),$now+86400,'placed','unpaid',$canonical['fulfillment'],$canonical['customer']['name'],$canonical['customer']['phone'],$canonical['address'],$canonical['notes'],json_encode($canonical['lines']),$subtotal,$tax,$fee,$total,$now,$now]);
    $this->execute('UPDATE orders SET currency=?,payment_provider=?,address_json=? WHERE tenant=? AND id=?',[$this->catalog['currency'],$paymentProvider,json_encode($canonical['addressDetails']??new \stdClass()),$this->tenant,$id]);
    $this->execute('UPDATE orders SET plugin_data_json=? WHERE tenant=? AND id=?',[json_encode($canonical['pluginData']??new \stdClass()),$this->tenant,$id]);
+   $this->execute('UPDATE orders SET order_location_json=? WHERE tenant=? AND id=?',[json_encode($orderLocation,JSON_THROW_ON_ERROR),$this->tenant,$id]);
    $this->event($id,'placed','customer');return $this->receipt($this->get($id),$key);
   });
  }
@@ -152,15 +157,19 @@ final class Store {
   $rows=$this->query('SELECT s.source,l.recorded_at,l.accuracy,l.latitude,l.longitude FROM location_shares s LEFT JOIN locations l ON l.tenant=s.tenant AND l.order_id=s.order_id WHERE s.tenant=? AND s.order_id=?',[$this->tenant,$id]);$row=$rows[0]??null;
   return ['sharing'=>$row!==null,'source'=>$row['source']??null,'recordedAt'=>isset($row['recorded_at'])?(int)$row['recorded_at']:null,'accuracy'=>$row['accuracy']??null,'location'=>isset($row['recorded_at'])?['latitude'=>(float)$row['latitude'],'longitude'=>(float)$row['longitude'],'accuracy'=>(float)$row['accuracy'],'recorded_at'=>(int)$row['recorded_at']]:null,'stale'=>!isset($row['recorded_at'])||time()-(int)$row['recorded_at']>60];
  }
+ public function orderLocation(array $order):array {
+  $saved=json_decode($order['order_location_json']??'{}',true);
+  return $saved?:['id'=>'','name'=>$this->catalog['businessName']??$this->catalog['restaurant']??'','address'=>$this->catalog['pickupAddress']??'','phone'=>$this->catalog['businessPhone']??''];
+ }
  private function trackingDriver(array $order):?array {
   if($order['fulfillment']!=='delivery'||!$order['driver_id']||$order['status']==='cancelled')return null;
   if(!$this->query("SELECT 1 FROM sqlite_master WHERE type='table' AND name='drivers'"))return null;
-  return $this->query('SELECT name,vehicle_type AS vehicleType,vehicle_color AS vehicleColor FROM drivers WHERE tenant=? AND id=?',[$this->tenant,$order['driver_id']])[0]??null;
+  return $this->query('SELECT name,vehicle_type AS vehicleType,vehicle_color AS vehicleColor,profile_icon AS profileIcon FROM drivers WHERE tenant=? AND id=?',[$this->tenant,$order['driver_id']])[0]??null;
  }
  public function tracking(string $id,string $token):array{$rows=$this->query('SELECT * FROM orders WHERE tenant=? AND id=? AND tracking_hash=? AND tracking_expires>?',[$this->tenant,$id,hash('sha256',$token),time()]);if(!$rows)throw new ApiError('Tracking link is unavailable or expired.',404);$o=$rows[0];$location=null;if($o['status']==='out_for_delivery'){$locations=$this->query('SELECT latitude,longitude,accuracy,recorded_at FROM locations WHERE tenant=? AND order_id=? AND recorded_at>?',[$this->tenant,$id,time()-900]);$location=$locations[0]??null;}
  $summary=['lines'=>array_map(static fn($line)=>array_intersect_key($line,array_flip(['name','option','quantity','price'])),json_decode($o['lines_json'],true)),'currency'=>$o['currency'],'subtotal'=>(int)$o['subtotal'],'tax'=>(int)$o['tax'],'deliveryFee'=>(int)$o['delivery_fee'],'total'=>(int)$o['total']];
- return ['id'=>$id,'demo'=>true,'status'=>$o['status'],'paymentStatus'=>$o['payment_status'],'paymentProvider'=>$o['payment_provider'],'checkoutStatus'=>$this->query('SELECT status FROM payment_attempts WHERE tenant=? AND order_id=?',[$this->tenant,$id])[0]['status']??null,'fulfillment'=>$o['fulfillment'],'summary'=>$summary,'business'=>['name'=>$this->catalog['businessName'],'phone'=>$this->catalog['businessPhone']??'','pickupAddress'=>$this->catalog['pickupAddress']??''],'createdAt'=>(int)$o['created_at'],'driver'=>$this->trackingDriver($o),'deliveryAddress'=>$o['address'],'updatedAt'=>(int)$o['updated_at'],'events'=>$this->query('SELECT status,created_at FROM events WHERE tenant=? AND order_id=? ORDER BY id',[$this->tenant,$id]),'location'=>$location,'locationSource'=>$this->locationSummary($id)['source'],'deliveryRun'=>(new DeliveryRuns($this))->progress($id),'gpsStale'=>$location?time()-(int)$location['recorded_at']>60:true];}
- public function safeOrder(array $o):array{$o['pluginData']=json_decode($o['plugin_data_json']??'{}',true);unset($o['plugin_data_json']);$o['addressDetails']=json_decode($o['address_json']??'{}',true);unset($o['address_json']);$o['gps']=$this->locationSummary($o['id']);$o['deliveryRun']=(new DeliveryRuns($this))->membership($o['id']);unset($o['request_key'],$o['fingerprint'],$o['tracking_hash'],$o['tracking_expires']);$o['lines']=json_decode($o['lines_json'],true);unset($o['lines_json']);return $o;}
+ return ['id'=>$id,'demo'=>true,'status'=>$o['status'],'paymentStatus'=>$o['payment_status'],'paymentProvider'=>$o['payment_provider'],'checkoutStatus'=>$this->query('SELECT status FROM payment_attempts WHERE tenant=? AND order_id=?',[$this->tenant,$id])[0]['status']??null,'fulfillment'=>$o['fulfillment'],'summary'=>$summary,'orderLocation'=>$this->orderLocation($o),'business'=>['name'=>$this->catalog['businessName'],'phone'=>$this->orderLocation($o)['phone']?:($this->catalog['businessPhone']??''),'pickupAddress'=>$this->orderLocation($o)['address']],'createdAt'=>(int)$o['created_at'],'driver'=>$this->trackingDriver($o),'deliveryAddress'=>$o['address'],'updatedAt'=>(int)$o['updated_at'],'events'=>$this->query('SELECT status,created_at FROM events WHERE tenant=? AND order_id=? ORDER BY id',[$this->tenant,$id]),'location'=>$location,'locationSource'=>$this->locationSummary($id)['source'],'deliveryRun'=>(new DeliveryRuns($this))->progress($id),'gpsStale'=>$location?time()-(int)$location['recorded_at']>60:true];}
+ public function safeOrder(array $o):array{$o['orderLocation']=$this->orderLocation($o);unset($o['order_location_json']);$o['pluginData']=json_decode($o['plugin_data_json']??'{}',true);unset($o['plugin_data_json']);$o['addressDetails']=json_decode($o['address_json']??'{}',true);unset($o['address_json']);$o['gps']=$this->locationSummary($o['id']);$o['deliveryRun']=(new DeliveryRuns($this))->membership($o['id']);unset($o['request_key'],$o['fingerprint'],$o['tracking_hash'],$o['tracking_expires']);$o['lines']=json_decode($o['lines_json'],true);unset($o['lines_json']);return $o;}
  public function orders(?string $driver=null):array{$args=[$this->tenant];$sql='SELECT * FROM orders WHERE tenant=?';if($driver!==null){$sql.=' AND driver_id=? AND status IN (\'ready\',\'out_for_delivery\')';$args[]=$driver;}$sql.=" ORDER BY CASE WHEN status IN ('completed','delivered','cancelled') THEN 1 ELSE 0 END, created_at DESC, id LIMIT 200";return array_map(fn($o)=>$this->safeOrder($o),$this->query($sql,$args));}
  public function reports(int $from,int $to):array{
   $o=$this->query('SELECT count(*) AS orderCount,coalesce(sum(total),0) AS orderedValue,coalesce(sum(CASE WHEN status NOT IN (\'completed\',\'delivered\',\'cancelled\') THEN 1 ELSE 0 END),0) AS activeOrders,coalesce(sum(CASE WHEN status=\'cancelled\' THEN 1 ELSE 0 END),0) AS cancelledOrders FROM orders WHERE tenant=? AND created_at>=? AND created_at<?',[$this->tenant,$from,$to])[0];

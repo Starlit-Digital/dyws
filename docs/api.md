@@ -156,9 +156,9 @@ One driver may have one planned or active run. An order cannot belong to two ope
 
 Public tracking adds nullable `deliveryRun: {stopsAhead, isNext}` only while that order remains on an active run. It exposes no run IDs, other orders, addresses or contacts. Run location endpoints require both driver authentication and the current sharing token. Configured test coordinates override client coordinates just as they do for individual deliveries. Lease expiry, logout and delivery completion retain the existing GPS cleanup rules. The public Installation Lockdown plugin does not allow these new mutation endpoints yet.
 
-Driver profiles accept optional `vehicleType` and `vehicleColor` strings, up to 60 bytes each, through `POST /manager/drivers`. Omitted fields retain saved values; empty strings clear them. The driver listing includes both fields. Changing display details preserves existing sessions and credentials.
+Drivers edit their own vehicle model (`vehicleType`) and colour (`vehicleColor`) through `POST /driver/profile`. The model is optional text, up to 60 bytes. Colours use the 32 named choices in `AdminAccounts::VEHICLE_COLORS`. Omitted fields retain saved values; empty strings clear them. An unchanged legacy free text colour can be retained until its owner chooses a replacement. The manager driver listing includes both fields, but manager account saves preserve the saved vehicle details and ignore submitted replacements. Changing display details preserves existing sessions and credentials.
 
-Private tracking responses include `driver: {name, vehicleType, vehicleColor}` for an assigned delivery, or `null` for an unassigned order, pickup or cancellation. Profiles are looked up within the order tenant only after tracking authorization. No driver login IDs, credentials or contact details are included. Driver edits invalidate live tracking views.
+Private tracking responses include `driver: {name, vehicleType, vehicleColor, profileIcon}` for an assigned delivery, or `null` for an unassigned order, pickup or cancellation. Profiles are looked up within the order tenant only after tracking authorization. No driver login IDs, credentials or contact details are included. Driver edits invalidate live tracking views.
 
 ## Customer tracking receipt
 
@@ -179,3 +179,30 @@ These endpoints exist only while Order Format is active:
 Each template is `{id, name, stage, layout}`. IDs contain 1 to 64 ASCII letters, digits or hyphens; names are nonempty and at most 80 bytes. Stage is `cart`, `checkout` or `review`. Layout contains `rows` and `fields`, each with `id`, `row`, `column`, `span`, `align` and `vertical`. See [Order Format](order-format.md) for placement limits and required controls. At most 30 templates are accepted. Assignments map each stage to a saved template of that same stage, or `null` for its built in default. Saving an unassigned draft alone has no storefront effect.
 
 Stale revisions return 409. Invalid, overlapping or incomplete layouts return 422. Unreadable settings return 503 to managers while the public projection falls back safely. Deactivation removes the routes and preserves the private tenant file. The public demo permits reads but rejects template writes with 403, including authenticated manager writes.
+
+## Payment connector settings
+
+Each active payment connector exposes manager only GET and POST `/manager/plugins/ID/settings` and POST `/manager/plugins/ID/verify`. Settings return safe field definitions and saved flags, never credential values. Writes require a revision and accept sandbox credentials plus explicit fields to clear. Verification runs a provider specific sandbox check. The response explicitly distinguishes connector readiness from checkout availability. See [complete contracts](payment-connectors.md) for fields, event routes and trusted server operations. No arbitrary provider request endpoint or customer payment capture API is exposed.
+
+The manager plugin listing also returns `type`, and active connector records include safe `connection` state. Activating a connector does not select it as the order payment provider.
+
+## Business locations, October 24, 2026
+
+Catalogs may contain `locations`, up to 50 rows with stable `id`, required `name` and `address`, optional `phone`, and boolean `active`. Business details saves this list through the existing revision checked catalog endpoint. Omitting locations retains the single pickup address behaviour.
+
+Order creation accepts `locationId`. A catalog with multiple available locations requires a selection. A sole active location is selected by default when the field is omitted. Unknown and inactive locations are rejected. The server resolves the location from its own catalog and ignores a submitted `orderLocation` object. The location ID participates in the order fingerprint, so a reused request key cannot switch branches.
+
+New orders save a location snapshot in `orders.order_location_json`. Authenticated order results and private tracking return `orderLocation` with `id`, `name`, `address` and `phone`. The existing tracking `location` field still means driver GPS. Renaming, disabling or removing a branch preserves existing order pickup details and valid retries. Older orders without a snapshot use the business pickup address. Checkout and review pickup address links open Google Maps in a separate tab.
+
+## Driver profiles
+
+Authenticated drivers read `GET /driver/profile` and save `POST /driver/profile` with `profileIcon`, optional `vehicleType` and `vehicleColor`, and the current `revision`. All supplied display details save atomically. The supported values are `car`, `suv`, `pickup`, `van`, `motorcycle` and `bicycle`. Car is the default. The server selects the account from the authenticated session; submitted IDs, names, passwords and activity fields cannot change an account through this endpoint. Stale revisions return 409 and unsupported icons or new colours return 422. Managers use their existing driver editor contract, which preserves an omitted icon.
+
+`/driver/orders` includes the signed in driver's safe `profile`. Manager driver summaries, the manager order board's driver list and private customer tracking expose `profileIcon` for rendering. No credentials are included. Changes notify active operator and tracking views. This is an appearance preference and does not change routing mode or location sharing.
+
+## Address suggestions
+
+The optional Nominatim plugin provides `/plugins/nominatim/config`,
+`/plugins/nominatim/search` and manager settings under
+`/manager/plugins/nominatim/settings`. See [the plugin contract](nominatim.md).
+Searches never create orders or establish delivery eligibility.

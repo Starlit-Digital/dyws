@@ -1,0 +1,35 @@
+{
+  "date": "2026-10-24T23:26:03.209471+00:00",
+  "source": "Statistics Canada National Address Register, June 2026",
+  "sourceUrl": "https://www150.statcan.gc.ca/n1/pub/46-26-0002/462600022022001-eng.htm",
+  "licence": "https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+  "coverage": "Alberta",
+  "addresses": 1241507,
+  "municipalities": 289,
+  "indexSizeMiB": 274,
+  "pluginVersion": "1.1.0",
+  "tests": {
+    "matching": "14 passed",
+    "dyws": "npm test passed",
+    "ownerReportedAddress": "matched in Eddie’s and hosted diner"
+  },
+  "sharedHost": {
+    "checks": "civic matching, source, acknowledgement and unknown number passed",
+    "queries": [
+      {
+        "query": "716 101 ave sw, Calgary",
+        "matches": 1,
+        "milliseconds": 214.4
+      },
+      {
+        "query": "999999999 132a ave",
+        "matches": 0,
+        "milliseconds": 572.4
+      }
+    ],
+    "medianMilliseconds": 393.4
+  },
+  "queryStorage": "none",
+  "refresh": "Manual per Statistics Canada release, separate from OSM replication",
+  "rollback": "Restore /var/backups/dyws-civic-20261024/dyws_autocomplete.py and restart only dyws-nominatim.service; retain civic schema and source archive."
+}

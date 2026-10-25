@@ -7,10 +7,10 @@ final class DemoPolicy {
  public const ADDRESS=['line1'=>'123 Example Avenue NW','line2'=>'','city'=>'Edmonton','region'=>'AB','postalCode'=>'T5A 1A1','country'=>'Canada'];
  public const LOCATION=['latitude'=>53.61665,'longitude'=>-113.39804,'accuracy'=>8,'name'=>'Manning Town Centre'];
  public function __construct(private array $config,private ?Store $store){}
- public static function accountFingerprint(array $config):string{$drivers=$config['drivers']??[];foreach($drivers as &$driver){unset($driver['vehicleType'],$driver['vehicleColor']);}unset($driver);return hash('sha256',json_encode([$config['manager_password_hash']??'', $drivers],JSON_THROW_ON_ERROR));}
+ public static function accountFingerprint(array $config):string{$drivers=$config['drivers']??[];foreach($drivers as &$driver){unset($driver['vehicleType'],$driver['vehicleColor'],$driver['profileIcon']);}unset($driver);return hash('sha256',json_encode([$config['manager_password_hash']??'', $drivers],JSON_THROW_ON_ERROR));}
  public function installation():void {
   if(!$this->store||($this->config['driver_test_location']??null)!==self::LOCATION||!empty($this->config['realtime']))throw new ApiError('The installation configuration needs attention.',503);
-  if(array_diff($this->store->plugins->activeIds(),['demo-lockdown','order-reporting','datatables','order-format']))throw new ApiError('Only approved plugins may run here.',503);
+  if(array_diff($this->store->plugins->activeIds(),['demo-lockdown','order-reporting','datatables','order-format','nominatim']))throw new ApiError('Only approved plugins may run here.',503);
   if(!hash_equals($this->config['demo_account_fingerprint']??'',self::accountFingerprint($this->config)))throw new ApiError('Account settings need attention.',503);
   header('Permissions-Policy: geolocation=()');
   // This database is dedicated to disposable examples. Never enable this on merchant data.
@@ -34,9 +34,9 @@ final class DemoPolicy {
  }
  public function request(string $method,string $route,array $body):void {
   // Unknown endpoints, new plugins and future mutations are blocked by default.
-  $reads=['/health','/plugins','/catalog','/settings','/realtime/config','/manager/orders','/manager/reports','/manager/lookup','/manager/catalog','/manager/settings','/manager/drivers','/manager/driver-locations','/manager/plugins','/manager/plugins/order-reporting/dashboard','/plugins/order-format/layouts','/manager/plugins/order-format/templates','/driver/orders','/driver/gps-config'];
+  $reads=['/plugins/nominatim/config','/manager/plugins/nominatim/settings','/health','/plugins','/catalog','/settings','/realtime/config','/manager/orders','/manager/reports','/manager/lookup','/manager/catalog','/manager/settings','/manager/drivers','/manager/driver-locations','/manager/plugins','/manager/plugins/order-reporting/dashboard','/plugins/order-format/layouts','/manager/plugins/order-format/templates','/driver/orders','/driver/gps-config','/driver/profile'];
   $allowed=$method==='GET'&&(in_array($route,$reads,true)||preg_match('~^/tracking/[A-Z]{2,7}-[A-F0-9]{12}$~D',$route));
-  if($method==='POST')$allowed=in_array($route,['/login','/logout','/orders','/realtime/access'],true)||preg_match('~^/manager/orders/[A-Z]{2,7}-[A-F0-9]{12}/(status|assign|payment)$~D',$route)||preg_match('~^/driver/orders/[A-Z]{2,7}-[A-F0-9]{12}/(status|location(?:/(?:start|stop|heartbeat))?)$~D',$route);
+  if($method==='POST')$allowed=in_array($route,['/plugins/nominatim/search','/login','/logout','/orders','/realtime/access','/driver/profile'],true)||preg_match('~^/manager/orders/[A-Z]{2,7}-[A-F0-9]{12}/(status|assign|payment)$~D',$route)||preg_match('~^/driver/orders/[A-Z]{2,7}-[A-F0-9]{12}/(status|location(?:/(?:start|stop|heartbeat))?)$~D',$route);
   if($method==='POST'&&($route==='/manager/runs'||preg_match('~^/manager/runs/RUN-[A-F0-9]{12}$~D',$route)||preg_match('~^/driver/runs/RUN-[A-F0-9]{12}/(?:start|location(?:/(?:start|stop|heartbeat))?)$~D',$route)))$allowed=true;
   if(!$allowed)throw new ApiError('This setting is locked by the installation owner.',403);
   if($method==='POST'&&$route==='/manager/runs'&&$this->store->query('SELECT count(*) AS n FROM delivery_runs WHERE tenant=?',[$this->store->tenant])[0]['n']>=500&&!$this->store->query('SELECT id FROM delivery_runs WHERE tenant=? AND request_key=?',[$this->store->tenant,is_string($body['idempotencyKey']??null)?$body['idempotencyKey']:'']))throw new ApiError('The order limit has been reached. Please try again later.',429);

@@ -9,7 +9,7 @@ test('Google route requests include traffic duration, reuse briefly, refresh and
  const Route={computeRoutes:async request=>{requests.push(request);return {routes:[{path:[{lat:53,lng:-113},{lat:54,lng:-114}],durationMillis:600000,distanceMeters:5000,createPolylines:()=>[{setOptions(){},setMap(value){activeLines+=value?1:-1;}}]}]};}};
  globalThis.google={maps:{importLibrary:async name=>({maps:{Map},marker:{AdvancedMarkerElement:Marker},core:{LatLngBounds:Bounds},routes:{Route}})[name]}};Date.now=()=>time;
  try{
-  const map=await makeGoogleMap({}, {browserKey:'fixture'},{lat:53,lng:-113});
+  const map=await makeGoogleMap({}, {browserKey:'fixture'},{lat:53,lng:-113},{document:{createElement:()=>({})}});
   const first=await map.route({lat:53,lng:-113},'Fictional destination');assert.equal(first.durationMillis,600000);assert.equal(requests[0].routingPreference,'TRAFFIC_AWARE');assert.ok(requests[0].fields.includes('durationMillis'));
   time+=5000;assert.deepEqual(await map.route({lat:53,lng:-113},'Fictional destination'),first);assert.equal(requests.length,1);
   time+=120000;await map.route({lat:53,lng:-113},'Fictional destination');assert.equal(requests.length,2);assert.equal(activeLines,1);assert.equal(fit,2);

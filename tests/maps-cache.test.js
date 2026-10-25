@@ -10,7 +10,7 @@ test('GPS cache expires from measurement time, rejects invalid fixes, clears and
 function harness({enabled=true}={}){
  let creates=0,requests=0,updates=[],clears=0,time=1000000,next=0;const timers=new Map();
  const element=()=>({children:[],hidden:false,setAttribute(){},append(...nodes){this.children.push(...nodes);},replaceChildren(...nodes){this.children=nodes;}});
- const render=createLocationRenderer({api:async()=>{requests++;return {enabled,browserKey:'test',mapId:'DEMO_MAP_ID'};},document:{createElement:element},fallback:()=>element(),makeMap:async()=>{creates++;return {update:p=>updates.push(p),clear:()=>clears++};},now:()=>time,setTimer:(fn,delay)=>{timers.set(++next,{fn,delay});return next;},clearTimer:id=>timers.delete(id)});
+ const render=createLocationRenderer({api:async()=>{requests++;return {enabled,browserKey:'test',mapId:'DEMO_MAP_ID'};},document:{createElement:element},fallback:()=>element(),makeMap:async()=>{creates++;return {update:(p,title,options)=>updates.push({p,title,options}),clear:()=>clears++};},now:()=>time,setTimer:(fn,delay)=>{timers.set(++next,{fn,delay});return next;},clearTimer:id=>timers.delete(id)});
  return {render,creates:()=>creates,requests:()=>requests,updates,clears:()=>clears,expire:async()=>{time+=900000;for(const t of timers.values())t.fn();await settle();}};
 }
 test('GPS updates reuse one map, SDK setup and marker, clearing hides stale coordinates',async()=>{
@@ -30,4 +30,9 @@ test('Map skeleton stays until SDK settles and disappears on failure',async()=>{
  let reject;const el=()=>({children:[],hidden:false,setAttribute(){},append(...nodes){this.children.push(...nodes);},replaceChildren(...nodes){this.children=nodes;}});
  const render=createLocationRenderer({api:async()=>({enabled:true,browserKey:'test'}),document:{createElement:el},now:()=>1000000,makeMap:()=>new Promise((_,r)=>reject=r),fallback:el,setTimer:()=>1,clearTimer:()=>{}});
  const node=render(point);await settle();assert.equal(node.children[1].hidden,false);reject(new Error('Offline'));await settle();assert.equal(node.children[1].hidden,true);assert.equal(node.children[0].hidden,true);assert.equal(node.children[2].children.length,1);render.clear();
+});
+
+test('Changing a profile icon updates the existing marker even at the same coordinates',async()=>{
+ const h=harness();h.render(point,undefined,{profileIcon:'car'});await settle();h.render(point,undefined,{profileIcon:'bicycle'});await settle();
+ assert.equal(h.creates(),1);assert.equal(h.updates.length,2);assert.equal(h.updates[1].options.profileIcon,'bicycle');h.render.clear();
 });

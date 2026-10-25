@@ -1,3 +1,4 @@
+import {driverIcon} from '../../dyws/driver-icons.js';
 import {traceLoad,markReady} from '../../dyws/diagnostics.js';
 import {createGPSCache} from '../../dyws/gps-cache.js';
 let sdkPromise;
@@ -12,11 +13,12 @@ function googleSDK(key){
   script.src='https://maps.googleapis.com/maps/api/js?'+query;script.async=true;script.referrerPolicy='strict-origin-when-cross-origin';timer=setTimeout(()=>finish(new Error('Google Maps timed out.')),15000);document.head.append(script);
  });return sdkPromise;
 }
-export async function makeGoogleMap(element,config,position,{showMarker=true}={}){
+export async function makeGoogleMap(element,config,position,{showMarker=true,profileIcon='car',document:doc=element.ownerDocument||globalThis.document}={}){
  const sdk=await googleSDK(config.browserKey);
  const [{Map},{AdvancedMarkerElement}]=await Promise.all([sdk.importLibrary('maps'),sdk.importLibrary('marker')]);
  const map=new Map(element,{center:position,zoom:15,mapId:config.mapId||'DEMO_MAP_ID',mapTypeControl:false,streetViewControl:false,fullscreenControl:true,gestureHandling:'cooperative'});
- const marker=new AdvancedMarkerElement({map:showMarker?map:null,position,title:'Delivery location'});
+ const artwork=doc.createElement('img');artwork.src=driverIcon(profileIcon).url;artwork.width=48;artwork.height=56;artwork.alt='';
+ const marker=new AdvancedMarkerElement({map:showMarker?map:null,position,title:'Driver location',content:artwork});
  let polylines=[],destinationMarker=null,routeAddress='',lastOrigin=null,routeAt=0,routePending=null,routeEpoch=0,routeEstimate=null;
  function clearRoute(){routeEpoch++;polylines.forEach(line=>line.setMap(null));polylines=[];if(destinationMarker)destinationMarker.map=null;destinationMarker=null;routeAddress='';lastOrigin=null;routePending=null;routeEstimate=null;}
  async function route(origin,address){
@@ -33,14 +35,14 @@ export async function makeGoogleMap(element,config,position,{showMarker=true}={}
    const {LatLngBounds}=await sdk.importLibrary('core');if(epoch!==routeEpoch)return '';const bounds=new LatLngBounds();path.forEach(point=>bounds.extend(point));map.fitBounds(bounds,40);lastOrigin=origin;routeEstimate={durationMillis:routes[0].durationMillis,distanceMeters:routes[0].distanceMeters,calculatedAt:Date.now()};return routeEstimate;
   })().finally(()=>{if(epoch===routeEpoch)routePending=null;});return routePending;
  }
- return {update(p,title){marker.map=map;marker.position=p;marker.title=title;if(!polylines.length)map.panTo(p);},route,clear(){marker.map=null;clearRoute();},reset(center){marker.map=null;clearRoute();map.panTo(center);}};
+ return {update(p,title,{profileIcon='car'}={}){const icon=driverIcon(profileIcon);if(artwork.src!==icon.url)artwork.src=icon.url;marker.map=map;marker.position=p;marker.title=title;if(!polylines.length)map.panTo(p);},route,clear(){marker.map=null;clearRoute();},reset(center){marker.map=null;clearRoute();map.panTo(center);}};
 }
 /** One persistent map per view. Google SDK owns all Google content caching. */
 export function createLocationRenderer({api,fallback,defaultCenter,makeMap=makeGoogleMap,document:doc=globalThis.document,now=Date.now,setTimer=setTimeout,clearTimer=clearTimeout}){
  const root=doc.createElement('div'),canvas=doc.createElement('div'),reference=doc.createElement('div'),note=doc.createElement('p'),skeleton=doc.createElement('div');
  skeleton.className='dyws-skeleton dyws-map-skeleton';skeleton.setAttribute('role','status');skeleton.setAttribute('aria-label','Loading map');skeleton.innerHTML='<span class="dyws-visually-hidden">Loading map…</span><i></i><i></i><i></i>';skeleton.hidden=true;
  root.className='dyws-location-view';canvas.className='dyws-google-map';note.className='dyws-note';root.append(canvas,skeleton,reference,note);root.hidden=true;canvas.hidden=true;
- const ttl=900000,cache=createGPSCache({now,ttl});let map,creating,configuration,timer,signature,lastRole={singular:'Driver'},fallbackSignature,version=0,visible=false,destinationAddress='',onEstimate=null;
+ const ttl=900000,cache=createGPSCache({now,ttl});let map,creating,configuration,timer,signature,lastRole={singular:'Driver'},fallbackSignature,version=0,visible=false,destinationAddress='',profileIcon='car',onEstimate=null;
  function clear(){onEstimate?.(null);onEstimate=null;version++;visible=false;cache.clear();clearTimer(timer);map?.clear();root.hidden=true;skeleton.hidden=true;reference.replaceChildren();signature=null;fallbackSignature=null;}
  function showFallback(p,role){skeleton.hidden=true;if(p){const next=p.latitude+','+p.longitude+'|'+role.singular;if(next!==fallbackSignature){const node=fallback?.(p,role);reference.replaceChildren(...(node?[node]:[]));fallbackSignature=next;}}else reference.replaceChildren();reference.hidden=false;canvas.hidden=true;}
  async function refresh(){
@@ -50,9 +52,9 @@ export function createLocationRenderer({api,fallback,defaultCenter,makeMap=makeG
   if(!config.enabled||!config.browserKey){showFallback(p,lastRole);note.textContent=p?'Live map unavailable. Use the location link.':'Waiting for an active delivery.';onEstimate?.(null);return;}
   try{
    const position=p?{lat:p.latitude,lng:p.longitude}:defaultCenter;canvas.hidden=false;
-   if(!map){creating??=traceLoad('Google Maps initialization',()=>makeMap(canvas,config,position,{showMarker:!!p}));map=await creating;markReady('Map ready');}skeleton.hidden=true;
+   if(!map){creating??=traceLoad('Google Maps initialization',()=>makeMap(canvas,config,position,{showMarker:!!p,profileIcon}));map=await creating;markReady('Map ready');}skeleton.hidden=true;
    if(current!==version||!visible){if(!visible)map.clear();return;}
-   p=cache.get();if(p){const next=p.latitude+','+p.longitude+'|'+lastRole.singular;if(signature!==next){map.update({lat:p.latitude,lng:p.longitude},lastRole.singular+' location');signature=next;}note.textContent=(now()-p.recorded_at*1000>60000?'Last known position. ':'Latest shared position. ')+'Waiting for a driving route.';}
+   p=cache.get();if(p){const next=p.latitude+','+p.longitude+'|'+lastRole.singular+'|'+profileIcon;if(signature!==next){map.update({lat:p.latitude,lng:p.longitude},lastRole.singular+' location',{profileIcon});signature=next;}note.textContent=(now()-p.recorded_at*1000>60000?'Last known position. ':'Latest shared position. ')+'Waiting for a driving route.';}
    else if(defaultCenter){map.reset?.(defaultCenter);map.clear();signature=null;note.textContent='Business area reference. Waiting for the driver location.';}
    else{clear();return;}
    reference.hidden=true;
@@ -62,6 +64,7 @@ export function createLocationRenderer({api,fallback,defaultCenter,makeMap=makeG
  }
  function render(position,role={singular:'Driver'},options={}){
   if(destinationAddress!==(options.destinationAddress||'')){version++;destinationAddress=options.destinationAddress||'';map?.route?.(null,'');}
+  profileIcon=driverIcon(options.profileIcon).id;
   onEstimate=options.onEstimate||null;clearTimer(timer);lastRole=role;visible=true;cache.set(position);
   if(!cache.get()&&!defaultCenter){clear();return root;}
   if(cache.get())timer=setTimer(()=>{cache.clear();map?.clear();signature=null;void refresh();},Math.max(1,Math.min(120000,position.recorded_at*1000+ttl-now())));

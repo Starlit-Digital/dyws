@@ -24,7 +24,7 @@ test('Canvas moves and swaps fields without duplicate controls or overlaps',()=>
  assert.throws(()=>placeField(layout,{...name,span:2},1,1),/occupied/);
 });
 test('Rows can be inserted, empty rows removed and a field centered across both columns',()=>{
- let layout=starterLayout(schema.review);layout=insertRow(layout,2);assert.equal(layout.fields.find(f=>f.id==='delivery').row,3);
+ let layout=starterLayout(schema.review);const deliveryRow=layout.fields.find(f=>f.id==='delivery').row;layout=insertRow(layout,2);assert.equal(layout.fields.find(f=>f.id==='delivery').row,deliveryRow+1);
  const name=layout.fields.find(f=>f.id==='name');layout=placeField(layout,{...name,span:2,align:'center',vertical:'center'},2,1);
  assert.equal(validOrderLayout('review',layout),true);assert.throws(()=>removeRow(layout,2),/empty/);
  layout=insertRow(layout,1);layout=removeRow(layout,1);assert.equal(validOrderLayout('review',layout),true);

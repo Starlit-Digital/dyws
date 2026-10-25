@@ -12,7 +12,7 @@ tracked=subprocess.check_output(['git','ls-files','-z'],cwd=root).decode().split
 files={}
 for name in tracked:
  if not name:continue
- if name.startswith(('public_html/','modules/dyws/php/','modules/dyws/realtime/','server/','plugins/','examples/','docs/')) or name in ['README.md','INSTALL.md','VERSION','CHANGELOG.md','composer.json','composer.lock','package.json']:
+ if name.startswith(('public_html/','modules/dyws/php/','modules/dyws/realtime/','server/','plugins/','examples/','docs/','services/nominatim/')) or name in ['README.md','INSTALL.md','VERSION','CHANGELOG.md','composer.json','composer.lock','package.json']:
   if name=='public_html/api/bootstrap-path.php' or pathlib.Path(name).suffix in ['.sqlite','.db'] or '/node_modules/' in name:raise SystemExit('Refusing private/runtime file: '+name)
   path=root/name
   if path.is_symlink():raise SystemExit('Refusing source symlink: '+name)
@@ -22,6 +22,13 @@ for path in (root/'vendor').rglob('*'):
  if path.is_file():files[path.relative_to(root).as_posix()]=path.read_bytes()
 for needed in ['VERSION','CHANGELOG.md','modules/dyws/realtime/server.js','modules/dyws/realtime/package-lock.json','public_html/dyws/admin-refresh.js','modules/dyws/php/Features.php','public_html/dyws/catalog-data.js','modules/dyws/php/PageData.php','public_html/dyws/tracking-handoff.js','public_html/platform/preloads.json','modules/dyws/php/AdminData.php','public_html/dyws/diagnostics.js','public_html/admin/page.php','public_html/auth/page.php','modules/dyws/php/AdminSession.php','public_html/home.php','public_html/orders/page.php','public_html/api/endpoint.php','server/router.php','public_html/setup/install.php','modules/dyws/php/Installer.php','modules/dyws/php/accounts.sql','modules/dyws/php/hooks.json','plugins/stripe/plugin.json','public_html/plugins/stripe/index.js','plugins/google-maps/plugin.json','public_html/plugins/google-maps/index.js','plugins/order-reporting/plugin.json','public_html/plugins/order-reporting/index.js','plugins/datatables/plugin.json','public_html/plugins/datatables/vendor/dataTables.min.js','plugins/order-format/plugin.json','plugins/order-format/plugin.php','plugins/order-format/Templates.php','plugins/order-format/schema.json','public_html/plugins/order-format/index.js','public_html/plugins/order-format/editor.php','public_html/plugins/order-format/editor.js','public_html/plugins/order-format/editor.css','public_html/plugins/order-format/model.js','public_html/dyws/order-layout.js','INSTALL.md']:
  if needed not in files:raise SystemExit('Stage release source before building: '+needed)
+for provider in ['square','paypal','helcim','clover','moneris','authorize-net']:
+ for part in ['plugins/'+provider+'/plugin.php','plugins/'+provider+'/Connector.php','plugins/'+provider+'/connector.json','plugins/'+provider+'/plugin.json','public_html/plugins/'+provider+'/index.js']:
+  if part not in files:raise SystemExit('Stage release source before building: '+part)
+for part in ['modules/dyws/php/Payments/Connector.php','modules/dyws/php/Payments/register.php','public_html/dyws/payment-connector-settings.js','public_html/dyws/plugin-types.js','public_html/dyws/plugin-edit.js','public_html/plugins/edit.php']:
+ if part not in files:raise SystemExit('Stage release source before building: '+part)
+for part in ['plugins/nominatim/plugin.json','plugins/nominatim/plugin.php','plugins/nominatim/AddressLookup.php','plugins/nominatim/configure.php','public_html/plugins/nominatim/index.js','public_html/plugins/nominatim/search.js','public_html/plugins/nominatim/lookup.css','docs/nominatim.md']:
+ if part not in files:raise SystemExit('Stage release source before building: '+part)
 files['var/.gitkeep']=b''
 manifest={'version':version,'files':{name:hashlib.sha256(data).hexdigest() for name,data in sorted(files.items())}}
 files['MANIFEST.json']=(json.dumps(manifest,indent=2)+'\n').encode()

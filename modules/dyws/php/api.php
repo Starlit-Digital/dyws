@@ -40,6 +40,12 @@ try {
  elseif($method==='GET'&&$route==='/manager/catalog'){dyws_authorize($store,['manager']);$catalog=\dyws\Catalog::load($config['catalog']);$result=['catalog'=>$catalog,'revision'=>\dyws\Catalog::revision($catalog)];}
  elseif($method==='POST'&&$route==='/manager/catalog'){dyws_authorize($store,['manager']);if(!is_array($body['catalog']??null))throw new \dyws\ApiError('Provide a catalog object.');$plugins->validate('catalog.validating',\dyws\Catalog::validate($body['catalog']));$catalog=\dyws\Catalog::save($config['catalog'],$body['catalog'],\dyws\Store::text($body['revision']??null,64));$result=['catalog'=>$catalog,'revision'=>\dyws\Catalog::revision($catalog)];}
  elseif($method==='GET'&&$route==='/manager/driver-locations'){dyws_authorize($store,['manager']);$result=dyws_driver_locations($store);}
+ elseif($method==='GET'&&$route==='/driver/profile'){$session=dyws_authorize($store,['driver']);$result=$accounts->profile($store,$session['subject']);}
+ elseif($method==='POST'&&$route==='/driver/profile'){
+  $session=dyws_authorize($store,['driver']);dyws_limit_requests($store,$config,'driver-profile',30,900);$result=$accounts->saveProfile($store,$session['subject'],$body);
+  $ids=$store->query("SELECT id FROM orders WHERE tenant=? AND driver_id=? AND status IN ('ready','out_for_delivery')",[$store->tenant,$session['subject']]);
+  $realtime->changed(array_merge([$store->tenant.':operators'],array_map(fn($order)=>$store->tenant.':order:'.$order['id'],$ids)));
+ }
  elseif($method==='GET'&&$route==='/manager/drivers'){dyws_authorize($store,['manager']);$result=$accounts->summary($store);}
  elseif($method==='POST'&&$route==='/manager/drivers'){dyws_authorize($store,['manager']);dyws_limit_requests($store,$config,'driver-settings',30,900);$result=$accounts->saveDriver($store,$body);}
  elseif($method==='POST'&&$route==='/manager/password'){dyws_authorize($store,['manager']);dyws_limit_requests($store,$config,'manager-password',10,900);$result=$accounts->changePassword($store,$body);}

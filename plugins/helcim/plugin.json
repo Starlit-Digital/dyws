@@ -1,0 +1,11 @@
+{
+  "id": "helcim",
+  "name": "Helcim",
+  "version": "1.0.0",
+  "apiVersion": 1,
+  "type": "payments",
+  "description": "Helcim sandbox payment connector, encrypted credentials, API operations and verified event hooks. Customer payment activation is a separate integration stage.",
+  "entry": "plugin.php",
+  "browserModule": "index.js",
+  "settingsAnchor": "plugin-helcim"
+}

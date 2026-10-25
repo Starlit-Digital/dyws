@@ -1,0 +1,30 @@
+{
+  "id": "moneris",
+  "name": "Moneris",
+  "documentation": "https://developer.moneris.com/hosted-solutions/docs/setup-guide",
+  "fields": [
+    {
+      "id": "storeId",
+      "label": "Test store ID",
+      "required": true,
+      "secret": true
+    },
+    {
+      "id": "apiToken",
+      "label": "Test API token",
+      "required": true,
+      "secret": true
+    },
+    {
+      "id": "checkoutId",
+      "label": "Checkout configuration ID",
+      "required": true,
+      "secret": true
+    }
+  ],
+  "operations": [
+    "checkout.create",
+    "receipt.get"
+  ],
+  "webhook": null
+}

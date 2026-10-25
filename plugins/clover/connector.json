@@ -1,0 +1,31 @@
+{
+  "id": "clover",
+  "name": "Clover",
+  "documentation": "https://docs.clover.com/dev/docs/hosted-checkout-api",
+  "fields": [
+    {
+      "id": "accessToken",
+      "label": "Sandbox private API token",
+      "required": true,
+      "secret": true
+    },
+    {
+      "id": "merchantId",
+      "label": "Merchant ID",
+      "required": true,
+      "secret": true
+    },
+    {
+      "id": "webhookSecret",
+      "label": "Hosted Checkout signing secret",
+      "required": true,
+      "secret": true
+    }
+  ],
+  "operations": [
+    "merchant.get",
+    "checkout.create",
+    "payment.get"
+  ],
+  "webhook": "/plugins/clover/webhook"
+}

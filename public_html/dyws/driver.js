@@ -1,3 +1,4 @@
+import {mountDriverProfile} from './driver-profile.js';
 import {statusBadge} from './status-badge.js';
 import {formatTime} from './date-time.js';
 import {pluginSlot} from './plugin-ui.js?v=39';
@@ -6,12 +7,14 @@ import {createDriverGPS} from './driver-gps.js';
 export function mountDriver({root=document,api,storageKey='dyws-driver',renderLocation,simulatePosition,testLocationName='Configured origin',plugins,onReady=()=>{},onSignedOut}) {
  if(typeof api!=='function')throw new TypeError('A DYWS API client is required.');
  let token=sessionStorage.getItem(storageKey),loading=false,changing=false,unwatch=null,watchedToken=null,attemptedOrder=null,retryAfter=0,permission,currentDelivery=null,latestPosition=null,reloadPending=false,revision=0;
+ let profile=null;
+ const profileView=mountDriverProfile({root:root.querySelector('#driver-profile'),api,getToken:()=>token,onSaved:data=>{profile=data;revision++;void load();}});
  const feedback=root.querySelector('#delivery-feedback');
  const error=root.querySelector('#error'),state=root.querySelector('#gps-state'),details=root.querySelector('#gps-details');
  function display(){if(token!==watchedToken){unwatch?.();watchedToken=token;unwatch=token?api.watch?.({scope:'operator',token,interval:10000},()=>load()):null;}root.querySelector('#login').hidden=!!token;root.querySelector('#driver-board').hidden=!token;}
- function signedOut(redirect=true){if(feedback)feedback.textContent='';latestPosition=null;currentDelivery=null;renderLocation?.clear?.();attemptedOrder=null;token=null;sessionStorage.removeItem(storageKey);root.querySelector('#deliveries').replaceChildren();display();if(redirect)onSignedOut?.();}
+ function signedOut(redirect=true){profile=null;profileView?.clear();if(feedback)feedback.textContent='';latestPosition=null;currentDelivery=null;renderLocation?.clear?.();attemptedOrder=null;token=null;sessionStorage.removeItem(storageKey);root.querySelector('#deliveries').replaceChildren();display();if(redirect)onSignedOut?.();}
  const gps=createDriverGPS({api,getToken:()=>token,onUnauthorized:signedOut,onState:s=>{
-  state.textContent=s.message;const mapRoot=root.querySelector('#driver-map');if(mapRoot&&renderLocation){if(s.position)latestPosition={...s.position,recorded_at:s.position.recordedAt};if(!s.active)latestPosition=null;const view=renderLocation(latestPosition,undefined,{destinationAddress:currentDelivery?.address});if(view&&!mapRoot.contains(view))mapRoot.replaceChildren(view);}
+  state.textContent=s.message;const mapRoot=root.querySelector('#driver-map');if(mapRoot&&renderLocation){if(s.position)latestPosition={...s.position,recorded_at:s.position.recordedAt};if(!s.active)latestPosition=null;const view=renderLocation(latestPosition,undefined,{destinationAddress:currentDelivery?.address,profileIcon:profile?.profileIcon});if(view&&!mapRoot.contains(view))mapRoot.replaceChildren(view);}
   if(details){if(!s.active)details.textContent='';else if(s.position)details.textContent=(s.source==='simulated'?'Simulated route · ':'Device GPS · ')+s.orderId+' · Last shared '+formatTime(s.sharedAt/1000)+' · '+s.position.latitude.toFixed(5)+', '+s.position.longitude.toFixed(5);else details.textContent=s.orderId+' · '+(s.source==='simulated'?'Simulated route':'Device GPS');}
 
  }});
@@ -40,6 +43,7 @@ export function mountDriver({root=document,api,storageKey='dyws-driver',renderLo
  }
  async function load(){if(!token)return;if(loading){reloadPending=true;return;}loading=true;const login=token,readRevision=revision;try{
   const data=await api('/driver/orders',{token:login});if(token!==login)return;if(readRevision!==revision){reloadPending=true;return;}error.textContent='';
+  profile=data.profile||profile;profileView?.sync(data.profile);
   const runs=data.runs||[],run=runs.find(r=>r.status==='active'),planned=runs.find(r=>r.status==='planned');
   const activeIds=new Set(data.orders.filter(o=>o.status==='out_for_delivery'&&!o.deliveryRun).map(o=>o.id));if(run)activeIds.add(run.id);
   if(gps.orderId&&!activeIds.has(gps.orderId))gps.stop('This delivery is no longer active. GPS is off.');
@@ -48,14 +52,14 @@ export function mountDriver({root=document,api,storageKey='dyws-driver',renderLo
   root.querySelector('#deliveries').innerHTML=runHeader+(ordered.length?ordered.map(o=>{
    const member=o.deliveryRun,next=!member||run?.nextOrderId===o.id;
    const action=member?(run&&next?'<button data-status="delivered">Complete stop</button>':''):(o.status==='ready'?'<button data-status="out_for_delivery">Picked up, start delivery</button>':'<button data-status="delivered">Complete delivery</button>');
-   return `<article data-order="${o.id}" class="${next?'dyws-next-stop':''}"><div class="dyws-stop-heading"><h2>${member?'Stop '+member.position+(next&&run?' · Next':''):o.id}</h2></div>${member?`<p>${o.id}</p>`:''}<p class="dyws-status-row">${statusBadge(o.status)}${statusBadge(o.payment_status)}<strong class="dyws-stop-total">${money(o.total)}</strong></p><div class="dyws-stop-contact"><p><strong>${esc(o.customer_name)}</strong></p><p>${esc(o.customer_phone)}</p><p>${esc(o.address)}</p></div>${o.notes?`<p class="dyws-note">${esc(o.notes)}</p>`:''}<div class="dyws-actions">${action}</div></article>`;
+   return `<article data-order="${o.id}" class="${next?'dyws-next-stop':''}"><div class="dyws-stop-heading"><h2>${member?'Stop '+member.position+(next&&run?' · Next':''):o.id}</h2></div>${member?`<p>${o.id}</p>`:''}<p class="dyws-status-row">${statusBadge(o.status)}${statusBadge(o.payment_status)}<strong class="dyws-stop-total">${money(o.total)}</strong></p>${o.orderLocation?`<p><strong>Pickup: ${esc(o.orderLocation.name)}</strong><br>${esc(o.orderLocation.address)}</p>`:''}<div class="dyws-stop-contact"><p><strong>${esc(o.customer_name)}</strong></p><p>${esc(o.customer_phone)}</p><p>${esc(o.address)}</p></div>${o.notes?`<p class="dyws-note">${esc(o.notes)}</p>`:''}<div class="dyws-actions">${action}</div></article>`;
   }).join(''):'<p>No active deliveries. You’re all caught up.</p>');
   root.querySelectorAll('[data-order]').forEach(card=>{const id=card.dataset.order;card.querySelector('[data-status]')?.addEventListener('click',e=>change(id,e.target.dataset.status));});
   root.querySelectorAll('[data-start-run]').forEach(button=>button.onclick=()=>startRun(button.dataset.startRun));
   root.querySelectorAll('[data-status]').forEach(button=>{button.disabled=changing;});
   const current=run?data.orders.find(o=>o.id===run.nextOrderId):data.orders.find(o=>o.id===gps.orderId&&o.status==='out_for_delivery')||data.orders.find(o=>o.status==='out_for_delivery');
   const gpsId=run?.id||current?.id;
-  currentDelivery=current;if(!current)latestPosition=null;if(simulatePosition&&current?.gps?.location){latestPosition=current.gps.location;state.textContent='Simulated location: '+testLocationName+'. Device GPS is not used.';if(details)details.textContent=current.id+' · Updated '+formatTime(latestPosition.recorded_at);}const mapRoot=root.querySelector('#driver-map');if(mapRoot&&renderLocation){const view=renderLocation(latestPosition,undefined,{destinationAddress:current?.address});if(view&&!mapRoot.contains(view))mapRoot.replaceChildren(view);}
+  currentDelivery=current;if(!current)latestPosition=null;if(simulatePosition&&current?.gps?.location){latestPosition=current.gps.location;state.textContent='Simulated location: '+testLocationName+'. Device GPS is not used.';if(details)details.textContent=current.id+' · Updated '+formatTime(latestPosition.recorded_at);}const mapRoot=root.querySelector('#driver-map');if(mapRoot&&renderLocation){const view=renderLocation(latestPosition,undefined,{destinationAddress:current?.address,profileIcon:profile?.profileIcon});if(view&&!mapRoot.contains(view))mapRoot.replaceChildren(view);}
   if(current&&(simulatePosition||permission?.state!=='denied')&&!document.hidden&&!gps.orderId&&(attemptedOrder!==gpsId||Date.now()>retryAfter)){attemptedOrder=gpsId;retryAfter=Date.now()+60000;void gps.start(gpsId,{simulatePosition,scope:run?'run':'order'});}
   if(!current){attemptedOrder=null;state.textContent=simulatePosition?'Simulated location starts when an assigned delivery is on the way. Device GPS is not used.':'GPS starts automatically when an assigned delivery is on the way.';}
   if(plugins)void plugins.runAction('driver:orders',{root:pluginSlot(root.querySelector('#deliveries'),'driver'),orders:data.orders});

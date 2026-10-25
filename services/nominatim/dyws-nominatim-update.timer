@@ -1,0 +1,11 @@
+[Unit]
+Description=Check for Alberta address updates every hour
+
+[Timer]
+OnCalendar=hourly
+RandomizedDelaySec=10m
+Persistent=true
+Unit=dyws-nominatim-update.service
+
+[Install]
+WantedBy=timers.target

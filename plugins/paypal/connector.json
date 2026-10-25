@@ -1,0 +1,33 @@
+{
+  "id": "paypal",
+  "name": "PayPal",
+  "documentation": "https://developer.paypal.com/checkout/integrate",
+  "fields": [
+    {
+      "id": "clientId",
+      "label": "Sandbox client ID",
+      "required": true,
+      "secret": true
+    },
+    {
+      "id": "clientSecret",
+      "label": "Sandbox client secret",
+      "required": true,
+      "secret": true
+    },
+    {
+      "id": "webhookId",
+      "label": "Webhook ID",
+      "required": true,
+      "secret": true
+    }
+  ],
+  "operations": [
+    "account.verify",
+    "checkout.create",
+    "order.get",
+    "order.capture",
+    "capture.get"
+  ],
+  "webhook": "/plugins/paypal/webhook"
+}

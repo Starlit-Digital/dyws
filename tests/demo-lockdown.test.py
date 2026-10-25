@@ -36,8 +36,15 @@ with tempfile.TemporaryDirectory(prefix='dyws-lockdown-') as temp:
   manager=request('/login',{'role':'manager','username':'admin','password':'admin'})['token']
   driver=request('/login',{'role':'driver','driverId':'driver','password':'driver'})['token']
   request('/manager/orders',token=driver,status=403)
+  profile=request('/driver/profile',token=driver);check(profile['profileIcon']=='car')
+  profile=request('/driver/profile',{'profileIcon':'bicycle','vehicleType':'City bicycle','vehicleColor':'Teal','revision':profile['revision']},driver);check(profile['profileIcon']=='bicycle' and profile['vehicleType']=='City bicycle' and profile['vehicleColor']=='Teal')
+  request('/driver/profile',{'profileIcon':'car','revision':profile['revision']},manager,status=403)
+  request('/driver/profile',{'profileIcon':'bad','revision':profile['revision']},driver,status=422)
   check(len(request('/driver/orders',token=driver)['orders'])==2)
-  manifest=request('/plugins');check([p['id'] for p in manifest['plugins']]==['demo-lockdown','order-reporting','datatables'])
+  manifest=request('/plugins');check([p['id'] for p in manifest['plugins']]==['demo-lockdown','order-reporting','datatables','nominatim'])
+  check(request('/plugins/nominatim/config')['demo'] is True)
+  check(request('/plugins/nominatim/search',{'query':'DO NOT FORWARD THIS'})['results'][0]['line1']=='123 Example Avenue NW')
+  request('/manager/plugins/nominatim/settings',{'enabled':False,'revision':'demo'},manager,status=403)
   check(request('/manager/plugins',token=manager)['plugins'][0] is not None)
   check(next(p for p in request('/manager/plugins',token=manager)['plugins'] if p['id']=='demo-lockdown')['locked'])
   for route in ['/manager/settings','/manager/catalog','/manager/drivers','/manager/password','/manager/plugins','/manager/maps','/manager/stripe','/manager/plugins/google-maps/settings','/manager/plugins/stripe/settings','/plugins/stripe/webhook','/future/admin/change']:

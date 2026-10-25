@@ -13,7 +13,7 @@ Copy both parts from a trusted source, then open **Admin → Plugins** and activ
 
 Plugin state is tenant scoped private JSON beside the database, with revision checking and file locking. A corrupt state file disables plugins and produces an admin warning. Missing optional display plugins do not stop orders. Required payment and validation failures reject affected operations. Reinstall a plugin's files before attempting to activate it again. Removing files does not erase its settings.
 
-The current implementation installs code through Git or file upload using the hosting file manager. There is no browser ZIP uploader, marketplace, automatic updater or uninstall data deletion. Both the Git checkout and optional install ZIP include both halves of all six bundled plugins.
+The current implementation installs code through Git or file upload using the hosting file manager. There is no browser ZIP uploader, marketplace, automatic updater or uninstall data deletion. Both the Git checkout and optional install ZIP include both halves of all twelve bundled plugins.
 
 The fifth bundled plugin, [Installation Lockdown](demo-lockdown.md), is inactive by default and requires explicit private configuration. It cannot be enabled accidentally from the Plugins page. A private `required_plugins` list pins installation policies active before other plugins. Missing or broken required code stops PHP bootstrap with 503, and its deactivation is forbidden.
 
@@ -186,3 +186,15 @@ Bundled features:
 | Order Reporting | `reports.renderer`, `admin:report-controls`, `reports:query`, `reports:export` |
 
 The storefront consumes catalog, cart and checkout hooks. Orders consumes tables, order details and maps. Reports consumes reporting and table hooks. Drivers and the driver console consume location features. Tracking consumes location, payment and tracking hooks. Settings consumes settings hooks. Other admin pages consume navigation hooks. Auth, admin entry and setup have empty browser requirements. To add a feature, update its provider declaration and the consumers that use it, then regenerate preload graphs and run the feature manifest tests.
+
+## Payment connectors and plugin types
+
+Six additional independent connector plugins supply sandbox API plumbing for Square, PayPal, Helcim, Clover, Moneris and Authorize.net. They start inactive and do not enable customer payment collection. See [payment connector contracts](payment-connectors.md).
+
+A manifest may declare `type`: `payments`, `ordering`, `location`, `reporting`, `interface`, `system` or `other`. Missing or unknown types appear under Other. The manager projection returns this type. The Plugins page offers a vertical category tab bar with counts, selected state and Up, Down, Home and End navigation. Categories persist during polling in memory and have no browser storage or effect on activation. Existing plugin settings and callbacks are preserved.
+
+Each plugin card has Edit directly beneath Activate or Deactivate. The authenticated `plugins/edit.php?plugin=ID` page mounts only that active plugin’s settings. Inactive plugins retain an activation prompt; plugins without editable options show their status. The former top Plugin settings and Reload controls are removed; automatic refresh remains.
+
+Nominatim Address Lookup is an optional location plugin for checkout and Business
+Locations. It uses an owned server with credentials encrypted outside the web
+root. See [configuration and API contracts](nominatim.md).

@@ -1,0 +1,12 @@
+{
+  "id": "nominatim",
+  "name": "Nominatim Address Lookup",
+  "version": "1.1.0",
+  "apiVersion": 1,
+  "description": "Alberta address suggestions from our own OpenStreetMap and public civic address service. Manual entry remains available.",
+  "entry": "plugin.php",
+  "browserModule": "index.js",
+  "stylesheet": "lookup.css",
+  "settingsAnchor": "plugin-nominatim",
+  "type": "location"
+}

@@ -220,5 +220,23 @@
     "runtime": "php",
     "type": "filter",
     "description": "Offer escaped login notices and suggested account identifiers."
+  },
+  {
+    "name": "payments.connector",
+    "runtime": "php",
+    "type": "filter",
+    "description": "Resolve an active payment connector for trusted server extensions. Never return credentials to a client."
+  },
+  {
+    "name": "payments.connector_verified",
+    "runtime": "php",
+    "type": "action",
+    "description": "Observe a successful sandbox connection check. Receives provider ID and safe result."
+  },
+  {
+    "name": "payments.connector_event",
+    "runtime": "php",
+    "type": "action",
+    "description": "Observe a verified provider event once per identical signed payload. Does not authorize an order payment."
   }
 ]

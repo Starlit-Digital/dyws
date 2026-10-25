@@ -1,0 +1,87 @@
+{
+  "feature": "Driver owned vehicle model and 32 colour chits",
+  "verifiedAt": "2026-10-24T21:56:11.903268+00:00",
+  "deployment": {
+    "stamp": "20261024T215504Z",
+    "sites": {
+      "diner": {
+        "backup": "/home/u394197407/domains/sltd.ca/private/deploy-backups/vehicle-profile-20261024T215504Z/backups/diner",
+        "filesVerified": 7,
+        "privateJsonUnchangedDuringDeployment": true,
+        "config": "/home/u394197407/domains/sltd.ca/private/starlit-go/var/config.json",
+        "database": "/home/u394197407/domains/sltd.ca/private/starlit-go/var/starlit-go.sqlite",
+        "schemaColumnPresent": true,
+        "sqliteIntegrity": "ok",
+        "existingDriverFieldsPreserved": true,
+        "finalFilesVerified": 7
+      },
+      "diner-demo": {
+        "backup": "/home/u394197407/domains/sltd.ca/private/deploy-backups/vehicle-profile-20261024T215504Z/backups/diner-demo",
+        "filesVerified": 7,
+        "privateJsonUnchangedDuringDeployment": true,
+        "config": "/home/u394197407/domains/sltd.ca/private/dyws-demo-20261023/dyws/demo-data/config.json",
+        "database": "/home/u394197407/domains/sltd.ca/private/dyws-demo-20261023/dyws/demo-data/dyws.sqlite",
+        "schemaColumnPresent": true,
+        "sqliteIntegrity": "ok",
+        "existingDriverFieldsPreserved": true,
+        "finalFilesVerified": 7
+      }
+    }
+  },
+  "http": {
+    "diner": {
+      "health": "passed",
+      "publicAssetHashes": 5,
+      "anonymousProfileDenied": true
+    },
+    "diner-demo": {
+      "health": "passed",
+      "publicAssetHashes": 5,
+      "anonymousProfileDenied": true,
+      "driverProfileRead": "passed",
+      "invalidColorRejected": "HTTP 422",
+      "businessSettingsProtected": "HTTP 403",
+      "profileChoiceUnchanged": true
+    }
+  },
+  "sourceSha256": {
+    "modules/dyws/php/AdminAccounts.php": "3b258b28c893953343594b775ce3d5d8e810e945e5413530dda940c3bb78b116",
+    "public_html/dyws/vehicle-colors.js": "03e3fa7de9c100e72c561fd8b04e9dcfc5aec67df58cf55752c0697003ddf923",
+    "public_html/dyws/driver-profile.js": "10544d906808f7b9757afd360648f0dfd1097bcf4490d271c08646c728cf1469",
+    "public_html/dyws/account-editor.js": "ab8aca5cd7ef73950017b1a28e3e35368de849044cebafd83705de0c537be88a",
+    "public_html/dyws/dyws.css": "2c66258fac9709d9e1d1f53303ddb105caf193678c55cecc9c9bb9bc4ba769ca",
+    "public_html/drivers/page.php": "316bd40c165afed4befc97539cf8804eb7bc57603c7a1365e8c0cfde048f5ba7",
+    "public_html/platform/preloads.json": "ea3bf00e001a062dad5e76997618a4bc059b7c6fa1fcd1050be9e56b8f6c9482"
+  },
+  "verification": {
+    "npmTest": "passed",
+    "javascriptTests": 103,
+    "driverProfileHttpChecks": 82,
+    "accountChecks": 69,
+    "demoLockdownChecks": 123,
+    "swatchCount": 32,
+    "swatchDimensionsCssPixels": [
+      16,
+      16
+    ],
+    "mobileWidthCssPixels": 390,
+    "mobileHorizontalOverflow": false,
+    "browser": [
+      "Model and colour save together with icon",
+      "Changes persist through reload",
+      "Unsaved edits survive delivery refresh",
+      "Clear colour removes radio selection",
+      "Keyboard arrows select swatches",
+      "Admin cards retain vehicle details",
+      "Admin form no longer has model or colour inputs",
+      "Hosted public demo renders 32 chits at 16px square"
+    ],
+    "hostedProfileValuesChanged": false,
+    "gitDiffCheck": "passed"
+  },
+  "screenshots": [
+    "screenshots/vehicle-profile-20261024/profile-desktop.png",
+    "screenshots/vehicle-profile-20261024/profile-mobile.png",
+    "screenshots/vehicle-profile-20261024/hosted-profile.png"
+  ]
+}

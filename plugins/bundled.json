@@ -15,12 +15,30 @@
       "/manager/stripe/verify",
       "/stripe/webhook",
       "/orders/{orderId}/checkout"
+    ],
+    "helcim": [
+      "/payments/hc/events"
     ]
   },
   "retainedRoutes": {
     "stripe": [
       "POST /stripe/webhook",
       "POST /plugins/stripe/webhook"
+    ],
+    "square": [
+      "POST /plugins/square/webhook"
+    ],
+    "paypal": [
+      "POST /plugins/paypal/webhook"
+    ],
+    "helcim": [
+      "POST /payments/hc/events"
+    ],
+    "clover": [
+      "POST /plugins/clover/webhook"
+    ],
+    "authorize-net": [
+      "POST /plugins/authorize-net/webhook"
     ]
   },
   "paymentProviders": [

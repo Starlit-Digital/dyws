@@ -2,6 +2,8 @@
 declare(strict_types=1);
 namespace dyws;
 require_once __DIR__.'/Features.php';
+require_once __DIR__.'/Payments/Connector.php';
+require_once __DIR__.'/Payments/register.php';
 
 /** Plugins are trusted installed PHP code, not sandboxed or uploaded through HTTP. */
 final class PluginContext {
@@ -86,7 +88,7 @@ final class Plugins {
  }
  public function summary():array {
   $this->boot();$state=$this->state();$plugins=[];
-  foreach($this->installed as $id=>$m)$plugins[]=['id'=>$id,'name'=>$m['name'],'version'=>$m['version'],'description'=>$m['description'],'active'=>in_array($id,$state['active'],true),'error'=>$this->errors[$id]??null,'settingsAnchor'=>$m['settingsAnchor']??null,'locked'=>in_array($id,$this->required,true),'retainsWebhooks'=>!empty($this->retained[$id])];
+  foreach($this->installed as $id=>$m)$plugins[]=['id'=>$id,'name'=>$m['name'],'version'=>$m['version'],'description'=>$m['description'],'active'=>in_array($id,$state['active'],true),'error'=>$this->errors[$id]??null,'settingsAnchor'=>$m['settingsAnchor']??null,'type'=>$m['type']??'other','locked'=>in_array($id,$this->required,true),'retainsWebhooks'=>!empty($this->retained[$id])];
   foreach($this->errors as $id=>$error)if(!isset($this->installed[$id]))$plugins[]=['id'=>$id,'name'=>$id,'version'=>'','description'=>'','active'=>false,'error'=>$error];
   return ['plugins'=>$plugins,'revision'=>$this->revision(),'warning'=>isset($state['invalid'])?'Plugin settings could not be read. Plugins are disabled until saved again.':null];
  }
@@ -119,6 +121,9 @@ final class Plugins {
   return $this->summary();
  }
  /** Payment selection must fail closed, unlike optional presentation hooks. */
+ public function paymentConnector(string $id):?\dyws\Payments\Connector {
+  $this->boot();$connector=$this->applyFilters('payments.connector',[],$id)['connector']??null;return $connector instanceof \dyws\Payments\Connector?$connector:null;
+ }
  public function paymentProvider():string {
   if(isset($this->state()['invalid']))throw new ApiError('Plugin settings need attention before accepting orders.',503);
   $this->boot();$selected='demo';

@@ -6,12 +6,15 @@
       "dyws/date-time.js",
       "dyws/diagnostics.js",
       "dyws/driver-gps.js",
+      "dyws/driver-icons.js",
+      "dyws/driver-profile.js",
       "dyws/driver.js?v=39",
       "dyws/plugin-ui.js?v=39",
       "dyws/plugins.js?v=39",
       "dyws/realtime.js",
       "dyws/role-labels.js",
       "dyws/status-badge.js",
+      "dyws/vehicle-colors.js",
       "platform/api.js",
       "platform/driver.js?v=39",
       "platform/plugins.js?v=39"
@@ -22,6 +25,7 @@
       "dyws/date-time.js",
       "dyws/delivery-status.js?v=40",
       "dyws/diagnostics.js",
+      "dyws/driver-icons.js",
       "dyws/plugin-ui.js?v=39",
       "dyws/plugins.js?v=39",
       "dyws/realtime.js",
@@ -95,6 +99,7 @@
       "dyws/api.js",
       "dyws/date-time.js",
       "dyws/diagnostics.js",
+      "dyws/driver-icons.js",
       "dyws/plugins.js?v=39",
       "dyws/realtime.js",
       "dyws/role-labels.js",
@@ -130,6 +135,7 @@
       "dyws/api.js",
       "dyws/date-time.js",
       "dyws/diagnostics.js",
+      "dyws/driver-icons.js",
       "dyws/plugins.js?v=39",
       "dyws/realtime.js",
       "dyws/role-labels.js",
@@ -147,6 +153,7 @@
       "dyws/date-time.js",
       "dyws/diagnostics.js",
       "dyws/plugin-admin.js?v=39",
+      "dyws/plugin-types.js",
       "dyws/plugins.js?v=39",
       "dyws/realtime.js",
       "dyws/role-labels.js",
@@ -168,6 +175,7 @@
       "dyws/date-time.js",
       "dyws/delivery-status.js?v=40",
       "dyws/diagnostics.js",
+      "dyws/driver-icons.js",
       "dyws/order-layout.js",
       "dyws/plugin-ui.js?v=39",
       "dyws/plugins.js?v=39",
@@ -182,6 +190,24 @@
     ]
   },
   "plugins": {
+    "helcim": [
+      "dyws/admin-navigation.js?v=39",
+      "dyws/admin-refresh.js",
+      "dyws/admin-session.js?v=39",
+      "dyws/api.js",
+      "dyws/date-time.js",
+      "dyws/payment-connector-settings.js",
+      "plugins/helcim/index.js?v=1.0.0"
+    ],
+    "clover": [
+      "dyws/admin-navigation.js?v=39",
+      "dyws/admin-refresh.js",
+      "dyws/admin-session.js?v=39",
+      "dyws/api.js",
+      "dyws/date-time.js",
+      "dyws/payment-connector-settings.js",
+      "plugins/clover/index.js?v=1.0.0"
+    ],
     "demo-lockdown": [
       "plugins/demo-lockdown/index.js?v=1.0.0"
     ],
@@ -196,6 +222,19 @@
       "plugins/datatables/index.js?v=1.1.1",
       "plugins/datatables/vendor/dataTables.min.js"
     ],
+    "nominatim": [
+      "plugins/nominatim/index.js?v=1.1.0",
+      "plugins/nominatim/search.js"
+    ],
+    "square": [
+      "dyws/admin-navigation.js?v=39",
+      "dyws/admin-refresh.js",
+      "dyws/admin-session.js?v=39",
+      "dyws/api.js",
+      "dyws/date-time.js",
+      "dyws/payment-connector-settings.js",
+      "plugins/square/index.js?v=1.0.0"
+    ],
     "google-maps": [
       "dyws/admin-navigation.js?v=39",
       "dyws/admin-refresh.js",
@@ -203,11 +242,30 @@
       "dyws/api.js",
       "dyws/date-time.js",
       "dyws/diagnostics.js",
+      "dyws/driver-icons.js",
       "dyws/gps-cache.js",
       "dyws/status-badge.js",
       "plugins/google-maps/index.js?v=1.1.4",
       "plugins/google-maps/maps.js",
       "plugins/google-maps/settings.js"
+    ],
+    "paypal": [
+      "dyws/admin-navigation.js?v=39",
+      "dyws/admin-refresh.js",
+      "dyws/admin-session.js?v=39",
+      "dyws/api.js",
+      "dyws/date-time.js",
+      "dyws/payment-connector-settings.js",
+      "plugins/paypal/index.js?v=1.0.0"
+    ],
+    "moneris": [
+      "dyws/admin-navigation.js?v=39",
+      "dyws/admin-refresh.js",
+      "dyws/admin-session.js?v=39",
+      "dyws/api.js",
+      "dyws/date-time.js",
+      "dyws/payment-connector-settings.js",
+      "plugins/moneris/index.js?v=1.0.0"
     ],
     "order-format": [
       "plugins/order-format/index.js?v=1.0.0"
@@ -222,6 +280,15 @@
       "plugins/stripe/index.js?v=1.1.3",
       "plugins/stripe/payment.js",
       "plugins/stripe/settings.js"
+    ],
+    "authorize-net": [
+      "dyws/admin-navigation.js?v=39",
+      "dyws/admin-refresh.js",
+      "dyws/admin-session.js?v=39",
+      "dyws/api.js",
+      "dyws/date-time.js",
+      "dyws/payment-connector-settings.js",
+      "plugins/authorize-net/index.js?v=1.0.0"
     ]
   },
   "styles": {
@@ -229,6 +296,7 @@
     "datatables": [
       "plugins/datatables/vendor/dataTables.dataTables.min.css"
     ],
+    "nominatim": [],
     "google-maps": []
   }
 }

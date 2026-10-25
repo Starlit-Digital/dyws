@@ -1,0 +1,123 @@
+{
+  "feature": "Driver profile vehicle icons",
+  "verifiedAt": "2026-10-24T21:42:40.672125+00:00",
+  "choices": [
+    "car",
+    "suv",
+    "pickup",
+    "van",
+    "motorcycle",
+    "bicycle"
+  ],
+  "default": "car",
+  "sourceCopies": [
+    "dyws",
+    "eddies"
+  ],
+  "urls": [
+    "https://sltd.ca/diner/driver/",
+    "https://sltd.ca/diner-demo/driver/"
+  ],
+  "deployment": {
+    "stamp": "20261024T213725Z",
+    "sites": {
+      "diner": {
+        "backup": "/home/u394197407/domains/sltd.ca/private/deploy-backups/driver-profiles-20261024T213725Z/backups/diner",
+        "filesVerified": 25,
+        "privateJsonUnchangedDuringDeployment": true,
+        "config": "/home/u394197407/domains/sltd.ca/private/starlit-go/var/config.json",
+        "database": "/home/u394197407/domains/sltd.ca/private/starlit-go/var/starlit-go.sqlite",
+        "schemaColumnPresent": true,
+        "sqliteIntegrity": "ok",
+        "existingDriverFieldsPreserved": true,
+        "finalFilesVerified": 25
+      },
+      "diner-demo": {
+        "backup": "/home/u394197407/domains/sltd.ca/private/deploy-backups/driver-profiles-20261024T213725Z/backups/diner-demo",
+        "filesVerified": 26,
+        "privateJsonUnchangedDuringDeployment": true,
+        "config": "/home/u394197407/domains/sltd.ca/private/dyws-demo-20261023/dyws/demo-data/config.json",
+        "database": "/home/u394197407/domains/sltd.ca/private/dyws-demo-20261023/dyws/demo-data/dyws.sqlite",
+        "schemaColumnPresent": true,
+        "sqliteIntegrity": "ok",
+        "existingDriverFieldsPreserved": true,
+        "finalFilesVerified": 26
+      }
+    }
+  },
+  "http": {
+    "diner": {
+      "health": "passed",
+      "publicAssetHashes": 15,
+      "anonymousProfileDenied": true
+    },
+    "diner-demo": {
+      "health": "passed",
+      "publicAssetHashes": 15,
+      "anonymousProfileDenied": true,
+      "driverProfileRead": "passed",
+      "invalidIconRejected": "HTTP 422",
+      "businessSettingsProtected": "HTTP 403",
+      "profileChoiceUnchanged": true
+    }
+  },
+  "sourceSha256": {
+    "plugins/demo-lockdown/DemoPolicy.php": "33bb71bfafff0906813683517b70789c3da50b458121f97ca84d865f7f671748",
+    "modules/dyws/php/accounts.sql": "2d4e306a631d84ec9da94cd10cc8587348b784e3857ad877f5be53029dbb6183",
+    "modules/dyws/php/AdminAccounts.php": "ed00d538eb154a0dca7b96f7d8b0f918d9d8838d00cc8315f55a9c5756b71368",
+    "modules/dyws/php/api.php": "333a318a5a4661b242733eca68a0f1e1000856267e50bb46807dbea8a34473ad",
+    "modules/dyws/php/Store.php": "925b899a186ea4e0f0ce6890458eb2f8189ca281253fa7a6f3b76c909a046b43",
+    "modules/dyws/php/PageData.php": "b955529738487af5001bb5b5efb8cf8832e57c298031d40d156cd39a386fb9bd",
+    "modules/dyws/php/AdminData.php": "13122cdbcef5ed645eb8abb6b1fb1e79c43dead5df3853bcd553a916985d5869",
+    "public_html/dyws/driver-icons.js": "ad2546b19370057de9c17ea161494319b220a981a7d320e97c8be76edb0fc483",
+    "public_html/dyws/driver-profile.js": "85a1bdb4038c9e2f9d3d6b2d0d70dbfcccae03753a3ac8ba9cda58298d0241e1",
+    "public_html/dyws/driver.js": "ee1882adbdf7448428257a1d2a11d52a6a41b9f046e06ec9b1cc3db523947c52",
+    "public_html/dyws/account-editor.js": "6200391629a375c65a07a9aa359352e846140e58efbbd7e73f32b170180dd952",
+    "public_html/dyws/orders.js": "c5eef6ffd1bc3599655c91566e2f92e9c2444f17afcbd3348436f9bde1954bd6",
+    "public_html/dyws/tracking.js": "a344da84b206f504ef16977d95f00d5150cf9b99c8c334de0c1483c4c618b0f3",
+    "public_html/dyws/dyws.css": "eafad3ddef97e2259b9309365926379210c5db2c84097591850f8a3633edda05",
+    "public_html/driver/page.php": "48d92698a3670d8755f82b957b8433b2c482daa63c5b8b6ea5936c44af349b96",
+    "public_html/plugins/google-maps/maps.js": "124ca9b56fca16f81f9a55dab971ac3803cd3fb9e27f93f547b0cebbfd598d5e",
+    "public_html/platform/preloads.json": "4a9709ff1c9304ae13fdb5e7845ead2b8b73a190fcc51f489dc1de0f586a8cf3",
+    "public_html/dyws/icons/driver/LICENSE-Lucide.txt": "b495047bd93a9b06913511076f504daba17d5bbeb3e0650f3bb53a4220329c57",
+    "public_html/dyws/icons/driver/LICENSE-Tabler.txt": "b740a1d46122672da62833e97f7e7c8a13fa85cbc7445b584b297cc00dde93db",
+    "public_html/dyws/icons/driver/README.md": "dbe669ed4047f227d79ba401d38211292a0dcab4e557f0525b51ff4fd57e1dca",
+    "public_html/dyws/icons/driver/bicycle.svg": "8198b5f18639bfdf2f0156c57f132b1819d688eea996384ec10b3dcc3b3f888a",
+    "public_html/dyws/icons/driver/car.svg": "0ef8477b7c845700cdcfdea2f9f7b33f2895949959a287d5f47a63c862002f92",
+    "public_html/dyws/icons/driver/motorcycle.svg": "e5da296b24782574cf68edf96ed93201a90d0557ef000f809d8fda15d9f92766",
+    "public_html/dyws/icons/driver/pickup.svg": "88e6a9ac923b3805d2c0ae752bb2ae8a5f4799a8d944b51df2aa978a5d8c7381",
+    "public_html/dyws/icons/driver/suv.svg": "3af0604dcf9f7ba13ba41419385dc6784f977e77e21a400a5ac366b7669c3d3d",
+    "public_html/dyws/icons/driver/van.svg": "48743aeb5985960026c29fb39794b32c1038a7f33d7419add6df5b3904d350f2"
+  },
+  "verification": {
+    "npmTest": "passed",
+    "javascriptTests": 102,
+    "driverProfileHttpChecks": 65,
+    "publicDemoLockdownChecks": 123,
+    "finalSvgContractAndMockMapsTests": "2 passed after embedded license metadata update",
+    "gitDiffCheck": "passed",
+    "mirroredRuntimeFiles": 26,
+    "browser": [
+      "Car is the default",
+      "All six choices display",
+      "Unsaved selection survives delivery refresh",
+      "Saving persists through page reload",
+      "390 pixel phone layout has no horizontal overflow",
+      "Hosted public demo displays the picker and accepts profile reads"
+    ],
+    "mapMarker": "Injected Google Maps SDK test verifies local vehicle artwork and icon updates while coordinates are unchanged; no live Google map visual verification claimed",
+    "liveProfileChoiceChanged": false,
+    "screenshots": [
+      "screenshots/driver-profiles-20261024/profile-picker.png",
+      "screenshots/driver-profiles-20261024/profile-mobile.png",
+      "screenshots/driver-profiles-20261024/hosted-profile-picker.png"
+    ]
+  },
+  "artwork": {
+    "sources": [
+      "https://github.com/lucide-icons/lucide",
+      "https://github.com/tabler/tabler-icons"
+    ],
+    "licenses": "Included beside SVG assets and embedded in SVG metadata"
+  }
+}

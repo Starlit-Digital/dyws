@@ -12,3 +12,7 @@ public_html/api/bootstrap-path.php
 /dist/
 /dyws.zip
 /SHA256SUMS
+
+# Generated Python caches
+__pycache__/
+*.pyc

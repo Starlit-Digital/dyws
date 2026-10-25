@@ -1,6 +1,6 @@
 # dyws hook reference
 
-dyws includes 37 built in hook features. The current application release is recorded in [VERSION](../VERSION). The names below are live integration points. The machine readable catalog is modules/dyws/php/hooks.json and is also returned by GET /plugins. Actions, filters and validators use priorities, default 10, with lower values first.
+dyws includes 40 built in hook features. The current application release is recorded in [VERSION](../VERSION). The names below are live integration points. The machine readable catalog is modules/dyws/php/hooks.json and is also returned by GET /plugins. Actions, filters and validators use priorities, default 10, with lower values first.
 
 ## Server hooks
 
@@ -128,4 +128,14 @@ The browser provider `order.layout` receives a stage ID, `cart`, `checkout` or `
 
 A layout is `{rows, fields: [{id, row, column, span, align, vertical}]}`. Rows are 1 through 30, columns and spans are 1 or 2, alignment is `left`, `center` or `right`, and vertical alignment is `top`, `center` or `bottom`. Positions must not overlap. The core allowlist and essential fields are exported by `public_html/dyws/order-layout.js`; the plugin schema mirrors that contract. Action groups always span both columns.
 
-The core validates the entire layout before moving its existing DOM controls. Invalid or absent layouts leave the built in stage intact. This provider cannot replace validation, amounts, event handlers or submission behavior. Checkout extension roots and status messages are preserved. This is a provider capability, not an additional action or filter in the 37 hook catalog.
+The core validates the entire layout before moving its existing DOM controls. Invalid or absent layouts leave the built in stage intact. This provider cannot replace validation, amounts, event handlers or submission behavior. Checkout extension roots and status messages are preserved. This is a provider capability, not an additional action or filter in the hook catalog.
+
+## Payment connector hooks
+
+| # | Hook | Kind | Contract |
+| --- | --- | --- | --- |
+| 38 | payments.connector | PHP filter | `(result, providerId)`. Result is an array containing `connector`, a trusted server Connector instance, or empty. `Plugins::paymentConnector(id)` resolves it. Never serialize this object or return credentials to a browser. |
+| 39 | payments.connector_verified | PHP action | `(providerId, safeResult)` after a successful sandbox connection check. |
+| 40 | payments.connector_event | PHP action | `(providerId, verifiedEvent)` after provider signature verification and duplicate body suppression. Observation only, never an authorization to charge or mark an order paid. |
+
+See [payment connector contracts](payment-connectors.md) for operations, settings APIs, limitations and provider documentation. Connector activation does not select a payment provider for checkout.

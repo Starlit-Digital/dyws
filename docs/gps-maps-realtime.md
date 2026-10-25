@@ -105,3 +105,9 @@ Arrival estimates use the Google Maps JavaScript Routes library with DRIVING, TR
 No preparation time is invented. Before departure, the customer sees that an estimate will become available after departure. Once underway, a fresh GPS fix and a route duration produce an approximate number of minutes and arrival time. Simulated GPS is explicitly labelled Demo arrival estimate. GPS older than 60 seconds, route results older than two minutes, network failures and unavailable routing suppress the estimate. The page never claims arrival merely because the estimated time passed.
 
 The public `/diner-demo/` install overrides this with Installation Lockdown: no Google Maps SDK, geocoding, routing, device GPS or billable API calls. It displays the bundled Manning reference image and a fixed simulated position. Other installations retain the Google Maps plugin and their configured permissions.
+
+## Driver profile icons
+
+Drivers open My profile in their console to choose Car, SUV, Pickup, Van, Motorcycle or Bicycle. The default is Car. The saved local SVG appears beside their profile and on Google Maps in the driver console, Drivers, Orders and private customer tracking. Changing the icon updates the existing marker even if the GPS coordinates have not changed. The destination retains its separate map pin.
+
+The icon is a visual preference, not verified vehicle information or a routing mode. The renderer continues to request driving routes. It does not infer a heading or start GPS. The approved choices are fixed local assets, with no remote avatar URLs or user SVG uploads. Artwork attribution and licenses are stored in `public_html/dyws/icons/driver/`.

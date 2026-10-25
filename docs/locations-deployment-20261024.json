@@ -1,0 +1,90 @@
+{
+  "stamp": "20261024T212219Z",
+  "sites": {
+    "diner": {
+      "backup": "/home/u394197407/domains/sltd.ca/private/deploy-backups/locations-20261024T212219Z/backups/diner",
+      "filesVerified": 15,
+      "privateJsonUnchanged": true,
+      "sqliteBackup": "SQLite backup API",
+      "config": "/home/u394197407/domains/sltd.ca/private/starlit-go/var/config.json",
+      "database": "/home/u394197407/domains/sltd.ca/private/starlit-go/var/starlit-go.sqlite",
+      "schemaColumnPresent": true,
+      "sqliteIntegrity": "ok",
+      "existingOrdersUnchanged": true,
+      "privateStateChangesAfterDeployment": [
+        {
+          "file": "var/catalog.json",
+          "fields": [
+            "locations"
+          ],
+          "preserved": true
+        }
+      ]
+    },
+    "diner-demo": {
+      "backup": "/home/u394197407/domains/sltd.ca/private/deploy-backups/locations-20261024T212219Z/backups/diner-demo",
+      "filesVerified": 15,
+      "privateJsonUnchanged": true,
+      "sqliteBackup": "SQLite backup API",
+      "config": "/home/u394197407/domains/sltd.ca/private/dyws-demo-20261023/dyws/demo-data/config.json",
+      "database": "/home/u394197407/domains/sltd.ca/private/dyws-demo-20261023/dyws/demo-data/dyws.sqlite",
+      "schemaColumnPresent": true,
+      "sqliteIntegrity": "ok",
+      "existingOrdersUnchanged": true,
+      "privateStateChangesAfterDeployment": []
+    }
+  },
+  "verifiedAtUtc": "2026-10-24T21:26:09.331981+00:00",
+  "urls": [
+    "https://sltd.ca/diner/",
+    "https://sltd.ca/diner-demo/"
+  ],
+  "filesSha256": {
+    "modules/dyws/php/Catalog.php": "72f69cc0513fb8388425e84fc99270917e26f2a4015683df0548925aafb46624",
+    "modules/dyws/php/Store.php": "1cd4ef5a7b2245239f9557748513b3df22d6a3b2c33d6989223cb4fd9d54f334",
+    "modules/dyws/php/PageData.php": "02e70e96180cd3c3f7e5ed14458d18d3742c6fbb27b9ad2d6561c08c62bde26f",
+    "plugins/order-format/schema.json": "17cd79c38f2efa539d3690e98a1b2addaa7f7fdf9419d558c6bfa2810d4283a8",
+    "public_html/dyws/business-settings.js": "a06537891fa09e81ce32350e746f9e882a503c1e0a5e3c76aacf655be33a72d5",
+    "public_html/dyws/component.js": "610e443957d5dd3311dbbae75397c3fd143b2769c0c48256e3db8b383f5f9880",
+    "public_html/dyws/order-layout.js": "3f4181eb2896678973c628c69d50fd123211d8f16d805cc7b720dec696457962",
+    "public_html/dyws/ordering.css": "003af7229746fdccc854d30d91d8b37b0987d3855562ca36c4a7f00179371b2f",
+    "public_html/dyws/orders.js": "76764eae2cfc222ab47ac615be11f4118a9dd835ac92dd6db5524451e57a61a9",
+    "public_html/dyws/order-list.js": "e6cfcddb7243a02d7ff629eb9fb5e9d5ad3326d7827da24bebb908128c6a1d6a",
+    "public_html/dyws/driver.js": "7bec5d4fe06222bd9eef298d86c35cf638aff919fd1d1d77c9e4c199d8043402",
+    "public_html/dyws/delivery-runs.js": "26eff71b9284d0f92e84f097e21cc43d81aa3e084aab2faf515c4af51965fea4",
+    "public_html/dyws/tracking-details.js": "d82fed5e18a98794fb7d2fb1f407f5d6b68ae1f1ee6f115cd2afc7372b272cdd",
+    "public_html/dyws/dyws.css": "4f4e07779052ffdce6b930d18623f920a1da4e3616ad303f6b4a87106a45fb00",
+    "public_html/settings/page.php": "0f29e9e824b9ca790b4b7258addca5ee7b47a6aea33b4e13b4d31a92ac4e595b"
+  },
+  "httpChecks": {
+    "diner": {
+      "health": "passed",
+      "publicCatalog": "passed",
+      "publicAssetHashes": 10
+    },
+    "diner-demo": {
+      "health": "passed",
+      "publicCatalog": "passed",
+      "publicAssetHashes": 10,
+      "businessLocationsHtml": "passed",
+      "settingsWriteProtection": "HTTP 403"
+    }
+  },
+  "localValidation": {
+    "npmTest": "passed",
+    "javascriptTests": 99,
+    "businessLocationChecks": 20,
+    "publicDemoLockdownChecks": 117
+  },
+  "browserValidation": {
+    "diner": "Location selector and both pickup map links verified in review",
+    "diner-demo": "Location selector and both pickup map links verified in review",
+    "testOrdersSubmitted": false,
+    "cartContentsChanged": false,
+    "businessPanel": "Authenticated HTTP markup and protected write checks passed; existing diner location edits preserved"
+  },
+  "screenshots": [
+    "docs/screenshots/locations-20261024/diner-review.png",
+    "docs/screenshots/locations-20261024/diner-demo-review.png"
+  ]
+}

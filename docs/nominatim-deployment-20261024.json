@@ -1,0 +1,211 @@
+{
+  "date": "2026-10-24T22:54:48.633226+00:00",
+  "service": {
+    "endpoint": "https://geo.sltd.ca/search",
+    "host": "paycal-dev",
+    "address": "148.230.90.176",
+    "coverage": "Alberta",
+    "nominatimVersion": "5.3.3",
+    "postgresqlCluster": "17/dyws",
+    "databaseSizeMB": 6511,
+    "apiMemoryMB": 136,
+    "importSeconds": 1613.2,
+    "tlsRenewalDryRun": "passed",
+    "databaseCheck": "passed, optional Wikipedia importance data not installed",
+    "automaticUpdate": "first catch up completed successfully",
+    "hourlyTimer": "enabled",
+    "paycalNginxBaseline": "unchanged",
+    "sharedHosting": {
+      "endpoint": "https://geo.sltd.ca",
+      "status": {
+        "status": 0,
+        "message": "OK",
+        "data_updated": "2026-10-23T20:20:51+00:00",
+        "software_version": "5.3.3",
+        "database_version": "5.3.3-0"
+      },
+      "checks": "authentication, method, route scope, exact civic results, prefix and typo matches, house number preservation and TLS passed",
+      "queries": [
+        {
+          "query": "Edmonton, Alberta",
+          "matches": 1,
+          "milliseconds": 597.4
+        },
+        {
+          "query": "Edmonton City Hall",
+          "matches": 1,
+          "milliseconds": 219.0
+        },
+        {
+          "query": "Calgary City Hall",
+          "matches": 1,
+          "milliseconds": 219.6
+        },
+        {
+          "query": "Jasp, Edmonton",
+          "matches": 2,
+          "milliseconds": 232.1
+        },
+        {
+          "query": "Jasp, Edm",
+          "matches": 2,
+          "milliseconds": 227.0
+        },
+        {
+          "query": "Edmotnon City Hall",
+          "matches": 1,
+          "milliseconds": 304.8
+        },
+        {
+          "query": "Edmonton City Hal",
+          "matches": 1,
+          "milliseconds": 248.3
+        },
+        {
+          "query": "Calg City Hall",
+          "matches": 1,
+          "milliseconds": 279.6
+        },
+        {
+          "query": "1 103A Aven NW, Edm",
+          "matches": 1,
+          "milliseconds": 256.4
+        },
+        {
+          "query": "16767 91 Street NW, Edmonton",
+          "matches": 0,
+          "milliseconds": 230.8
+        },
+        {
+          "query": "zzqvxxzz",
+          "matches": 0,
+          "milliseconds": 224.6
+        }
+      ],
+      "medianMilliseconds": 232.1,
+      "maxMilliseconds": 597.4
+    },
+    "rateLimit": {
+      "rateLimitStatusCounts": {
+        "200": 7,
+        "429": 9
+      }
+    },
+    "matching": {
+      "dictionaryTokens": 26434,
+      "streetNames": 32816,
+      "roadSegments": 217008,
+      "supplementarySizeMiB": 131,
+      "maxCandidates": 3,
+      "fallbackDeadlineSeconds": 2,
+      "refreshAfterReplication": "passed",
+      "restart": "passed",
+      "apiDatabasePermissions": "SELECT only, no superuser or writes"
+    }
+  },
+  "deployments": {
+    "stamp": "20261024T224509Z",
+    "sites": {
+      "diner": {
+        "backup": "/home/u394197407/domains/sltd.ca/private/deploy-backups/address-lookup-20261024T224509Z/backups/diner",
+        "filesVerified": 8,
+        "unrelatedPrivateJsonUnchanged": true,
+        "fixtureOnly": false
+      },
+      "diner-demo": {
+        "backup": "/home/u394197407/domains/sltd.ca/private/deploy-backups/address-lookup-20261024T224509Z/backups/diner-demo",
+        "filesVerified": 9,
+        "unrelatedPrivateJsonUnchanged": true,
+        "fixtureOnly": true
+      }
+    }
+  },
+  "local": {
+    "dyws": {
+      "backup": "/private/tmp/dyws-address-plugin-rollout/local-backups/dyws",
+      "pluginFilesVerified": 7,
+      "unrelatedPrivateJsonUnchanged": true
+    },
+    "eddies": {
+      "backup": "/private/tmp/dyws-address-plugin-rollout/local-backups/eddies",
+      "pluginFilesVerified": 7,
+      "unrelatedPrivateJsonUnchanged": true
+    }
+  },
+  "siteChecks": {
+    "diner": {
+      "enabled": true,
+      "fixtureOnly": false,
+      "lookupMilliseconds": 888.9,
+      "results": 1,
+      "authenticationAndAssets": "passed"
+    },
+    "diner-demo": {
+      "enabled": true,
+      "fixtureOnly": true,
+      "lookupMilliseconds": 272.6,
+      "results": 1,
+      "authenticationAndAssets": "passed"
+    },
+    "eddies": {
+      "enabled": true,
+      "fixtureOnly": false,
+      "lookupMilliseconds": 249.9,
+      "results": 1,
+      "authenticationAndAssets": "passed"
+    }
+  },
+  "tests": {
+    "dyws": "npm test passed, including 27 Nominatim PHP checks, 18 Nominatim HTTP checks and 128 demo checks",
+    "eddies": "Existing suite passed through hook tests, then installer fixture failed because it copies public_html but omits the required private site/layout.php. Actual Eddie’s lookup and assets passed.",
+    "browser": "Default and custom checkout layouts, Enter search without submission, dynamic Business Locations row, selection and saving verified on isolated fixtures. Live partial search Jasp, Edm resolved to Jasper Avenue NW. Street selection omitted an unverified house postal code.",
+    "matching": "9 deterministic tests and 11 real HTTPS search cases passed"
+  },
+  "completedAt": "2026-10-24T23:15:42.752377+00:00",
+  "pluginVersion": "1.0.1",
+  "patchDeployment": {
+    "remoteBackup": "/home/u394197407/domains/sltd.ca/private/deploy-backups/nominatim-v1.0.1-20261024/backups",
+    "eddies": {
+      "version": "1.0.1",
+      "filesVerified": 4,
+      "backup": "/private/tmp/dyws-address-plugin-rollout/v1.0.1/backups/eddies",
+      "privateSettings": "untouched"
+    },
+    "changed": "plugin manifest, result normalization, field replacement, Nominatim preload entries only"
+  },
+  "limitations": [
+    "Alberta extract only; address coverage depends on OpenStreetMap.",
+    "Published Eddie’s address 16767 91 Street NW is absent from this extract. It returns no suggestion instead of an incorrect house number.",
+    "Public diner-demo uses fixed fictional results without an external request."
+  ],
+  "pluginSearchChecks": {
+    "https://sltd.ca/diner": [
+      {
+        "query": "Jasp, Edm",
+        "matches": 2
+      },
+      {
+        "query": "Edmotnon City Hall",
+        "matches": 1
+      },
+      {
+        "query": "16767 91 Street NW, Edmonton",
+        "matches": 0
+      }
+    ],
+    "http://127.0.0.1:8098": [
+      {
+        "query": "Jasp, Edm",
+        "matches": 2
+      },
+      {
+        "query": "Edmotnon City Hall",
+        "matches": 1
+      },
+      {
+        "query": "16767 91 Street NW, Edmonton",
+        "matches": 0
+      }
+    ]
+  }
+}

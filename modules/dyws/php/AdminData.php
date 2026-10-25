@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 function dyws_admin_orders(array $config,\dyws\Store $store):array {
- $drivers=[];foreach($config['drivers'] as $id=>$driver)if($driver['active']??true)$drivers[]=['id'=>$id,'name'=>$driver['name']];
+ $drivers=[];foreach($config['drivers'] as $id=>$driver)if($driver['active']??true)$drivers[]=['id'=>$id,'name'=>$driver['name'],'profileIcon'=>$driver['profileIcon']??'car'];
  return ['orders'=>$store->orders(),'drivers'=>$drivers,'runs'=>(new \dyws\DeliveryRuns($store))->listing()];
 }
 function dyws_driver_locations(\dyws\Store $store):array {

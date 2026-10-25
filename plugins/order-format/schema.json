@@ -7,6 +7,7 @@
     {"id":"actions","label":"Continue to checkout","kind":"actions","required":true,"span":2,"align":"center"}
   ]},
   "checkout": {"label":"Customer details","fields":[
+    {"id":"location","label":"Location","kind":"input","span":2},
     {"id":"name","label":"Name","kind":"input","required":true,"span":1},
     {"id":"phone","label":"Phone number","kind":"input","required":true,"span":1},
     {"id":"fulfillment","label":"Pickup or delivery","kind":"fulfillment","required":true,"span":2},
@@ -22,6 +23,7 @@
     {"id":"actions","label":"Back and Review order","kind":"actions","required":true,"span":2}
   ]},
   "review": {"label":"Final review","fields":[
+    {"id":"location","label":"Location","kind":"address","span":2},
     {"id":"items","label":"Order items","kind":"items","required":true,"span":2},
     {"id":"delivery","label":"Delivery fee","kind":"amount","required":true,"span":2,"delivery":true},
     {"id":"tax","label":"Tax","kind":"amount","required":true,"span":2},

@@ -1,0 +1,33 @@
+[Unit]
+Description=DYWS Nominatim address lookup API
+After=postgresql@17-dyws.service network.target
+Requires=postgresql@17-dyws.service
+PartOf=postgresql@17-dyws.service
+
+[Service]
+Type=simple
+User=dyws-geocoder
+Group=dyws-geocoder
+WorkingDirectory=/srv/dyws-nominatim/project
+ExecStart=/srv/dyws-nominatim/venv/bin/gunicorn --no-control-socket --pythonpath /srv/dyws-nominatim/service --bind 127.0.0.1:8086 --workers 2 --worker-class asgi --worker-connections 20 --timeout 30 --graceful-timeout 10 dyws_autocomplete:run_wsgi()
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+KillMode=mixed
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+ProtectKernelTunables=true
+ProtectControlGroups=true
+ProtectKernelModules=true
+RestrictSUIDSGID=true
+UMask=0077
+MemoryMax=768M
+CPUQuota=100%
+Nice=5
+
+[Install]
+WantedBy=multi-user.target

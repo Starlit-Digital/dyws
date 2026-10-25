@@ -1,0 +1,11 @@
+{
+  "id": "square",
+  "name": "Square",
+  "version": "1.0.0",
+  "apiVersion": 1,
+  "type": "payments",
+  "description": "Square sandbox payment connector, encrypted credentials, API operations and verified event hooks. Customer payment activation is a separate integration stage.",
+  "entry": "plugin.php",
+  "browserModule": "index.js",
+  "settingsAnchor": "plugin-square"
+}

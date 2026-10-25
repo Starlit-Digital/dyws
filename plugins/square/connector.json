@@ -1,0 +1,32 @@
+{
+  "id": "square",
+  "name": "Square",
+  "documentation": "https://developer.squareup.com/docs/checkout-api",
+  "fields": [
+    {
+      "id": "accessToken",
+      "label": "Sandbox access token",
+      "required": true,
+      "secret": true
+    },
+    {
+      "id": "locationId",
+      "label": "Location ID",
+      "required": true,
+      "secret": true
+    },
+    {
+      "id": "webhookSecret",
+      "label": "Webhook signature key",
+      "required": true,
+      "secret": true
+    }
+  ],
+  "operations": [
+    "locations.list",
+    "checkout.create",
+    "payment.get",
+    "order.get"
+  ],
+  "webhook": "/plugins/square/webhook"
+}

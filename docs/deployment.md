@@ -108,3 +108,32 @@ Deploy both `plugins/order-format/` and `public_html/plugins/order-format/`, tog
 Activate Order Format through Admin → Plugins on ordinary installations. Activation does not assign a template, so every stage retains its existing format. Never replace a merchant's private `order-format-*.json` during code deployment. Back up that file with the other settings. Deactivation is the immediate rollback for new page loads and preserves all saved templates and assignments.
 
 For the public demo, deploy the matching Installation Lockdown policy before owner activation. It allows Order Format and its read endpoints, but rejects all template writes. The editor exposes a locked saving notice while still permitting layout previews. Keep `required_plugins`, account settings, catalogs and runtime databases intact.
+
+## Payment connector foundations
+
+Deploy the shared `modules/dyws/php/Payments/` transport and registration helpers before the matching `Plugins.php`. Include each provider's private and public plugin directories, manifests, bundled callback allowlist, hook catalog, shared settings controller, plugin type controller, stylesheet and regenerated preloads. No database migration is required. Preserve existing activation state and encrypted credentials. New connectors remain inactive and do not enable checkout. Keep the public demo's activation and settings restrictions. [Connector configuration and limitations](payment-connectors.md).
+
+## Business location migration
+
+The October 24 location update adds `orders.order_location_json` on first database access using the existing additive migration path. Back up the private SQLite database and catalog before updating. No runtime catalog or account changes are required. Catalogs without a location list retain their single pickup address. Deploy the PHP catalog and store changes together with the updated Business settings, ordering, order list, driver, tracking and layout assets. Custom order layouts that omit the location field retain it above their layout. Locations share a tenant catalogue, tax and delivery fee; branch specific menus, permissions and fees are not introduced by this change.
+
+The location update was deployed to both `/diner/` and `/diner-demo/` on October 24, 2026. Each installation received the same 15 matching runtime files after private code, JSON and consistent SQLite backups. Live asset hashes, health endpoints, schema and database integrity checks passed. Checkout and review were checked in the browser. The public demo continues to reject Business settings writes. Later location edits in the private diner were preserved. See [deployment verification](locations-deployment-20261024.json).
+
+## Driver profile icon update
+
+Deploy the matching Installation Lockdown policy first. Its account integrity fingerprint excludes the cosmetic `profileIcon`, while retaining credential and account protection. Deploy `accounts.sql` and `AdminAccounts.php`, then initialize accounts with the existing private configuration to add `drivers.profile_icon` with default `car`. Back up SQLite consistently first. Existing names, passwords, vehicles, activity, orders and locations remain intact.
+
+Deploy the matching API, page data, Store, driver console, driver and customer views, Google Maps renderer, local SVG assets and licenses, and regenerated preloads. The public demo permits only the signed in driver's validated icon preference through `/driver/profile`; its manager account and business settings stay locked. No existing runtime JSON needs replacement.
+
+The profile picker was deployed to both `/diner/` and `/diner-demo/` on October 24, 2026, after consistent private SQLite, JSON and code backups. Final source hashes, public assets, database integrity and existing driver fields were verified. The full test suite passed. Browser checks covered the default, all six choices, saving, reload persistence and the phone layout. See [deployment verification](driver-profiles-deployment-20261024.json).
+
+### Driver vehicle profile fields
+
+Deploy `AdminAccounts.php` together with the profile controller, `vehicle-colors.js`, shared CSS, manager account editor and Drivers page, plus regenerated preloads. No schema migration is needed. Model and colour now save with the authenticated driver's own profile, and manager account edits preserve these fields. Keep existing vehicle values, including custom legacy colours. The 32 colour chits are 16px squares with larger clickable labels and native radio keyboard controls. The existing public demo policy already permits these display fields without relaxing account or business protections.
+
+The vehicle profile update was deployed to `/diner/` and `/diner-demo/` on October 24, 2026. Both installations received seven matching runtime files, with private backups and checks that preserved existing driver records and JSON settings. Hosted asset hashes, profile access, colour validation and the live picker passed verification. See [deployment verification](vehicle-profile-deployment-20261024.json).
+
+The Nominatim address service runs separately on the confirmed PayCal VPS, while
+DYWS stays on shared hosting. Follow [the service operations guide](../services/nominatim/README.md)
+and [plugin provisioning](nominatim.md). The public diner demo uses local fictional
+suggestions and does not forward visitor input to the geocoder.

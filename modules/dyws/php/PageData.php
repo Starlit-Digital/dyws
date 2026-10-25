@@ -25,7 +25,7 @@ function dyws_driver_auth(array $config,\dyws\Store $store):array {
 }
 function dyws_driver_orders(array $config,\dyws\Store $store,array $session):array {
  if(isset($config['driver_test_location']))foreach($store->orders($session['subject']) as $order)if($order['status']==='out_for_delivery'&&!$order['deliveryRun'])$store->testLocation($order['id'],$session,$config['driver_test_location']);
- return ['orders'=>$store->orders($session['subject']),'runs'=>(new \dyws\DeliveryRuns($store))->listing($session['subject'])];
+ return ['profile'=>(new \dyws\AdminAccounts($config))->profile($store,$session['subject']),'orders'=>$store->orders($session['subject']),'runs'=>(new \dyws\DeliveryRuns($store))->listing($session['subject'])];
 }
 function dyws_tracking_access(array $config,\dyws\Store $store):?array {
  $post=($_SERVER['REQUEST_METHOD']??'GET')==='POST';$id=$post?($_POST['orderId']??''):($_GET['order']??'');
@@ -64,7 +64,7 @@ function dyws_loading_skeleton(string $label='Loading controls'):string {
 }
 function dyws_driver_preview(array $boot):string {
  $escape=static fn($v)=>htmlspecialchars((string)$v,ENT_QUOTES,'UTF-8');$html='';
- foreach($boot['responses']['/driver/orders']['orders'] as $order)$html.='<article><h2>'.$escape($order['id']).'</h2><p>'.$escape(ucfirst(str_replace('_',' ',$order['status']))).' · '.$escape($order['currency']).' '.number_format($order['total']/100,2).'</p><p>'.$escape($order['customer_name']).' · '.$escape($order['customer_phone']).'<br>'.$escape($order['address']).'</p><p>'.$escape($order['notes']).'</p></article>';
+ foreach($boot['responses']['/driver/orders']['orders'] as $order)$html.='<article><h2>'.$escape($order['id']).'</h2><p>'.$escape(ucfirst(str_replace('_',' ',$order['status']))).' · '.$escape($order['currency']).' '.number_format($order['total']/100,2).'</p><p>'.$escape($order['customer_name']).' · '.$escape($order['customer_phone']).'<br>'.$escape($order['address']).'</p><p>'.$escape($order['notes']).'</p><p>Pickup: '.$escape(($order['orderLocation']['name']??'').' · '.($order['orderLocation']['address']??'')).'</p></article>';
  return $html?:'<p>No active deliveries. You’re all caught up.</p>';
 }
 function dyws_tracking_preview(array $boot):string {
@@ -74,5 +74,5 @@ function dyws_tracking_preview(array $boot):string {
  $pending=$order['status']==='placed';$paymentNeeded=$pending&&($order['paymentProvider']??'demo')!=='demo'&&$order['paymentStatus']==='unpaid';
  $notice=$pending?'<div class="dyws-tracking-arrival"><p class="dyws-arrival-label">'.($paymentNeeded?'Payment needed':'Order confirmation').'</p><strong class="dyws-arrival-value">'.($paymentNeeded?'Waiting for payment':'Waiting for acceptance').'</strong><p class="dyws-arrival-detail">'.($paymentNeeded?'Complete your payment to continue.':'Your order has been sent. This page will update as soon as the business accepts it. There is no need to order again.').'</p></div>':'';
  $driver=$order['driver']??null;$driverHtml=$driver?'<div class="dyws-tracking-driver"><p class="dyws-driver-label">'.$escape($boot['responses']['/settings']['driverRole']['singular']).'</p><strong>'.$escape($driver['name']).'</strong><p>'.$escape(implode(' · ',array_filter([$driver['vehicleColor'],$driver['vehicleType']]))).'</p></div>':'';
- return '<section data-dyws-initial-preview class="dyws-tracking-panel"><p class="dyws-tracking-reference">Order <strong>'.$escape($order['id']).'</strong></p><h2>'.$escape($titles[$order['status']]??'Order update').'</h2>'.$notice.'<p>Payment: '.$escape(ucfirst($order['paymentStatus'])).'</p>'.$driverHtml.($terminal?'<p>'.($order['status']==='cancelled'?'This order has been cancelled.':'Your order is complete. No further action is needed.').'</p>':'<p>'.($order['status']==='out_for_delivery'?'Your delivery is on the way. Loading the latest location.':'Order updates appear here automatically.').'</p>').'</section>';
+ return '<section data-dyws-initial-preview class="dyws-tracking-panel"><p class="dyws-tracking-reference">Order <strong>'.$escape($order['id']).'</strong></p><h2>'.$escape($titles[$order['status']]??'Order update').'</h2>'.$notice.'<p>Location: '.$escape($order['orderLocation']['name']??'').'</p><p>Payment: '.$escape(ucfirst($order['paymentStatus'])).'</p>'.$driverHtml.($terminal?'<p>'.($order['status']==='cancelled'?'This order has been cancelled.':'Your order is complete. No further action is needed.').'</p>':'<p>'.($order['status']==='out_for_delivery'?'Your delivery is on the way. Loading the latest location.':'Order updates appear here automatically.').'</p>').'</section>';
 }

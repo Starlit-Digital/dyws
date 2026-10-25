@@ -1,0 +1,25 @@
+{
+  "id": "helcim",
+  "name": "Helcim",
+  "documentation": "https://devdocs.helcim.com/docs/initialize-helcimpayjs",
+  "fields": [
+    {
+      "id": "apiToken",
+      "label": "Developer test account API token",
+      "required": true,
+      "secret": true
+    },
+    {
+      "id": "webhookSecret",
+      "label": "Webhook verifier token",
+      "required": true,
+      "secret": true
+    }
+  ],
+  "operations": [
+    "terminals.list",
+    "checkout.create",
+    "transaction.get"
+  ],
+  "webhook": "/payments/hc/events"
+}

@@ -12,7 +12,7 @@ if(!mkdir($dir,0700,true))throw new RuntimeException('Cannot create private dire
 $base=dirname(__DIR__,2);copy($base.'/examples/starlit-diner/catalog.json',$dir.'/catalog.json');
 $config=['public_base_url'=>$url,'tenant'=>'dyws-public-demo','catalog'=>$dir.'/catalog.json','database'=>$dir.'/dyws.sqlite','tracking_secret'=>bin2hex(random_bytes(32)), 'demo_lockdown'=>true,'required_plugins'=>['demo-lockdown'],'driver_test_location'=>DemoPolicy::LOCATION,'manager_password_hash'=>password_hash('admin',PASSWORD_DEFAULT),'drivers'=>['driver'=>['name'=>'Alex Morgan','password_hash'=>password_hash('driver',PASSWORD_DEFAULT),'active'=>true]]];
 $effective=(new \dyws\AdminAccounts($config))->effective();$config['demo_account_fingerprint']=DemoPolicy::accountFingerprint($effective);unset($config['manager_password_hash'],$config['drivers']);
-\dyws\Catalog::write($dir.'/plugins-'.substr(hash('sha256',$config['tenant']),0,16).'.json',['active'=>['demo-lockdown','order-reporting','datatables'],'known'=>['demo-lockdown','google-maps','stripe','order-reporting','datatables'],'requirements'=>['demo-lockdown'=>['validation']]]);
+\dyws\Catalog::write($dir.'/plugins-'.substr(hash('sha256',$config['tenant']),0,16).'.json',['active'=>['demo-lockdown','order-reporting','datatables','nominatim'],'known'=>['demo-lockdown','google-maps','stripe','order-reporting','datatables','nominatim'],'requirements'=>['demo-lockdown'=>['validation']]]);
 \dyws\Catalog::write($dir.'/config.json',$config);
 [$config,$store]=dyws_bootstrap($dir.'/config.json');
 for($i=0;$i<3;$i++){

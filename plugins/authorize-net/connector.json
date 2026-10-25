@@ -1,0 +1,31 @@
+{
+  "id": "authorize-net",
+  "name": "Authorize.net",
+  "documentation": "https://developer.authorize.net/api/reference/features/accept-hosted.html",
+  "fields": [
+    {
+      "id": "loginId",
+      "label": "Sandbox API login ID",
+      "required": true,
+      "secret": true
+    },
+    {
+      "id": "transactionKey",
+      "label": "Transaction key",
+      "required": true,
+      "secret": true
+    },
+    {
+      "id": "signatureKey",
+      "label": "Webhook signature key",
+      "required": true,
+      "secret": true
+    }
+  ],
+  "operations": [
+    "account.verify",
+    "checkout.create",
+    "transaction.get"
+  ],
+  "webhook": "/plugins/authorize-net/webhook"
+}

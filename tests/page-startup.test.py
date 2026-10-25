@@ -43,6 +43,8 @@ with tempfile.TemporaryDirectory(prefix='dyws-pages-') as work:
   one=order('Visible Test Customer');two=order('Other Private Customer')
   driver_summary=api('/manager/drivers',None,mt)
   api('/manager/drivers',{'id':'demo-driver','name':'Alex <Morgan>','active':True,'password':'','vehicleType':'Sedan','vehicleColor':'Blue','revision':driver_summary['revision']},mt)
+  profile=api('/driver/profile',None,token)
+  api('/driver/profile',{'profileIcon':'car','vehicleType':'Sedan','vehicleColor':'Blue','revision':profile['revision']},token)
   api('/manager/orders/'+one['id']+'/assign',{'driverId':'demo-driver'},mt)
   for state in ['accepted','preparing','ready']:api('/manager/orders/'+one['id']+'/status',{'status':state},mt)
   status,headers,body=req('/driver/');data=boot(body)
