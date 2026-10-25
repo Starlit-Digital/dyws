@@ -10,6 +10,16 @@ Starlit Diner is the fictional reference host at `https://sltd.ca/diner-demo/`. 
 
 Working line: Your website. Your orders. Delivered.
 
+## Starlit Developer Tools and SiteCraft
+
+DYWS is listed under Developer Tools on sltd.ca, including the homepage, Projects page and existing footer links. Its role is the reusable ordering and delivery platform behind suitable business websites.
+
+Starlit SiteCraft is the public website service. The workflow selects a Starlit template, applies Starlit assets and accessibility preferences, adds appropriate DYWS capabilities, customizes the site, verifies it and deploys it. Use DYWS where ordering, fulfillment, delivery or its plugin capabilities are needed. A static design or email contact form does not by itself integrate DYWS.
+
+Create an appropriately named private Starlit Digital repository for each distinct client site. Reuse that site's repository for additional pages and preserve existing remotes and edits. Keep the reusable platform here and client branding in the owning site. The [SiteCraft landing page](https://sltd.ca/sitecraft/) omits pricing and invites contact for an initial meeting.
+
+The reusable workflow lives in `~/.codex/skills/starlit-sitecraft/SKILL.md`. Durable website and workflow decisions live in `sltd.ca/docs/AI_NOTES_WEBSITE.txt` under the shared repository base. Missing contact details, deployment configuration and incomplete integrations must remain explicit.
+
 ## Current implementation
 
 - Reusable PHP menu, category and item rendering, browser modules, a cart component and scoped CSS. Host pages supply branding, placement and endpoints.
@@ -18,7 +28,9 @@ Working line: Your website. Your orders. Delivered.
 - Seven protected admin pages: Orders, Reports, Catalog, Drivers, Password, Settings and Plugins. `/admin/` is the entry, `/auth/` handles sign in and Orders is the default.
 - A driver console with assigned addresses, pickup and completion actions, and automatic GPS for active deliveries. A private simulated origin is available for test deployments.
 - A dedicated private customer status page after checkout. Google Maps can show driver and destination markers, a traffic aware route and an approximate arrival time. Completion comes only from backend status.
-- Five bundled plugins: Google Maps, Stripe sandbox Checkout, Order Reporting, DataTables and the optional Installation Lockdown policy. The plugin API has 37 hook contracts, namespaced routes, providers, validators, filters and actions. PHP feature attributes select browser assets per page.
+- Bundled Google Maps, Stripe sandbox Checkout, Order Reporting, DataTables, Installation Lockdown, Order Format, Nominatim Address Lookup and six independent sandbox payment connector foundations. The plugin API has 40 hook contracts, namespaced routes, providers, validators, filters and actions. PHP feature attributes select browser assets per page. Plugin categories and individual Edit pages organize their configuration.
+- Business location rows and immutable pickup details on new orders, with compatibility for older single address catalogs. Drivers manage their own vehicle model, colour and map icon through revision checked profile saves.
+- Optional address suggestions from an owned Nominatim service with Alberta civic address supplementation. Manual entry remains available. Suggestions do not establish delivery eligibility, and the public demo uses fictional local results.
 - PHP initial data, skeletons, HTTPS polling, optional WebSocket plumbing and refresh on tab return. Admin guards preserve unsaved edits and server revisions.
 - UTC storage and a selectable display timezone. Reports include comparisons, charts, CSV and SVG exports, with definitions separating ordered value from test collections.
 - Git plus Composer as the primary installation path. The optional ZIP is a release download. Browser setup verifies a private ownership key, creates the admin account and removes itself.

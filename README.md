@@ -6,6 +6,8 @@
 
 The customer orders on your website, the business manages the order, and an assigned driver handles the delivery. Starlit Diner is the fictional restaurant example. The catalog also supports general products and services sold in whole units.
 
+DYWS belongs in Starlit Digital's **Developer Tools**. [Starlit SiteCraft](https://sltd.ca/sitecraft/) uses its ordering and delivery capabilities when a client website needs them, alongside the shared template library, Starlit assets and accessibility preferences. A static template or contact form alone is not a DYWS integration. See [the product direction](docs/product-notes.md).
+
 This is a development preview. Orders and delivery workflows work against persistent storage, but payments are demonstrations or Stripe sandbox transactions. Native mobile apps and production dispatch operations are not shipped. The repository contains the complete source; deployment credentials and business records stay outside Git.
 
 ![Starlit Diner example storefront](docs/screenshots/customer-storefront.jpg)
@@ -86,7 +88,13 @@ Drivers edit their optional vehicle model and colour under My profile. Colour se
 | Automatic refresh | Admin views refresh when returning to a visible tab or window and when connectivity returns. Clean forms update independently; unsaved values, focused fields and open editors defer replacement. |
 | Edit protection | Saved revisions remain attached to drafts. A read that overlaps typing, saving or explicit reload cannot overwrite newer edits. Deferred changes produce a notice. |
 
+### Business locations
+
+Add and edit location rows in Business details. Each row has a name, address, optional phone and availability control. Checkout selects a location and the saved order retains that branch even if business details change later. Pickup addresses in checkout and final review open Google Maps in a new tab. Catalogs without location rows continue to use their single pickup address. See [the API contract](docs/api.md#business-locations-october-24-2026).
+
 ### Driver and delivery flow
+
+Drivers can choose their map and profile icon under **Driver console → My profile**. Car is the default, with SUV, Pickup, Van, Motorcycle and Bicycle available. The same saved icon appears across the driver console, admin maps and private customer tracking.
 
 Drivers sign in at `/driver/` and see only assigned deliveries available to their account. The console shows the delivery address, phone, notes and pickup or completion actions. Status transitions are checked by the server.
 
@@ -103,8 +111,11 @@ The console refreshes on tab return, window focus and reconnection. Reliable GPS
 | Stripe | Optional sandbox hosted Checkout, signed webhooks, server payment verification, idempotency, encrypted credentials and settings owned by the plugin. Success and cancellation return to the private order page. No live payment keys in this demo. |
 | Order Reporting | Reporting dataset, business metrics, period comparisons, charts, CSV and SVG exports, dashboard controls and report integration hooks. |
 | DataTables | Locally bundled table search, sort, pagination and in memory table state. No runtime CDN dependency or customer records in browser table storage. |
+| Order Format | Optional visual layouts for Cart, Customer details and Final review, with built in defaults when disabled or unassigned. |
+| Nominatim Address Lookup | Optional suggestions from an owned address service, including Alberta civic address matching. Manual entry remains available. The public demo uses fictional local suggestions. |
+| Square, PayPal, Helcim, Clover, Moneris and Authorize.net | Six independent sandbox connector foundations with encrypted settings, connection checks and verified event hooks. They do not enable customer checkout. |
 
-The [plugin system](docs/plugins.md) provides lifecycle, discovery, settings, authenticated routes, validators, filters, actions, UI slots and providers. The [37 hook contracts](docs/plugin-hooks.md) cover catalog validation and display, checkout fields and validation, order creation and transitions, assignment, tracking, lookup, API responses, driver tools, reporting datasets, controls, cards, exports and tables. The [gift note example](examples/plugins/gift-note) demonstrates a custom plugin.
+The [plugin system](docs/plugins.md) provides lifecycle, discovery, settings, authenticated routes, validators, filters, actions, UI slots and providers. The [40 hook contracts](docs/plugin-hooks.md) cover catalog validation and display, checkout fields and validation, order creation and transitions, assignment, tracking, lookup, API responses, driver tools, reporting datasets, controls, cards, exports, tables and payment connectors. The [gift note example](examples/plugins/gift-note) demonstrates a custom plugin.
 
 Native PHP `#[Provides(...)]` attributes describe plugin features. Page `#[Requires(...)]` attributes declare what each page consumes. The resolver loads matching browser assets while keeping required backend validation and authorization active. A new page does not need every plugin’s browser code.
 
@@ -205,6 +216,7 @@ These browser screenshots were captured from isolated local fixtures on October 
 | `examples/` | Diner and general store catalogs, PHP host integration and plugin examples. |
 | `tests/` | Automated application, API, plugin and installation checks. |
 | `scripts/` | Asset preparation and optional release packaging tools. |
+| `services/nominatim/` | Separately hosted address service configuration, civic import, matching tests and operations guide. |
 | `dist/` | Ignored generated install ZIP and checksum, created only when requested. |
 | `var/` | Ignored runtime data and credentials. Never publish this directory. |
 | `docs/` | Architecture, APIs, deployment, screenshots, plugin contracts and plans. |
@@ -218,6 +230,7 @@ composer install --no-dev
 npm ci --prefix modules/dyws/realtime
 npm test
 npm run test:realtime
+python3 -m unittest discover -s services/nominatim/autocomplete -p 'test_*.py'
 ```
 
 Optionally build and verify an install download:
@@ -244,6 +257,8 @@ The server enforces tenant boundaries, but the shipped installation is configure
 - [Backend architecture](docs/architecture.md) and [HTTP API](docs/api.md)
 - [Reusable module integration](docs/dyws-module.md) and [CSS system](docs/dyws-styles.md)
 - [Catalog and payment setup](docs/catalog-and-payments.md)
+- [Payment connector scope and configuration](docs/payment-connectors.md)
+- [Address lookup](docs/nominatim.md) and [address service operations](services/nominatim/README.md)
 - [Plugin development](docs/plugins.md) and [hook reference](docs/plugin-hooks.md)
 - [Report definitions](docs/order-reporting.md)
 - [GPS, Maps and realtime](docs/gps-maps-realtime.md)
@@ -251,11 +266,6 @@ The server enforces tenant boundaries, but the shipped installation is configure
 - [Startup diagnostics](docs/load-diagnostics.md) and [performance measurements](docs/performance-2026-10-23.md)
 - [Driver mobile app plan](docs/mobile-driver-plan.md)
 - [Screenshot provenance](docs/screenshots/README.md)
+- [Product direction and Starlit SiteCraft](docs/product-notes.md)
 
 The private repository is [Starlit-Digital/dyws](https://github.com/Starlit-Digital/dyws).
-
-### Business locations
-
-Add and edit location rows in Business details. Each row has a name, address, optional phone and availability control. Checkout selects a location and the saved order retains that branch even if business details change later. Pickup addresses in checkout and final review open Google Maps in a new tab. Catalogs without location rows continue to use their single pickup address. See [the API contract](docs/api.md#business-locations-october-24-2026).
-
-Drivers can choose their map and profile icon under **Driver console → My profile**. Car is the default, with SUV, Pickup, Van, Motorcycle and Bicycle available. The same saved icon appears across the driver console, admin maps and private customer tracking.

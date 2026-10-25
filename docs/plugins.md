@@ -13,7 +13,7 @@ Copy both parts from a trusted source, then open **Admin → Plugins** and activ
 
 Plugin state is tenant scoped private JSON beside the database, with revision checking and file locking. A corrupt state file disables plugins and produces an admin warning. Missing optional display plugins do not stop orders. Required payment and validation failures reject affected operations. Reinstall a plugin's files before attempting to activate it again. Removing files does not erase its settings.
 
-The current implementation installs code through Git or file upload using the hosting file manager. There is no browser ZIP uploader, marketplace, automatic updater or uninstall data deletion. Both the Git checkout and optional install ZIP include both halves of all twelve bundled plugins.
+The current implementation installs code through Git or file upload using the hosting file manager. There is no browser ZIP uploader, marketplace, automatic updater or uninstall data deletion. Both the Git checkout and optional install ZIP include the private implementation and matching public assets of each bundled plugin.
 
 The fifth bundled plugin, [Installation Lockdown](demo-lockdown.md), is inactive by default and requires explicit private configuration. It cannot be enabled accidentally from the Plugins page. A private `required_plugins` list pins installation policies active before other plugins. Missing or broken required code stops PHP bootstrap with 503, and its deactivation is forbidden.
 

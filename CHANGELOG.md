@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Business details now supports location rows. Checkout selects an available branch, and orders preserve its name, pickup address and phone through admin, driver and tracking views. Final review pickup addresses are clickable Google Maps links. Older single address catalogs and custom order layouts remain usable.
+- Driver profiles now offer six local vehicle icons with Car as the default. Choices persist per driver and update Google Maps markers in operator and customer views. The additive account migration preserves existing records, and the public demo allows this narrow cosmetic preference while retaining its account and business restrictions.
+- Drivers now edit their own vehicle model and colour alongside their profile icon. The colour picker offers 32 named 16px square chits. Manager driver cards retain vehicle details for reference. Existing custom colours are preserved until the driver chooses a replacement.
+- Add optional address suggestions from an owned Nominatim service, bounded prefix and typo matching, and an Alberta civic address supplement. Preserve manual entry, house numbers, private credentials and fictional public demo lookups. Include service configuration, import and matching tools, deployment records and tests.
+- Document DYWS under Starlit Developer Tools and its optional role in Starlit SiteCraft website projects. Update the feature overview and payment connector limits.
+
 - Add independent sandbox connector plugins for Square, PayPal, Helcim, Clover, Moneris and Authorize.net, with encrypted tenant credentials, revision protected settings APIs, provider connections, verification and signed event hooks. Keep customer checkout activation separate. Group plugins by type in an accessible vertical tab bar on the left.
 
 - Add the optional Order Format plugin with named stage templates, a field palette, two column drag and drop canvas, desktop and phone previews, alignment and spanning controls, and stage assignments. Preserve built in stage formats when disabled, unassigned or invalid. Protect essential checkout controls, preserve drafts on deactivation and keep public demo saving locked.
@@ -91,11 +97,3 @@ Use directory routes such as `/admin/`, `/orders/`, `/driver/` and `/tracking/`,
 ### Preview limits
 
 This is a demonstration release, not a production delivery service. Stripe is sandbox only, the hosted diner uses HTTPS polling and a simulated origin, and Google Maps requires configuration. Native mobile applications, reliable background GPS, marketplace payouts and managed production operations are not included. The optional WebSocket relay must be deployed separately.
-
-## Unreleased, October 24, 2026
-
-Business details now supports location rows. Checkout selects an available branch, and orders preserve its name, pickup address and phone through admin, driver and tracking views. Final review pickup addresses are clickable Google Maps links. Older single address catalogs and custom order layouts remain usable.
-
-Driver profiles now offer six local vehicle icons with Car as the default. Choices persist per driver and update Google Maps markers in operator and customer views. The additive account migration preserves existing records, and the public demo allows this narrow cosmetic preference while retaining its account and business restrictions.
-
-Drivers now edit their own vehicle model and colour alongside their profile icon. The colour picker offers 32 named 16px square chits. Manager driver cards retain vehicle details for reference. Existing custom colours are preserved until the driver chooses a replacement.
