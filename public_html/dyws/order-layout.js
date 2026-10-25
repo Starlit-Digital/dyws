@@ -19,7 +19,7 @@ export function applyOrderLayout({stage,root,layout}){
  const doc=root.ownerDocument,nodes=new Map([...root.querySelectorAll('[data-dyws-order-field]')].map(n=>[n.dataset.dywsOrderField,n]));
  if(orderFields[stage].required.some(id=>!nodes.has(id)))return false;
  // All validation happens before the fallback DOM is changed.
- if(stage==='checkout')for(const f of layout.fields)if(extras[f.id]&&!nodes.has(f.id)){
+ if(stage==='checkout')for(const f of layout.fields)if(extras[f.id]&&!nodes.has(f.id)&&!(root.dataset?.dywsAddressAutocomplete!==undefined&&['city','region','country'].includes(f.id))){
   const [caption,name,max,autocomplete]=extras[f.id],label=doc.createElement('label'),input=doc.createElement('input');
   label.textContent=caption+', optional';label.dataset.dywsOrderField=f.id;label.dataset.dywsDelivery='';input.name=name;input.maxLength=max;input.autocomplete=autocomplete;label.append(input);nodes.set(f.id,label);
  }

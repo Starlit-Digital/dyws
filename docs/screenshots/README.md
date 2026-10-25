@@ -27,3 +27,7 @@ No live orders or personal customer details were used. No credentials, authentic
 To refresh these images, create a separate CLI demo fixture, use fictional customer records, capture the documented pages, review each image for secrets and readability, and replace the matching JPEG. Keep fixture configuration and databases outside Git. Do not use the hosted restaurant's records to recreate the gallery.
 
 The October 23 gallery refresh was published to `/dyws/`, and the six changed presentation modules were published to both `/diner/` and `/diner-demo/`. Configuration, accounts, catalog, order data and demo restrictions were not deployed or replaced. Both installs passed HTTP smoke checks and asset digest checks; the public checkout retained its fictional fields and disabled device GPS policy.
+
+## October 24 checkout refresh
+
+`review-layout-20261024/customer-checkout.png`, `paused-review.png` and `resumed-review.png` show the single address checkout and the toggleable inline countdown, captured with a fictional customer and the public Edmonton City Hall address in a disposable fixture. The resumed screenshot was immediately paused again. These supersede the older checkout and review layouts.

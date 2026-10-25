@@ -36,3 +36,13 @@ test('Switching away pauses, and returning never sends an unseen order',()=>{
 test('A timer also checks visibility when a visibility event was missed',()=>{
  const s=setup();s.doc.hidden=true;s.advance();assert.equal(s.pauses,1);assert.equal(s.sends,0);s.countdown.cancel();
 });
+test('Pause toggles back to remaining seconds and ignores callbacks from before resuming',()=>{
+ const s=setup();s.advance();const stale=[...s.jobs.values()][0];
+ s.countdown.toggle();assert.equal(s.jobs.size,0);s.countdown.toggle();
+ stale();assert.equal(s.ticks.at(-1),9);assert.equal(s.jobs.size,1);
+ s.advance();assert.equal(s.ticks.at(-1),8);
+ s.countdown.toggle();s.doc.hidden=true;s.countdown.toggle();assert.equal(s.jobs.size,0);
+ s.doc.hidden=false;s.countdown.toggle();
+ for(let i=0;i<8;i++)s.advance();assert.equal(s.sends,1);
+ s.countdown.toggle();assert.equal(s.jobs.size,0);
+});

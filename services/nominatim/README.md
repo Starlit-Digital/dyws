@@ -260,3 +260,24 @@ address or the tested City Hall building addresses; Nominatim continues supplyin
 the latter. The service combines the available sources, not guaranteed complete
 coverage. Existing public demo searches remain fictional and do not query either
 dataset.
+
+## Canadian locality name cache
+
+`build-canadian-cities.py` scans all provincial and territorial address CSVs in
+our official June 2026 NAR archive. It collects English and French census
+subdivision names and mailing municipality names, then writes a sorted static
+cache. This includes towns and rural mailing localities as well as cities.
+The cache reflects that release, rather than asserting every current locality
+has an address in NAR. Rebuild it with each new approved source edition.
+
+DYWS uses the derived `public_html/dyws/canadian-cities.js` to split free text
+addresses before a recognized city, preserving the remainder on line two.
+Longer names are checked first, with word boundaries. Delivery addresses use
+their structured city, province and postal fields directly. No customer address
+is added to this public reference cache.
+
+The October 24 build contains 11,595 distinct municipality and mailing locality
+names from every province and territory in the June 2026 release. The generator
+completed in about 147 seconds with a 9.3 MiB memory peak. Address formatting
+checks comma boundaries before whitespace, so a street such as Edmonton Trail
+is not confused with the city of Trail when a city follows a comma.

@@ -1,3 +1,15 @@
-.dyws-address-lookup{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.6rem;min-width:0;margin:.75rem 0 1rem;padding:1rem;border:1px solid currentColor;border-color:color-mix(in srgb,currentColor 20%,transparent);border-radius:1rem}
-.dyws-address-lookup label{display:grid;gap:.35rem;min-width:0}.dyws-address-lookup input{width:100%;min-width:0;box-sizing:border-box;font:inherit}.dyws-address-lookup>button{align-self:end}.dyws-address-lookup p,.dyws-address-lookup>a,.dyws-lookup-results{grid-column:1/-1;margin:0}.dyws-lookup-note,.dyws-address-lookup>a{font-size:.85rem}.dyws-lookup-status:empty,.dyws-lookup-results:empty{display:none}.dyws-lookup-results{padding:0;list-style:none;display:grid;gap:.4rem}.dyws-lookup-results button{display:block;width:100%;text-align:left;white-space:normal;font:inherit}.dyws-address-lookup a{color:inherit}.dyws-location-lookup{grid-column:1/-1}.dyws-location-lookup summary{cursor:pointer;text-decoration:underline}.dyws-address-lookup button:focus-visible,.dyws-address-lookup input:focus-visible{outline:2px solid currentColor;outline-offset:3px}
-@media(max-width:420px){.dyws-address-lookup{grid-template-columns:1fr}.dyws-address-lookup>button{width:100%}}
+.dyws-address-lookup{display:grid;grid-template-columns:minmax(0,1fr);gap:0;min-width:0;margin:.75rem 0 1rem;padding:0;border:0;border-radius:0}
+.dyws-address-lookup label{display:grid;gap:.35rem;min-width:0;margin:0}.dyws-address-lookup input{width:100%;min-width:0;box-sizing:border-box;font:inherit}
+.dyws-lookup-status{margin:.5rem 0 0}.dyws-lookup-status:empty,.dyws-lookup-results:empty{display:none}
+.dyws-lookup-results{margin:0;padding:0;list-style:none;border:1px solid color-mix(in srgb,currentColor 25%,transparent);border-top:0;border-radius:0 0 .7rem .7rem;overflow:hidden;background:var(--dyws-panel,#252525)}
+.dyws-lookup-results li+li{border-top:1px solid color-mix(in srgb,currentColor 12%,transparent)}
+.dyws-address-lookup .dyws-lookup-results button{display:block;width:100%;margin:0;padding:.85rem 1rem;text-align:left;white-space:normal;font:inherit;font-weight:400;color:inherit;background:transparent;border:0;border-radius:0;box-shadow:none;cursor:pointer}
+.dyws-address-lookup .dyws-lookup-results button:hover,.dyws-address-lookup .dyws-lookup-results button:focus-visible{background:color-mix(in srgb,currentColor 10%,transparent)}
+.dyws-lookup-has-results .dyws-lookup-input-wrap input{border-bottom-left-radius:0;border-bottom-right-radius:0}
+.dyws-location-lookup{grid-column:1/-1}.dyws-location-lookup summary{cursor:pointer;text-decoration:underline}
+.dyws-address-lookup button:focus-visible,.dyws-address-lookup input:focus-visible{outline:2px solid currentColor;outline-offset:-2px}
+.dyws-lookup-input-wrap{position:relative;display:block;min-width:0}.dyws-address-lookup .dyws-lookup-input-wrap input{padding-right:3rem}.dyws-lookup-enter{position:absolute;right:.85rem;top:50%;transform:translateY(-50%);pointer-events:none;font-size:1.25rem;line-height:1;opacity:.65}.dyws-lookup-input-wrap input::-webkit-search-cancel-button{margin-right:1.2rem}
+.dyws-address-source{display:block;max-width:70rem;margin:1rem auto;padding:0 1rem;font-size:.65rem;line-height:1.5;opacity:.65}.dyws-address-source a{color:inherit}
+
+.dyws-single-location>.dyws-checkout-grid{grid-template-columns:minmax(0,3fr) minmax(8rem,1fr);align-items:start}.dyws-single-location .dyws-address-lookup{margin:0}.dyws-single-location label[data-dyws-order-field="unit"]{align-content:start}
+@media(max-width:520px){.dyws-single-location>.dyws-checkout-grid{grid-template-columns:minmax(0,1fr)}}

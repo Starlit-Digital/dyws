@@ -165,8 +165,10 @@
     ],
     "storefront": [
       "demo.js?v=39",
+      "dyws/address-lines.js",
       "dyws/admin-session.js?v=39",
       "dyws/api.js",
+      "dyws/canadian-cities.js",
       "dyws/cart.js",
       "dyws/catalog-data.js",
       "dyws/catalog.js?v=39",
@@ -177,6 +179,7 @@
       "dyws/diagnostics.js",
       "dyws/driver-icons.js",
       "dyws/order-layout.js",
+      "dyws/phone-input.js",
       "dyws/plugin-ui.js?v=39",
       "dyws/plugins.js?v=39",
       "dyws/realtime.js",
@@ -190,6 +193,9 @@
     ]
   },
   "plugins": {
+    "order-printer": [
+      "plugins/order-printer/index.js?v=0.1.0"
+    ],
     "helcim": [
       "dyws/admin-navigation.js?v=39",
       "dyws/admin-refresh.js",
@@ -292,6 +298,7 @@
     ]
   },
   "styles": {
+    "order-printer": [],
     "order-reporting": [],
     "datatables": [
       "plugins/datatables/vendor/dataTables.dataTables.min.css"
