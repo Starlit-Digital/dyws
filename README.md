@@ -2,7 +2,7 @@
 
 **Do You Want Something?** A reusable ordering and delivery system for a business’s own website.
 
-**Release: [0.10.0](VERSION)** · [Optional install ZIP](https://github.com/Starlit-Digital/dyws/releases/download/v0.10.0/dyws.zip) · [Release notes](CHANGELOG.md) · [Installation guide](INSTALL.md) · [Hosted diner example](https://sltd.ca/diner-demo/)
+**Release: [0.11.0](VERSION)** · [Optional install ZIP](https://github.com/Starlit-Digital/dyws/releases) · [Release notes](CHANGELOG.md) · [Installation guide](INSTALL.md) · [Hosted diner example](https://sltd.ca/diner-demo/)
 
 The customer orders on your website, the business manages the order, and an assigned driver handles the delivery. Starlit Diner is the fictional restaurant example. The catalog also supports general products and services sold in whole units.
 
@@ -11,6 +11,12 @@ DYWS belongs in Starlit Digital's **Developer Tools**. [Starlit SiteCraft](https
 This is a development preview. Orders and delivery workflows work against persistent storage, but payments are demonstrations or Stripe sandbox transactions. Native mobile apps and production dispatch operations are not shipped. The repository contains the complete source; deployment credentials and business records stay outside Git.
 
 ![Starlit Diner example storefront](docs/screenshots/customer-storefront.jpg)
+
+## Current checkout
+
+Checkout uses one Location field with address autocomplete, an optional Unit field and phone formatting while typing. Selected addresses include city, province and postal code. The review uses two line addresses and an inline countdown between Back and Looks good!. Click the countdown to pause or resume from the remaining seconds. Leaving the page pauses it until deliberately resumed. Canadian locality names are cached from the Statistics Canada National Address Register.
+
+![Current order review](docs/screenshots/review-layout-20261024/paused-review.png)
 
 ## Install or run
 
@@ -191,7 +197,7 @@ These browser screenshots were captured from isolated local fixtures on October 
 
 3. Choose Pickup or Delivery with the pill selector, then provide contact and address details. The delivery fee is shown with the choice.
 
-![Customer checkout with fictional contact information](docs/screenshots/customer-checkout.jpg)
+![Customer checkout with fictional contact information](docs/screenshots/review-layout-20261024/customer-checkout.png)
 
 4. Follow the connected progress timeline. Later stops show how many deliveries are ahead.
 
@@ -269,3 +275,7 @@ The server enforces tenant boundaries, but the shipped installation is configure
 - [Product direction and Starlit SiteCraft](docs/product-notes.md)
 
 The private repository is [Starlit-Digital/dyws](https://github.com/Starlit-Digital/dyws).
+
+## Order printer pilot
+
+The optional Order Printer plugin pairs an ESP32 controller over its own setup WiFi, then retrieves accepted venue orders directly from DYWS. BLE diagnostics remain available. See [the printer plan, costs and API contract](docs/order-printer.md) and [firmware build and wiring](firmware/order-printer/README.md). The plugin is inactive by default and physical hardware validation is pending.

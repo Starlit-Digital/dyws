@@ -1,6 +1,11 @@
 # Changelog
 
-## Unreleased
+## 0.11.0 · 2026-10-24
+
+- Add a compact single address checkout, cached Canadian locality names, two line review addresses and an inline countdown that toggles pause and resume.
+- Include the optional order printer pilot and firmware, with physical hardware validation still pending.
+
+- Format checkout phone numbers while typing and pasting, including partial numbers, while preserving the editing cursor and custom checkout layouts.
 
 - Business details now supports location rows. Checkout selects an available branch, and orders preserve its name, pickup address and phone through admin, driver and tracking views. Final review pickup addresses are clickable Google Maps links. Older single address catalogs and custom order layouts remain usable.
 - Driver profiles now offer six local vehicle icons with Car as the default. Choices persist per driver and update Google Maps markers in operator and customer views. The additive account migration preserves existing records, and the public demo allows this narrow cosmetic preference while retaining its account and business restrictions.
