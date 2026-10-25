@@ -1,0 +1,31 @@
+{
+  "date": "2026-10-24",
+  "scope": "Local pilot, no deployment or hardware flash",
+  "checks": {
+    "npm_test": "passed",
+    "printer_backend_checks": 52,
+    "printer_http_checks": 31,
+    "native_firmware_protocol": "passed",
+    "browser": "Local manager sign in, plugin editor, creation and hiding of pairing details verified",
+    "diff_check": "passed"
+  },
+  "firmware": {
+    "arduino_cli": "1.5.1",
+    "esp32_core": "3.3.12",
+    "arduino_json": "7.4.2",
+    "fqbn": "esp32:esp32:esp32:FlashSize=16M,PartitionScheme=app3M_fat9M_16MB,PSRAM=enabled",
+    "program_bytes": 1846895,
+    "program_limit_bytes": 3145728,
+    "static_ram_bytes": 65212,
+    "static_ram_limit_bytes": 327680
+  },
+  "not_validated": [
+    "Physical printer output and wiring",
+    "WiFi provisioning on actual phone and ESP32",
+    "Runtime RAM and WiFi plus BLE coexistence",
+    "Fault injection on real hardware",
+    "Enclosure fit and temperature",
+    "Live hosting TLS chain"
+  ],
+  "screenshot": "screenshots/order-printer-20261024/settings.png"
+}

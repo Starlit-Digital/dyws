@@ -1,0 +1,341 @@
+DYWS ORDER PRINTER PROTOTYPE
+Enclosure design, purchasing and assembly handoff
+24 October 2026
+
+PURPOSE
+
+Build one counter mounted device that prints DYWS orders automatically at a venue. An Arduino compatible ESP32 controller obtains jobs directly from the DYWS website backend and sends them to an Epson receipt printer. The phone is used for initial WiFi setup and can leave afterwards.
+
+The enclosure is a printed cradle for the intact commercial printer, plus a small protected compartment for the controller and serial converter. Its purposes are to keep the assembly together, prevent exposed electronics and loose wiring, provide cable strain relief, provide a setup button and allow convenient servicing. It must preserve access to the printer lid, paper roll, cutter cover, controls, vents and connectors.
+
+Keep the Epson factory housing. Do not dismantle the printer, enclose its mains adapter, or build mains wiring into the printed case. No full size computer, Arduino Uno, battery, display or separate radio module is required. The FireBeetle is the computer in this assembly.
+
+STATUS AND DOCUMENT AUTHORITY
+
+The backend plugin and firmware exist locally. Firmware compilation and software tests previously passed. No physical printer has been tested or flashed, no parts have been purchased, and no enclosure CAD or print files exist yet.
+
+The render is a design reference. Manufacturer drawings and the numerical requirements below govern engineering. Do not derive hole positions, connector pin numbers or exact component geometry from generated imagery. Enclosure sizes, fastener counts, print mass and print times below are proposals until CAD and physical fit checks are complete.
+
+SELECTED PRINTER
+
+Manufacturer and model: Epson TM-T20IV.
+Exact purchasing SKU: C31CL47001, USB and RS232 serial version.
+Body dimensions: 146 mm wide, 199 mm deep, 146 mm high.
+Printer mass: approximately 1.7 kg without a paper roll.
+Lid fully open: 268 mm above the printer's own bottom reference plane.
+Paper: nominal 80 mm thermal receipt paper, specified width 79.5 +/- 0.5 mm.
+Maximum paper roll outside diameter: 83 mm.
+Print resolution: 203 dpi.
+Maximum stated speed: 250 mm/s. This is not a guaranteed job delivery speed.
+Cutter: automatic partial cut.
+Serial socket on this exact version: DB25 female at the rear.
+USB: rear USB Type B, not the controller's USB-C programming connection.
+Power: printer's specified external 24 V supply. Epson specifies AC adapter C1 or equivalent.
+Control placement: top right. Do not copy the older TM-T20III front control arrangement or its 140 mm width.
+
+The regional bundle is listed with a power adapter, AC cord, USB cable, starter paper roll, bracket and setup material. The selected shopRBC listing does not enumerate every carton item. Verify that the actual C31CL47001 carton includes these before paying. The budget assumes the printer power supply and AC cord are included. Do not buy a PS-180 or PS-190 based only on compatibility with an older Epson model.
+
+Do not substitute the USB, Ethernet and serial variant without checking the wiring again. Its serial connector is different. No Ethernet connection is needed in this design.
+
+SELECTED CONTROLLER
+
+DFRobot FireBeetle 2 ESP32-E N16R2, SKU DFR1139.
+Module: original ESP32 family, ESP32-WROOM-32E-N16R2.
+Flash: 16 MB. PSRAM: 2 MB.
+Wireless: 2.4 GHz WiFi, Bluetooth Classic and Bluetooth Low Energy hardware.
+Programming framework: Arduino for ESP32.
+PCB outline: 60 x 25.4 mm.
+Length including USB connector projection: approximately 61.47 mm.
+Documented assembly height: 6.62 mm before added headers, plugs and wiring.
+PCB thickness: 1.6 mm.
+Mounting: four 2 mm holes, centres spaced 56.6 x 22 mm.
+Mount hardware: M2 nylon, proposed 6 mm standoffs. Confirm actual screw fit.
+Power and programming connector: USB-C.
+Operating power source: separate official Raspberry Pi USB-C supply, 5.1 V, 3 A capacity, North American plug, captive 1.5 m cable.
+Included headers: solder as needed. Headers increase the required enclosure clearance.
+
+The DFRobot drawing filenames contain N16R8 in some resource URLs. Use the actual DFR1139 product specification and N16R2 module identity when ordering.
+
+Keep at least 15 mm of clearance from metal and wiring around the antenna region where possible. Put the antenna at the outer or front end of the electronics bay, away from the printer chassis, cable bundle, button and metal case screws. Use a plastic enclosure and nylon board mounts. Validate WiFi and BLE with the lid installed.
+
+SERIAL CONVERTER AND HARNESS
+
+SparkFun Transceiver Breakout MAX3232, BOB-11189.
+PCB outline: 25.4 x 13.97 mm, derived from the manufacturer's board file.
+Header: ten positions at 2.54 mm pitch along one edge.
+The PCB has no mounting holes. Retain it in an insulating printed clip or carrier.
+Supply this converter from the controller's 3.3 V output.
+It converts the ESP32 logic signals to RS232 levels. A generic USB serial dongle is not a substitute.
+
+Printer plug: Assmann A-DS25LL/Z, DB25 male with solder cups.
+Backshell: Assmann A-FT 25, including clamp and 4-40 mating screws.
+Hood envelope: 56.3 +/- 0.5 mm wide, 36.5 +/- 0.5 mm long, 14.8 +/- 0.38 mm thick.
+Thumb screws: approximately 48.5 mm overall length.
+Cable opening: 11 mm. Check the clamp grips the actual cable jacket securely.
+Cable: approximately 300 mm of shielded four conductor 26 AWG cable.
+Use three insulated conductors. Insulate the unused conductor and exposed shield.
+Use a dedicated conductor for signal ground. The shield is not the signal ground conductor.
+Printed strain relief and cable ties must grip cable jackets without crushing them.
+
+WIRING
+
+ESP32 3V3 -> MAX3232 VCC, header pad 5.
+ESP32 GND -> MAX3232 GND, header pad 6 -> printer DB25 pin 7.
+ESP32 GPIO25 TX -> MAX3232 T1IN, header pad 7.
+MAX3232 T1OUT, header pad 1 -> printer DB25 pin 3, printer RX.
+Printer DB25 pin 2, printer TX -> MAX3232 R1IN, header pad 3.
+MAX3232 R1OUT, header pad 9 -> ESP32 GPIO26 RX.
+Normally open setup button -> GPIO14 and GND. Firmware uses an internal pullup.
+Printer power -> supplied external Epson adapter only.
+Controller power -> external USB-C supply only.
+
+Follow the actual converter silkscreen, schematic and connector moulded pin numbers. Solder side and mating side DB25 views are mirrored. Verify continuity before applying power. Do not connect RS232 directly to ESP32 GPIO, and do not connect printer 24 V to the controller.
+
+Configure the printer for 38400 baud, 8 data bits, no parity, one stop bit, XON/XOFF and BUSY on buffer full or offline. Disable serial reset functions and automatic status back if previously enabled. Match the firmware configuration to the printer self test. Both TX and RX are required for the implemented status and flow control.
+
+Avoid GPIO16 and GPIO17 on the selected PSRAM board. The implemented UART uses GPIO25 and GPIO26.
+
+PROPOSED ENCLOSURE
+
+Construction: printed charcoal or black PETG cradle, low side electronics compartment, removable side lid, detachable rear service tray.
+Proposed overall printed footprint: 209 mm wide x 280 mm deep, excluding external cable runs and power supplies.
+Proposed width allocation: 3 mm left wall, 150 mm printer clear width, 3 mm divider, 50 mm electronics clear width, 3 mm outer wall.
+The 150 mm printer space allows about 2 mm each side of the 146 mm printer body. Verify against the physical unit, feet and protrusions.
+Electronics compartment: about 55 mm external width and about 45 mm external height, with final height determined by headers, button and cable bends.
+Rear service allowance: approximately 70 mm, open at the rear. This accommodates the DB25 hood and cable bend rather than forcing them into the printer's 199 mm body dimension.
+Proposed floor: 4 mm. Proposed walls: 2.4 to 3 mm, locally reinforced at inserts and retention points.
+Proposed split: 209 x 214 mm main cradle plus 209 x 66 mm rear tray. Validate connector geometry, joint strength, brim and actual usable print bed area. A nominal 220 mm bed alone does not guarantee fit.
+Keep the printer removable without opening its factory case. Use locating lips and soft contact pads rather than adhesive permanently bonding the printer to the cradle.
+Use four feet beneath the cradle and four soft printer contact pads where they do not obstruct vents or distort support. The selected rubber pads are 9.525 mm diameter and 3.175 mm high.
+With a 4 mm floor and both sets of 3.175 mm pads, the approximate lift is 10.35 mm. The open lid could therefore reach about 278.35 mm above the counter. Reserve about 300 mm of clear overhead space and verify the real pad stack.
+Leave the paper exit completely accessible and at least 10 mm clear of added structure. Do not trap the receipt against the front lip. Keep roll lid travel, release grips, cutter cover and top buttons unobstructed.
+Provide passive ventilation without placing openings directly over live joints. No fan is specified for this prototype; confirm enclosure temperature during a sustained test.
+Keep both mains power adapters outside the enclosure. Provide accessible USB-C routing for flashing and service.
+
+ENCLOSURE HARDWARE AND FEATURES
+
+Controller mounting: four M2 nylon standoffs, four M2 screws and four nuts, adjusted to the final mounting detail.
+Converter mounting: printed insulating clip. No drilling through the converter PCB.
+Case fasteners: initially allow eight M3 x 8 mm screws and eight M3 heat set inserts. Reconcile quantity and screw engagement with CAD before printing.
+Insert purchasing size: M3 x 5 x 4 variant. Confirm the vendor's length and diameter convention and actual drawing before sizing printed holes.
+Setup button: SparkFun COM-11996, normally open, black, with panel nut. Threaded mounting diameter approximately 6.75 mm, overall length approximately 26.9 mm including solder lugs. Determine panel hole and wall thickness from the received part. Allow space for insulated solder joints.
+Provide an unobtrusive setup credential label, ideally on the underside, with device ID, setup network name, unique password and setup address. Do not print the venue WiFi password or backend device token on the case.
+An optional viewing aperture can expose the existing board LED. An added external status LED or buzzer is not currently implemented and is not required by this basket.
+
+MATERIAL AND PRINTING COSTS
+
+Material: black 1.75 mm PETG, one 1 kg spool at the researched C$22.99 price.
+Provisional finished printed mass: 350 to 550 g for the larger cradle, bay, lid, clips and rear tray.
+With 20 percent allowance for brim, support and normal waste: approximately 420 to 660 g, costing C$9.66 to C$15.17 of filament at that spool price.
+Provisional machine time: 8 to 18 hours. Actual time and mass require CAD, a chosen printer and a slicer profile.
+Use approximately three or four perimeters and modest infill as an initial design trial. Part orientation, insert bosses and tray joints require engineering review.
+Start with small fit coupons for the board mounts, inserts, button, connector and printer locating surfaces before printing the full cradle.
+Printing labour, electricity, machine depreciation, design labour and outsourced printing are excluded from the parts basket. An external printing service needs actual STL or 3MF files to quote.
+
+COMPLETE CANADIAN PURCHASE BASKET
+
+All prices are CAD before delivery and tax, researched 24 October 2026.
+Full packs and one full filament spool total C$380.06. This includes spare material remaining after one build. The printer's bundled power adapter, AC lead, USB cable and starter paper are budgeted at no additional cost, subject to carton verification.
+The source basket uses nine storefronts. Obtain delivery quotes or consolidate inexpensive hardware before ordering. No shipping total has been quoted. An optional six storefront basket in the research file costs about C$385.60 before shipping and tax, but changes the button opening and needs foot dimensions and button variant confirmation. The original basket below remains the mechanical design baseline.
+
+01. Epson TM-T20IV C31CL47001 at shopRBC
+Buy: 1 printer bundle. Used: 1.
+Purchase cost: C$259.00.
+National warehouse, usually ships within 24 to 48 hours; Ottawa pickup requires enquiry. USB and serial model.
+https://www.shoprbc.com/ca/shop/product_details.php?pid=60187531
+
+02. DFRobot DFR1139 at DigiKey Canada, 1738-DFR1139-ND
+Buy: 1 board. Used: 1.
+Purchase cost: C$21.75.
+89 shown in stock. ESP32 controller, 16 MB flash, 2 MB PSRAM. Headers included unsoldered.
+https://www.digikey.ca/en/products/detail/dfrobot/DFR1139/24344257
+
+03. SparkFun BOB-11189 at PiShop, SKU 3083
+Buy: 1 converter. Used: 1.
+Purchase cost: C$10.95.
+In stock. Power the converter at 3.3 V.
+https://www.pishop.ca/product/sparkfun-transceiver-breakout-max3232/
+
+04. Assmann A-DS25LL/Z male solder cup connector at DigiKey, AE10984-ND
+Buy: 1 plug. Used: 1.
+Purchase cost: C$1.14.
+3,245 shown in stock. Mates with the printer DB25 female socket.
+https://www.digikey.ca/en/products/detail/assmann-wsw-components/A-DS-25-LL-Z/1241785
+
+05. Assmann A-FT 25 hood at DigiKey, AE11004-ND
+Buy: 1 hood. Used: 1.
+Purchase cost: C$2.83.
+717 shown in stock. Includes cable clamp and assembly hardware, with 4-40 mating screws.
+https://www.digikey.ca/en/products/detail/assmann-wsw-components/A-FT-25/1241836
+
+06. Shielded four conductor 26 AWG cable at Solarbotics, SKU 701116
+Buy: 1 metre. Used: About 0.30 metre.
+Purchase cost: C$5.39.
+In stock. Use three conductors for TX, RX and signal ground; insulate the spare.
+https://www.solarbotics.com/product/cable-shielded-26awg-4c-grey-ul2547-m/
+
+07. Official Raspberry Pi 15W USB-C supply, US black, PiShop SKU 1663
+Buy: 1 supply. Used: 1.
+Purchase cost: C$11.95.
+In stock. 5.1 V, 3 A, North American plug and captive 1.5 m USB-C lead.
+https://www.pishop.ca/product/raspberry-pi-15w-power-supply-us-black/
+
+08. USB Type C to USB 2.0 A data cable, 3 ft, PiShop CS-PID-45
+Buy: 1 cable. Used: 1 programming cable.
+Purchase cost: C$2.95.
+In stock. Used between the computer and controller during flashing.
+https://www.pishop.ca/product/usb-type-c-to-usb-2-0-a-male-cable-3ft/
+
+09. SparkFun COM-11996 momentary black button, Canada Robotix SKU 2408
+Buy: 1 button. Used: 1.
+Purchase cost: C$1.29.
+More than 50 shown in stock. Normally open setup button, solder lugs and panel mounting nut.
+https://www.canadarobotix.com/products/2408
+
+10. 40 female to female 20 cm jumper leads, Canada Robotix SKU 1165
+Buy: 1 bundle of 40. Used: Allow 10 leads.
+Purchase cost: C$6.99.
+31 shown in stock. Internal prototype wiring and connector pigtails.
+https://www.canadarobotix.com/products/1165
+
+11. 40 pin male header at right angle, PiShop SKU 3037
+Buy: 1 strip. Used: 10 pins.
+Purchase cost: C$3.45.
+In stock. For the converter. The controller already includes its own headers.
+https://www.pishop.ca/product/break-away-male-headers-right-angle/
+
+12. Heat shrink assortment, PiShop SKU 216
+Buy: 1 pack. Used: Several short sleeves.
+Purchase cost: C$6.95.
+In stock. Insulate solder joints and the unused cable conductor.
+https://www.pishop.ca/product/heat-shrink-pack/
+
+13. M2 nylon standoff, screw and nut kit, PiShop SKU 791
+Buy: 1 assortment. Used: 4 standoffs, 4 M2 screws, 4 nuts.
+Purchase cost: C$7.95.
+In stock. Seller title says 150 pieces although the URL says 160. Includes 6 mm standoffs and M2 × 6 screws.
+https://www.pishop.ca/product/m2-nylon-hex-standoff-spacer-screw-nut-assortment-kit-160-pieces/
+
+14. M3 × 8 mm Phillips screws, BC Robotics
+Buy: 20 screws. Used: Allow 8.
+Purchase cost: C$1.95.
+In stock. For printed enclosure parts, not the controller PCB.
+https://bc-robotics.com/shop/m3-x-8mm-phillips-20-pack/
+
+15. Brass heat set inserts at 3DLabTech, select M3 × 5 × 4
+Buy: 50 inserts. Used: Allow 8.
+Purchase cost: C$6.95 budget.
+Page shows C$6.45 to C$6.95 across variants. Confirm selected M3 variant price and stock. Design holes to the actual insert drawing.
+https://www.3dlabtech.ca/product/heat-set-insert/
+
+16. Adafruit 550 rubber feet at ABRA, 550-ADA
+Buy: 2 packs of 4. Used: 4 base feet and 4 soft printer contact pads.
+Purchase cost: C$3.68.
+In stock, C$1.84 per pack. Explicit CAD selector in link. Diameter 9.525 mm, height 3.175 mm.
+https://abra-electronics.com/hardware/rubber-feet/550-little-rubber-bumper-feet-pack-of-4-550-ada.html?currency=CAD
+
+17. 25 mm adhesive cable tie holders, BC Robotics OTH-071
+Buy: 10 holders. Used: Allow 2.
+Purchase cost: C$0.95.
+Two packs shown remaining. Pair with printed strain relief features.
+https://bc-robotics.com/shop/25x25mm-adhesive-cable-tie-holder-10-pack/
+
+18. 100 mm white cable ties, BC Robotics OTH-041
+Buy: 100 ties. Used: Allow 4.
+Purchase cost: C$0.95.
+In stock. Bundle wiring and secure cable jackets to strain relief.
+https://bc-robotics.com/shop/4-white-cable-ties-100-pack/
+
+19. Anycubic PETG at the Canadian storefront, black 1.75 mm, 1 kg
+Buy: 1 spool. Used: Illustrative 350 g.
+Purchase cost: C$22.99.
+C$22.99 shown. Confirm black variant and delivery at checkout. Final consumption comes from the sliced CAD.
+https://ca.anycubic.com/products/petg
+
+OPTIONAL OR CONDITIONAL PURCHASES
+
+Extra paper: Staples 44311, model 9078-0400, 12 rolls of 3 1/8 inch x 225 ft, C$87.99 per pack. Approximate roll width 79.375 mm, diameter 76.2 mm and length 68.58 m. At 250 mm per order, paper costs about C$0.027 per order before feed and waste. No ink or toner is needed. The printer's starter roll is sufficient only for initial testing.
+https://www.staples.ca/products/44311-en-staples-thermal-paper-rolls-3-18-x-225-12-pack
+
+Computer with USB-C ports only: replace the listed USB A to C programming cable with an existing known USB-C data cable or the PiShop USB-C to USB-C data cable, listed around C$9.95. The price and stock need rechecking. A charge only cable will not program the board.
+https://www.pishop.ca/product/usb-type-c-to-usb-type-c-cable-usb-3-2-gen-2-3ft/
+
+Optional cable gland: Bud IPG-2227-G, PG7, C$1.95. Fits 3 to 6 mm cable diameter, 13 mm panel opening, up to 4 mm wall. Measure the selected cable before using it.
+https://bc-robotics.com/shop/cable-gland-pg-7/
+
+Optional spare converter: second SparkFun BOB-11189, C$10.95.
+Existing workshop equipment assumed: soldering iron, solder, flux, cutters, wire stripper, tubing heat source, screwdrivers, calipers, multimeter and FDM printer.
+Site requirements: two mains outlets or an existing suitable power strip, 2.4 GHz WiFi, internet access and a DYWS backend with valid HTTPS.
+Shipping, tax, shared tools, power strip, UPS, ongoing hosting, development, support and production certification are outside the basket.
+
+SETUP AND SOFTWARE BEHAVIOUR
+
+1. A DYWS manager enables the optional Order Printer plugin in a private pilot, assigns the venue location and Epson profile, and creates a pairing code.
+2. Flash the controller by USB. Read its unique setup network name and password from the serial monitor. Apply the device label.
+3. The phone joins the device's protected DYWS WiFi network and opens the setup page, normally http://192.168.4.1.
+4. Enter the venue's 2.4 GHz WiFi credentials, DYWS HTTPS API address ending in /api/, pairing code and serial speed.
+5. The controller joins venue WiFi, verifies HTTPS and enrols directly with DYWS. Its setup network closes after successful setup.
+6. The controller polls DYWS, obtains authorized jobs and transmits printable text through the MAX3232 to the Epson. The phone is no longer needed.
+7. Holding the setup button for three seconds reopens setup. Saved credentials support reconnection after normal outages.
+
+Manager login remains on the DYWS website. The controller uses its own revocable device credential. Email ingestion, router port forwarding and an ongoing phone Bluetooth connection are unnecessary.
+
+Bluetooth hardware is retained. The current firmware implements read only BLE diagnostic status, not Bluetooth provisioning, Bluetooth printing or a mobile application. Classic Bluetooth is a hardware capability rather than an implemented feature in this pilot.
+
+The existing firmware requires ordinary 2.4 GHz WiFi and does not handle 5 GHz only networks, enterprise authentication or an interactive venue captive portal. BLE operation and WiFi reconnect behaviour still need physical validation.
+
+The backend maintains a persistent print queue. A job whose physical outcome is uncertain requires operator review instead of automatic silent reprinting. Transmission acknowledgement is not proof of a complete legible paper ticket. Current tickets remain demonstration orders. Do not treat software compilation as production or physical integration approval.
+
+ACCEPTANCE AND NEXT DELIVERABLES
+
+Before ordering: confirm exact printer SKU and carton contents, insert variant, shipping and USB programming cable compatibility with the available computer.
+Before CAD release: measure actual printer feet and protrusions, DB25 hood and thumb screws, power plug, USB plug, cable bends, board holes, installed header height and button assembly.
+Before printing the full enclosure: approve fit coupons, establish print orientation and tolerances, check real bed size, confirm fastener engagement and slice to obtain mass and time.
+Before power: verify 3.3 V converter supply, serial continuity, no shorts, insulated unused wires, secure strain relief and external mains adapters.
+Bench tests: startup, phone setup, wrong WiFi password, WiFi changes, BLE status, paper out, open lid, sustained orders, long tickets, XON/XOFF, cable disconnect, resets, power loss and recovery without silent duplicate orders.
+Mechanical tests: paper replacement, full lid opening, cutter access, printer removal, non-slip feet, cable pull resistance, enclosure temperature, WiFi and BLE range with lid closed.
+Next design outputs: editable CAD, STEP assembly, STL or 3MF for each printed part, dimensioned assembly drawing, verified fastener schedule and slicer report. None of these fabrication files has yet been produced.
+
+PRIMARY TECHNICAL REFERENCES
+
+Epson TM-T20IV Technical Reference Guide, especially pages 30, 95 and 97 onward:
+https://files.support.epson.com/pdf/pos/bulk/tm-t20iv_trg_en_rev_c.pdf
+
+DFRobot DFR1139 product and documentation:
+https://www.dfrobot.com/product-2837.html
+https://wiki.dfrobot.com/dfr1139/
+https://dfimg.dfrobot.com/wiki/20495/DFR1139_firebeetle-2-esp32-e-n16r8_dimension_v1.0.pdf
+
+SparkFun MAX3232 product, schematic and mechanical source:
+https://www.sparkfun.com/sparkfun-transceiver-breakout-max3232.html
+https://cdn.sparkfun.com/datasheets/BreakoutBoards/MAX3232_Breakout_v11.pdf
+https://raw.githubusercontent.com/sparkfun/MAX3232_Breakout/master/Hardware/SparkFun_MAX3232_Breakout.brd
+
+Assmann hood drawing, page 3:
+https://www.assmann-wsw.com/uploads/datasheets/ASS_3205_CO.pdf
+
+Espressif antenna placement guidance:
+https://docs.espressif.com/projects/esp-hardware-design-guidelines/en/latest/esp32/pcb-layout-design.html
+
+Raspberry Pi power supply approvals:
+https://pip.raspberrypi.com/categories/503-approvals
+
+RELATED LOCAL FILES
+
+Full sourced purchase research:
+/private/var/www/starlit-digital/dyws/docs/order-printer-canadian-parts-research-20261024.md
+
+Selected revised concept render:
+/private/var/www/starlit-digital/dyws/docs/hardware/order-printer/prototype-v2.png
+
+Image generation prompts, built-in image_gen mode:
+/private/var/www/starlit-digital/dyws/docs/hardware/order-printer/prototype-v2-prompt.txt
+/private/var/www/starlit-digital/dyws/docs/hardware/order-printer/prototype-v2-refinements.txt
+
+Plugin and project overview:
+/private/var/www/starlit-digital/dyws/docs/order-printer.md
+
+Firmware wiring, setup and build instructions:
+/private/var/www/starlit-digital/dyws/firmware/order-printer/README.md
+
+END OF HANDOFF

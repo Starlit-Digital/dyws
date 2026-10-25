@@ -206,3 +206,7 @@ The optional Nominatim plugin provides `/plugins/nominatim/config`,
 `/plugins/nominatim/search` and manager settings under
 `/manager/plugins/nominatim/settings`. See [the plugin contract](nominatim.md).
 Searches never create orders or establish delivery eligibility.
+
+## Order Printer
+
+The optional `order-printer` plugin provides manager configuration and separately authenticated device enrollment, polling and acknowledgement routes. See [the complete route and queue contract](order-printer.md#api-and-queue-contract). Device tokens use `X-DYWS-Printer-Token`; manager sessions cannot substitute for them.

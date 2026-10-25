@@ -137,3 +137,7 @@ The Nominatim address service runs separately on the confirmed PayCal VPS, while
 DYWS stays on shared hosting. Follow [the service operations guide](../services/nominatim/README.md)
 and [plugin provisioning](nominatim.md). The public diner demo uses local fictional
 suggestions and does not forward visitor input to the geocoder.
+
+## Order printer pilot
+
+Keep Order Printer inactive until a private hardware pilot is ready. It needs a reachable HTTPS `public_base_url`, the private plugin files, public plugin assets and regenerated preload entries. Its SQLite tables retain configuration and jobs across deactivation. No live installation is changed by adding this source. See [deployment details and limitations](order-printer.md#deployment-and-next-steps).

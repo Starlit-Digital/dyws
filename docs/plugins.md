@@ -198,3 +198,7 @@ Each plugin card has Edit directly beneath Activate or Deactivate. The authentic
 Nominatim Address Lookup is an optional location plugin for checkout and Business
 Locations. It uses an owned server with credentials encrypted outside the web
 root. See [configuration and API contracts](nominatim.md).
+
+## Order Printer
+
+`order-printer` is an optional ordering plugin with an `admin:settings` panel and an `order.status_changed` observer. It reconciles its durable queue during polling, so it does not rely on observer delivery. It remains inactive by default and is not allowed by public demo lockdown. [Configuration and protocol](order-printer.md).

@@ -1,0 +1,50 @@
+Generation mode: built-in image_gen.
+Final selected image: prototype-v2.png
+Initial prompt, followed by refinement prompts:
+
+Use case: product-mockup.
+Create a revised, dimension informed 3D product concept sheet for a DYWS order printer prototype. Landscape composition, warm light gray studio background, precise industrial design presentation, realistic materials, soft shadows, crisp restrained typography. This is a concept visualization, not manufacturing CAD.
+
+Reference inputs:
+1 epson-front.png is the authoritative shape and controls reference for the Epson TM-T20IV.
+2 epson-dimensions.png is the authoritative printer dimension drawing.
+3 firebeetle-dimensions.png is the authoritative controller dimension drawing.
+4 firebeetle-pinout.webp shows the actual small black DFRobot board and component layout.
+5 max3232.jpg is the actual tiny red SparkFun MAX3232 breakout. It has no DB9 connector and no mounting holes.
+
+MAIN VIEW, left two thirds: beautiful front right three quarter view of an intact black Epson TM-T20IV sitting in a custom charcoal PETG cradle. Printer body is 146 mm wide, 199 mm deep and 146 mm tall, with the correct top right controls, broad hinged top cover and plain front cutter cover. The paper slot is on the upper front edge; a realistic 80 mm wide thermal receipt emerges. Follow the actual reference shape. No vertical button panel on the front. Do not replace the Epson's factory housing. Keep lid, paper exit and cover release accessible. The new cradle has a low electronics side compartment on the right, roughly 55 mm wide and 45 mm tall, not a tall tower. Total proposed base footprint 209 mm wide by 280 mm deep. Rear 70 mm open service area accommodates the DB25 hood and cable bends. Subtle printed PETG layer texture, rounded edges, removable electronics lid, recessed screws and rubber feet. Closed lid in main view. Small recessed setup button on front of electronics bay. No screen or invented controls. Both mains power adapters stay outside the cradle.
+
+SECONDARY VIEW, upper right: smaller exploded view of the same low electronics compartment with its lid lifted, showing true component proportions. FireBeetle 2 ESP32-E N16R2 black PCB 60 by 25.4 mm is mounted flat along the depth of the bay on four small nylon M2 standoffs. It must be far smaller than the printer, about one third its depth. USB-C at rearward end, printed antenna towards the front of the bay with empty clearance around it, metal Espressif module and reference PCB details. Next to its rear end a much smaller red SparkFun MAX3232 breakout 25.4 by 14 mm sits in an insulating printed clip. Short neat wires, no tangled wiring. USB-C power enters from rear. Serial wires go toward a short cable and DB25 male hood at the printer rear. No Arduino Uno board, no DB9 module, no giant electronics. The rear connector allowance is part of the proposed base. Main cradle and detachable rear service tray visible as two fitted printed pieces.
+
+SMALL SIDE PROFILE, lower right: simple accurate gray silhouette of the printer with lid raised, dotted outline of closed lid and vertical dimension line labelled "268 mm lid open". That 268 mm is measured from the printer bottom, not the counter. Beneath it small note "Allow about 300 mm above counter". Do not put an overhead cover around the printer.
+
+Text, verbatim, limited to these:
+Top title: "DYWS printer prototype"
+Subtitle: "Dimension informed enclosure concept"
+Main dimension callout: "Printer 146 W × 199 D × 146 H mm"
+Base dimension callout: "Proposed base 209 W × 280 D mm"
+Electronics labels: "FireBeetle 2  |  60 × 25.4 mm" and "MAX3232  |  25.4 × 14 mm"
+Lid diagram: "268 mm lid open" and "Allow about 300 mm above counter"
+Bottom footnote: "Verified component sizes. Enclosure dimensions provisional. External power supplies."
+
+Composition should be clean and spacious, with disciplined dimension leaders that do not cross the product. Exact printer shape and believable relative scale take priority over decoration. No invented brand icon, no other text, no extra parts, no cables obstructing receipt or lid.
+
+
+REFINEMENT PROMPTS
+
+Use case: precise-object-edit. Refine this DYWS engineering concept sheet. Preserve the title, main printer view, correct top controls, PETG material, footprint labels, colors, overall layout and all verified component dimensions. Make two precise corrections:
+1. In the lower right side silhouette, the 268 mm lid-open dimension must start at the BOTTOM OF THE PRINTER'S OWN BLACK BODY, just ABOVE the printed cradle floor. It must NOT start at the counter or feet. Change that label to "268 mm from printer base". Keep the separate caption "Allow about 300 mm above counter".
+2. Redraw the upper right exploded electronics compartment to match the MAIN view's LONG NARROW low right side bay, roughly 55 mm wide and 200 mm long, rather than a nearly square box. The FireBeetle PCB is only 60 × 25.4 mm and should take about one third of that compartment's length, mounted flat on four tiny nylon M2 supports. Maintain the correct black board USB-C, metal module and printed antenna arrangement. Keep a visibly empty 15 mm region around its antenna end. Put the tiny red MAX3232 25.4 × 14 mm in an insulating clip behind it toward the cable end, with no screws through that red PCB. A short round serial cable exits at the rear toward the printer; do not attach a DB25 connector directly to the electronics compartment wall. The DB25 connector plugs into the printer rear, not into the microcontroller box. Show a small USB-C cable entering the actual board socket from the rear direction, routed away from the antenna. Clean practical assembly.
+Keep the current labels pointing at their proper boards. Do not add new dimensions or text. This remains a dimension informed concept, not manufacturing CAD.
+
+FINAL REFINEMENT
+
+Use case: precise-object-edit. Finish the attached DYWS enclosure concept sheet. Image 1 is the edit target. Images 2 and 3 are authoritative photographic references of the actual FireBeetle board and SparkFun converter; image 4 is Epson's actual dimension drawing.
+Keep the large main printer and cradle view, title, top controls, overall design, colors and 209 × 280 mm proposed footprint. Change only the two right hand panels to avoid suggesting that generated component mounting details are fabrication drawings.
+Upper right panel: replace the exploded box entirely with two clean isolated component renders on the gray background, faithfully matching reference images 2 and 3. Label them with the existing names and PCB dimensions. The black FireBeetle must be LONG and NARROW, 60 × 25.4 mm; the red MAX3232 is 25.4 × 14 mm, so its long edge equals the black board's short edge. Use the same physical scale for both. Copy the PCB layouts faithfully from references. Do not invent mounting holes on the red MAX3232. Under both add small text "Separate electronics bay with removable lid".
+Lower right panel: remove the existing lid silhouette and dimension arrows. Replace with an elegant simple text specification card with these exact four lines:
+"Printer body: 146 W × 199 D × 146 H mm"
+"Lid fully open: 268 mm above printer base"
+"Allow about 300 mm above the counter"
+"Two external power supplies"
+Keep the bottom disclaimer, main view and other text unchanged. No wiring diagram, no mounting screws through components, no exploded assembly. The final image is a clear product design reference with truthful component proportions and a text dimension card.

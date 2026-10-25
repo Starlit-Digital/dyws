@@ -12,7 +12,7 @@ tracked=subprocess.check_output(['git','ls-files','-z'],cwd=root).decode().split
 files={}
 for name in tracked:
  if not name:continue
- if name.startswith(('public_html/','modules/dyws/php/','modules/dyws/realtime/','server/','plugins/','examples/','docs/','services/nominatim/')) or name in ['README.md','INSTALL.md','VERSION','CHANGELOG.md','composer.json','composer.lock','package.json']:
+ if name.startswith(('public_html/','modules/dyws/php/','modules/dyws/realtime/','server/','plugins/','examples/','docs/','services/nominatim/','firmware/order-printer/')) or name in ['README.md','INSTALL.md','VERSION','CHANGELOG.md','composer.json','composer.lock','package.json']:
   if name=='public_html/api/bootstrap-path.php' or pathlib.Path(name).suffix in ['.sqlite','.db'] or '/node_modules/' in name:raise SystemExit('Refusing private/runtime file: '+name)
   path=root/name
   if path.is_symlink():raise SystemExit('Refusing source symlink: '+name)
@@ -28,6 +28,8 @@ for provider in ['square','paypal','helcim','clover','moneris','authorize-net']:
 for part in ['modules/dyws/php/Payments/Connector.php','modules/dyws/php/Payments/register.php','public_html/dyws/payment-connector-settings.js','public_html/dyws/plugin-types.js','public_html/dyws/plugin-edit.js','public_html/plugins/edit.php']:
  if part not in files:raise SystemExit('Stage release source before building: '+part)
 for part in ['plugins/nominatim/plugin.json','plugins/nominatim/plugin.php','plugins/nominatim/AddressLookup.php','plugins/nominatim/configure.php','public_html/plugins/nominatim/index.js','public_html/plugins/nominatim/search.js','public_html/plugins/nominatim/lookup.css','docs/nominatim.md']:
+ if part not in files:raise SystemExit('Stage release source before building: '+part)
+for part in ['plugins/order-printer/plugin.json','plugins/order-printer/plugin.php','plugins/order-printer/PrinterService.php','plugins/order-printer/schema.sql','public_html/plugins/order-printer/index.js','public_html/plugins/order-printer/printer.css','docs/order-printer.md','firmware/order-printer/README.md','firmware/order-printer/DywsPrinter/DywsPrinter.ino']:
  if part not in files:raise SystemExit('Stage release source before building: '+part)
 files['var/.gitkeep']=b''
 manifest={'version':version,'files':{name:hashlib.sha256(data).hexdigest() for name,data in sorted(files.items())}}
