@@ -2,7 +2,7 @@
 
 **Do You Want Something?** A reusable ordering and delivery system for a business’s own website.
 
-**Release: [0.11.0](VERSION)** · [Optional install ZIP](https://github.com/Starlit-Digital/dyws/releases) · [Release notes](CHANGELOG.md) · [Installation guide](INSTALL.md) · [Hosted diner example](https://sltd.ca/diner-demo/)
+**Release: [0.11.1](VERSION)** · [Optional install ZIP](https://github.com/Starlit-Digital/dyws/releases) · [Release notes](CHANGELOG.md) · [Installation guide](INSTALL.md) · [Hosted diner example](https://sltd.ca/diner-demo/)
 
 The customer orders on your website, the business manages the order, and an assigned driver handles the delivery. Starlit Diner is the fictional restaurant example. The catalog also supports general products and services sold in whole units.
 
@@ -14,7 +14,7 @@ This is a development preview. Orders and delivery workflows work against persis
 
 ## Current checkout
 
-Checkout uses one Location field with address autocomplete, an optional Unit field and phone formatting while typing. Selected addresses include city, province and postal code. The review uses two line addresses and an inline countdown between Back and Looks good!. Click the countdown to pause or resume from the remaining seconds. Leaving the page pauses it until deliberately resumed. Canadian locality names are cached from the Statistics Canada National Address Register.
+Checkout uses one Location field with address autocomplete, an optional Unit field and phone formatting while typing. Selected addresses include city, province and postal code. The review uses two line addresses and an inline countdown between Back and Looks good!. Click the countdown to pause or resume from the remaining seconds. The control shows a play symbol while paused. Customer details stay in page memory across Back navigation and dialog close and reopen, until the order completes or the page reloads. All stages share divider free spacing and the available viewport height. Leaving the page pauses it until deliberately resumed. Canadian locality names are cached from the Statistics Canada National Address Register.
 
 ![Current order review](docs/screenshots/review-layout-20261024/paused-review.png)
 

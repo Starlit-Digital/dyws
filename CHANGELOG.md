@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.11.1 · 2026-10-24
+
+- Preserve checkout details in memory across Back navigation and dialog close and reopen.
+- Show a play icon while paused, simplify Back labels, align delivery fields and unify divider free spacing across full height ordering stages.
+
 ## 0.11.0 · 2026-10-24
 
 - Add a compact single address checkout, cached Canadian locality names, two line review addresses and an inline countdown that toggles pause and resume.
