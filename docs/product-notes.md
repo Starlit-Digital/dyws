@@ -14,7 +14,7 @@ Working line: Your website. Your orders. Delivered.
 
 The owner registered `dyws.ca` at Namecheap and requested it on the existing Hostinger shared hosting account. Its PHP/HTML website was created on the Premium Web Hosting plan. The owner clarified that DNS stays at Namecheap, matching the other domains: use Namecheap BasicDNS, with `A @` pointing to Hostinger's `191.101.13.124` and `CNAME www` pointing to `dyws.ca`, both with a 300 second TTL. Do not switch this domain to Hostinger nameservers.
 
-This setup reserves the product's own web address and hosting space. It currently contains Hostinger's default page. Product website content and a DYWS runtime have not been deployed there. The existing product page at `https://sltd.ca/dyws/` and diner examples remain in place. See [domain hosting details and verification status](deployment.md#dywsca-hosting-october-24-2026).
+This setup reserves the product's own web address and hosting space. It now contains the isolated Starlit Diner public test running DYWS 0.11.1, with public DNS and HTTPS still pending. The existing product page at `https://sltd.ca/dyws/` and diner examples remain in place. See [domain hosting details and verification status](deployment.md#dywsca-hosting-october-24-2026).
 
 ## Starlit Developer Tools and SiteCraft
 

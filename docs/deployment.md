@@ -46,7 +46,7 @@ Only `DYWS_CONFIG` and `DYWS_BOOTSTRAP` override private paths. Do not publish t
 
 ## dyws.ca hosting, October 24, 2026
 
-The owner requested `dyws.ca` on the existing Hostinger shared hosting account. The PHP/HTML website was created in hPanel under Premium Web Hosting, bringing the plan to 22 of 100 websites. This is hosting provisioning only; the domain currently serves Hostinger's `default.php`, with no DYWS runtime or product website deployed.
+The owner requested `dyws.ca` on the existing Hostinger shared hosting account. The PHP/HTML website was created in hPanel under Premium Web Hosting, bringing the plan to 22 of 100 websites. The initial default page has now been backed up outside the web root and replaced with an isolated Starlit Diner public demo running DYWS 0.11.1.
 
 | Setting | Confirmed value |
 | --- | --- |
@@ -167,3 +167,7 @@ suggestions and does not forward visitor input to the geocoder.
 ## Order printer pilot
 
 Keep Order Printer inactive until a private hardware pilot is ready. It needs a reachable HTTPS `public_base_url`, the private plugin files, public plugin assets and regenerated preload entries. Its SQLite tables retain configuration and jobs across deactivation. No live installation is changed by adding this source. See [deployment details and limitations](order-printer.md#deployment-and-next-steps).
+
+### dyws.ca application installation
+
+On October 24 the public diner test was deployed at the dyws.ca root from engine commit `34f747fb5f4dbcbbb04e02ee2b9fd26598fd36a8`, version 0.11.1. The owning private site repository is `Starlit-Digital/dyws.ca`, with DYWS pinned as a submodule. Private source is under the domain's `private/releases/0.11.1`, with a newly seeded `private/demo-data` workspace. Existing diner installations were not copied or reset. Direct HTTP virtual host checks passed; public DNS and TLS are still pending. See the site repository deployment receipt for verification and refresh the domain status before describing it as publicly live.
