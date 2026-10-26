@@ -26,7 +26,15 @@ export function register(plugin){
   void access.enterFromURL();
  }
  // Keep role switching beside the order controls, without credential boxes.
- plugin.addAction('admin:order',({root,order})=>{root.append(access.link('driver','Open Driver demo',order.id));});
+ const orderNavigation=()=>{const nav=doc.createElement('nav');nav.className='dyws-demo-order-links';nav.setAttribute('aria-label','Demo views for this order');return nav;};
+ plugin.addAction('admin:order',({root,order})=>{
+  const nav=orderNavigation(),tracking=doc.createElement('a'),url=new URL('./tracking.php',import.meta.url);
+  url.searchParams.set('order',order.id);tracking.href=url.href;tracking.className='dyws-demo-shortcut';tracking.textContent='View customer tracking';
+  nav.append(access.link('driver','Open Driver demo',order.id),tracking);root.append(nav);
+ });
+ plugin.addAction('tracking:updated',({root,order})=>{
+  const nav=orderNavigation();nav.append(access.link('admin','Admin orders',order.id),access.link('driver','Open Driver demo',order.id));root.append(nav);
+ });
  const driverActions=doc.querySelector('#driver-board:not([hidden]) > .dyws-actions');
  if(driverActions){
   let adminLink;

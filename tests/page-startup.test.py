@@ -31,6 +31,7 @@ with tempfile.TemporaryDirectory(prefix='dyws-pages-') as work:
    except OSError:pass
    time.sleep(.05)
   status,_,body=req('/driver/');check(status==200 and 'method="post"' in body and 'dyws-page-data' not in body and 'platform/driver' not in body)
+  check(req('/plugins/demo-lockdown/tracking.php?order=DYWS-000000000001')[0]==404)
   csrf=re.search(r'name="csrf" value="([a-f0-9]{64})"',body)[1]
   check(form('/driver/',{'csrf':'bad','driverId':'demo-driver','password':password})[0]==403)
   _,_,body=req('/driver/');csrf=re.search(r'name="csrf" value="([a-f0-9]{64})"',body)[1]

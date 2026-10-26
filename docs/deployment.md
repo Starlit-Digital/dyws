@@ -200,3 +200,7 @@ Deploy Installation Lockdown 1.0.3 with its matching browser module, versioned l
 ## Order selection across demo consoles
 
 Installation Lockdown 1.0.4 passes the selected order through demo sign in and the Driver to Admin return link. Deploy the shared `order-selection.js`, matching Orders and Driver controllers, versioned platform entry scripts and PHP pages, shared CSS, plugin manifest and browser assets, and regenerated preload manifest together. This is a presentation update with no schema or configuration change. The existing form POST and 303 redirect preserve the order fragment; normal authentication and driver assignment checks remain authoritative.
+
+## Customer tracking from the demo order panel
+
+Installation Lockdown 1.0.5 adds the authenticated customer tracking handoff and compact return links. Deploy its private `DemoPolicy.php`, `plugin.php` and manifest with the public `tracking.php`, browser module, stylesheet and regenerated preload manifest. Install the policy and public route before switching the manifest version. No schema, configuration or tracking expiry changes are needed. Back up private SQLite and source first, preserve runtime JSON, and verify the normal customer view using an order placed in a different browser. Anonymous, Driver, other tenant and expired access must remain denied.

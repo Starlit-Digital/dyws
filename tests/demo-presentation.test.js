@@ -68,13 +68,24 @@ test('Failed, unexpected or missing CSRF forms never submit demo credentials',as
 test('Demo navigation lives inside the selected order and the signed in driver toolbar',()=>{
  const admin=fixture('orders'),orderPanel=new Node('div');
  const id='DYWS-000000000002';admin.actions['admin:order']({root:orderPanel,order:{id}});
- assert.equal(orderPanel.children[0].children[0].textContent,'Open Driver demo');
- assert.equal(new URL(orderPanel.children[0].children[0].href).searchParams.get('demo'),'driver');
- assert.equal(new URL(orderPanel.children[0].children[0].href).hash,'#order='+id);
+ const [driverAccess,tracking]=orderPanel.children[0].children;
+ assert.equal(driverAccess.children[0].textContent,'Open Driver demo');
+ assert.equal(new URL(driverAccess.children[0].href).searchParams.get('demo'),'driver');
+ assert.equal(new URL(driverAccess.children[0].href).hash,'#order='+id);
+ assert.equal(tracking.textContent,'View customer tracking');assert.equal(new URL(tracking.href).searchParams.get('order'),id);
+ assert.ok(new URL(tracking.href).pathname.endsWith('/plugins/demo-lockdown/tracking.php'));assert.equal(new URL(tracking.href).hash,'');
  const driver=fixture('driver',id),link=driver.driverActions.children[0].children[0];
  assert.equal(link.textContent,'Admin orders');assert.equal(new URL(link.href).searchParams.get('demo'),'admin');
  assert.equal(new URL(link.href).hash,'#order='+id);
  driver.destroy();assert.equal(driver.driverActions.children.length,0);admin.destroy();
+});
+test('Customer tracking offers compact links back to the same Admin and Driver order',()=>{
+ const page=fixture('tracking'),root=new Node('div'),id='DYWS-000000000003';
+ page.actions['tracking:updated']({root,order:{id}});
+ const links=root.children[0].children.map(access=>access.children[0]);
+ assert.deepEqual(links.map(link=>link.textContent),['Admin orders','Open Driver demo']);
+ assert.deepEqual(links.map(link=>new URL(link.href).hash),['#order='+id,'#order='+id]);
+ assert.equal(page.all().filter(n=>n.dataset.dywsDemo).length,0);page.destroy();
 });
 
 test('Order selection survives both fresh form sign in and existing sessions for each role',async()=>{

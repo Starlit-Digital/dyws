@@ -6,7 +6,7 @@
 
 The customer orders on your website, the business manages the order, and an assigned driver handles the delivery. Starlit Diner is the fictional restaurant example. The catalog also supports general products and services sold in whole units.
 
-DYWS belongs in Starlit Digital's **Developer Tools**. [Starlit SiteCraft](https://sltd.ca/sitecraft/) uses its ordering and delivery capabilities when a client website needs them, alongside the shared template library, Starlit assets and accessibility preferences. A static template or contact form alone is not a DYWS integration. See [the product direction](docs/product-notes.md).
+DYWS belongs in Starlit Digital's **Business Related**. [Starlit SiteCraft](https://sltd.ca/sitecraft/) uses its ordering and delivery capabilities when a client website needs them, alongside the shared template library, Starlit assets and accessibility preferences. A static template or contact form alone is not a DYWS integration. See [the product direction](docs/product-notes.md).
 
 This is a development preview. Orders and delivery workflows work against persistent storage, but payments are demonstrations or Stripe sandbox transactions. Native mobile apps and production dispatch operations are not shipped. The repository contains the complete source; deployment credentials and business records stay outside Git.
 
@@ -58,7 +58,7 @@ The optional [Order Format plugin](docs/order-format.md) adds a visual editor fo
 
 Try [the storefront](https://dyws.ca/), [Admin](https://dyws.ca/admin/) with **admin / admin**, or [Driver](https://dyws.ca/driver/) with **driver / driver**.
 
-The storefront's **Open Admin demo** and **Open Driver demo** buttons sign in automatically. The same entry links work from other sites: [Admin demo](https://dyws.ca/?demo=admin) and [Driver demo](https://dyws.ca/?demo=driver). Expanded Admin orders link to that specific delivery in the Driver demo, and the driver toolbar returns to the same Admin order detail. The credential callouts appear at the top and bottom of the storefront; tracking and operator pages keep their normal focused layout.
+The storefront's **Open Admin demo** and **Open Driver demo** buttons sign in automatically. The same entry links work from other sites: [Admin demo](https://dyws.ca/?demo=admin) and [Driver demo](https://dyws.ca/?demo=driver). Expanded Admin orders link to that specific delivery in the Driver demo and to its customer tracking page. The Driver toolbar and customer tracking shortcuts return to the same Admin order detail. The credential callouts appear at the top and bottom of the storefront; tracking and operator pages keep their normal focused layout.
 
 This hosted install uses the mandatory [Installation Lockdown plugin](docs/demo-lockdown.md). Visitors can place and process shared fictional orders. Catalog, business settings, accounts, passwords and plugin configuration are locked on the server. Checkout uses fixed fictional contacts; device GPS and paid integrations are disabled. The map is a local reference image with a simulated driver position. Orders expire after 24 hours. Ordinary installations retain their own private credentials and configurable plugins.
 

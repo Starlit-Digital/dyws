@@ -16,9 +16,9 @@ The owner registered `dyws.ca` at Namecheap and requested it on the existing Hos
 
 This setup reserves the product's own web address and hosting space. It now contains the isolated Starlit Diner public test running DYWS 0.11.1, with public DNS and HTTPS still pending. The existing product page at `https://sltd.ca/dyws/` and diner examples remain in place. See [domain hosting details and verification status](deployment.md#dywsca-hosting-october-24-2026).
 
-## Starlit Developer Tools and SiteCraft
+## Starlit Business Related and SiteCraft
 
-DYWS is listed under Developer Tools on sltd.ca, including the homepage, Projects page and existing footer links. Its role is the reusable ordering and delivery platform behind suitable business websites.
+DYWS is listed under Business Related on sltd.ca, including the homepage, Projects page and existing footer links, following the owner’s October 25 direction. Its role is the reusable ordering and delivery platform behind suitable business websites.
 
 Starlit SiteCraft is the public website service. The workflow selects a Starlit template, applies Starlit assets and accessibility preferences, adds appropriate DYWS capabilities, customizes the site, verifies it and deploys it. Use DYWS where ordering, fulfillment, delivery or its plugin capabilities are needed. A static design or email contact form does not by itself integrate DYWS.
 

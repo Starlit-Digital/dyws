@@ -47,6 +47,15 @@ final class DemoPolicy {
   if(($body['role']??'')==='driver'&&($body['driverId']??'')!=='driver')throw new ApiError('Use driver / driver to sign in.',401);
   if($this->store->query('SELECT count(*) AS n FROM sessions WHERE tenant=? AND expires_at>?',[$this->store->tenant,time()])[0]['n']>=500)throw new ApiError('The service is busy. Please try again later.',429);
  }
+ /** Recover the existing capability for an authenticated Admin preview, without renewing it. */
+ public function trackingAccess(string $id):string {
+  if(!preg_match('/^DYWS-[A-F0-9]{12}$/D',$id)||!$this->store)throw new ApiError('This tracking link is unavailable or has expired.',404);
+  $order=$this->store->get($id);
+  $token=hash_hmac('sha256',$id.'|'.$order['request_key'],$this->config['tracking_secret']);
+  // Check the saved hash and expiry exactly as an ordinary customer request does.
+  $this->store->tracking($id,$token);
+  return $token;
+ }
  public function orderInput(array $body):array {
   $body['customer']=self::CUSTOMER;$body['notes']='';$body['pluginData']=[];
   unset($body['address'],$body['addressDetails']);

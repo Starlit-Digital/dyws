@@ -221,7 +221,7 @@
     "demo-lockdown": [
       "dyws/order-selection.js",
       "plugins/demo-lockdown/demo-login.js?v=3",
-      "plugins/demo-lockdown/index.js?v=1.0.4"
+      "plugins/demo-lockdown/index.js?v=1.0.5"
     ],
     "order-reporting": [
       "dyws/api.js",

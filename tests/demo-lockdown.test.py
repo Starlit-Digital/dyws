@@ -1,6 +1,8 @@
 """Public demo policies: real HTTP, isolated SQLite, private configuration failures."""
-import http.cookiejar,json,os,pathlib,re,shutil,socket,sqlite3,subprocess,tempfile,time,urllib.request,urllib.error,urllib.parse,uuid
+import hashlib,http.cookiejar,json,os,pathlib,re,shutil,socket,sqlite3,subprocess,tempfile,time,urllib.request,urllib.error,urllib.parse,uuid
 root=pathlib.Path(__file__).resolve().parents[1]
+class NoRedirect(urllib.request.HTTPRedirectHandler):
+ def redirect_request(self,*args):return None
 with tempfile.TemporaryDirectory(prefix='dyws-lockdown-') as temp:
  work=pathlib.Path(temp)/'private'
  with socket.socket() as sock:sock.bind(('127.0.0.1',0));port=sock.getsockname()[1]
@@ -26,6 +28,11 @@ with tempfile.TemporaryDirectory(prefix='dyws-lockdown-') as temp:
   except urllib.error.HTTPError as e:r=e
   with r:code=r.status;data=json.load(r)
   assert code==status,(route,code,data);checks+=1;return data
+ def page_request(path,cookie='',method='GET'):
+  req=urllib.request.Request(base+path,headers={'Cookie':cookie} if cookie else {},method=method)
+  try:r=urllib.request.build_opener(NoRedirect()).open(req,timeout=5)
+  except urllib.error.HTTPError as e:r=e
+  with r:return r.status,r.headers,r.read().decode()
  try:
   for _ in range(50):
    try:request('/health');break
@@ -102,6 +109,40 @@ with tempfile.TemporaryDirectory(prefix='dyws-lockdown-') as temp:
   check(request('/orders',order,status=201)['id']==oid)
   request('/tracking/'+oid,status=404)
   check(request('/tracking/'+oid,tracking=receipt['trackingToken'])['status']=='placed')
+  # Admin can preview a different browser's order using its existing tracking capability.
+  handoff='/plugins/demo-lockdown/tracking.php?order='+oid
+  before=db.execute('SELECT tracking_hash,tracking_expires FROM orders WHERE id=?',(oid,)).fetchone()
+  for cookie in ['', 'dyws_driver_session='+driver, 'dyws_admin_session='+driver, 'dyws_admin_session='+'0'*64]:
+   code,headers,body=page_request(handoff,cookie);check(code==302 and headers['Location']=='/auth/' and 'dyws_track_' not in headers.get('Set-Cookie',''))
+  foreign_token='c'*64
+  db.execute('INSERT INTO sessions VALUES(?,?,?,?,?)',(hashlib.sha256(foreign_token.encode()).hexdigest(),'other-tenant','manager','admin',int(time.time())+900));db.commit()
+  check(page_request(handoff,'dyws_admin_session='+foreign_token)[0]==302)
+  admin_cookie='dyws_admin_session='+manager
+  code,headers,body=page_request(handoff,admin_cookie)
+  check(code==303 and headers['Location']=='/tracking/?order='+oid and not body)
+  cookie=headers['Set-Cookie'];check('dyws_track_'+oid+'='+receipt['trackingToken'] in cookie and 'HttpOnly' in cookie and 'SameSite=Lax' in cookie and 'path=/tracking/' in cookie)
+  check('no-store' in headers['Cache-Control'] and headers['Referrer-Policy']=='no-referrer' and receipt['trackingToken'] not in headers['Location'])
+  check(db.execute('SELECT tracking_hash,tracking_expires FROM orders WHERE id=?',(oid,)).fetchone()==before)
+  # This browser did not place the order and initially has no customer access.
+  try:browser.open(base+'/tracking/?order='+oid)
+  except urllib.error.HTTPError as e:check(e.code==404)
+  else:raise AssertionError('Tracking opened without its capability')
+  with browser.open(base+handoff) as r:
+   html=r.read().decode();check(r.url==base+'/tracking/?order='+oid and 'Order received' in html and oid in html)
+  check(page_request('/tracking/?order='+oid)[0]==404)
+  check(page_request(handoff,admin_cookie,'POST')[0]==405)
+  for suffix in ['','bad','DYWS-000000000099']:
+   code,headers,_=page_request('/plugins/demo-lockdown/tracking.php?order='+suffix,admin_cookie);check(code==404 and 'dyws_track_' not in headers.get('Set-Cookie',''))
+  check(page_request('/plugins/demo-lockdown/tracking.php?order[]=bad',admin_cookie)[0]==404)
+  # The same manager cannot acquire another tenant's tracking capability.
+  cur=db.execute('SELECT * FROM orders WHERE id=?',(oid,));foreign=dict(zip([d[0] for d in cur.description],cur.fetchone()));foreign.update(id='DYWS-FFFFFFFFFFFF',tenant='other-tenant')
+  db.execute('INSERT INTO orders('+','.join(foreign)+') VALUES('+','.join('?' for _ in foreign)+')',list(foreign.values()));db.commit()
+  check(page_request('/plugins/demo-lockdown/tracking.php?order='+foreign['id'],admin_cookie)[0]==404)
+  db.execute('UPDATE orders SET tracking_expires=? WHERE id=?',(int(time.time())-1,oid));db.commit()
+  code,headers,_=page_request(handoff,admin_cookie);check(code==404 and 'dyws_track_' not in headers.get('Set-Cookie',''))
+  db.execute('UPDATE orders SET tracking_expires=?,tracking_hash=? WHERE id=?',(before[1],'0'*64,oid));db.commit()
+  check(page_request(handoff,admin_cookie)[0]==404)
+  db.execute('UPDATE orders SET tracking_hash=? WHERE id=?',(before[0],oid));db.commit()
   row=db.execute('SELECT customer_name,customer_phone,address,notes,plugin_data_json FROM orders WHERE id=?',(oid,)).fetchone()
   check('DO NOT STORE THIS' not in str(row) and row[0]=='Jordan Taylor' and '123 Example Avenue' in row[2])
   request('/manager/orders/'+oid+'/assign',{'driverId':'driver'},manager)
@@ -140,6 +181,7 @@ with tempfile.TemporaryDirectory(prefix='dyws-lockdown-') as temp:
   # Missing files and registration failures cannot silently turn protection off.
   entry=work/'plugins/demo-lockdown/plugin.php';source=entry.read_text();entry.unlink()
   request('/health',status=503);request('/login',{'role':'manager','password':'admin'},status=503)
+  check(page_request('/plugins/demo-lockdown/tracking.php?order='+oid,admin_cookie)[0]==503)
   try:urllib.request.urlopen(base+'/auth/')
   except urllib.error.HTTPError as e:check(e.code==503)
   else:raise AssertionError('Unprotected auth page')
