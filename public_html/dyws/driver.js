@@ -4,10 +4,12 @@ import {formatTime} from './date-time.js';
 import {pluginSlot} from './plugin-ui.js?v=39';
 import {escapeHTML as esc,money,statusText} from './api.js';
 import {createDriverGPS} from './driver-gps.js';
+import {mountDriverOrderSelection} from './order-selection.js';
 export function mountDriver({root=document,api,storageKey='dyws-driver',renderLocation,simulatePosition,testLocationName='Configured origin',plugins,onReady=()=>{},onSignedOut}) {
  if(typeof api!=='function')throw new TypeError('A DYWS API client is required.');
  let token=sessionStorage.getItem(storageKey),loading=false,changing=false,unwatch=null,watchedToken=null,attemptedOrder=null,retryAfter=0,permission,currentDelivery=null,latestPosition=null,reloadPending=false,revision=0;
  let profile=null;
+ const orderSelection=mountDriverOrderSelection({root});
  const profileView=mountDriverProfile({root:root.querySelector('#driver-profile'),api,getToken:()=>token,onSaved:data=>{profile=data;revision++;void load();}});
  const feedback=root.querySelector('#delivery-feedback');
  const error=root.querySelector('#error'),state=root.querySelector('#gps-state'),details=root.querySelector('#gps-details');
@@ -57,6 +59,7 @@ export function mountDriver({root=document,api,storageKey='dyws-driver',renderLo
   root.querySelectorAll('[data-order]').forEach(card=>{const id=card.dataset.order;card.querySelector('[data-status]')?.addEventListener('click',e=>change(id,e.target.dataset.status));});
   root.querySelectorAll('[data-start-run]').forEach(button=>button.onclick=()=>startRun(button.dataset.startRun));
   root.querySelectorAll('[data-status]').forEach(button=>{button.disabled=changing;});
+  orderSelection.update();
   const current=run?data.orders.find(o=>o.id===run.nextOrderId):data.orders.find(o=>o.id===gps.orderId&&o.status==='out_for_delivery')||data.orders.find(o=>o.status==='out_for_delivery');
   const gpsId=run?.id||current?.id;
   currentDelivery=current;if(!current)latestPosition=null;if(simulatePosition&&current?.gps?.location){latestPosition=current.gps.location;state.textContent='Simulated location: '+testLocationName+'. Device GPS is not used.';if(details)details.textContent=current.id+' · Updated '+formatTime(latestPosition.recorded_at);}const mapRoot=root.querySelector('#driver-map');if(mapRoot&&renderLocation){const view=renderLocation(latestPosition,undefined,{destinationAddress:current?.address,profileIcon:profile?.profileIcon});if(view&&!mapRoot.contains(view))mapRoot.replaceChildren(view);}
@@ -72,5 +75,5 @@ export function mountDriver({root=document,api,storageKey='dyws-driver',renderLo
  root.querySelector('#refresh').onclick=load;root.querySelector('#refresh').disabled=false;root.querySelector('#logout').disabled=false;display();if(token)void load();
  const refreshTimer=setInterval(()=>{if(!api.watch&&token&&!document.hidden)void load();},10000);
  document.addEventListener('visibilitychange',hidden);window.addEventListener('focus',hidden);window.addEventListener('online',hidden);window.addEventListener('pagehide',pagehide);
- return {refresh:load,destroy(){clearInterval(refreshTimer);unwatch?.();gps.destroy();renderLocation?.destroy?.();permission?.removeEventListener('change',permissionChanged);document.removeEventListener('visibilitychange',hidden);window.removeEventListener('focus',hidden);window.removeEventListener('online',hidden);window.removeEventListener('pagehide',pagehide);}};
+ return {refresh:load,destroy(){orderSelection.destroy();clearInterval(refreshTimer);unwatch?.();gps.destroy();renderLocation?.destroy?.();permission?.removeEventListener('change',permissionChanged);document.removeEventListener('visibilitychange',hidden);window.removeEventListener('focus',hidden);window.removeEventListener('online',hidden);window.removeEventListener('pagehide',pagehide);}};
 }

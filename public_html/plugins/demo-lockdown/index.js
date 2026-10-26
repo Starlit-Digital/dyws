@@ -1,5 +1,6 @@
 /** Locked installation presentation. The PHP policy independently enforces every restriction. */
-import {createDemoAccess} from './demo-login.js?v=2';
+import {createDemoAccess} from './demo-login.js?v=3';
+import {readOrderSelection} from '../../dyws/order-selection.js';
 export function register(plugin){
  const doc=plugin.document,access=createDemoAccess({document:doc});
  const callout=position=>{
@@ -25,9 +26,14 @@ export function register(plugin){
   void access.enterFromURL();
  }
  // Keep role switching beside the order controls, without credential boxes.
- plugin.addAction('admin:order',({root})=>{root.append(access.link('driver','Open Driver demo'));});
+ plugin.addAction('admin:order',({root,order})=>{root.append(access.link('driver','Open Driver demo',order.id));});
  const driverActions=doc.querySelector('#driver-board:not([hidden]) > .dyws-actions');
- if(driverActions){const adminLink=access.link('admin','Admin orders');driverActions.append(adminLink);plugin.onDestroy(()=>adminLink.remove());}
+ if(driverActions){
+  let adminLink;
+  const update=()=>{adminLink?.remove();adminLink=access.link('admin','Admin orders',readOrderSelection(doc.defaultView?.location.href));driverActions.append(adminLink);};
+  update();doc.defaultView?.addEventListener('hashchange',update);
+  plugin.onDestroy(()=>{adminLink.remove();doc.defaultView?.removeEventListener('hashchange',update);});
+ }
  const locked=['catalog','drivers','password','settings','plugins'].includes(doc.body.dataset.adminPage);
  const lock=()=>{if(!locked)return;for(const el of doc.querySelectorAll('main input,main select,main textarea,main button')){
   if(/reload|refresh|cancel/.test(el.id)||el.hasAttribute('data-dyws-reload-plugins')||el.closest('#category-list'))continue;

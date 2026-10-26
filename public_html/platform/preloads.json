@@ -8,7 +8,8 @@
       "dyws/driver-gps.js",
       "dyws/driver-icons.js",
       "dyws/driver-profile.js",
-      "dyws/driver.js?v=39",
+      "dyws/driver.js?v=40",
+      "dyws/order-selection.js",
       "dyws/plugin-ui.js?v=39",
       "dyws/plugins.js?v=39",
       "dyws/realtime.js",
@@ -16,7 +17,7 @@
       "dyws/status-badge.js",
       "dyws/vehicle-colors.js",
       "platform/api.js",
-      "platform/driver.js?v=39",
+      "platform/driver.js?v=40",
       "platform/plugins.js?v=39"
     ],
     "tracking": [
@@ -46,8 +47,9 @@
       "dyws/delivery-runs.js",
       "dyws/diagnostics.js",
       "dyws/order-date-filter.js",
-      "dyws/order-list.js?v=40",
-      "dyws/orders.js?v=39",
+      "dyws/order-list.js?v=41",
+      "dyws/order-selection.js",
+      "dyws/orders.js?v=40",
       "dyws/plugin-ui.js?v=39",
       "dyws/plugins.js?v=39",
       "dyws/realtime.js",
@@ -55,7 +57,7 @@
       "dyws/status-badge.js",
       "platform/admin-navigation.js?v=39",
       "platform/api.js",
-      "platform/orders.js?v=39",
+      "platform/orders.js?v=40",
       "platform/plugins.js?v=39"
     ],
     "reports": [
@@ -217,8 +219,9 @@
       "plugins/clover/index.js?v=1.0.0"
     ],
     "demo-lockdown": [
-      "plugins/demo-lockdown/demo-login.js?v=2",
-      "plugins/demo-lockdown/index.js?v=1.0.3"
+      "dyws/order-selection.js",
+      "plugins/demo-lockdown/demo-login.js?v=3",
+      "plugins/demo-lockdown/index.js?v=1.0.4"
     ],
     "order-reporting": [
       "dyws/api.js",

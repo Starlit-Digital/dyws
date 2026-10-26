@@ -91,3 +91,7 @@ The public `role-labels.js` module provides `loadRole(api)`, `defaultRole` and `
 `mountManager` mounts only the Reports dashboard. `mountOrders` from orders.js mounts the order table, detail actions and active deliveries using the same manager session storage key. The shipped PHP host handles sign in before mounting either controller. Both refresh their own data, including when returning to a visible tab or reconnecting.
 
 The ordering component accepts a `site-logo` slot for the host website mark, for example `<img slot="site-logo" src="assets/logo.svg" alt="">`. The cart header displays the catalog business name, a centred Your Order title and Close. The diner supplies its existing star mark. On narrow screens the title uses its own centred row below the brand and Close.
+
+## Operator order selection
+
+The Orders and Driver controllers accept a validated `#order=DYWS-...` URL fragment. Orders opens that detail panel independently of table filters and keeps the fragment current as panels open or close. Driver focuses and highlights the matching card once, preserving delivery run order and existing GPS behavior. Only the authenticated list data is used. Missing or unavailable orders display a notice; no extra order fetch or permission change occurs. Polling updates the selected content without scrolling on every refresh. Browser fragment changes update selection, and controller destruction removes the listeners.

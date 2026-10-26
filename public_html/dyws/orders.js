@@ -2,7 +2,7 @@ import {statusBadge} from './status-badge.js';
 import {mountDeliveryRuns} from './delivery-runs.js';
 import {markReady,traceLoad} from './diagnostics.js';
 import {redirectToAuth} from './admin-session.js?v=39';
-import {mountOrderList} from './order-list.js?v=40';
+import {mountOrderList} from './order-list.js?v=41';
 import {formatTime,formatDateTime} from './date-time.js';
 import {pluginSlot} from './plugin-ui.js?v=39';
 import {money as formatMoney,escapeHTML as esc,statusText} from './api.js';

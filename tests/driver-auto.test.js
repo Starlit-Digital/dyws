@@ -5,8 +5,8 @@ const settle=async()=>{for(let i=0;i<30;i++)await Promise.resolve();};
 test('Signed in drivers automatically share on an active delivery, keep their active session while hidden and stop on logout',async()=>{
  const saved=new Map(['document','window','sessionStorage','navigator','isSecureContext'].map(key=>[key,Object.getOwnPropertyDescriptor(globalThis,key)]));
  const listeners=new Map(),calls=[];let watches=0,clears=0;
- const nodes=new Map(['#error','#gps-state','#gps-details','#login','#driver-board','#deliveries','#logout','#login-form','#refresh'].map(key=>[key,{replaceChildren(){},querySelector(){return null;}}]));
- const root={querySelector:key=>nodes.get(key),querySelectorAll:()=>[]};
+ const nodes=new Map(['#error','#gps-state','#gps-details','#login','#driver-board','#deliveries','#logout','#login-form','#refresh'].map(key=>[key,{prepend(){},replaceChildren(){},querySelector(){return null;}}]));
+ const root={ownerDocument:{createElement:()=>({setAttribute(){},remove(){}})},querySelector:key=>nodes.get(key),querySelectorAll:()=>[]};
  const props={document:{hidden:false,addEventListener:(name,fn)=>listeners.set(name,fn),removeEventListener:name=>listeners.delete(name)},window:{addEventListener(){},removeEventListener(){}},sessionStorage:{getItem:()=> 'signed-in-token',removeItem(){}},navigator:{geolocation:{watchPosition(){watches++;return 1;},clearWatch(){clears++;},getCurrentPosition(){}}},isSecureContext:true};
  for(const [key,value]of Object.entries(props))Object.defineProperty(globalThis,key,{value,configurable:true,writable:true});
  let driver;
@@ -22,8 +22,8 @@ test('Signed in drivers automatically share on an active delivery, keep their ac
 test('Simulated deliveries ignore denied device permission and never request device GPS',async()=>{
  const saved=new Map(['document','window','sessionStorage','navigator','isSecureContext'].map(key=>[key,Object.getOwnPropertyDescriptor(globalThis,key)]));
  const listeners=new Map(),calls=[];let watches=0,clears=0,permissionQueries=0;
- const nodes=new Map(['#error','#gps-state','#gps-details','#login','#driver-board','#deliveries','#logout','#login-form','#refresh'].map(key=>[key,{replaceChildren(){},querySelector(){return null;}}]));
- const root={querySelector:key=>nodes.get(key),querySelectorAll:()=>[]};
+ const nodes=new Map(['#error','#gps-state','#gps-details','#login','#driver-board','#deliveries','#logout','#login-form','#refresh'].map(key=>[key,{prepend(){},replaceChildren(){},querySelector(){return null;}}]));
+ const root={ownerDocument:{createElement:()=>({setAttribute(){},remove(){}})},querySelector:key=>nodes.get(key),querySelectorAll:()=>[]};
  const props={document:{hidden:false,addEventListener:(name,fn)=>listeners.set(name,fn),removeEventListener:name=>listeners.delete(name)},window:{addEventListener(){},removeEventListener(){}},sessionStorage:{getItem:()=> 'signed-in-token',removeItem(){}},navigator:{permissions:{async query(){permissionQueries++;return {state:'denied',addEventListener(){},removeEventListener(){}};}},geolocation:{watchPosition(){watches++;return 1;},clearWatch(){clears++;},getCurrentPosition(){}}},isSecureContext:true};
  for(const [key,value]of Object.entries(props))Object.defineProperty(globalThis,key,{value,configurable:true,writable:true});
  let driver;

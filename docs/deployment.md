@@ -196,3 +196,7 @@ The public demo continues to use server enforced fictional order contacts; remem
 ## Public demo entry and console navigation
 
 Deploy Installation Lockdown 1.0.3 with its matching browser module, versioned login helper, stylesheet and regenerated preload manifest. The storefront accepts `?demo=admin` or `?demo=driver` only while the plugin is active. Both use the existing CSRF protected forms and normal credentials. No backend, schema, account, assignment or runtime settings changes are required. Update the Starlit product page links to those entry URLs after the matching demo assets are live.
+
+## Order selection across demo consoles
+
+Installation Lockdown 1.0.4 passes the selected order through demo sign in and the Driver to Admin return link. Deploy the shared `order-selection.js`, matching Orders and Driver controllers, versioned platform entry scripts and PHP pages, shared CSS, plugin manifest and browser assets, and regenerated preload manifest together. This is a presentation update with no schema or configuration change. The existing form POST and 303 redirect preserve the order fragment; normal authentication and driver assignment checks remain authoritative.
