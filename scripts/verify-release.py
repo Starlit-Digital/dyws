@@ -17,6 +17,8 @@ with zipfile.ZipFile(archive) as z:
   assert not p.is_absolute() and '..' not in p.parts and p.parts[0]=='dyws','Unsafe ZIP path'
   assert not stat.S_ISLNK(info.external_attr>>16),'Symlink in ZIP'
   relative=p.relative_to('dyws').as_posix()
+  assert not relative.startswith(('plugins/stripe/','public_html/plugins/stripe/','vendor/stripe/')),'Private Stripe code in standard kit'
+  assert p.name not in ['StripePayments.php','StripeSettings.php','stripe-editor.js'],'Private Stripe compatibility code in kit'
   assert not ('node_modules' in p.parts or '.git' in p.parts),'Development cache in ZIP'
   assert not (p.suffix in ['.sqlite','.db'] or p.name.startswith('.env') or p.name in ['bootstrap-path.php','LOCAL-ACCESS.txt','HOSTED-DEMO-ACCESS.txt','config.json','setup-key.txt','installed.lock']),'Runtime file in ZIP: '+relative
   assert not relative.startswith('var/') or relative=='var/.gitkeep','Private runtime data in ZIP'

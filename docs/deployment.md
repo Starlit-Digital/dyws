@@ -1,5 +1,7 @@
 # Run and deploy dyws
 
+Current distribution, October 25, 2026: DYWS does not include Stripe or its SDK. The Stripe notes below describe existing installations with a separately installed plugin and historical upgrades. Keep that plugin, its dependencies, credentials and pending callbacks in place when updating such a deployment. Starlit managed additions are maintained separately from the public framework and example diner.
+
 Use [VERSION](../VERSION) for the application release, [INSTALL.md](../INSTALL.md) for fresh installation and [CHANGELOG.md](../CHANGELOG.md) for release history. This guide describes the current checkout.
 
 ## Local development
@@ -86,7 +88,7 @@ Stripe secrets are encrypted using the private tracking secret and the current `
 
 ## Plugins, maps and realtime
 
-Both halves of each plugin must be deployed. The bundle includes Google Maps, Stripe, Order Reporting and DataTables. Fresh installations activate all four; saved deactivation choices persist. Activation does not configure a Maps key or enable Stripe Checkout. Plugins are trusted code installed through Git or file upload, then managed in Admin.
+Both halves of each plugin must be deployed. The bundle includes Google Maps, Order Reporting and DataTables as active defaults; saved deactivation choices persist. Stripe is separately installed and excluded from the current kit. Activation does not configure provider credentials. Plugins are trusted code installed through Git or file upload, then managed in Admin.
 
 Use Settings for plugin configuration. Stripe accepts sandbox keys only and requires signed webhooks. No real charge or refund is performed by manual test ledger controls. Google Maps requires its enabled browser key and API configuration. See [plugin contracts](plugins.md), [payments](catalog-and-payments.md) and [maps and realtime](gps-maps-realtime.md).
 

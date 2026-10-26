@@ -8,7 +8,7 @@ The customer orders on your website, the business manages the order, and an assi
 
 DYWS belongs in Starlit Digital's **Business Related**. [Starlit SiteCraft](https://sltd.ca/sitecraft/) uses its ordering and delivery capabilities when a client website needs them, alongside the shared template library, Starlit assets and accessibility preferences. A static template or contact form alone is not a DYWS integration. See [the product direction](docs/product-notes.md).
 
-This is a development preview. Orders and delivery workflows work against persistent storage, but payments are demonstrations or Stripe sandbox transactions. Native mobile apps and production dispatch operations are not shipped. The repository contains the complete source; deployment credentials and business records stay outside Git.
+This is a development preview. Orders and delivery workflows work against persistent storage, but the included payment ledger is a demonstration. DYWS supports payment plugins; Stripe is available through a separately installed plugin and is not included in the public framework or install kit. Native mobile apps and production dispatch operations are not shipped. The repository contains the complete public framework source; deployment credentials and business records stay outside Git.
 
 ![Starlit Diner example storefront](docs/screenshots/customer-storefront.jpg)
 
@@ -48,7 +48,9 @@ Open `http://127.0.0.1:8097/`. The CLI creates a disposable demo driver and gene
 
 ## Payment connectors
 
-Separate optional [payment connector plugins](docs/payment-connectors.md) provide encrypted credentials, settings APIs, sandbox connection checks and event hooks for Square, PayPal, Helcim, Clover, Moneris and Authorize.net. These are integration foundations; Stripe remains the complete customer checkout integration. The Plugins page groups plugins by type in a vertical tab bar.
+The public framework and fictional Starlit Diner are independent of Starlit managed website services. Developers can extend the framework with their own plugins. Starlit may install its private additions for managed customers under separate agreements; those additions, support and service terms are not included with this example kit.
+
+Separate optional [payment connector plugins](docs/payment-connectors.md) provide encrypted credentials, settings APIs, sandbox connection checks and event hooks for Square, PayPal, Helcim, Clover, Moneris and Authorize.net. These are integration foundations and do not enable customer checkout. Stripe requires a separately installed plugin. The Plugins page groups plugins by type in a vertical tab bar.
 
 ## Order forms
 
@@ -122,7 +124,6 @@ The console refreshes on tab return, window focus and reconnection. Reliable GPS
 | --- | --- |
 | Installation Lockdown | Optional mandatory policy for an isolated public demo, protected settings, fictional checkout data, simulated GPS and temporary records. |
 | Google Maps | Driver and destination markers, driving routes, estimated travel time, location and route caching, fallback links, and private plugin settings for the browser key and map ID. |
-| Stripe | Optional sandbox hosted Checkout, signed webhooks, server payment verification, idempotency, encrypted credentials and settings owned by the plugin. Success and cancellation return to the private order page. No live payment keys in this demo. |
 | Order Reporting | Reporting dataset, business metrics, period comparisons, charts, CSV and SVG exports, dashboard controls and report integration hooks. |
 | DataTables | Locally bundled table search, sort, pagination and in memory table state. No runtime CDN dependency or customer records in browser table storage. |
 | Order Format | Optional visual layouts for Cart, Customer details and Final review, with built in defaults when disabled or unassigned. |
@@ -139,7 +140,7 @@ Native PHP `#[Provides(...)]` attributes describe plugin features. Page `#[Requi
 | --- | --- |
 | Persistence | SQLite stores orders, line items, events, payment records, accounts, sessions and active location records. Private JSON stores the catalog, site configuration and plugin settings. |
 | Access | Tenant scoped APIs, manager and driver roles, assignment checks, private customer tracking tokens, password hashes, session revocation, login rate limits and CSRF protected browser sign in. |
-| Payments | Manual test capture and full refund records, or configured Stripe sandbox Checkout. Browser redirects never mark a Stripe order paid. |
+| Payments | Manual test capture and full refund records, plus interfaces for separately installed payment plugins. Browser redirects never confirm provider payments. |
 | Time | UTC timestamps internally; an administrator selected timezone for local display and reporting boundaries. |
 | Initial rendering | PHP supplies authorized initial data and readable page previews. JavaScript handles updates, actions, maps and interactive controls. Skeletons cover controls while they initialize. |
 | Assets | Page specific editor imports, plugin feature resolution, generated module preloads and revalidated static assets. Authenticated HTML and API responses use no store caching. |
@@ -177,7 +178,7 @@ These browser screenshots were captured from isolated local fixtures on October 
 
 ![Admin catalog editor](docs/screenshots/admin-catalog.jpg)
 
-**Plugins:** bundled feature activation and settings links.
+**Plugins:** bundled feature activation and settings links. This historical screenshot may show Stripe; Stripe is no longer included in the kit.
 
 ![Admin plugin management](docs/screenshots/admin-plugins.jpg)
 
@@ -223,9 +224,9 @@ These browser screenshots were captured from isolated local fixtures on October 
 | --- | --- |
 | `public_html/` | The only public document root, containing PHP pages, assets and thin site adapters. |
 | `public_html/dyws/` | Reusable JavaScript modules, web component and scoped CSS. |
-| `modules/dyws/php/` | Private reusable rendering, storage, authorization and plugin code. |
+| `modules/dyws/php/` | Server side rendering, storage, authorization and plugin code outside the web root. |
 | `modules/dyws/realtime/` | Optional separately hosted Node.js WebSocket service. |
-| `plugins/` | Private bundled plugin implementations and manifests. |
+| `plugins/` | Bundled server side plugin implementations and manifests outside the web root. |
 | `public_html/plugins/` | Matching browser assets for bundled plugins. |
 | `examples/` | Diner and general store catalogs, PHP host integration and plugin examples. |
 | `tests/` | Automated application, API, plugin and installation checks. |
@@ -261,7 +262,7 @@ Release work uses separate commits with detailed messages and annotated tags. Fo
 
 ## Current limits and next steps
 
-This preview does not include native iOS or Android apps, guaranteed background GPS, a hosted WebSocket service, automatic dispatch optimization, driver payouts, marketplace settlements, production payment processing, SMS or email notifications, stock management, or a managed backup service. Google Maps needs a configured key and billing account. Stripe requires configured sandbox credentials and signed webhook delivery.
+This preview does not include native iOS or Android apps, guaranteed background GPS, a hosted WebSocket service, automatic dispatch optimization, driver payouts, marketplace settlements, production payment processing, SMS or email notifications, stock management, or a managed backup service. Google Maps needs a configured key and billing account. Stripe is not included. A separately installed Stripe plugin requires its own dependencies, sandbox credentials and signed webhook delivery.
 
 The server enforces tenant boundaries, but the shipped installation is configured for one business; there is no platform owner interface for provisioning multiple businesses. Review operations, retention, privacy, monitoring, recovery, payment compliance and mobile delivery reliability before a production pilot. The hosted diner currently demonstrates HTTPS polling and a simulated origin, not real delivery operations.
 
@@ -282,7 +283,7 @@ The server enforces tenant boundaries, but the shipped installation is configure
 - [Screenshot provenance](docs/screenshots/README.md)
 - [Product direction and Starlit SiteCraft](docs/product-notes.md)
 
-The private repository is [Starlit-Digital/dyws](https://github.com/Starlit-Digital/dyws).
+The public repository is [Starlit-Digital/dyws](https://github.com/Starlit-Digital/dyws).
 
 ## Order printer pilot
 

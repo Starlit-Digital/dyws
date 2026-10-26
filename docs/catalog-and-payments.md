@@ -1,4 +1,4 @@
-# Generic catalog and Stripe connector
+# Generic catalog and payment extensions
 
 dyws means Do You Want Something? and is the confirmed product name. `platformName` configures the product display label and `businessName` identifies the business. The fictional diner keeps its own branding.
 
@@ -31,37 +31,18 @@ All quantities are whole units. Availability is a switch, not stock reservation.
 
 Admin opens `catalog/`, edits categories and items and saves. The API validates before replacing the private file atomically. Revision checks prevent a stale editor from overwriting another save. Order lines snapshot names, descriptions, SKUs, images, options and prices; later edits do not rewrite old orders. A new order always uses the private server prices and delivery fee.
 
-## Payment setup
+## Payment extensions
 
-1. Create a separate Stripe sandbox for testing. Use a restricted sandbox API key with Checkout Sessions read and write access and the linked permissions required for creating Checkout Products, Prices and PaymentIntents. The connection check checks session read access only; complete a sandbox checkout to verify the complete permission set.
-2. Register the webhook URL shown in settings. Subscribe to `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`, `checkout.session.expired` and `charge.refunded`.
-3. Save the sandbox key and webhook signing secret in the authenticated admin settings. Blank inputs retain the existing secrets. Enable Stripe test checkout when the endpoint is registered.
-4. Place a new test order and use its Stripe payment button on the private tracking page. Both success and cancellation return to `tracking/?order=ORDER_REFERENCE` under the installation URL. The existing order scoped HttpOnly cookie authorizes that page; no tracking secret is sent in the return URL. Leaving Checkout does not cancel the order, and payment status still comes from verified webhooks. A return URL is not evidence of payment.
+DYWS supports payment plugins. Stripe is not included in the public repository, install kit or fictional Starlit Diner. A compatible Stripe plugin must be installed separately with its own dependencies and configured account. Starlit maintains its private additions independently for managed deployments under separate customer agreements.
 
-Hosted Checkout uses the official Stripe PHP SDK, pinned by `composer.lock`, with the SDK default API version. Checkout handles card data. No publishable key or card input is needed on this site. Dynamic payment methods remain enabled. Adaptive pricing is disabled to preserve the server order currency. The example tax is sent as a separate configured amount; this is not Stripe Tax or a tax compliance engine.
+The included ledger records demonstration captures and refunds. The bundled Square, PayPal, Helcim, Clover, Moneris and Authorize.net connectors are sandbox integration foundations; activating them does not enable customer checkout. See [payment connectors](payment-connectors.md).
 
-The connector is a merchant owned account integration. It does not create Stripe Connect accounts, split funds, pay drivers or retain a platform commission. Those commercial choices remain future work.
+A payment plugin selects a provider through the documented [plugin interface](plugins.md). Core snapshots the provider and currency on each order, preserves authoritative prices and prevents manual test actions from changing online provider payments. Browser redirects never confirm a payment. Provider integrations must verify signatures, tenant, order, attempt, amount, currency, payment state and idempotency before reconciling the ledger.
 
-## Boundaries and reconciliation
+Existing orders and payment records survive the removal of a plugin from the distribution. Preserve installed payment plugins, their dependencies, encrypted settings and callbacks during upgrades until outstanding attempts and refunds are settled. Missing active payment plugins reject new orders instead of silently switching to manual payment. Historical Stripe table names remain supported for data migration.
 
-This demo accepts sandbox keys only. No live payments are enabled. The existing manual test ledger remains available for orders created with Stripe disabled. Each order records its provider and currency permanently. Manual capture and refund buttons cannot alter a Stripe order.
-
-A tracking token is required to create or resume checkout. The server reserves one attempt per order, uses a stable Stripe idempotency key and reuses the session URL. It does not recreate an ambiguous attempt past the Stripe idempotency window. Expired or failed sessions require reviewing the existing order before placing a replacement.
-
-Signed webhooks validate timestamp, test mode, tenant, order, attempt nonce, session, amount and currency. Duplicate event IDs and multiple paid events cannot double count collections. Async payment confirmation is supported. Unpaid Stripe orders cannot progress into fulfillment, and open payment attempts prevent cancellation until Stripe reports a terminal payment outcome. A late paid event on an already cancelled order requires manager review.
-
-Refunds are initiated in the merchant's Stripe dashboard. `charge.refunded` reconciles cumulative partial or full refunds without double counting or reversing a later refund. Individual refund deltas retain their local reconciliation dates. Partial refunds allocate product sales, fees and tax proportionally; cumulative rounding ensures a full refund zeros every component. These are operational demo metrics, not tax or accounting statements.
-
-Keys are never returned through an API, placed in browser storage or committed. Shared hosting stores them in `var/stripe.json`, encrypted with AES GCM and a tenant derived key from the existing private server secret. A production host should use a managed secrets vault. Back up the private configuration and encrypted file together. Changing the master secret requires reencrypting Stripe settings. Settle outstanding sandbox attempts before switching Stripe accounts or webhook secrets.
-
-Existing Checkout sessions retain the return URLs with which Stripe created them. This fix applies to newly created sessions; stored sessions are reused to preserve idempotency. If browser tracking cookies are cleared or tracking access expires, reopen the original private link while it remains valid. A custom embedded host must establish the private tracking page session before redirecting to Checkout.
+The earlier Stripe implementation supported merchant owned sandbox Checkout only. It did not implement Stripe Connect, live processing, platform commissions or driver payouts. Historical code in Git does not change the contents of the current kit. The separate plugin owns its setup instructions and integration tests.
 
 ## Verification
 
-Automated tests use the official SDK signature verifier and a fake session transport, not real Stripe credentials. They cover private catalog authorization, revisions, nonfood products, inactive items, prices, secret redaction and encryption, session reuse, webhook signatures, replay, amount and tenant mismatch, async payments, refunds and report reconciliation. An actual sandbox charge still requires the owner's Stripe credentials and registered webhook. No unrelated account credentials are needed for the automated suite.
-
-References: [Checkout Sessions](https://docs.stripe.com/api/checkout/sessions/create), [payment fulfillment](https://docs.stripe.com/checkout/fulfillment), [webhook verification](https://docs.stripe.com/events/manage-webhook-endpoints), [API keys](https://docs.stripe.com/keys).
-
-Use Admin → Plugins → Stripe → Settings for payment configuration. Stripe is bundled and active by default but does not enable checkout until configured. Its settings, Checkout and webhook implementation are owned by the plugin. The plugin form is available at settings/#plugin-stripe. See [plugin documentation](plugins.md) for deactivation, preserved encrypted credentials and pending payment callbacks.
-
-Customers who try to exceed Item Order Cap see a cart dialog asking them to call the store, with a telephone link when businessPhone is configured. Saved browser carts are trimmed to the current cap on load. API orders exceeding it receive 422, with no order created. Different products have separate caps. Settings saves these fields with the catalog revision and preserves items and categories.
+The framework suite covers catalog authorization, revisions, nonfood products, inactive items, authoritative pricing, quantity limits and operation without Stripe. Payment extension tests cover absent provider handling, blocked manual capture, protected fulfillment, pending tracking and historical payment migration. Each separately installed plugin must also pass its own integration tests.

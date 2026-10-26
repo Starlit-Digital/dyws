@@ -54,7 +54,9 @@ Reports use separate `from` and `to` query parameters, both `YYYY-MM-DD`. The in
 
 No CORS wildcard is provided. The existing example operates on the same origin. Future website integrations should use a narrowly configured origin policy and restaurant scoped public credentials with server side enforcement.
 
-## Catalog and Stripe endpoints
+## Catalog and optional payment endpoints
+
+The Stripe routes below are compatibility references for a separately installed plugin. They are absent from the standard kit, which includes no Stripe implementation or SDK.
 
 | Method | Route | Access |
 | --- | --- | --- |
@@ -109,7 +111,7 @@ Active plugin routes are dispatched after core routes. Core enforces the route's
 
 ## Plugins and payment providers
 
-Stripe endpoints are registered by the bundled plugin. Use GET/POST /manager/plugins/stripe/settings, POST /manager/plugins/stripe/verify, POST /plugins/stripe/orders/{id}/checkout and POST /plugins/stripe/webhook. Manager settings require a bearer token, Checkout requires the order tracking token, and webhooks require the original raw body and valid Stripe signature. Existing Stripe URLs remain aliases. Deactivation disables new checkout, retains signed webhook processing for in flight payments, and preserves encrypted settings. The ledger and reporting stay available independently.
+Stripe endpoints exist only when the separate Stripe plugin is installed. The public kit does not register them. Use GET/POST /manager/plugins/stripe/settings, POST /manager/plugins/stripe/verify, POST /plugins/stripe/orders/{id}/checkout and POST /plugins/stripe/webhook. Manager settings require a bearer token, Checkout requires the order tracking token, and webhooks require the original raw body and valid Stripe signature. Existing Stripe URLs remain aliases. Deactivation disables new checkout, retains signed webhook processing for in flight payments, and preserves encrypted settings. The ledger and reporting stay available independently.
 
 GET /plugins also returns hooks, the 37 hook descriptions. GET /manager/lookup?q=...&kind=all supports manager only search, with products, orders and drivers as native kinds and lookup.results for plugin kinds. Query length is 1 to 100 bytes. Results are bounded and tenant scoped.
 

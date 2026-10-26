@@ -90,7 +90,7 @@ A complete example is in examples/plugins/gift-note. It is shipped as example so
 
 ## Capabilities beyond the hooks
 
-Plugins can also register namespaced HTTP routes with public, manager or driver access, offer payment providers, supply payment renderer controls, and supply a location renderer with route estimates. Google Maps and Stripe use these APIs in the bundled distribution. See [Plugin architecture](plugins.md) for route limits, raw request handling, retained signed callbacks, activation and deactivation, and the trusted code boundary. WordPress PHP plugins do not run unchanged in dyws.
+Plugins can also register namespaced HTTP routes with public, manager or driver access, offer payment providers, supply payment renderer controls, and supply a location renderer with route estimates. Bundled Google Maps and separately installed payment plugins use these APIs. Stripe is not included in the distribution. See [Plugin architecture](plugins.md) for route limits, raw request handling, retained signed callbacks, activation and deactivation, and the trusted code boundary. WordPress PHP plugins do not run unchanged in dyws.
 
 ## Reporting and table hooks
 

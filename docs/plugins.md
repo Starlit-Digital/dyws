@@ -9,7 +9,7 @@ A plugin has two parts so executable PHP stays private:
 - `plugins/<id>/plugin.json` and `plugin.php`, beside server and modules, outside public_html.
 - Optional browser assets under `public_html/plugins/<id>/`.
 
-Copy both parts from a trusted source, then open **Admin → Plugins** and activate it. Additional plugins start inactive. The bundled distribution activates Google Maps, Stripe, Order Reporting and DataTables by default through plugins/bundled.json, preserving existing installations. Activation does not replace its saved API key or Maps settings. Deactivation preserves settings too. Reload other open pages after changing activation. Existing browser tabs are not forcibly reloaded or stripped of already downloaded code.
+Copy both parts from a trusted source, then open **Admin → Plugins** and activate it. Additional plugins start inactive. The bundled distribution activates Google Maps, Order Reporting and DataTables by default through plugins/bundled.json, preserving existing installations. Activation does not replace its saved API key or Maps settings. Deactivation preserves settings too. Reload other open pages after changing activation. Existing browser tabs are not forcibly reloaded or stripped of already downloaded code.
 
 Plugin state is tenant scoped private JSON beside the database, with revision checking and file locking. A corrupt state file disables plugins and produces an admin warning. Missing optional display plugins do not stop orders. Required payment and validation failures reject affected operations. Reinstall a plugin's files before attempting to activate it again. Removing files does not erase its settings.
 
@@ -106,31 +106,27 @@ The host's existing CSP allowlist permits Google Maps resources. Hosts installin
 
 Plugins execute trusted PHP and JavaScript with the site's authority. Activation is not a sandbox or security review. Only the site owner should install code, and only managers can change activation. Never install third party code supplied by a customer or driver. The framework protects route namespaces and caller roles, but a trusted plugin can access configuration and the database directly.
 
-## Stripe plugin
+## Separately installed payment plugins
 
-Stripe's PHP settings, encrypted credential storage, Checkout integration, webhook verification and reconciliation, browser payment controls, and settings form live in plugins/stripe and public_html/plugins/stripe. Core no longer imports Stripe services or dispatches Stripe routes. The old PHP classes and browser exports are compatibility includes.
+DYWS does not include Stripe. Its implementation, browser assets, SDK, legacy entry points and integration tests are maintained separately. Additional plugins start inactive and require explicit activation. The public framework and fictional diner are independent of Starlit private additions and managed service agreements.
 
-Admin → Plugins → Stripe → Settings opens its form in Settings. The form is available at settings/#plugin-stripe. The saved encrypted private stripe.json path and encryption context remain unchanged, so keys do not need reentry. Blank secret inputs preserve saved values. Stripe remains sandbox only. The existing pinned Composer SDK is included in the ZIP.
-
-The bundled plugin is active by default, but checkout stays off until its saved settings enable it. The explicit upgrade default adopts Stripe on installations that saved plugin state before Stripe became a plugin. Saving plugin state records known IDs so later deactivation is respected. This never enables checkout by itself or changes saved credentials. Additional plugins remain inactive until a manager activates them.
+Install both plugin halves from a trusted source and follow that plugin's dependency and setup instructions. The standard kit excludes Stripe files even on development machines that use private additions. Stripe paths are ignored by Git and rejected if accidentally staged for a kit release.
 
 ### Payment lifecycle
 
 `$plugin->providePayment(fn() => 'provider-id')` offers a payment provider for new orders. Return null when not enabled. Selection is exclusive: two selected providers, broken active payment plugins and unreadable credentials reject new orders with 503 rather than creating manual orders. Declare `"capabilities": ["payments"]`. Core snapshots the selected provider and refuses manager test capture for any online provider, even while its plugin is disabled. Existing idempotent order receipts keep their original provider.
 
-Disabling Stripe stops new checkout endpoints and browser payment controls. The host bundle explicitly retains only its two signed webhook endpoints. This lets already submitted payments, asynchronous confirmations and refunds reconcile after deactivation. It does not execute its other hooks or settings endpoints while inactive. Keep the plugin files, signing secret and Stripe webhook endpoint until every payment is settled. Removing files is different from deactivation and makes callbacks unavailable. A signed callback alone can update payment state; returning from Checkout cannot.
+Disabling a payment plugin stops its new checkout endpoints and browser payment controls. The host must explicitly approve any signed webhook endpoints retained after deactivation. This lets already submitted payments, asynchronous confirmations and refunds reconcile after deactivation. It does not execute its other hooks or settings endpoints while inactive. Keep installed plugin files, dependencies, signing secrets and webhook endpoints until every payment is settled. Removing files is different from deactivation and makes callbacks unavailable. A signed callback alone can update payment state; returning from Checkout cannot.
 
 Core owns durable provider neutral payment attempts, event deduplication and refund deltas so tracking and reports remain accurate without optional plugin code. Existing stripe_attempts, stripe_events and stripe_refund_deltas tables are renamed transactionally to payment_attempts, payment_events and payment_refund_deltas on first use. Amounts, keys, sessions and history are preserved. Restore a consistent database backup as well as code when rolling back across this migration.
 
 ### Routes and rendering
 
-- GET/POST `/manager/plugins/stripe/settings`, manager only.
-- POST `/manager/plugins/stripe/verify`, manager only, rate limited.
-- POST `/plugins/stripe/orders/{orderId}/checkout`, tracking token required and rate limited.
-- POST `/plugins/stripe/webhook`, raw body signature verified.
-- Legacy `/manager/stripe`, `/manager/stripe/verify`, `/orders/{orderId}/checkout` and `/stripe/webhook` remain compatible.
+Payment plugins register routes within `/manager/plugins/<id>/` and `/plugins/<id>/`. Settings require manager access; checkout must require the order tracking token; callbacks must verify their original raw body and provider signature. The framework does not supply these provider handlers.
 
-The public browser capability is `payment.renderer`. The core tracker injects an active provider's renderer through `plugins.renderPayment`. Missing plugins show a payment unavailable or pending message, with no manual capture shortcut. Payment links are accepted only on Stripe's HTTPS Checkout host.
+The public browser capability is `payment.renderer`. The core tracker injects an active provider's renderer through `plugins.renderPayment`. Missing plugins show a payment unavailable or pending message, with no manual capture shortcut. Each plugin must validate its provider's allowed payment destination.
+
+The host retains historical Stripe alias and signed callback approvals in `plugins/bundled.json` for separately installed plugins, plus a payment capability guard for older saved activation records. These entries contain no implementation, do not install or activate Stripe and register no route without its files. The core also preserves historical database migrations. Stripe has no active or upgrade default.
 
 Plugin route callbacks receive `(body, session, request)`. Request contains `raw`, the exact request bytes, `params` for named path segments, and `server` for request headers. Use `{name}` for one alphanumeric, underscore or hyphen path segment, then validate the resource ID in the handler. Route options accept `maxBody` up to 262144 bytes and `rateLimit: [bucket, count, seconds]`. Authentication happens before handler invocation and rate limiting. Only the trusted bundled manifest can allow old route aliases and retained callbacks.
 
@@ -156,7 +152,7 @@ See [reporting definitions and PayCal research](order-reporting.md) and [hook co
 
 The shipped admin host refreshes on polling, return to a visible tab, window focus and reconnection. Plugin settings can join its guarded refresh registry through `adminPage().autoRefresh({read, apply, forms, initial, blocked})` from `public_html/dyws/admin-refresh.js`. Call the returned `reset(data)` after an explicit save or reload to establish the new clean baseline.
 
-Dirty values, focused fields and open editors defer replacement. Independent clean forms and location views can still refresh. A read that overlaps typing, a save or manual reload cannot replace newer state. Revision tokens stay attached to drafts so server conflict checks remain effective. Form snapshots are kept only in memory. Google Maps and Stripe settings implement this contract. Dispose registrations when the owning controller is destroyed.
+Dirty values, focused fields and open editors defer replacement. Independent clean forms and location views can still refresh. A read that overlaps typing, a save or manual reload cannot replace newer state. Revision tokens stay attached to drafts so server conflict checks remain effective. Form snapshots are kept only in memory. Google Maps implements this contract; separately installed settings plugins should do the same. Dispose registrations when the owning controller is destroyed.
 
 ## Page feature manifests
 
@@ -180,7 +176,7 @@ Bundled features:
 | Plugin | Provides |
 | --- | --- |
 | Google Maps | `location.renderer`, `admin:settings` |
-| Stripe | `payment.renderer`, `admin:settings` |
+| Separately installed Stripe plugin, excluded from the kit | `payment.renderer`, `admin:settings` |
 | DataTables | `admin:tables` |
 | Order Format | `order.layout`, `admin:navigation`, `admin:settings` |
 | Order Reporting | `reports.renderer`, `admin:report-controls`, `reports:query`, `reports:export` |

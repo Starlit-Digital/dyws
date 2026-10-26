@@ -1,10 +1,10 @@
 # Payment connector plugins
 
-Square, PayPal, Helcim, Clover, Moneris and Authorize.net are separate optional plugins. All start inactive. The Plugins page groups installed plugins by type in a vertical tab bar on the left. Each connector appears under Payments beside Stripe.
+Square, PayPal, Helcim, Clover, Moneris and Authorize.net are separate optional plugins. All start inactive. The Plugins page groups installed plugins by type in a vertical tab bar on the left. Each connector appears under Payments. A separately installed Stripe plugin can appear in the same category; Stripe is not included in the kit.
 
 ## Scope
 
-This release supplies the integration foundation: encrypted credential fields, settings APIs, sandbox connection checks, provider API connectors and verified event hooks. Activating or configuring a connector does not select it for customer checkout, capture an order payment or change the payment ledger. Stripe remains the existing complete checkout integration. Each new settings API explicitly returns `stage: connector` and `checkoutEnabled: false`.
+This release supplies the integration foundation: encrypted credential fields, settings APIs, sandbox connection checks, provider API connectors and verified event hooks. Activating or configuring a connector does not select it for customer checkout, capture an order payment or change the payment ledger. The public framework does not include Stripe. Its separately maintained plugin supplies sandbox Checkout only when installed and configured. Each new settings API explicitly returns `stage: connector` and `checkoutEnabled: false`.
 
 The next integration stage can use these connectors to create checkout sessions, display the provider checkout, associate its identifiers with an order and reconcile authoritative payment status. That stage must verify merchant, tenant, attempt, amount, currency, payment state and idempotency before changing the order ledger. A browser return or a generic verified event is insufficient. POS inventory and restaurant dispatch synchronization are separate features.
 

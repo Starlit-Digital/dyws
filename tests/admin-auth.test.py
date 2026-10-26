@@ -42,7 +42,7 @@ with tempfile.TemporaryDirectory(prefix='dyws-auth-') as work:
    for suffix in ['','page.php']:
     status,headers,html=req('/'+page+'/'+suffix)
     check(status==302 and headers['Location']=='/auth/' and '<header' not in html and '<nav' not in html)
-  for plugin in ['google-maps','stripe']:
+  for plugin in ['google-maps']:
    check(req('/plugins/'+plugin+'/settings.php')[0]==302)
   check(req('/admin')[1]['Location']=='/admin/')
   status,headers,html=login('wrong-password')
@@ -60,7 +60,7 @@ with tempfile.TemporaryDirectory(prefix='dyws-auth-') as work:
    check(boot['page']==page and '/settings' in boot['responses'] and config['tracking_secret'] not in html and password not in html and 'data-dyws-skeleton' in html)
    check('modulepreload' in html and 'initial_data' in headers['Server-Timing'])
    if page=='orders':check('data-dyws-order-initial' in html and '/manager/orders' in boot['responses'])
-   if page=='settings':check('id="maps-form"' in html and 'id="stripe-form"' in html and '/manager/plugins/stripe/settings' in boot['responses'])
+   if page=='settings':check('id="maps-form"' in html and 'id="stripe-form"' not in html and '/manager/plugins/stripe/settings' not in boot['responses'])
   check(req('/admin/')[1]['Location']=='/orders/')
   check(req('/auth/')[1]['Location']=='/orders/')
   # Page cookies never authorize API mutations without their explicit bearer token.

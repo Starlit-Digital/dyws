@@ -43,7 +43,7 @@ If the server cannot remove an unexpected file in setup, installation remains lo
 ## Storage
 
 - SQLite: orders, order events, payment records, sessions, GPS, drivers and administrator password hashes.
-- Private JSON: overall site configuration, business settings, role labels, Google Maps settings, encrypted Stripe settings and product catalog.
+- Private JSON: overall site configuration, business settings, role labels, Google Maps settings, plugin settings and product catalog. Any separately installed payment plugin owns its encrypted credentials.
 - No default credentials, customer data, databases, private configuration or deployment adapters are included in the ZIP.
 
 The new database is `var/orders.sqlite`. All passwords are hashed. JSON orders were not introduced because the existing ordering engine already stores orders transactionally in SQLite.
@@ -88,7 +88,7 @@ The flow follows MediaWiki's [browser installer](https://www.mediawiki.org/wiki/
 
 ## Plugins
 
-Both Git and the optional install ZIP include Google Maps, Stripe, Order Reporting and DataTables as active bundled plugins. Stripe checkout remains disabled until configured. After setup, open Admin → Plugins to manage activation and Settings to configure active plugins. Upload private plugins/ beside server and modules, and public_html/plugins/ with the website. Preserve both parts when using split shared hosting. See [Plugin documentation](docs/plugins.md) to install or develop additional plugins.
+Both Git and the optional install ZIP include Google Maps, Order Reporting and DataTables as active bundled plugins. DYWS does not include Stripe or its SDK. Install a compatible payment plugin separately to add provider checkout. Starlit private plugins and managed service agreements are separate from this public framework and diner example. After setup, open Admin → Plugins to manage activation and Settings to configure active plugins. Upload private plugins/ beside server and modules, and public_html/plugins/ with the website. Preserve both parts when using split shared hosting. See [Plugin documentation](docs/plugins.md) to install or develop additional plugins.
 
 After setup, use `/admin/` under your installation URL. The sign in page is `/auth/`; successful authentication opens Orders.
 

@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased · 2026-10-25
+
+- Separate the private Stripe plugin, SDK, legacy entry points and integration tests from the public framework and install kit. New installations do not include or activate Stripe.
+- Preserve generic payment interfaces, historical provider records and approved callbacks for separately installed plugins. Keep Starlit managed service agreements separate from the public framework and fictional diner.
+- Earlier release entries below describe historical packages; they do not describe the current kit.
+
 ## 0.11.1 · 2026-10-24
 
 - Preserve checkout details in memory across Back navigation and dialog close and reopen.

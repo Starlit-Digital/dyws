@@ -282,17 +282,6 @@
     "order-format": [
       "plugins/order-format/index.js?v=1.0.0"
     ],
-    "stripe": [
-      "dyws/admin-navigation.js?v=39",
-      "dyws/admin-refresh.js",
-      "dyws/admin-session.js?v=39",
-      "dyws/api.js",
-      "dyws/date-time.js",
-      "dyws/status-badge.js",
-      "plugins/stripe/index.js?v=1.1.3",
-      "plugins/stripe/payment.js",
-      "plugins/stripe/settings.js"
-    ],
     "authorize-net": [
       "dyws/admin-navigation.js?v=39",
       "dyws/admin-refresh.js",

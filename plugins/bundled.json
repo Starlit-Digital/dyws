@@ -1,7 +1,6 @@
 {
   "active": [
     "google-maps",
-    "stripe",
     "order-reporting",
     "datatables"
   ],
@@ -45,7 +44,6 @@
     "stripe"
   ],
   "upgradeDefaults": [
-    "stripe",
     "order-reporting",
     "datatables"
   ]

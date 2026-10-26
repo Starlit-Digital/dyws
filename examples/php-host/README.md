@@ -9,7 +9,7 @@ Arrange a temporary installation as follows:
 * private/dyws: copy modules/dyws/php from the repository.
 * private/catalog.json: use the general store seed.
 * private/config.json and a private SQLite file: configure the existing backend schema, pointing catalog to that same private catalog file. The repository setup CLI can initialize a test configuration using the general store seed as its second argument.
-* private/vendor: the Composer dependencies, required when testing Stripe.
+* private/vendor: the host Composer autoloader. Separately installed payment plugins manage their own dependencies; Stripe is not included.
 
 Serve only public. This example expects the goods category and tote product from examples/general-store/catalog.json. Its default product image is an external placeholder. For a minimal test without external assets, omit that optional image from your private copy.
 

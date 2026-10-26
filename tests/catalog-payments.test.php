@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
-require __DIR__.'/../server/Store.php';require __DIR__.'/../server/Catalog.php';require __DIR__.'/../server/StripeSettings.php';require __DIR__.'/../server/StripePayments.php';require __DIR__.'/../vendor/autoload.php';
-use dyws\{Store,Catalog,StripeSettings,StripePayments,ApiError};
+require __DIR__.'/../server/Store.php';require __DIR__.'/../server/Catalog.php';
+use dyws\{Store,Catalog,ApiError};
 $dir=sys_get_temp_dir().'/dyws-products-'.bin2hex(random_bytes(6));mkdir($dir,0700);$checks=0;
 function check($condition,$message){global $checks;if(!$condition)throw new RuntimeException($message);$checks++;}
 function rejects(callable $fn,int $code=422){try{$fn();throw new RuntimeException('Expected rejection');}catch(ApiError $e){check($e->http===$code,'Wrong error: '.$e->getMessage());}}
@@ -18,64 +18,19 @@ try{
  $bad=$catalog;$bad['categories'][0]['items'][]=$bad['categories'][0]['items'][0];rejects(fn()=>Catalog::validate($bad));
  $changed=$catalog;$changed['categories'][0]['items'][0]['active']=false;Catalog::save($dir.'/catalog.json',$changed,Catalog::revision($catalog));
  check(count(Catalog::publicData(Catalog::load($dir.'/catalog.json'))['categories'][0]['items'])===1,'Inactive products omitted publicly');rejects(fn()=>Catalog::save($dir.'/catalog.json',$catalog,Catalog::revision($catalog)),409);
- $config=['tracking_secret'=>bin2hex(random_bytes(32)),'database'=>$dir.'/orders.sqlite','tenant'=>'example-shop','public_base_url'=>'https://example.test/shop','payment_provider'=>'stripe'];$GLOBALS['dyws_config']=$config;
+ $config=['tracking_secret'=>bin2hex(random_bytes(32)),'database'=>$dir.'/orders.sqlite','tenant'=>'example-shop','public_base_url'=>'https://example.test/shop'];$GLOBALS['dyws_config']=$config;
  $disabledStore=new Store($config['database'],$changed,$config['tenant']);rejects(fn()=>$disabledStore->create(orderBody()));unset($disabledStore);
- $store=new Store($config['database'],$catalog,$config['tenant']);$settings=new StripeSettings($config);
+ $store=new Store($config['database'],$catalog,$config['tenant']);
  $capStore=new Store($config['database'],$catalog,'cap-checks');
  $atCap=orderBody();$atCap['lines'][0]['quantity']=10;check(isset($capStore->create($atCap)['id']),'Exact cap accepted');
  $tooMany=orderBody();$tooMany['lines'][0]['quantity']=11;rejects(fn()=>$capStore->create($tooMany));
  $options=orderBody();$options['lines']=[['id'=>'tote','variant'=>'natural','quantity'=>6],['id'=>'tote','variant'=>'navy','quantity'=>5]];rejects(fn()=>$capStore->create($options));
  $higher=$catalog;$higher['itemOrderCap']=12;$higherStore=new Store($config['database'],$higher,'higher-cap');check(isset($higherStore->create($tooMany)['id']),'Configured cap respected');
  check(count($capStore->query("SELECT id FROM orders WHERE tenant='cap-checks'"))===1,'Rejected quantities leave no orders');
- check(!$settings->summary()['enabled'],'Stripe starts disabled');
- $key='rk_test_'.bin2hex(random_bytes(16));$secret='whsec_'.bin2hex(random_bytes(16));
- rejects(fn()=>$settings->save(['enabled'=>true,'apiKey'=>'rk_live_'.bin2hex(random_bytes(16))]));
- rejects(fn()=>$settings->save(['enabled'=>true,'apiKey'=>$key]));
- $summary=$settings->save(['enabled'=>true,'apiKey'=>$key,'webhookSecret'=>$secret]);
- check($summary['hasApiKey']&&!isset($summary['apiKey']),'Manager reads no secret');check(!str_contains(file_get_contents($dir.'/stripe.json'),$key),'Credentials encrypted at rest');
- $settings->save(['enabled'=>true,'apiKey'=>'','webhookSecret'=>'']);check($settings->read()['apiKey']===$key,'Blank key preserves credentials');
- $receipt=$store->create(orderBody(),'stripe');$id=$receipt['id'];$token=$receipt['trackingToken'];check($receipt['total']===1880,'Generic product price plus configured delivery fee and tax');check($receipt['paymentProvider']==='stripe','Provider snapshotted');
- $o=$store->get($id);$lines=json_decode($o['lines_json'],true);check($lines[0]['sku']==='NOTE-A5'&&$lines[0]['price']===1295,'Immutable product snapshot and authoritative price');
- $calls=0;$params=null;
- $stripe=new StripePayments($store,$config,$settings,function($p,$key)use(&$calls,&$params){$calls++;$params=$p;return ['id'=>'cs_test_session','url'=>'https://checkout.stripe.com/c/pay/example'];});
- rejects(fn()=>$stripe->checkout($id,'wrong'),404);
- $url=$stripe->checkout($id,$token);check($url===$stripe->checkout($id,$token)&&$calls===1,'Checkout reuse prevents duplicate sessions');
- check($params['success_url']==='https://example.test/shop/tracking/?order='.$id,'Success returns to the order within the installation subdirectory');
- check($params['cancel_url']===$params['success_url'],'Checkout cancellation returns to the same private order');
- foreach(['success_url','cancel_url'] as $field)check(!str_contains($params[$field],$token)&&!str_contains($params[$field],$config['tracking_secret'])&&!str_contains($params[$field],'#'),'Return URLs contain no tracking credentials');
- foreach(['https://example.test','https://example.test/','https://example.test/nested/shop/','http://127.0.0.1:8097'] as $base){
-  $returns=(new StripePayments($store,array_replace($config,['public_base_url'=>$base]),$settings))->parameters($o,['nonce'=>str_repeat('a',32)]);
-  check($returns['success_url']===rtrim($base,'/').'/tracking/?order='.$id&&$returns['cancel_url']===$returns['success_url'],'Return URLs support root, nested and local installations');
- }
- check(!isset($params['payment_method_types'])&&$params['mode']==='payment','Hosted Checkout with dynamic methods');
- check(array_sum(array_map(fn($i)=>$i['quantity']*$i['price_data']['unit_amount'],$params['line_items']))===1880,'Stripe amount equals immutable order total');
- rejects(fn()=>$store->payment($id,'capture'),409);rejects(fn()=>$store->change($id,'accepted','manager'),409);rejects(fn()=>$store->change($id,'cancelled','manager'),409);
- $obj=['id'=>'cs_test_session','client_reference_id'=>$id,'metadata'=>$params['metadata'],'amount_total'=>1880,'currency'=>'cad','payment_status'=>'unpaid','payment_intent'=>'pi_example'];
- $event=['id'=>'evt_pending','type'=>'checkout.session.completed','livemode'=>false,'data'=>['object'=>$obj]];
- $stripe->process($event);check($store->get($id)['payment_status']==='unpaid','Async pending does not mark paid');
- $event['id']='evt_paid';$event['type']='checkout.session.async_payment_succeeded';$event['data']['object']['payment_status']='paid';
- $bad=$event;$bad['data']['object']['amount_total']=1;rejects(fn()=>$stripe->process($bad),409);
- $bad=$event;$bad['data']['object']['metadata']['tenant']='another-shop';rejects(fn()=>$stripe->process($bad),400);
- $bad=$event;$bad['livemode']=true;rejects(fn()=>$stripe->process($bad),400);
- $raw=json_encode($event);$signature='t='.time().',v1='.hash_hmac('sha256',time().'.'.$raw,$secret);
- rejects(fn()=>$stripe->webhook($raw,'t='.time().',v1=invalid'),400);
- $old=time()-301;rejects(fn()=>$stripe->webhook($raw,'t='.$old.',v1='.hash_hmac('sha256',$old.'.'.$raw,$secret)),400);
- $stripe->webhook($raw,$signature);$stripe->webhook($raw,$signature);
- check(count($store->query('SELECT * FROM payments'))===1&&$store->get($id)['payment_status']==='paid','Signed duplicate delivery captured once');
- $event['id']='evt_paid_second';$stripe->process($event);check(count($store->query('SELECT * FROM payments'))===1,'Different payment event does not double count');
- $event['id']='evt_late_failed';$event['type']='checkout.session.async_payment_failed';$event['data']['object']['payment_status']='unpaid';$stripe->process($event);check($store->tracking($id,$token)['checkoutStatus']==='paid','Late failure does not downgrade paid');
- $refund=['id'=>'evt_refund_one','type'=>'charge.refunded','livemode'=>false,'data'=>['object'=>['payment_intent'=>'pi_example','currency'=>'cad','amount'=>1880,'amount_refunded'=>500]]];$stripe->process($refund);
- check($store->get($id)['payment_status']==='partially_refunded','Partial refund state');$r=$store->reports(time()-60,time()+60);check($r['netCollected']===1380&&$r['netSales']+$r['netTax']+$r['netDeliveryFees']===1380,'Partial refund reports reconcile');
- $refund['id']='evt_refund_full';$refund['data']['object']['amount_refunded']=1880;$stripe->process($refund);$stripe->process($refund);check($store->reports(time()-60,time()+60)['netCollected']===0,'Full refund once');
- $refund['id']='evt_refund_old';$refund['data']['object']['amount_refunded']=500;$stripe->process($refund);check($store->reports(time()-60,time()+60)['netCollected']===0,'Older refund cannot reverse a later refund');
- $r=$store->reports(time()-60,time()+60);check($r['netSales']===0&&$r['netTax']===0&&$r['netDeliveryFees']===0,'Full refund reconciles every component after partial refunds');
- $store->execute('UPDATE payment_refund_deltas SET created_at=? WHERE event_id=?',[time()-3600,'evt_refund_one']);check($store->reports(time()-60,time()+60)['refunded']===1380,'Refund report retains individual event dates');
- // An existing pre plugin database retains every payment row during its atomic upgrade.
- foreach(['payment_attempts'=>'stripe_attempts','payment_events'=>'stripe_events','payment_refund_deltas'=>'stripe_refund_deltas'] as $new=>$old)$store->db->exec("ALTER TABLE $new RENAME TO $old");
- $upgraded=new Store($config['database'],$catalog,$config['tenant']);
- check($upgraded->tracking($id,$token)['checkoutStatus']==='paid','Legacy attempt survives schema upgrade');
- check(count($upgraded->query('SELECT * FROM payment_events'))>=4,'Webhook deduplication survives schema upgrade');
- check($upgraded->reports(time()-60,time()+60)['refunded']===1380,'Refund history survives upgrade');
- unset($upgraded);
- echo "Catalog and Stripe: $checks checks passed.\n";
-}finally{unset($store,$disabledStore,$stripe);foreach(glob($dir.'/*') as $file)unlink($file);rmdir($dir);}
+ $receipt=$store->create(orderBody());$id=$receipt['id'];
+ check($receipt['total']===1880,'Generic product price plus configured delivery fee and tax');
+ check($receipt['paymentProvider']==='demo','Framework uses the demonstration ledger without a payment plugin');
+ $lines=json_decode($store->get($id)['lines_json'],true);
+ check($lines[0]['sku']==='NOTE-A5'&&$lines[0]['price']===1295,'Immutable product snapshot and authoritative price');
+ echo "Catalog: $checks checks passed.\n";
+}finally{unset($store,$disabledStore);foreach(glob($dir.'/*') as $file)unlink($file);rmdir($dir);}

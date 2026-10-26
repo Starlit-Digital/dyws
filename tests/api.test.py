@@ -66,7 +66,7 @@ with tempfile.TemporaryDirectory(prefix='dyws-api-') as work:
   maps=request('/manager/plugins/google-maps/settings',token=manager_token)
   maps_saved=request('/manager/plugins/google-maps/settings',{**maps,'browserKey':'a'*39,'enabled':True},token=manager_token)
   disabled=request('/manager/plugins',{'id':'google-maps','active':False,'revision':plugins['revision']},token=manager_token)
-  assert sorted(p['id'] for p in request('/plugins')['plugins'])==['datatables','order-reporting','stripe']
+  assert sorted(p['id'] for p in request('/plugins')['plugins'])==['datatables','order-reporting']
   request('/maps/config',status=404)
   request('/plugins/google-maps/config',status=404)
   request('/manager/maps',token=manager_token,status=404)
@@ -117,11 +117,10 @@ with tempfile.TemporaryDirectory(prefix='dyws-api-') as work:
   assert 'call the store' in request('/orders',oversized,status=422)['error']
   updated['catalog']['itemOrderCap']=10
   request('/manager/catalog',updated,token=manager_token)
-  request('/manager/stripe',status=401)
-  request('/manager/stripe',{'enabled':False},token=driver_token,status=403)
-  stripe=request('/manager/stripe',token=manager_token);assert not stripe['enabled'] and 'apiKey' not in stripe
-  request('/manager/stripe',{'enabled':True,'apiKey':'rk_live_invalid'},token=manager_token,status=422)
-  request('/orders/'+receipt['id']+'/checkout',{},tracking=receipt['trackingToken'],status=409)
+  assert 'stripe' not in [p['id'] for p in request('/manager/plugins',token=manager_token)['plugins']]
+  request('/manager/plugins/stripe/settings',token=manager_token,status=404)
+  request('/plugins/stripe/webhook',{},status=404)
+  request('/orders/'+receipt['id']+'/checkout',{},tracking=receipt['trackingToken'],status=404)
   # Complete device GPS flow against the real HTTP entry point, using fictional coordinates.
   gps_order={**order,'idempotencyKey':str(uuid.uuid4()),'fulfillment':'delivery','address':'15320 Fictional Lane NW'}
   delivery=request('/orders',gps_order,status=201)

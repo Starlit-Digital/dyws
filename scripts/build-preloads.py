@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Resolve local module graphs ahead of time, so PHP can preload active code in parallel."""
-import json,pathlib,posixpath,re,urllib.parse
+import json,pathlib,posixpath,re,sys,urllib.parse
 root=pathlib.Path(__file__).resolve().parents[1];public=root/'public_html'
 pattern=re.compile(r'''(?:\bfrom\s*|\bimport\s*)["']([^"']+)["']''')
 def graph(entry):
@@ -22,6 +22,7 @@ for page,module in {'catalog':'catalog-editor','drivers':'account-editor','passw
 plugins={}
 for file in (root/'plugins').glob('*/plugin.json'):
  manifest=json.loads(file.read_text());entry=manifest.get('browserModule')
+ if '--kit' in sys.argv and manifest['id']=='stripe':continue
  if entry:
   plugins[manifest['id']]=graph(f"plugins/{manifest['id']}/{entry}?v={manifest['version']}")
   if manifest['id']=='datatables':plugins[manifest['id']]+=graph('plugins/datatables/vendor/dataTables.min.js')

@@ -3,12 +3,12 @@ import assert from 'node:assert/strict';
 import {createAPIClient} from '../public_html/dyws/api.js';
 import {mountOrders} from '../public_html/dyws/orders.js';
 import {mountManager} from '../public_html/dyws/manager.js';
-import {mountSettings} from '../public_html/dyws/settings.js';
+import {mountGeneralSettings} from '../public_html/dyws/general-settings.js';
 import {mountDriver} from '../public_html/dyws/driver.js';
 import {createTracking} from '../public_html/dyws/tracking.js';
 
 test('package controllers can be imported without reading or mutating a website DOM',()=>{
- for(const fn of [mountManager,mountOrders,mountSettings,mountDriver,createTracking])assert.equal(typeof fn,'function');
+ for(const fn of [mountManager,mountOrders,mountGeneralSettings,mountDriver,createTracking])assert.equal(typeof fn,'function');
 });
 test('API client uses an explicit endpoint and preserves bearer and tracking authorization',async()=>{
  let seen;

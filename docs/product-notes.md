@@ -1,6 +1,6 @@
 # dyws product direction
 
-dyws means **Do You Want Something?** The confirmed product and repository name is lowercase dyws. The current application version is recorded in [VERSION](../VERSION). The private repository is [Starlit-Digital/dyws](https://github.com/Starlit-Digital/dyws).
+dyws means **Do You Want Something?** The confirmed product and repository name is lowercase dyws. The current application version is recorded in [VERSION](../VERSION). The public repository is [Starlit-Digital/dyws](https://github.com/Starlit-Digital/dyws).
 
 ## Product
 
@@ -34,7 +34,7 @@ The reusable workflow lives in `~/.codex/skills/starlit-sitecraft/SKILL.md`. Dur
 - Seven protected admin pages: Orders, Reports, Catalog, Drivers, Password, Settings and Plugins. `/admin/` is the entry, `/auth/` handles sign in and Orders is the default.
 - A driver console with assigned addresses, pickup and completion actions, and automatic GPS for active deliveries. A private simulated origin is available for test deployments.
 - A dedicated private customer status page after checkout. Google Maps can show driver and destination markers, a traffic aware route and an approximate arrival time. Completion comes only from backend status.
-- Bundled Google Maps, Stripe sandbox Checkout, Order Reporting, DataTables, Installation Lockdown, Order Format, Nominatim Address Lookup and six independent sandbox payment connector foundations. The plugin API has 40 hook contracts, namespaced routes, providers, validators, filters and actions. PHP feature attributes select browser assets per page. Plugin categories and individual Edit pages organize their configuration.
+- Bundled Google Maps, Order Reporting, DataTables, Installation Lockdown, Order Format, Nominatim Address Lookup and six independent sandbox payment connector foundations. The plugin API has 40 hook contracts, namespaced routes, providers, validators, filters and actions. PHP feature attributes select browser assets per page. Plugin categories and individual Edit pages organize their configuration.
 - Business location rows and immutable pickup details on new orders, with compatibility for older single address catalogs. Drivers manage their own vehicle model, colour and map icon through revision checked profile saves.
 - Optional address suggestions from an owned Nominatim service with Alberta civic address supplementation. Manual entry remains available. Suggestions do not establish delivery eligibility, and the public demo uses fictional local results.
 - PHP initial data, skeletons, HTTPS polling, optional WebSocket plumbing and refresh on tab return. Admin guards preserve unsaved edits and server revisions.
@@ -45,7 +45,7 @@ The reusable workflow lives in `~/.codex/skills/starlit-sitecraft/SKILL.md`. Dur
 
 Businesses can rename Driver and Drivers using arbitrary singular and plural labels. This changes display text, not permissions or API roles. The diner uses the default labels. dyws CSS classes and theme tokens remain independent of the diner palette.
 
-Plugin settings belong to their plugins and survive deactivation. Stripe's signed callbacks can reconcile existing sandbox attempts after deactivation; new Checkout requests stop. GPS capture, authentication and the order state machine remain core features.
+The public kit does not include Stripe. It supports separately installed payment plugins; Starlit private additions and managed service agreements are separate from the framework and example diner. Plugin settings belong to their plugins and survive deactivation. A separately installed Stripe plugin's signed callbacks can reconcile existing sandbox attempts after deactivation; new Checkout requests stop. GPS capture, authentication and the order state machine remain core features.
 
 ## Work still needed for a commercial pilot
 
@@ -55,4 +55,4 @@ Plugin settings belong to their plugins and survive deactivation. Stripe's signe
 4. Dispatch offers, capacity rules, acceptance races and route planning beyond manually ordered delivery runs.
 5. Durable queues and outbox, notifications, monitoring, load tests, deployment automation, scheduled cleanup, backups and restore drills. Review database capacity before expanding beyond a small pilot.
 
-The current build is a demonstration. Manual payment actions create test ledger entries; Stripe accepts sandbox keys only. No real driver is dispatched, and native apps have not been built. See the [complete feature breakdown](../README.md) and [driver app plan](mobile-driver-plan.md).
+The current build is a demonstration. Manual payment actions create test ledger entries; the separate Stripe plugin accepts sandbox keys only and is not included. No real driver is dispatched, and native apps have not been built. See the [complete feature breakdown](../README.md) and [driver app plan](mobile-driver-plan.md).

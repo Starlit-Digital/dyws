@@ -8,6 +8,16 @@ node_modules/
 public_html/api/bootstrap-path.php
 /vendor/
 
+# Separately installed private Stripe plugin and legacy entry points
+/plugins/stripe/
+/public_html/plugins/stripe/
+/server/StripeSettings.php
+/server/StripePayments.php
+/modules/dyws/php/StripeSettings.php
+/modules/dyws/php/StripePayments.php
+/public_html/dyws/stripe-editor.js
+/public_html/dyws/settings.js
+
 # Optional generated release downloads
 /dist/
 /dyws.zip
@@ -16,3 +26,5 @@ public_html/api/bootstrap-path.php
 # Generated Python caches
 __pycache__/
 *.pyc
+
+/public_html/platform/settings.js

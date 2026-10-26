@@ -35,7 +35,8 @@ function dyws_admin_data(array $config,\dyws\Store $store,string $page):array {
   $boot['reportQuery']=['from'=>$today->modify('-29 days')->format('Y-m-d'),'to'=>$today->format('Y-m-d'),'fulfillment'=>'all'];
   $boot['responses']['/manager/reports']=dyws_admin_report($config,$store,$plugins,$boot['reportQuery']);
  }
- $routes=$page==='settings'?['/manager/plugins/google-maps/settings','/manager/plugins/stripe/settings']:[];
+ $routes=[];
+ if($page==='settings')foreach($boot['responses']['/plugins']['plugins'] as $plugin)$routes[]='/manager/plugins/'.$plugin['id'].'/settings';
  if(in_array($page,['orders','drivers'],true))$routes[]='/plugins/google-maps/config';
  foreach($routes as $route){$matched=$plugins->match('GET',$route);if(!$matched)continue;
   try{$boot['responses'][$route]=($matched['handler'])([],['role'=>'manager','subject'=>'manager','tenant'=>$store->tenant],['raw'=>'','params'=>$matched['params'],'server'=>$_SERVER]);}catch(\Throwable $e){/* The plugin reports its own error when refreshed. */}
@@ -70,7 +71,7 @@ function dyws_admin_initial_orders(array $boot):string {
 }
 function dyws_admin_plugin_forms(array $boot,string $publicRoot):void {
  $dywsInlineSettings=true;
- foreach($boot['responses']['/plugins']['plugins'] as $plugin)if(in_array($plugin['id'],['google-maps','stripe'],true))include $publicRoot.'/plugins/'.$plugin['id'].'/settings.php';
+ foreach($boot['responses']['/plugins']['plugins'] as $plugin){$form=$publicRoot.'/plugins/'.$plugin['id'].'/settings.php';if(is_file($form))include $form;}
 }
 function dyws_admin_preview(array $boot):string {
  $escape=static fn($value)=>htmlspecialchars((string)$value,ENT_QUOTES,'UTF-8');$page=$boot['page'];$html='';

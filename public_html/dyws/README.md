@@ -2,7 +2,7 @@
 
 Private ES module and CSS package for Do You Want Something. No framework or build step is required. Import index.js to register dyws-ordering and access mountStorefront, mountCatalog, createAPIClient and createTracking. API endpoints, catalog URLs, DOM containers and optional map adapters come from the host.
 
-Load dyws.css in the host document. The cart loads ordering.css relative to this package inside its shadow root. Core imports stay within the package folder. Compatibility exports for optional features point to their bundled plugin assets. Public theme tokens use --dyws and CSS classes use dyws. Import manager.js, orders.js, general-settings.js and driver.js explicitly for their mount functions. settings.js is a compatibility export; the shipped Settings page uses general-settings.js plus plugin forms.
+Load dyws.css in the host document. The cart loads ordering.css relative to this package inside its shadow root. Core imports stay within the package folder. Compatibility exports for optional features point to their bundled plugin assets. Public theme tokens use --dyws and CSS classes use dyws. Import manager.js, orders.js, general-settings.js and driver.js explicitly for their mount functions. The shipped Settings page uses general-settings.js plus forms from active installed plugins. Stripe compatibility exports are not included.
 
 PHP rendering and order services are supplied separately in the private dyws PHP library. Keep that library, its configuration and data outside the public web root. Complete integration examples and compatibility notes live in docs/dyws-module.md in the owning repository.
 
@@ -16,7 +16,7 @@ mountStorefront accepts onOrderComplete(receipt). The demo uses it to navigate t
 
 Obtain optional location renderers from createPluginHost in plugins.js. Google Maps implementations and settings now live in ../plugins/google-maps; the old exports are compatibility shims. Deploy the plugin assets with their private PHP counterpart. Core controllers work with no map plugin. The complete plugin API is documented in docs/plugins.md in the repository.
 
-Stripe controls and settings live in ../plugins/stripe. Inject plugins.renderPayment into createTracking, and pass plugins to the storefront and admin controllers to enable the 32 documented hook contracts. See docs/plugin-hooks.md.
+Stripe controls and settings belong to a separately installed plugin and are not included in this package. Inject plugins.renderPayment into createTracking, and pass plugins to the storefront and admin controllers to enable the 32 documented hook contracts. See docs/plugin-hooks.md.
 
 ### Shared presentation
 
