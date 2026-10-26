@@ -10,6 +10,10 @@
 .dyws-demo-accounts a:hover{text-decoration:underline}.dyws-demo-accounts a:focus-visible{outline:3px solid #183240;outline-offset:4px}
 .dyws-demo-callout .dyws-demo-note{font-size:.9rem;margin:0}
 .dyws-demo-callout .dyws-demo-login-status{margin:12px 0 0;font-size:.9rem}.dyws-demo-accounts a[aria-disabled="true"]{cursor:progress;opacity:.75}
+.dyws-demo-access{display:flex;flex-direction:column;align-items:flex-start;gap:8px;min-width:0;max-width:100%}
+.dyws-shell .dyws-demo-shortcut{display:inline-flex;align-items:center;min-height:44px;padding:10px 16px;box-sizing:border-box;border:1px solid var(--dyws-color-border);border-radius:10px;background:var(--dyws-color-raised);color:var(--dyws-color-text);font-weight:700;text-decoration:underline;text-underline-offset:3px}
+.dyws-demo-shortcut:focus-visible{outline:3px solid var(--dyws-color-accent,#183240);outline-offset:3px}.dyws-demo-shortcut[aria-disabled="true"]{cursor:progress;opacity:.75}
+.dyws-demo-access .dyws-demo-login-status{margin:0;font-size:.9rem}
 footer>.dyws-demo-callout{margin:36px 0 0}
 @media(max-width:600px){.dyws-demo-accounts{grid-template-columns:1fr}.dyws-demo-accounts a{width:100%}}
 @media(forced-colors:active){.dyws-demo-callout,.dyws-demo-accounts>div{background:Canvas;color:CanvasText;border-color:CanvasText}.dyws-demo-accounts a{background:ButtonFace;color:ButtonText;border-color:ButtonText}}

@@ -1,28 +1,17 @@
 /** Locked installation presentation. The PHP policy independently enforces every restriction. */
-import {signInDemo} from './demo-login.js';
+import {createDemoAccess} from './demo-login.js?v=2';
 export function register(plugin){
- const doc=plugin.document;let signingIn=false;
+ const doc=plugin.document,access=createDemoAccess({document:doc});
  const callout=position=>{
   const box=doc.createElement('section');box.className='dyws-demo-callout';box.dataset.dywsDemo=position;box.setAttribute('aria-labelledby','dyws-demo-title-'+position);
   const title=doc.createElement('h2');title.id='dyws-demo-title-'+position;title.textContent='This is a public demo';
   const intro=doc.createElement('p');intro.textContent='Try an order, explore the dashboard and take a delivery for a spin. Everything here is fictional. No real payments or deliveries.';
   const accounts=doc.createElement('div');accounts.className='dyws-demo-accounts';
-  for(const [role,user,path]of [['Admin','admin','admin/'],['Driver','driver','driver/']]){
-   const card=doc.createElement('div'),heading=doc.createElement('h3'),credentials=doc.createElement('p'),link=doc.createElement('a');
+  for(const [role,user]of [['Admin','admin'],['Driver','driver']]){
+   const card=doc.createElement('div'),heading=doc.createElement('h3'),credentials=doc.createElement('p');
    heading.textContent=role+' demo';
    for(const [label,value]of [['Username',user],['Password',user]]){const row=doc.createElement('span'),code=doc.createElement('code');row.append(label+' ');code.textContent=value;row.append(code);credentials.append(row);}
-   link.href=new URL('../../'+path,import.meta.url).href;link.textContent='Open '+role+' demo';
-   const feedback=doc.createElement('p');feedback.className='dyws-demo-login-status';feedback.setAttribute('role','status');feedback.hidden=true;
-   link.addEventListener('click',async event=>{
-    if(event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;
-    event.preventDefault();if(signingIn)return;signingIn=true;link.setAttribute('aria-disabled','true');
-    feedback.textContent='Signing in to the '+role+' demo…';feedback.hidden=false;
-    try{await signInDemo(user,{document:doc});}catch{
-     signingIn=false;link.removeAttribute('aria-disabled');feedback.textContent='Automatic sign in is unavailable. ';
-     const fallback=doc.createElement('a');fallback.href=link.href;fallback.textContent='Use the standard sign in';feedback.append(fallback);
-    }
-   });
-   card.append(heading,credentials,link,feedback);accounts.append(card);
+   card.append(heading,credentials,access.link(user,'Open '+role+' demo'));accounts.append(card);
   }
   const note=doc.createElement('p');note.className='dyws-demo-note';note.textContent='These sign ins are public. Everyone shares this demo. Settings are locked, device GPS is off, and orders expire after 24 hours. Checkout uses fictional contact details.';
   box.append(title,intro,accounts,note);return box;
@@ -33,7 +22,12 @@ export function register(plugin){
   const banner=callout('top'),footer=callout('bottom');banners.push(banner,footer);
   (doc.querySelector('main')||doc.body).prepend(banner);
   (doc.querySelector('footer')||doc.querySelector('main')||doc.body).append(footer);
+  void access.enterFromURL();
  }
+ // Keep role switching beside the order controls, without credential boxes.
+ plugin.addAction('admin:order',({root})=>{root.append(access.link('driver','Open Driver demo'));});
+ const driverActions=doc.querySelector('#driver-board:not([hidden]) > .dyws-actions');
+ if(driverActions){const adminLink=access.link('admin','Admin orders');driverActions.append(adminLink);plugin.onDestroy(()=>adminLink.remove());}
  const locked=['catalog','drivers','password','settings','plugins'].includes(doc.body.dataset.adminPage);
  const lock=()=>{if(!locked)return;for(const el of doc.querySelectorAll('main input,main select,main textarea,main button')){
   if(/reload|refresh|cancel/.test(el.id)||el.hasAttribute('data-dyws-reload-plugins')||el.closest('#category-list'))continue;

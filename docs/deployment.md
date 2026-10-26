@@ -192,3 +192,7 @@ DYWS_CONFIG=/private/path/config.json php /path/to/dyws/server/cleanup-guest-det
 This command only removes expired saved details. It does not scrub order records. The older `server/cleanup.php` also scrubs demonstration order contacts and must not be substituted for this task. Backups follow the installation's existing private backup retention policy.
 
 The public demo continues to use server enforced fictional order contacts; remembered contacts are copied from those validated orders. Verify with `npm test`, including the guest API checks for consent, 180 day sliding expiry, idempotency, deletion, tenant isolation, cookie flags and stale checkout behavior.
+
+## Public demo entry and console navigation
+
+Deploy Installation Lockdown 1.0.3 with its matching browser module, versioned login helper, stylesheet and regenerated preload manifest. The storefront accepts `?demo=admin` or `?demo=driver` only while the plugin is active. Both use the existing CSRF protected forms and normal credentials. No backend, schema, account, assignment or runtime settings changes are required. Update the Starlit product page links to those entry URLs after the matching demo assets are live.

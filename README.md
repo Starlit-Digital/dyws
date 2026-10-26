@@ -58,7 +58,7 @@ The optional [Order Format plugin](docs/order-format.md) adds a visual editor fo
 
 Try [the storefront](https://dyws.ca/), [Admin](https://dyws.ca/admin/) with **admin / admin**, or [Driver](https://dyws.ca/driver/) with **driver / driver**.
 
-The storefront's **Open Admin demo** and **Open Driver demo** buttons sign in automatically. The credential callouts appear at the top and bottom of the storefront; tracking and operator pages keep their normal focused layout.
+The storefront's **Open Admin demo** and **Open Driver demo** buttons sign in automatically. The same entry links work from other sites: [Admin demo](https://dyws.ca/?demo=admin) and [Driver demo](https://dyws.ca/?demo=driver). Expanded Admin orders link to the Driver demo, and the driver toolbar links back to Admin orders. The credential callouts appear at the top and bottom of the storefront; tracking and operator pages keep their normal focused layout.
 
 This hosted install uses the mandatory [Installation Lockdown plugin](docs/demo-lockdown.md). Visitors can place and process shared fictional orders. Catalog, business settings, accounts, passwords and plugin configuration are locked on the server. Checkout uses fixed fictional contacts; device GPS and paid integrations are disabled. The map is a local reference image with a simulated driver position. Orders expire after 24 hours. Ordinary installations retain their own private credentials and configurable plugins.
 

@@ -1,5 +1,6 @@
 /** Use the existing protected browser form, including its CSRF cookie and token. */
 export async function signInDemo(role,{document:doc=globalThis.document,request=globalThis.fetch,parse=html=>new DOMParser().parseFromString(html,'text/html'),navigate=url=>doc.defaultView.location.assign(url),baseURL=new URL('../../',import.meta.url)}={}){
+ if(!['admin','driver'].includes(role))throw new Error('Choose the Admin or Driver demo.');
  const account={admin:{path:'auth/',destination:'orders/',field:'username'},driver:{path:'driver/',destination:'driver/',field:'driverId'}}[role];
  if(!account)throw new Error('Choose the Admin or Driver demo.');
  const target=new URL(account.path,baseURL),destination=new URL(account.destination,baseURL);
@@ -16,4 +17,39 @@ export async function signInDemo(role,{document:doc=globalThis.document,request=
  }
  doc.body.append(form);
  try{form.submit();}catch(error){form.remove();throw error;}
+}
+
+/** Shareable entry links and console shortcuts, available only in the active demo plugin. */
+export function createDemoAccess({document:doc,signIn=signInDemo,baseURL=new URL('../../',import.meta.url)}){
+ let signingIn=false;
+ const entries=new Map();
+ function link(role,label){
+  if(!['admin','driver'].includes(role))throw new Error('Choose the Admin or Driver demo.');
+  const box=doc.createElement('div'),anchor=doc.createElement('a'),feedback=doc.createElement('p');
+  box.className='dyws-demo-access';anchor.className='dyws-demo-shortcut';
+  const url=new URL(baseURL);url.searchParams.set('demo',role);anchor.href=url.href;anchor.textContent=label;
+  feedback.className='dyws-demo-login-status';feedback.setAttribute('role','status');feedback.hidden=true;
+  const start=async()=>{
+   if(signingIn)return;signingIn=true;anchor.setAttribute('aria-disabled','true');
+   feedback.textContent='Signing in to the '+(role==='admin'?'Admin':'Driver')+' demo…';feedback.hidden=false;
+   try{await signIn(role,{document:doc,baseURL});}catch{
+    signingIn=false;anchor.removeAttribute('aria-disabled');feedback.textContent='Automatic sign in is unavailable. ';
+    const fallback=doc.createElement('a');fallback.href=new URL(role==='admin'?'auth/':'driver/',baseURL).href;fallback.textContent='Use the standard sign in';feedback.replaceChildren(feedback.textContent,fallback);
+   }
+  };
+  anchor.addEventListener('click',event=>{
+   if(event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;
+   event.preventDefault();return start();
+  });
+  box.append(anchor,feedback);if(!entries.has(role))entries.set(role,start);return box;
+ }
+ function enterFromURL(){
+  const view=doc.defaultView;if(!view)return;
+  const url=new URL(view.location.href),role=url.searchParams.get('demo');
+  if(!entries.has(role))return;
+  // Consume the entry request so Back and Reload do not trigger another sign in.
+  url.searchParams.delete('demo');view.history.replaceState(view.history.state,'',url.href);
+  return entries.get(role)();
+ }
+ return {link,enterFromURL};
 }
