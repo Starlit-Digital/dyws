@@ -2,7 +2,7 @@
 
 **Do You Want Something?** A reusable ordering and delivery system for a business’s own website.
 
-**Release: [0.11.1](VERSION)** · [Optional install ZIP](https://github.com/Starlit-Digital/dyws/releases) · [Release notes](CHANGELOG.md) · [Installation guide](INSTALL.md) · [Hosted diner example](https://dyws.ca/)
+**Release: [0.11.1](VERSION)** · [Historical release downloads](https://github.com/Starlit-Digital/dyws/releases) · [Release notes](CHANGELOG.md) · [Installation guide](INSTALL.md) · [Hosted diner example](https://dyws.ca/)
 
 The customer orders on your website, the business manages the order, and an assigned driver handles the delivery. Starlit Diner is the fictional restaurant example. The catalog also supports general products and services sold in whole units.
 
@@ -30,7 +30,7 @@ The Git repository is the complete project: application source, bundled plugins,
 
 For a merchant installation, clone the repository and run `composer install --no-dev`, then serve **only `public_html/`** over HTTPS. Keep all other directories outside the web root. Open `/setup/`, supply the private setup key, choose your administrator password and catalog, and finish installation. Setup removes itself and locks out repeat installation.
 
-The optional release ZIP is a convenience for uploading to hosting without Composer. It contains the application and pinned PHP dependencies. Extract it and follow the same browser setup instructions.
+A kit ZIP built from the current source is a convenience for uploading to hosting without Composer. It contains the public framework and its dependencies, excluding Stripe. Earlier GitHub release downloads predate this separation and may include the historical sandbox plugin. Use the current source or build a current kit; preserved historical downloads are not the current distribution.
 
 Requirements: PHP 8.1 or newer, PDO SQLite, OpenSSL, curl, mbstring, and a writable private storage directory. See [INSTALL.md](INSTALL.md) for shared hosting, permissions, upgrades, and recovery precautions.
 

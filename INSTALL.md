@@ -10,7 +10,7 @@ composer install --no-dev
 
 Git is the primary distribution and development workflow. The repository includes application code, plugins, assets, examples, tests, scripts and documentation. Runtime data and credentials stay private; Composer and npm restore dependencies from tracked manifests and lockfiles. Node.js is not required to run the website.
 
-Alternatively, download **dyws.zip** from a GitHub release and extract it. This optional install bundle includes the pinned PHP dependencies, so hosting does not need Composer. Both methods use the setup process below.
+Alternatively, build **dyws.zip** from the current source and extract it. This optional install bundle includes the framework dependencies, so hosting does not need Composer. Historical GitHub releases predate the Stripe separation and may contain the former sandbox plugin. They are preserved as historical packages. Use current source for the kit without Stripe. Both installation methods use the setup process below.
 
 ## Before opening the website
 
