@@ -46,7 +46,7 @@ Run on the future server with Node 22 or newer:
 cd modules/dyws/realtime
 npm ci --omit=dev
 # Set these using the host's private environment configuration:
-# DYWS_BACKEND_URL=https://sltd.ca/diner-demo/api/
+# DYWS_BACKEND_URL=https://dyws.ca/api/
 # DYWS_REALTIME_SECRET=<at least 32 random characters, shared with PHP>
 # DYWS_ORIGINS=https://sltd.ca
 # HOST=127.0.0.1
@@ -104,7 +104,7 @@ Arrival estimates use the Google Maps JavaScript Routes library with DRIVING, TR
 
 No preparation time is invented. Before departure, the customer sees that an estimate will become available after departure. Once underway, a fresh GPS fix and a route duration produce an approximate number of minutes and arrival time. Simulated GPS is explicitly labelled Demo arrival estimate. GPS older than 60 seconds, route results older than two minutes, network failures and unavailable routing suppress the estimate. The page never claims arrival merely because the estimated time passed.
 
-The public `/diner-demo/` install overrides this with Installation Lockdown: no Google Maps SDK, geocoding, routing, device GPS or billable API calls. It displays the bundled Manning reference image and a fixed simulated position. Other installations retain the Google Maps plugin and their configured permissions.
+The public `https://dyws.ca/` install overrides this with Installation Lockdown: no Google Maps SDK, geocoding, routing, device GPS or billable API calls. It displays the bundled Manning reference image and a fixed simulated position. Other installations retain the Google Maps plugin and their configured permissions.
 
 ## Driver profile icons
 

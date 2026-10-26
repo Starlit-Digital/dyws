@@ -32,7 +32,7 @@ PHP 8.1 or newer needs PDO SQLite, OpenSSL, curl and mbstring. Node.js and Pytho
 | `/tracking/` | Private order page entered through a checkout tracking link. |
 | `/setup/` | Fresh installation only; removed after setup. |
 
-The hosted diner is at `https://sltd.ca/diner-demo/`, with administrator entry at `https://sltd.ca/diner-demo/admin/`. Its private installation path is resolved by the host's ignored `public_html/api/bootstrap-path.php` adapter. Read that adapter when maintaining the host rather than assuming a directory name. Do not commit host credentials or copy a local configuration over hosted data.
+The hosted diner is at `https://dyws.ca/`, with administrator entry at `https://dyws.ca/admin/`. Its private installation path is resolved by the host's ignored `public_html/api/bootstrap-path.php` adapter. Read that adapter when maintaining the host rather than assuming a directory name. Do not commit host credentials or copy a local configuration over hosted data.
 
 ## Code deployment
 
@@ -43,6 +43,10 @@ The hosted diner is at `https://sltd.ca/diner-demo/`, with administrator entry a
 5. Check PHP compatibility on the target host, API health, anonymous admin redirect, authenticated Orders and a fictional customer to driver completion flow. Reload existing tabs once to load the new code. Later tab returns refresh automatically.
 
 Only `DYWS_CONFIG` and `DYWS_BOOTSTRAP` override private paths. Do not publish the repository root. Application pages use PHP and directory URLs; obsolete HTML entry points are not supported.
+
+## Public demo cutover, October 25, 2026
+
+The sole public demo is now `https://dyws.ca/`. Public DNS and HTTPS are verified for the apex and `www` hostnames. The old `sltd.ca/diner/` and `sltd.ca/diner-demo/` installations have been removed from the public web root and their private runtimes archived outside it. Both former URLs return 404. Starlit marketing links and the GitHub demo link point to dyws.ca. Earlier deployment records below remain historical.
 
 ## dyws.ca hosting, October 24, 2026
 
@@ -170,4 +174,4 @@ Keep Order Printer inactive until a private hardware pilot is ready. It needs a 
 
 ### dyws.ca application installation
 
-On October 24 the public diner test was deployed at the dyws.ca root from engine commit `34f747fb5f4dbcbbb04e02ee2b9fd26598fd36a8`, version 0.11.1. The owning private site repository is `Starlit-Digital/dyws.ca`, with DYWS pinned as a submodule. Private source is under the domain's `private/releases/0.11.1`, with a newly seeded `private/demo-data` workspace. Existing diner installations were not copied or reset. Direct HTTP virtual host checks passed; public DNS and TLS are still pending. See the site repository deployment receipt for verification and refresh the domain status before describing it as publicly live.
+On October 24 the public diner test was deployed at the dyws.ca root from engine commit `34f747fb5f4dbcbbb04e02ee2b9fd26598fd36a8`, version 0.11.1. The owning private site repository is `Starlit-Digital/dyws.ca`, with DYWS pinned as a submodule. Private source is under the domain's `private/releases/0.11.1`, with a newly seeded `private/demo-data` workspace. Existing diner installations were not copied or reset. Direct HTTP virtual host checks passed at installation. Public DNS and TLS were subsequently verified on October 25, and dyws.ca is now the sole public demo. See the site repository deployment receipt for current verification.

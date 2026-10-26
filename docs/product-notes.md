@@ -6,7 +6,7 @@ dyws means **Do You Want Something?** The confirmed product and repository name 
 
 dyws adds ordering and delivery to a business's own website. The customer shops and tracks an order, the business manages fulfillment, and an assigned driver handles delivery. Catalogs support generic products and services sold in whole units, not only food.
 
-Starlit Diner is the fictional reference host at `https://sltd.ca/diner-demo/`. Its five categories, 35 items, generated food images and diner exterior demonstrate integration. The diner name and theme belong to the example, not the reusable platform.
+Starlit Diner is the fictional reference host at `https://dyws.ca/`. Its five categories, 35 items, generated food images and diner exterior demonstrate integration. The diner name and theme belong to the example, not the reusable platform.
 
 Working line: Your website. Your orders. Delivered.
 

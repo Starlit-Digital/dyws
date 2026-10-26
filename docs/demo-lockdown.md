@@ -1,6 +1,6 @@
 # Public demo lockdown
 
-Installation Lockdown is an optional bundled plugin for disposable public demonstrations. It is inactive on ordinary installs. The public example is https://sltd.ca/diner-demo/ with Admin at `/admin/` and Driver at `/driver/`.
+Installation Lockdown is an optional bundled plugin for disposable public demonstrations. It is inactive on ordinary installs. The public example is https://dyws.ca/ with Admin at `/admin/` and Driver at `/driver/`.
 
 | Login | Identifier | Password |
 |---|---|---|

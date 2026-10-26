@@ -2,7 +2,7 @@
 
 **Do You Want Something?** A reusable ordering and delivery system for a business’s own website.
 
-**Release: [0.11.1](VERSION)** · [Optional install ZIP](https://github.com/Starlit-Digital/dyws/releases) · [Release notes](CHANGELOG.md) · [Installation guide](INSTALL.md) · [Hosted diner example](https://sltd.ca/diner-demo/)
+**Release: [0.11.1](VERSION)** · [Optional install ZIP](https://github.com/Starlit-Digital/dyws/releases) · [Release notes](CHANGELOG.md) · [Installation guide](INSTALL.md) · [Hosted diner example](https://dyws.ca/)
 
 The customer orders on your website, the business manages the order, and an assigned driver handles the delivery. Starlit Diner is the fictional restaurant example. The catalog also supports general products and services sold in whole units.
 
@@ -50,7 +50,7 @@ The optional [Order Format plugin](docs/order-format.md) adds a visual editor fo
 
 ## Public demo
 
-Try [the storefront](https://sltd.ca/diner-demo/), [Admin](https://sltd.ca/diner-demo/admin/) with **admin / admin**, or [Driver](https://sltd.ca/diner-demo/driver/) with **driver / driver**.
+Try [the storefront](https://dyws.ca/), [Admin](https://dyws.ca/admin/) with **admin / admin**, or [Driver](https://dyws.ca/driver/) with **driver / driver**.
 
 This hosted install uses the mandatory [Installation Lockdown plugin](docs/demo-lockdown.md). Visitors can place and process shared fictional orders. Catalog, business settings, accounts, passwords and plugin configuration are locked on the server. Checkout uses fixed fictional contacts; device GPS and paid integrations are disabled. The map is a local reference image with a simulated driver position. Orders expire after 24 hours. Ordinary installations retain their own private credentials and configurable plugins.
 
