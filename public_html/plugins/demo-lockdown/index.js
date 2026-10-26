@@ -1,9 +1,23 @@
 /** Locked installation presentation. The PHP policy independently enforces every restriction. */
 export function register(plugin){
  const doc=plugin.document;
- const banner=doc.createElement('p');banner.className='dyws-note';banner.dataset.dywsDemo='';
- banner.textContent='Admin: admin / admin. Driver: driver / driver. Settings are locked.';
+ const callout=position=>{
+  const box=doc.createElement('section');box.className='dyws-demo-callout';box.dataset.dywsDemo=position;box.setAttribute('aria-labelledby','dyws-demo-title-'+position);
+  const title=doc.createElement('h2');title.id='dyws-demo-title-'+position;title.textContent='This is a public demo';
+  const intro=doc.createElement('p');intro.textContent='Try an order, explore the dashboard and take a delivery for a spin. Everything here is fictional. No real payments or deliveries.';
+  const accounts=doc.createElement('div');accounts.className='dyws-demo-accounts';
+  for(const [role,user,path]of [['Admin','admin','admin/'],['Driver','driver','driver/']]){
+   const card=doc.createElement('div'),heading=doc.createElement('h3'),credentials=doc.createElement('p'),link=doc.createElement('a');
+   heading.textContent=role+' demo';
+   for(const [label,value]of [['Username',user],['Password',user]]){const row=doc.createElement('span'),code=doc.createElement('code');row.append(label+' ');code.textContent=value;row.append(code);credentials.append(row);}
+   link.href=new URL('../../'+path,import.meta.url).href;link.textContent='Open '+role+' demo';card.append(heading,credentials,link);accounts.append(card);
+  }
+  const note=doc.createElement('p');note.className='dyws-demo-note';note.textContent='These sign ins are public. Everyone shares this demo. Settings are locked, device GPS is off, and orders expire after 24 hours. Checkout uses fictional contact details.';
+  box.append(title,intro,accounts,note);return box;
+ };
+ const banner=callout('top'),footer=callout('bottom');
  (doc.querySelector('main')||doc.body).prepend(banner);
+ (doc.querySelector('footer')||doc.querySelector('main')||doc.body).append(footer);
  const locked=['catalog','drivers','password','settings','plugins'].includes(doc.body.dataset.adminPage);
  const lock=()=>{if(!locked)return;for(const el of doc.querySelectorAll('main input,main select,main textarea,main button')){
   if(/reload|refresh|cancel/.test(el.id)||el.hasAttribute('data-dyws-reload-plugins')||el.closest('#category-list'))continue;
@@ -11,7 +25,7 @@ export function register(plugin){
   el.title='Locked by the installation owner';
  }};
  lock();const observer=new MutationObserver(lock);if(locked)observer.observe(doc.querySelector('main'),{childList:true,subtree:true,attributes:true,attributeFilter:['disabled']});
- plugin.onDestroy(()=>{observer.disconnect();banner.remove();});
+ plugin.onDestroy(()=>{observer.disconnect();banner.remove();footer.remove();});
  plugin.addAction('checkout:fields',({form})=>{
   const fields={customer:'Jordan Taylor',phone:'7805550142',addressLine1:'123 Example Avenue NW',addressLine2:'',addressCity:'Edmonton',addressRegion:'AB',addressPostal:'T5A 1A1',addressCountry:'Canada',notes:''};
   for(const [name,value]of Object.entries(fields)){const input=form.elements.namedItem(name);if(input){input.value=value;input.readOnly=true;input.autocomplete='off';}}

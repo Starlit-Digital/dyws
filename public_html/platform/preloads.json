@@ -217,7 +217,7 @@
       "plugins/clover/index.js?v=1.0.0"
     ],
     "demo-lockdown": [
-      "plugins/demo-lockdown/index.js?v=1.0.0"
+      "plugins/demo-lockdown/index.js?v=1.0.1"
     ],
     "order-reporting": [
       "dyws/api.js",
@@ -301,6 +301,7 @@
   },
   "styles": {
     "order-printer": [],
+    "demo-lockdown": [],
     "order-reporting": [],
     "datatables": [
       "plugins/datatables/vendor/dataTables.dataTables.min.css"
