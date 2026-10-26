@@ -9,6 +9,7 @@
 .dyws-demo-accounts a{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:10px 18px;border:2px solid #183240;border-radius:10px;background:#183240;color:#fff9ef;font-size:1rem;font-weight:700;text-decoration:none;overflow-wrap:anywhere}
 .dyws-demo-accounts a:hover{text-decoration:underline}.dyws-demo-accounts a:focus-visible{outline:3px solid #183240;outline-offset:4px}
 .dyws-demo-callout .dyws-demo-note{font-size:.9rem;margin:0}
+.dyws-demo-callout .dyws-demo-login-status{margin:12px 0 0;font-size:.9rem}.dyws-demo-accounts a[aria-disabled="true"]{cursor:progress;opacity:.75}
 footer>.dyws-demo-callout{margin:36px 0 0}
 @media(max-width:600px){.dyws-demo-accounts{grid-template-columns:1fr}.dyws-demo-accounts a{width:100%}}
 @media(forced-colors:active){.dyws-demo-callout,.dyws-demo-accounts>div{background:Canvas;color:CanvasText;border-color:CanvasText}.dyws-demo-accounts a{background:ButtonFace;color:ButtonText;border-color:ButtonText}}

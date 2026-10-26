@@ -1,6 +1,7 @@
 /** Locked installation presentation. The PHP policy independently enforces every restriction. */
+import {signInDemo} from './demo-login.js';
 export function register(plugin){
- const doc=plugin.document;
+ const doc=plugin.document;let signingIn=false;
  const callout=position=>{
   const box=doc.createElement('section');box.className='dyws-demo-callout';box.dataset.dywsDemo=position;box.setAttribute('aria-labelledby','dyws-demo-title-'+position);
   const title=doc.createElement('h2');title.id='dyws-demo-title-'+position;title.textContent='This is a public demo';
@@ -10,14 +11,29 @@ export function register(plugin){
    const card=doc.createElement('div'),heading=doc.createElement('h3'),credentials=doc.createElement('p'),link=doc.createElement('a');
    heading.textContent=role+' demo';
    for(const [label,value]of [['Username',user],['Password',user]]){const row=doc.createElement('span'),code=doc.createElement('code');row.append(label+' ');code.textContent=value;row.append(code);credentials.append(row);}
-   link.href=new URL('../../'+path,import.meta.url).href;link.textContent='Open '+role+' demo';card.append(heading,credentials,link);accounts.append(card);
+   link.href=new URL('../../'+path,import.meta.url).href;link.textContent='Open '+role+' demo';
+   const feedback=doc.createElement('p');feedback.className='dyws-demo-login-status';feedback.setAttribute('role','status');feedback.hidden=true;
+   link.addEventListener('click',async event=>{
+    if(event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;
+    event.preventDefault();if(signingIn)return;signingIn=true;link.setAttribute('aria-disabled','true');
+    feedback.textContent='Signing in to the '+role+' demo…';feedback.hidden=false;
+    try{await signInDemo(user,{document:doc});}catch{
+     signingIn=false;link.removeAttribute('aria-disabled');feedback.textContent='Automatic sign in is unavailable. ';
+     const fallback=doc.createElement('a');fallback.href=link.href;fallback.textContent='Use the standard sign in';feedback.append(fallback);
+    }
+   });
+   card.append(heading,credentials,link,feedback);accounts.append(card);
   }
   const note=doc.createElement('p');note.className='dyws-demo-note';note.textContent='These sign ins are public. Everyone shares this demo. Settings are locked, device GPS is off, and orders expire after 24 hours. Checkout uses fictional contact details.';
   box.append(title,intro,accounts,note);return box;
  };
- const banner=callout('top'),footer=callout('bottom');
- (doc.querySelector('main')||doc.body).prepend(banner);
- (doc.querySelector('footer')||doc.querySelector('main')||doc.body).append(footer);
+ // Credential callouts belong to the storefront, not tracking or operator workflows.
+ const banners=[];
+ if(doc.querySelector('dyws-ordering')){
+  const banner=callout('top'),footer=callout('bottom');banners.push(banner,footer);
+  (doc.querySelector('main')||doc.body).prepend(banner);
+  (doc.querySelector('footer')||doc.querySelector('main')||doc.body).append(footer);
+ }
  const locked=['catalog','drivers','password','settings','plugins'].includes(doc.body.dataset.adminPage);
  const lock=()=>{if(!locked)return;for(const el of doc.querySelectorAll('main input,main select,main textarea,main button')){
   if(/reload|refresh|cancel/.test(el.id)||el.hasAttribute('data-dyws-reload-plugins')||el.closest('#category-list'))continue;
@@ -25,7 +41,7 @@ export function register(plugin){
   el.title='Locked by the installation owner';
  }};
  lock();const observer=new MutationObserver(lock);if(locked)observer.observe(doc.querySelector('main'),{childList:true,subtree:true,attributes:true,attributeFilter:['disabled']});
- plugin.onDestroy(()=>{observer.disconnect();banner.remove();footer.remove();});
+ plugin.onDestroy(()=>{observer.disconnect();banners.forEach(banner=>banner.remove());});
  plugin.addAction('checkout:fields',({form})=>{
   const fields={customer:'Jordan Taylor',phone:'7805550142',addressLine1:'123 Example Avenue NW',addressLine2:'',addressCity:'Edmonton',addressRegion:'AB',addressPostal:'T5A 1A1',addressCountry:'Canada',notes:''};
   for(const [name,value]of Object.entries(fields)){const input=form.elements.namedItem(name);if(input){input.value=value;input.readOnly=true;input.autocomplete='off';}}

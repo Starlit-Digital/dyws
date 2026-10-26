@@ -1,7 +1,7 @@
 {
   "id": "demo-lockdown",
   "name": "Installation Lockdown",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "apiVersion": 1,
   "description": "Installation protection. Critical settings are locked by the installation owner.",
   "entry": "plugin.php",

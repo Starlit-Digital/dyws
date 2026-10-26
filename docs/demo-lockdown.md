@@ -2,6 +2,8 @@
 
 Installation Lockdown is an optional bundled plugin for disposable public demonstrations. It is inactive on ordinary installs. The public example is https://dyws.ca/ with Admin at `/admin/` and Driver at `/driver/`.
 
+The storefront shows prominent demo credentials at the top and bottom. Tracking and operator pages omit those boxes so they do not interrupt the order workflow. The Admin and Driver demo buttons sign visitors in using the existing browser forms: fetch a fresh CSRF token, submit the public demo credentials and open the matching console. Existing sessions go straight to their console. Cookies, credential checks, rate limits and server enforced demo restrictions remain in effect. Credentials never appear in the URL, and a failed shortcut offers the standard sign in page. This behavior is provided only by the active Installation Lockdown plugin.
+
 | Login | Identifier | Password |
 |---|---|---|
 | Admin | admin | admin |

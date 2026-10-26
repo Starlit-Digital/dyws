@@ -217,7 +217,8 @@
       "plugins/clover/index.js?v=1.0.0"
     ],
     "demo-lockdown": [
-      "plugins/demo-lockdown/index.js?v=1.0.1"
+      "plugins/demo-lockdown/demo-login.js",
+      "plugins/demo-lockdown/index.js?v=1.0.2"
     ],
     "order-reporting": [
       "dyws/api.js",
