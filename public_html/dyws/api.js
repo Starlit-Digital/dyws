@@ -1,9 +1,9 @@
 import {configureTimeZone} from './date-time.js';
 export function createAPIClient(endpoint,{fetch:fetchRequest=globalThis.fetch}={}) {
  if(!endpoint)throw new TypeError('A DYWS API endpoint is required.');
-return async function api(route,{method='GET',body,token,trackingToken,signal,keepalive=false,timeoutMs=method==='GET'?15000:0}={}){
+return async function api(route,{method='GET',body,token,trackingToken,signal,keepalive=false,guest=false,timeoutMs=method==='GET'?15000:0}={}){
  const url=new URL(endpoint);url.searchParams.set('route',route.split('?')[0]);if(route.includes('?'))for(const [k,v] of new URLSearchParams(route.split('?')[1]))url.searchParams.set(k,v);
- const headers={};if(body!==undefined)headers['Content-Type']='application/json';if(token)headers.Authorization='Bearer '+token;if(trackingToken)headers['X-Tracking-Token']=trackingToken;
+ const headers={};if(guest)headers['X-DYWS-Guest']='1';if(body!==undefined)headers['Content-Type']='application/json';if(token)headers.Authorization='Bearer '+token;if(trackingToken)headers['X-Tracking-Token']=trackingToken;
  // Bound reads through body consumption so a stalled response cannot hold a refresh loop forever.
  const controller=timeoutMs>0?new AbortController():null;
  const abort=()=>controller.abort(signal.reason);

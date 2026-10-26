@@ -210,3 +210,40 @@ Searches never create orders or establish delivery eligibility.
 ## Order Printer
 
 The optional `order-printer` plugin provides manager configuration and separately authenticated device enrollment, polling and acknowledgement routes. See [the complete route and queue contract](order-printer.md#api-and-queue-contract). Device tokens use `X-DYWS-Printer-Token`; manager sessions cannot substitute for them.
+
+
+## Remembered guest details
+
+`GET /guest-details` returns `{profileId: null, addresses: []}` for a browser without valid saved details. Otherwise it returns `profileId`, `customer: {name, phone}`, `defaultAddressId`, `expiresAt` (Unix seconds) and `addresses: [{id, label, addressDetails}]`. Reads never renew expiry and never set an access cookie before consent.
+
+`POST /guest-details` accepts one of:
+
+```json
+{"action":"remove","addressId":"ADDRESS_ID"}
+{"action":"default","addressId":"ADDRESS_ID"}
+{"action":"forget"}
+```
+
+Removal and default changes are limited to the current cookie's business and profile. Forget removes the profile and its addresses and expires the access cookie. Order records are separate. No name or phone search can retrieve an address book. Responses use `Cache-Control: no-store`.
+
+Both routes require `X-DYWS-Guest: 1`. Guest writes also reject a foreign `Origin` or `Sec-Fetch-Site: cross-site`. The API does not grant CORS access. Use the HTTP client with `{guest: true}`; these requests bypass the WebSocket relay so the browser can send and receive its cookie directly. This feature is intended for the business's own website and API on the same origin.
+
+The standard storefront passes the same option on order submission. `POST /orders` accepts an optional `rememberDetails` object:
+
+```json
+{
+  "enabled": true,
+  "profileId": "",
+  "addressId": "",
+  "label": "Home",
+  "default": true
+}
+```
+
+Use the current profile and address IDs when editing a saved entry. Empty IDs indicate new consent or a new address. Labels are at most 40 bytes; up to ten addresses are allowed. Only the committed order's validated contact and structured delivery address are copied. New saves reuse identical structured addresses. Selecting another address never submits an order.
+
+Each newly created order through the guest HTTP flow extends an existing profile to the order creation time plus 180 days (15,552,000 seconds), including pickup orders and orders with `enabled: false`. False stops new details being saved; Forget revokes the feature. Unsuccessful orders, browsing, management actions and idempotent retries do not renew expiry. Saving and order creation share a transaction. A stale profile or address ID cannot recreate forgotten or removed details.
+
+The access cookie contains only a random 256 bit capability. SQLite stores its SHA-256 hash. Cookie names include the business and installation path, cookies are HttpOnly and SameSite=Lax, and HTTPS installations use Secure. The capability authorizes saved details only, never tracking, payments, or operator actions. Expired profiles are inaccessible immediately and cascade delete their addresses when cleanup runs.
+
+`mountStorefront({termsURL, ...})` enables the saved details UI and injects the terms link. Hosts may instead set `terms-url` on the ordering element. Custom `submitOrder` adapters must pass `order.rememberDetails` and use the HTTP API option `{guest: true}`. Include a clear Terms and Conditions link and explain removal and shared browser access. The supplied storefront uses `terms/`.

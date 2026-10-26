@@ -34,7 +34,7 @@ export function createRealtimeAPI(endpoint,{WebSocket:Socket=globalThis.WebSocke
   })().catch(()=>{status('polling');return null;}).finally(()=>{connecting=null;});return connecting;
  }
  async function api(route,options={}) {
-  if(options.keepalive)return http(route,options);
+  if(options.keepalive||options.guest)return http(route,options);
   const ws=await connect();if(options.signal?.aborted)throw new DOMException('Request aborted.','AbortError');
   if(!ws||ws.readyState!==1)return http(route,options);
   try{return await new Promise((resolve,reject)=>{

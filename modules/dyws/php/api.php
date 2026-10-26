@@ -22,6 +22,11 @@ try {
  if(!empty($config['required_plugins']))$plugins->validate('request.validating',$method,$route,$body);
  $result=null;
  if($method==='GET'&&$route==='/health')$result=['service'=>'dyws','demo'=>true];
+ elseif($route==='/guest-details'&&in_array($method,['GET','POST'],true)){
+  $guest=new \dyws\GuestDetails($store,$config);$guest->guard();
+  dyws_limit_requests($store,$config,'guest-details',120,900);
+  $result=$method==='GET'?$guest->read():$guest->manage($body);
+ }
  elseif($method==='GET'&&$route==='/realtime/config')$result=$realtime->publicConfig();
  elseif($method==='POST'&&$route==='/realtime/access'){
   $scope=$body['scope']??'public';$session=null;$order=null;
@@ -54,7 +59,22 @@ try {
   $result=$accounts->login($store,$body);
  }
  elseif($method==='POST'&&$route==='/logout'){$s=dyws_authorize($store,['manager','driver']);dyws_admin_cookie($config,$s['role']==='manager'?'dyws_admin_session':'dyws_driver_session','',time()-3600);$store->execute('DELETE FROM sessions WHERE token_hash=?',[$s['token_hash']]);$expired=$store->pruneLocations();if($expired)$realtime->changed(array_map(fn($id)=>$store->tenant.':order:'.$id,$expired));$result=['ok'=>true];}
- elseif($method==='POST'&&$route==='/orders'){dyws_limit_requests($store,$config,'orders',20,3600);if(($body['demoAcknowledged']??false)!==true)throw new \dyws\ApiError('Confirm the order details.');$result=$store->create($body,$plugins->paymentProvider());http_response_code(201);}
+ elseif($method==='POST'&&$route==='/orders'){
+  dyws_limit_requests($store,$config,'orders',20,3600);
+  if(($body['demoAcknowledged']??false)!==true)throw new \dyws\ApiError('Confirm the order details.');
+  $guest=new \dyws\GuestDetails($store,$config);$renewal=null;
+  $guestRequest=isset($body['rememberDetails'])||isset($_SERVER['HTTP_X_DYWS_GUEST']);
+  if($guestRequest)$guest->guard();
+  $preference=$guest->validatePreference($body['rememberDetails']??null);
+  $result=$store->transaction(function()use($store,$body,$plugins,$guest,$guestRequest,$preference,&$renewal){
+   $key=is_string($body['idempotencyKey']??null)?$body['idempotencyKey']:'';
+   $existing=$store->query('SELECT id FROM orders WHERE tenant=? AND request_key=?',[$store->tenant,$key]);
+   $receipt=$store->create($body,$plugins->paymentProvider());
+   if($guestRequest&&!$existing)$renewal=$guest->ordered($store->get($receipt['id']),$preference);
+   return $receipt;
+  });
+  $guest->renewCookie($renewal);http_response_code(201);
+ }
  elseif($method==='GET'&&preg_match('~^/tracking/([A-Z]{2,7}-[A-F0-9]{12})$~',$route,$m)){dyws_limit_requests($store,$config,'tracking',120,60);$result=$plugins->applyFilters('tracking.public',$store->tracking($m[1],$_SERVER['HTTP_X_TRACKING_TOKEN']??''));}
  elseif($method==='GET'&&$route==='/manager/orders'){dyws_authorize($store,['manager']);$result=dyws_admin_orders($config,$store);}
  elseif($method==='GET'&&$route==='/manager/lookup'){

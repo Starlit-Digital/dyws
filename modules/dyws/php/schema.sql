@@ -45,3 +45,18 @@ CREATE TABLE IF NOT EXISTS delivery_run_stops (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS delivery_run_one_open_order ON delivery_run_stops(tenant,order_id) WHERE active=1;
 CREATE INDEX IF NOT EXISTS delivery_run_stop_order ON delivery_run_stops(tenant,run_id,position);
+
+-- Remembered checkout details are separate from order records and operator sessions.
+CREATE TABLE IF NOT EXISTS guest_details (
+ tenant TEXT NOT NULL, id TEXT NOT NULL, token_hash TEXT NOT NULL,
+ customer_name TEXT NOT NULL, customer_phone TEXT NOT NULL,
+ default_address_id TEXT, expires_at INTEGER NOT NULL,
+ PRIMARY KEY(tenant,id), UNIQUE(tenant,token_hash)
+);
+CREATE INDEX IF NOT EXISTS guest_details_expiry ON guest_details(tenant,expires_at);
+CREATE TABLE IF NOT EXISTS guest_addresses (
+ tenant TEXT NOT NULL, profile_id TEXT NOT NULL, id TEXT NOT NULL,
+ label TEXT NOT NULL, address_json TEXT NOT NULL, created_at INTEGER NOT NULL,
+ PRIMARY KEY(tenant,profile_id,id),
+ FOREIGN KEY(tenant,profile_id) REFERENCES guest_details(tenant,id) ON DELETE CASCADE
+);

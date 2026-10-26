@@ -3,6 +3,7 @@ declare(strict_types=1);
 use dyws\Store;
 use dyws\ApiError;
 require_once __DIR__.'/Store.php';
+require_once __DIR__.'/GuestDetails.php';
 require_once __DIR__.'/Catalog.php';
 require_once __DIR__.'/Lookup.php';
 require_once __DIR__.'/AdminAccounts.php';
@@ -20,6 +21,7 @@ function dyws_bootstrap(?string $configPath=null):array {
  $GLOBALS['dyws_config']=$config;
  $catalog=\dyws\Catalog::load($config['catalog']);
  $store=new Store($config['database'],$catalog,$config['tenant']);
+ (new \dyws\GuestDetails($store,$config))->prune();
  if(!empty($config['required_plugins'])){
   $store->plugins=new \dyws\Plugins($config,$config['plugins_path']??null,$store);
   $store->plugins->validate('installation.validating',$config);

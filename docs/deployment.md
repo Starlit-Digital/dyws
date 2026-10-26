@@ -175,3 +175,20 @@ Keep Order Printer inactive until a private hardware pilot is ready. It needs a 
 ### dyws.ca application installation
 
 On October 24 the public diner test was deployed at the dyws.ca root from engine commit `34f747fb5f4dbcbbb04e02ee2b9fd26598fd36a8`, version 0.11.1. The owning private site repository is `Starlit-Digital/dyws.ca`, with DYWS pinned as a submodule. Private source is under the domain's `private/releases/0.11.1`, with a newly seeded `private/demo-data` workspace. Existing diner installations were not copied or reset. Direct HTTP virtual host checks passed at installation. Public DNS and TLS were subsequently verified on October 25, and dyws.ca is now the sole public demo. See the site repository deployment receipt for current verification.
+
+
+## Remembered guest details
+
+Deploy the matching PHP module, schema, JavaScript assets, `public_html/terms/`, styles and storefront adapters together. New SQLite tables are created automatically without rewriting order records. Serve the terms directory using the existing `DirectoryIndex page.php home.php` rule. Custom routers must map `/terms/` to `terms/page.php`.
+
+Configure the correct HTTPS `public_base_url`, including any installation subdirectory, before enabling remembered details. The cookie uses that path and the business identity. Forward the original HTTPS request information correctly when terminating TLS at a proxy. Changing the origin, installation path or tenant requires customers to opt in again.
+
+Expiry is checked on every saved details request. Bootstrap also removes expired profiles and their addresses for this business. For quiet installations, schedule the dedicated command below daily with the existing private configuration:
+
+```sh
+DYWS_CONFIG=/private/path/config.json php /path/to/dyws/server/cleanup-guest-details.php
+```
+
+This command only removes expired saved details. It does not scrub order records. The older `server/cleanup.php` also scrubs demonstration order contacts and must not be substituted for this task. Backups follow the installation's existing private backup retention policy.
+
+The public demo continues to use server enforced fictional order contacts; remembered contacts are copied from those validated orders. Verify with `npm test`, including the guest API checks for consent, 180 day sliding expiry, idempotency, deletion, tenant isolation, cookie flags and stale checkout behavior.

@@ -61,7 +61,7 @@ Only the assigned driver can start or finish a delivery. Completion requires pay
 
 ## Storage and access
 
-SQLite stores orders, item snapshots, events, payment records, driver accounts, administrator password hashes, sessions, active GPS and sharing sessions. Private JSON holds catalog, site configuration, general settings and plugin settings. Account migration imports older credential files once; current writes go to SQLite. See [installation and upgrades](../INSTALL.md).
+SQLite stores orders, item snapshots, events, payment records, driver accounts, administrator password hashes, sessions, active GPS, sharing sessions and optional remembered guest details. Private JSON holds catalog, site configuration, general settings and plugin settings. Account migration imports older credential files once; current writes go to SQLite. See [installation and upgrades](../INSTALL.md).
 
 Random operator bearer sessions expire after eight hours and are stored as hashes in SQLite. PHP sign in forms use CSRF protection and HttpOnly page cookies; browser API clients use the associated bearer session in tab session storage. API requests still require explicit authorization. Password changes and sign out revoke the underlying sessions. Named administrator accounts, MFA and native device session management remain future work.
 
@@ -84,3 +84,10 @@ Order Reporting supplies comparisons, daily and hourly charts, CSV and SVG expor
 UTC timestamps are stored as Unix seconds. Settings selects the IANA timezone used for display and calendar report boundaries. Changing the timezone never rewrites stored instants.
 
 The cleanup CLI removes expired sessions and location records and scrubs demo customer contact fields after seven days. It is not scheduled automatically. Backups, restore drills, production monitoring, queues and reliable native background GPS remain operational work. The preview does not include live payments, payouts, inventory reservation, automated dispatch, customer accounts or native mobile apps.
+
+
+## Remembered checkout details
+
+`GuestDetails` owns a separate browser capability, profile and structured address book. It does not use operator or tracking sessions. `guest-details.js` owns the checkout controls and keeps fetched contacts only in page memory. The first party HTTP adapter handles the HttpOnly cookie; the realtime relay never receives it.
+
+Explicit consent saves validated details in the order transaction. Each new successful order renews the profile and cookie for 180 days. Replays of the same order do not renew or recreate data. Foreign profile and address IDs cannot cross the capability boundary, and stale forms cannot silently recreate removed data. Forget cascades to all addresses while preserving business order records. Terms and removal controls remain available outside checkout at `terms/`.

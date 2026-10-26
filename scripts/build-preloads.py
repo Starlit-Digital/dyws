@@ -17,7 +17,7 @@ def graph(entry):
  visit(entry);return sorted(seen)
 pages={page:graph('platform/'+script+'.js?v=39') for page,script in [('driver','driver'),('tracking','tracking'),('orders','orders'),('reports','manager'),('catalog','admin'),('drivers','admin'),('settings','admin'),('password','admin'),('plugins','admin')]}
 pages['tracking']=graph('platform/tracking.js?v=40')
-pages['storefront']=graph('demo.js?v=39')
+pages['storefront']=graph('demo.js?v=40')
 for page,module in {'catalog':'catalog-editor','drivers':'account-editor','password':'account-editor','settings':'general-settings','plugins':'plugin-admin'}.items():pages[page]=sorted(set(pages[page]+graph('dyws/'+module+'.js?v=39')))
 plugins={}
 for file in (root/'plugins').glob('*/plugin.json'):

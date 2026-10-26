@@ -184,3 +184,6 @@
 /* Use the available viewport height consistently in every ordering stage. */
 .dyws-ordering dialog,.dyws-ordering dialog:has(.dyws-final-review){box-sizing:border-box;height:100dvh;max-height:100dvh;margin-block:0;border-radius:24px;overflow-y:auto;overscroll-behavior:contain;padding-top:max(24px,env(safe-area-inset-top));padding-bottom:max(24px,env(safe-area-inset-bottom))}
 @media(max-width:500px){.dyws-ordering dialog,.dyws-ordering dialog:has(.dyws-final-review){padding-top:max(20px,env(safe-area-inset-top));padding-bottom:max(20px,env(safe-area-inset-bottom))}}
+
+/* Remembered guest details retain the checkout's native controls and reading order. */
+.dyws-ordering .dyws-remember{margin:16px 0}.dyws-ordering .dyws-remember-check{display:flex;align-items:center;gap:10px;margin:12px 0}.dyws-ordering .dyws-remember-check input{flex:none;margin:0}.dyws-ordering .dyws-remember .dyws-note{margin:8px 0;line-height:1.5}.dyws-ordering .dyws-remember a{color:var(--dyws-color-warm);text-underline-offset:3px}.dyws-saved-actions{display:flex;flex-wrap:wrap;gap:8px}.dyws-ordering .dyws-saved-actions button,.dyws-ordering .dyws-forget{font-size:.85em}.dyws-ordering .dyws-guest-status:empty{display:none}.dyws-ordering .dyws-address-save .dyws-checkout-grid{margin:8px 0}

@@ -18,6 +18,12 @@ Checkout uses one Location field with address autocomplete, an optional Unit fie
 
 ![Current order review](docs/screenshots/review-layout-20261024/paused-review.png)
 
+## Remembered guest details
+
+Customers can choose **Remember my details on this device** without creating an account. Checkout offers Home, Work and custom address labels, an optional default address, individual removal and **Forget my details**. A new successful order renews a 180 day expiry for both the access cookie and private saved details. Browsing and retries of an existing order do not extend it. Customer contact details never go into browser storage.
+
+[Terms and Conditions](public_html/terms/page.php) explains the feature and provides another removal control. Checkout and the storefront footer link to it. [The API contract](docs/api.md#remembered-guest-details) and [deployment notes](docs/deployment.md#remembered-guest-details) cover integration and cleanup.
+
 ## Install or run
 
 The Git repository is the complete project: application source, bundled plugins, assets, examples, tests, build scripts and documentation. Clone it to develop or deploy dyws. Composer installs the locked PHP dependencies; the website does not need a ZIP or a frontend build.

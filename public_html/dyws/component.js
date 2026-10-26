@@ -1,3 +1,4 @@
+import {mountGuestDetails,rememberPreference} from './guest-details.js';
 import {captureCheckout,restoreCheckout} from './checkout-draft.js';
 import {splitAddress} from './address-lines.js';
 import {formatPhoneField} from './phone-input.js';
@@ -45,7 +46,7 @@ export class DYWSOrdering extends HTMLElement {
   }
   announce(text){this.shadowRoot.querySelector('[role="status"]').textContent=text;}
   render(){
-    this.shadowRoot.innerHTML=`<link rel="stylesheet" href="${new URL('./ordering.css?v=49',import.meta.url).href}"><div class="dyws-ordering"><button class="dyws-cart-launch" type="button">Your order</button><p id="dyws-status" role="status" aria-live="polite"></p><dialog aria-labelledby="dyws-order-title"><header><div class="dyws-store-brand"><slot name="site-logo"></slot><span>${escapeHTML(this.catalog.businessName || this.catalog.restaurant || '')}</span></div><h2 id="dyws-order-title">Your Order</h2><button type="button" class="dyws-muted dyws-close" aria-label="Close order">Close</button></header><div class="dyws-content"></div></dialog></div>`;
+    this.shadowRoot.innerHTML=`<link rel="stylesheet" href="${new URL('./ordering.css?v=50',import.meta.url).href}"><div class="dyws-ordering"><button class="dyws-cart-launch" type="button">Your order</button><p id="dyws-status" role="status" aria-live="polite"></p><dialog aria-labelledby="dyws-order-title"><header><div class="dyws-store-brand"><slot name="site-logo"></slot><span>${escapeHTML(this.catalog.businessName || this.catalog.restaurant || '')}</span></div><h2 id="dyws-order-title">Your Order</h2><button type="button" class="dyws-muted dyws-close" aria-label="Close order">Close</button></header><div class="dyws-content"></div></dialog></div>`;
     this.dialog=this.shadowRoot.querySelector('dialog');
     this.shadowRoot.querySelector('.dyws-cart-launch').onclick=()=>this.open();
     this.shadowRoot.querySelector('.dyws-close').onclick=()=>this.dialog.close();
@@ -95,7 +96,7 @@ export class DYWSOrdering extends HTMLElement {
       const streetInput=form.elements.addressLine1;
       if(addressDetails&&streetInput?.dataset.dywsAddressDisplay===streetInput.value)addressDetails.line1=streetInput.dataset.dywsAddressLine1;
       if(addressDetails)addressDetails.postalCode=formatPostalCode(addressDetails.postalCode);
-      const order={locationId:location.id,orderLocation:location,businessName:this.catalog.businessName || this.catalog.restaurant,currency:this.catalog.currency,lines:this.lines.map(l=>({...l})),...t,customer:{name:values.get('customer').trim(),phone:values.get('phone').trim()},notes:String(values.get('notes')||'').trim(),fulfillment:values.get('fulfillment'),pluginData,addressDetails,address:addressDetails?[addressDetails.line1,addressDetails.line2,addressDetails.city,addressDetails.region,addressDetails.postalCode,addressDetails.country].filter(Boolean).join(', '):''};
+      const order={locationId:location.id,orderLocation:location,businessName:this.catalog.businessName || this.catalog.restaurant,currency:this.catalog.currency,lines:this.lines.map(l=>({...l})),...t,customer:{name:values.get('customer').trim(),phone:values.get('phone').trim()},notes:String(values.get('notes')||'').trim(),fulfillment:values.get('fulfillment'),pluginData,rememberDetails:rememberPreference(form),addressDetails,address:addressDetails?[addressDetails.line1,addressDetails.line2,addressDetails.city,addressDetails.region,addressDetails.postalCode,addressDetails.country].filter(Boolean).join(', '):''};
       try {
       await this.plugins?.validate('checkout:validating',{form,order,pluginData});
       if(!this.isConnected||!this.dialog.open)return;
@@ -109,7 +110,12 @@ export class DYWSOrdering extends HTMLElement {
      await this.plugins.runAction('checkout:fields',{root:form.querySelector('[data-dyws-checkout-fields]'),form,pluginData});
      buttons.forEach(button=>button.disabled=false);
     }
-    this.applyLayout('checkout',form);restoreCheckout(form,this.checkoutDraft||[]);form.elements.locationId.onchange();form.querySelector('.dyws-fulfillment').onchange();
+    this.applyLayout('checkout',form);
+    restoreCheckout(form,this.checkoutDraft||[]);form.elements.locationId.onchange();form.querySelector('.dyws-fulfillment').onchange();
+    const saved=await mountGuestDetails({form,api:this.guestAPI,termsURL:this.termsURL,hasDraft:!!this.checkoutDraft,onForget:()=>{this.checkoutDraft=null;}});
+    if(!form.isConnected)return;
+    restoreCheckout(form,(this.checkoutDraft||[]).filter(field=>['rememberDetails','savedProfileId','savedAddressId','addressLabel','customAddressLabel','defaultAddress'].includes(field.name)));
+    saved?.afterRestore(this.checkoutDraft);saved?.sync();form.elements.locationId.onchange();form.querySelector('.dyws-fulfillment').onchange();
     fieldsReady=true;form.querySelector('input').focus();
   }
   reviewOrder({order,form,content}){
