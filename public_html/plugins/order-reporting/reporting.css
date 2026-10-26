@@ -18,3 +18,8 @@
 .dyws-report-chart svg { color:var(--dyws-color-muted)!important; background:var(--dyws-color-bg)!important; }
 .dyws-report-chart svg [fill='#9b5b11'] { fill:var(--dyws-color-warm); }
 .dyws-report-chart svg [stroke='#9b5b11'] { stroke:var(--dyws-color-warm); }
+
+.dyws-report-export{grid-column:1/-1;width:100%;padding:12px;border:1px solid var(--dyws-line-soft);border-radius:16px}.dyws-report-export summary{cursor:pointer;font-weight:600}.dyws-report-export fieldset{display:flex;flex-wrap:wrap;gap:12px;margin:12px 0}.dyws-report-export .dyws-checkbox{display:flex;align-items:center;gap:8px;min-width:180px}.dyws-report-export input[type=checkbox]{width:auto}.dyws-report-export>label{display:block;max-width:240px}.dyws-report .dyws-heatmap{min-width:850px;font-size:.75rem;border-collapse:separate;border-spacing:3px}.dyws-heatmap td,.dyws-heatmap th{padding:7px 4px;text-align:center;border:0}.dyws-heatmap th:first-child{text-align:left}.dyws-heatmap .dyws-heat-0{background:#f0f3f4;color:#52636d}.dyws-heatmap .dyws-heat-1{background:#d0e8e5;color:#183240}.dyws-heatmap .dyws-heat-2{background:#9ecfc8;color:#183240}.dyws-heatmap .dyws-heat-3{background:#397b79;color:#fff}.dyws-heatmap .dyws-heat-4{background:#183240;color:#fff}.dyws-kpi-definitions p{font-size:.9rem;line-height:1.6}.dyws-report>section{margin-top:16px}
+@media(forced-colors:active){.dyws-heatmap td{background:Canvas!important;color:CanvasText!important;border:1px solid CanvasText}}
+
+.dyws-report .dyws-insights-title{margin-top:24px}

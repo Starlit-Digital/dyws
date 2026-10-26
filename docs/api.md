@@ -249,3 +249,35 @@ Each newly created order through the guest HTTP flow extends an existing profile
 The access cookie contains only a random 256 bit capability. SQLite stores its SHA-256 hash. Cookie names include the business and installation path, cookies are HttpOnly and SameSite=Lax, and HTTPS installations use Secure. The capability authorizes saved details only, never tracking, payments, or operator actions. Expired profiles are inaccessible immediately and cascade delete their addresses when cleanup runs.
 
 `mountStorefront({termsURL, ...})` enables the saved details UI and injects the terms link. Hosts may instead set `terms-url` on the ordering element. Custom `submitOrder` adapters must pass `order.rememberDetails` and use the HTTP API option `{guest: true}`. Include a clear Terms and Conditions link and explain removal and shared browser access. The supplied storefront uses `terms/`.
+
+## Business operating policy, October 26, 2026
+
+The manager catalog retains `deliveryFee` in integer cents and adds `deliveryFeeBasisPoints`, an integer from 0 through 10000. The fee is `deliveryFee + floor((subtotal * deliveryFeeBasisPoints + 5000) / 10000)` for delivery, and zero for pickup. Each location optionally supplies `deliveryPricing: {flatFee, basisPoints}`; null inherits the business default. Flat fees range from 0 through 100000 cents.
+
+The catalog and each location accept independent `locationHours` and `orderingHours`. Null at the business level means unrestricted or unpublished. Null at a location means inherit the business default. A schedule has this shape:
+
+```json
+{"enabled":true,"days":[
+  {"mode":"hours","open":"09:00","close":"17:00"},
+  {"mode":"hours","open":"09:00","close":"17:00"},
+  {"mode":"hours","open":"09:00","close":"17:00"},
+  {"mode":"hours","open":"09:00","close":"17:00"},
+  {"mode":"hours","open":"09:00","close":"22:00"},
+  {"mode":"allDay","open":"09:00","close":"17:00"},
+  {"mode":"closed","open":"09:00","close":"17:00"}
+]}
+```
+
+Exactly seven entries are required, Monday first. Times use `HH:mm`. Disabled schedules keep their saved days but impose no restriction. `locationHours` is informational. New order creation checks `orderingHours` using the saved timezone and returns 409 when closed. Overnight periods carry into the following day. See [operating semantics](business-operations.md).
+
+Public catalog responses include derived `timeZone` and `acceptingOrders` fields. These are not catalog writable fields. Public and manager settings include `acceptingOrders`, default true. `POST /manager/ordering` accepts `{acceptingOrders: boolean, revision: string}` and returns the normal manager settings summary. Stale revisions return 409. Drivers and anonymous clients cannot modify it. The general settings API preserves omitted fields. Pausing blocks new orders with 409; saved order retries remain idempotent.
+
+## Report downloads and email
+
+Active Order Reporting installations expose these manager only routes:
+
+* `GET /manager/plugins/order-reporting/export-options`: available section names and email availability, saved recipient and setup reason.
+* `POST /manager/plugins/order-reporting/export`: body contains `format` (`pdf`, `csv`, `txt`), `sections` (one or more of `overview`, `daily`, `items`, `locations`, `operations`) and `query` (`from`, `to`, `currency`, `fulfillment`). Returns `{name,type,encoding:"base64",content}`. All figures are generated from the server scoped report. Limit: 30 requests per hour per requester.
+* `POST /manager/plugins/order-reporting/email`: same report selection plus `idempotencyKey`, 16 through 80 letters, numbers or hyphens. The destination is always the saved business email, never a request supplied address. Limit: five requests per hour per requester. Returns `accepted`, `recipient` and an honest transport status. An accepted submission does not confirm inbox delivery.
+
+Email requests retain a tenant scoped key, fingerprint and status for 30 days. An uncertain or failed attempt is not automatically resent. Accepted retries return the original success without another email. Changing a selection or destination with the same key returns 409. No customer contacts are included in report data or attachments. Email is unavailable until the host mail sender is configured. Public demo visitors may download aggregate reports but cannot send email or change operating settings.

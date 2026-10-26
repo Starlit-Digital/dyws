@@ -50,7 +50,7 @@ function dyws_page_data(array $config,\dyws\Store $store,string $page,array $acc
  }elseif($page==='tracking'){
   $boot['tracking']=['id'=>$access['id'],'token'=>$access['token']];$boot['responses']['/tracking/'.$access['id']]=$plugins->applyFilters('tracking.public',$access['data']);
  }
- if($page==='storefront')$boot['responses']['/catalog']=$plugins->applyFilters('catalog.public',\dyws\Catalog::publicData(\dyws\Catalog::load($config['catalog'])));
+ if($page==='storefront')$boot['responses']['/catalog']=$plugins->applyFilters('catalog.public',\dyws\Catalog::publicData(\dyws\Catalog::load($config['catalog']),(new \dyws\Settings($config))->read()['timeZone'],(new \dyws\Settings($config))->read()['acceptingOrders']));
  $route='/plugins/google-maps/config';$matched=$plugins->match('GET',$route);
  if(in_array('location.renderer',\dyws\PageManifest::forPage($page)['requires'],true)&&$matched&&$matched['access']==='public')try{$boot['responses'][$route]=($matched['handler'])([],null,['raw'=>'','params'=>$matched['params'],'server'=>$_SERVER]);}catch(\Throwable $e){/* The map provides its own fallback. */}
  foreach($boot['responses'] as $route=>$data)$boot['responses'][$route]=$plugins->applyFilters('api.response',$data,$route,'GET');

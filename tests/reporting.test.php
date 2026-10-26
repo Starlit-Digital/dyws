@@ -25,6 +25,14 @@ try {
  $other=new Store($path,$catalog,'other');$otherReport=(new OrderReports($other))->dashboard($from,$to,'CAD');check($otherReport['current']['summary']['orders']===0&&$otherReport['current']['summary']['captured']===0,'Tenant isolated');
  foreach([['from'=>'2026-02-30'],['from'=>[]],['from'=>'2026-04-01','to'=>'2026-03-01'],['from'=>'2020-01-01','to'=>'2026-01-01']]as$q){try{OrderReports::range($q);throw new RuntimeException('Invalid range accepted');}catch(ApiError $e){check($e->http===422,'Invalid dates rejected');}}
  foreach([['currency'=>'<script>'],['fulfillment'=>[]]]as$q){try{$reporter->dashboard($from,$to,'CAD',$q);throw new RuntimeException('Invalid filter');}catch(ApiError $e){check($e->http===422,'Invalid filters rejected');}}
+ $metrics=$full['current']['summary'];
+ check($metrics['customers']===1&&$metrics['returningCustomers']===1&&$metrics['newCustomers']===0&&$metrics['repeatCustomerRate']===100.0,'Returning customers are deduplicated and include earlier history');
+ check($metrics['units']===2&&$metrics['itemsPerOrder']===1.0&&$metrics['cancelledValue']===$b['total'],'Basket and cancellation values use correct cohorts');
+ check($metrics['preparationMedianSeconds']===4500&&$metrics['preparationP90Seconds']===4500,'Percentiles use measured duration samples');
+ check(array_sum(array_map('array_sum',$full['current']['heatmap']))===3,'Heatmap reconciles to all orders');
+ check(array_sum(array_column($full['current']['locations'],'orderedValue'))===$metrics['orderedValue'],'Location values reconcile');
+ $s->execute('UPDATE orders SET customer_phone=? WHERE id=?',['+1 (780) 555-0100',$a['id']]);
+ check($reporter->dashboard($from,$to,'CAD')['current']['summary']['customers']===1,'Equivalent phone formats count as one customer');
  $serialized=json_encode($full);foreach(['Fictional Customer','7805550100','tracking','latitude','customer_phone'] as $private)check(!str_contains($serialized,$private),'No private order details');
  $before=$s->query('SELECT id,created_at,updated_at FROM orders ORDER BY id');
  [$utcStart,$utcEnd]=OrderReports::range(['from'=>'2026-03-08','to'=>'2026-03-08'],'UTC');

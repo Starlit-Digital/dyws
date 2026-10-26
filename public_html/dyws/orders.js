@@ -15,6 +15,9 @@ const mapOrder=mapPanel.querySelector('select'),mapMessage=mapPanel.querySelecto
 function updateMap(){mapPanel.hidden=!orders.length;if(!orders.length){renderLocation?.clear?.();return;}const order=orders.find(o=>o.id===mapOrder.value),gps=order?.gps;mapMessage.textContent=gps?.location?(gps.source==='simulated'?'Simulated GPS':'Device GPS')+' · '+formatTime(gps.recordedAt):order?'Waiting for a GPS fix.':'No deliveries on the way.';const node=renderLocation?.(gps?.location||null,role,{destinationAddress:order?.address,profileIcon:drivers.find(driver=>driver.id===order?.driver_id)?.profileIcon});if(node&&!mapContainer.contains(node))mapContainer.replaceChildren(node);}
 mapOrder.onchange=()=>{renderLocation?.clear?.();updateMap();};
 const error=root.querySelector('#error');
+const intake=root.querySelector('#accepting-orders'),intakeMessage=root.querySelector('#ordering-message');let settingsRevision,intakeBusy=false,intakeVersion=0;
+function displayIntake(data){if(!intake)return;settingsRevision=data.revision;intake.checked=data.settings.acceptingOrders;intake.disabled=false;intakeMessage.textContent=intake.checked?'Online orders enabled, subject to ordering hours.':'Online ordering is paused.';}
+if(intake)intake.onchange=async()=>{if(intakeBusy)return;intakeBusy=true;intakeVersion++;const requested=intake.checked;intake.disabled=true;try{displayIntake(await api('/manager/ordering',{method:'POST',body:{acceptingOrders:requested,revision:settingsRevision},token}));}catch(e){intake.checked=!requested;error.textContent=e.message;try{displayIntake(await api('/manager/settings',{token}));}catch{} }finally{intakeBusy=false;intake.disabled=false;}};
 const runRoot=root.querySelector('#delivery-runs');
 const runs=runRoot?mountDeliveryRuns({root:runRoot,api,getToken:()=>token,onSaved:load,onError:message=>{error.textContent=message;},role}):null;
 const orderList=mountOrderList({root:root.querySelector('#orders'),plugins,renderOrder});
@@ -39,6 +42,7 @@ function renderOrder(o,data,container){
 }
 async function load(){if(!token)return;if(loading){loadAgain=true;return;}loading=true;try{
  const data=await api('/manager/orders',{token});error.textContent='';
+ if(intake&&!intakeBusy){const version=intakeVersion;void api('/manager/settings',{token}).then(settings=>{if(!intakeBusy&&version===intakeVersion)displayIntake(settings);}).catch(e=>{if(!intakeBusy&&version===intakeVersion)intakeMessage.textContent=e.message;});}
  drivers=data.drivers||[];runs?.update(data);
  await traceLoad('Orders render',()=>orderList.update(data,{force:busy}));markReady();
  orders=data.orders.filter(o=>o.status==='out_for_delivery');const selected=mapOrder.value;mapOrder.innerHTML=orders.map(o=>`<option value="${o.id}">${o.id} · ${esc(o.driver_id||role.singular)}</option>`).join('');if(orders.some(o=>o.id===selected))mapOrder.value=selected;mapOrder.disabled=!orders.length;updateMap();

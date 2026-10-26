@@ -38,10 +38,16 @@ try {
  elseif($method==='GET'&&$route==='/plugins')$result=$plugins->publicManifest();
  elseif($method==='GET'&&$route==='/manager/plugins'){dyws_authorize($store,['manager']);$result=$plugins->summary();}
  elseif($method==='POST'&&$route==='/manager/plugins'){dyws_authorize($store,['manager']);dyws_limit_requests($store,$config,'plugins',30,900);$result=$plugins->save($body);}
+ elseif($method==='POST'&&$route==='/manager/ordering'){
+  dyws_authorize($store,['manager']);$settings=new \dyws\Settings($config);$current=$settings->read();
+  if(!is_bool($body['acceptingOrders']??null))throw new \dyws\ApiError('Choose whether to accept online orders.');
+  $result=$settings->save(['settings'=>array_replace($current,['acceptingOrders'=>$body['acceptingOrders']]),'revision'=>$body['revision']??null]);
+  $realtime->changed([$store->tenant.':operators',$store->tenant.':public']);
+ }
  elseif($method==='GET'&&$route==='/settings')$result=(new \dyws\Settings($config))->read();
  elseif($method==='GET'&&$route==='/manager/settings'){dyws_authorize($store,['manager']);$result=(new \dyws\Settings($config))->summary();}
  elseif($method==='POST'&&$route==='/manager/settings'){dyws_authorize($store,['manager']);$result=(new \dyws\Settings($config))->save($body);}
- elseif($method==='GET'&&$route==='/catalog')$result=$plugins->applyFilters('catalog.public',\dyws\Catalog::publicData(\dyws\Catalog::load($config['catalog'])));
+ elseif($method==='GET'&&$route==='/catalog')$result=$plugins->applyFilters('catalog.public',\dyws\Catalog::publicData(\dyws\Catalog::load($config['catalog']),(new \dyws\Settings($config))->read()['timeZone'],(new \dyws\Settings($config))->read()['acceptingOrders']));
  elseif($method==='GET'&&$route==='/manager/catalog'){dyws_authorize($store,['manager']);$catalog=\dyws\Catalog::load($config['catalog']);$result=['catalog'=>$catalog,'revision'=>\dyws\Catalog::revision($catalog)];}
  elseif($method==='POST'&&$route==='/manager/catalog'){dyws_authorize($store,['manager']);if(!is_array($body['catalog']??null))throw new \dyws\ApiError('Provide a catalog object.');$plugins->validate('catalog.validating',\dyws\Catalog::validate($body['catalog']));$catalog=\dyws\Catalog::save($config['catalog'],$body['catalog'],\dyws\Store::text($body['revision']??null,64));$result=['catalog'=>$catalog,'revision'=>\dyws\Catalog::revision($catalog)];}
  elseif($method==='GET'&&$route==='/manager/driver-locations'){dyws_authorize($store,['manager']);$result=dyws_driver_locations($store);}
@@ -130,7 +136,7 @@ try {
   if($route==='/orders')$plugins->doAction('order.created',$result,$store);
   if(str_ends_with($route,'/status'))$plugins->doAction('order.status_changed',$result,$store);
  }
- header('X-DYWS-Time-Zone: '.(new \dyws\Settings($config))->read()['timeZone']);
+ header('X-DYWS-Time-Zone: '.(new \dyws\Settings($config))->read()['timeZone'],(new \dyws\Settings($config))->read()['acceptingOrders']);
  $result=$plugins->applyFilters('api.response',$result,$route,$method);
  $plugins->doAction('api.respond',$route,$method,$result);
  header('Server-Timing: app;dur='.round((microtime(true)-($_SERVER['REQUEST_TIME_FLOAT']??microtime(true)))*1000,2));

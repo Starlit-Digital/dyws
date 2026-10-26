@@ -95,11 +95,11 @@ Drivers edit their optional vehicle model and colour under My profile. Colour se
 | Delivery runs | Group up to twenty ready deliveries for one driver, arrange stops before departure, start all stops together and complete them in order. One browser GPS stream serves every remaining active delivery. |
 | Order details | Customer contact and delivery address, ordered items, notes, allowed status transitions, driver assignment, payment status and delivery location details. |
 | Reports | Date range, currency and fulfillment filters; previous period comparisons; order and payment charts; active, completed and cancelled totals; popular items; preparation and delivery durations; daily and hourly tables. |
-| Exports | CSV report data and downloadable SVG charts. Report definitions distinguish ordered value, test collections, refunds, tax and delivery fees. |
+| Exports | Selected report sections as PDF, CSV or text, downloadable SVG charts, and email to the saved business address when host mail is configured. Report definitions distinguish ordered value, test collections, refunds, tax and delivery fees. |
 | Catalog editor | Add, rename, reorder and remove categories, items and options; edit descriptions, image paths, prices and availability; save validated JSON with revision conflict checks. |
 | Drivers | Add, edit and deactivate driver accounts, update credentials, inspect assigned active orders and view individual location panels. An open account editor remains protected during refreshes. |
 | Password | Change the administrator password using the current password. Password changes revoke admin sessions. Background refresh never repopulates password fields. |
-| Settings | Business name, platform display name, pickup address, phone, email, Item Order Cap, tax, delivery fee, timezone, and arbitrary singular and plural role labels. Currency is displayed from the catalog. |
+| Settings | Business details, separate location and ordering hours, per location schedule overrides, flat and percentage delivery pricing, Item Order Cap, tax, timezone, and arbitrary singular and plural role labels. Currency is displayed from the catalog. |
 | Plugins | Discover bundled plugins, activate or deactivate them, view status and open their settings. Stored plugin configuration survives deactivation. |
 | Automatic refresh | Admin views refresh when returning to a visible tab or window and when connectivity returns. Clean forms update independently; unsaved values, focused fields and open editors defer replacement. |
 | Edit protection | Saved revisions remain attached to drafts. A read that overlaps typing, saving or explicit reload cannot overwrite newer edits. Deferred changes produce a notice. |
@@ -107,6 +107,12 @@ Drivers edit their optional vehicle model and colour under My profile. Colour se
 ### Business locations
 
 Add and edit location rows in Business details. Each row has a name, address, optional phone and availability control. Checkout selects a location and the saved order retains that branch even if business details change later. Pickup addresses in checkout and final review open Google Maps in a new tab. Catalogs without location rows continue to use their single pickup address. See [the API contract](docs/api.md#business-locations-october-24-2026).
+
+### Operating hours and owner controls
+
+[Business operating settings](docs/business-operations.md) separate published location hours from server enforced ordering hours, including overnight schedules. Each location can inherit or override business schedules and delivery fees. Delivery pricing supports a flat fee, a percentage of the item subtotal, or both. The Orders page lets an owner pause and resume new orders. Existing orders remain manageable.
+
+Reports adds customer, basket, cancellation, location and fulfillment KPIs, visual demand patterns, and selected PDF, CSV and text exports. Email me uses the saved business email and requires configured host email delivery.
 
 ### Driver and delivery flow
 

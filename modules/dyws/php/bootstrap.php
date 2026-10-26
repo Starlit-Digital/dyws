@@ -20,7 +20,8 @@ function dyws_bootstrap(?string $configPath=null):array {
  $config=(new \dyws\AdminAccounts($config))->effective();
  $GLOBALS['dyws_config']=$config;
  $catalog=\dyws\Catalog::load($config['catalog']);
- $store=new Store($config['database'],$catalog,$config['tenant']);
+ $settings=(new \dyws\Settings($config))->read();
+ $store=new Store($config['database'],$catalog,$config['tenant'],$settings['timeZone'],$settings['acceptingOrders']);
  (new \dyws\GuestDetails($store,$config))->prune();
  if(!empty($config['required_plugins'])){
   $store->plugins=new \dyws\Plugins($config,$config['plugins_path']??null,$store);

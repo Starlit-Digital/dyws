@@ -116,6 +116,8 @@
       "dyws/admin-refresh.js",
       "dyws/admin-session.js?v=39",
       "dyws/api.js",
+      "dyws/business-hours-editor.js",
+      "dyws/business-policy.js",
       "dyws/business-settings.js?v=39",
       "dyws/catalog-editor.js?v=39",
       "dyws/date-time.js",
@@ -170,6 +172,7 @@
       "dyws/address-lines.js",
       "dyws/admin-session.js?v=39",
       "dyws/api.js",
+      "dyws/business-policy.js",
       "dyws/canadian-cities.js",
       "dyws/cart.js",
       "dyws/catalog-data.js",
@@ -228,7 +231,9 @@
       "dyws/date-time.js",
       "dyws/status-badge.js",
       "plugins/order-reporting/charts.js",
-      "plugins/order-reporting/index.js?v=1.1.1"
+      "plugins/order-reporting/export-controls.js",
+      "plugins/order-reporting/index.js?v=1.2.0",
+      "plugins/order-reporting/insights.js"
     ],
     "datatables": [
       "plugins/datatables/index.js?v=1.1.1",

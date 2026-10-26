@@ -5,9 +5,26 @@ declare(strict_types=1);
 function dyws_load_catalog(string $path):array {return \dyws\Catalog::publicData(\dyws\Catalog::load($path));}
 function dyws_catalog_from_config(string $configPath):array {
  $config=json_decode(file_get_contents($configPath),true,64,JSON_THROW_ON_ERROR);
- return dyws_load_catalog($config['catalog']);
+ return \dyws\Catalog::publicData(\dyws\Catalog::load($config['catalog']),(new \dyws\Settings($config))->read()['timeZone'],(new \dyws\Settings($config))->read()['acceptingOrders']);
 }
 function dyws_escape(string $value):string {return htmlspecialchars($value,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');}
+
+/** Published location and ordering hours use the same policy as checkout. */
+function dyws_render_business_hours(array $catalog):string {
+ $html=($catalog['acceptingOrders']??true)?'':'<p role="status">Online ordering is temporarily paused. Existing orders are still being handled.</p>';
+ $locations=$catalog['locations']??[];if(!$locations)$locations=[['id'=>'','name'=>$catalog['businessName']??'Business','active'=>true]];
+ $days=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+ foreach($locations as $location){
+  if(!$location['active'])continue;$policy=\dyws\Catalog::locationPolicy($catalog,$location['id']);
+  foreach(['locationHours'=>'Location hours','orderingHours'=>'Ordering hours'] as $key=>$label){
+   $schedule=$policy[$key]??null;if(!$schedule||!$schedule['enabled'])continue;
+   $html.='<details class="dyws-published-hours"><summary>'.dyws_escape($location['name'].' · '.$label).'</summary><p>'.dyws_escape($catalog['timeZone']??'America/Edmonton').'</p><dl>';
+   foreach($schedule['days'] as $i=>$day){$time=$day['mode']==='closed'?'Closed':($day['mode']==='allDay'?'24 hours':$day['open'].' to '.$day['close'].($day['close']<$day['open']?' next day':''));$html.='<div><dt>'.$days[$i].'</dt><dd>'.dyws_escape($time).'</dd></div>';}
+   $html.='</dl></details>';
+  }
+ }
+ return $html;
+}
 
 /** Functions return HTML so the host chooses where to echo each component. */
 function dyws_render_menu(array $catalog,array $options=[]):string {return (new DYWSRenderer($catalog))->menu($options);}

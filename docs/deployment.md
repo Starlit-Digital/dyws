@@ -206,3 +206,24 @@ Installation Lockdown 1.0.4 passes the selected order through demo sign in and t
 ## Customer tracking from the demo order panel
 
 Installation Lockdown 1.0.5 adds the authenticated customer tracking handoff and compact return links. Deploy its private `DemoPolicy.php`, `plugin.php` and manifest with the public `tracking.php`, browser module, stylesheet and regenerated preload manifest. Install the policy and public route before switching the manifest version. No schema, configuration or tracking expiry changes are needed. Back up private SQLite and source first, preserve runtime JSON, and verify the normal customer view using an order placed in a different browser. Anonymous, Driver, other tenant and expired access must remain denied.
+
+## Operating hours and reporting upgrade, October 26, 2026
+
+Deploy the new PHP and browser source together, including `BusinessHours.php`, business policy and hours editor modules, and the new report export, email and insight files. Refresh the generated module preload graph. Run `composer install --no-dev` from the new lockfile to install Dompdf and its locked dependencies. PDF export requires PHP DOM and mbstring. Serve only `public_html`; PDF dependencies and report mail configuration remain private. Preserve the merchant catalog, settings and database. Existing catalogs default to zero percentage delivery pricing, unrestricted ordering and unpublished hours. Existing saved flat fees and order totals are retained. No order schema migration is introduced.
+
+The optional Order Reporting plugin is now version 1.2.0. Its registration remains safe when discovery runs without an order store. The public demo policy permits report export but continues to block email and changes to catalog, hours and intake settings.
+
+To enable report email after the host mail transport and sending domain are configured, add this to the installation's private configuration, using a verified sender on the actual sending domain:
+
+```json
+"report_email": {
+  "enabled": true,
+  "from": "reports@your-business.example"
+}
+```
+
+PHP `mail()` must be configured on the host. The placeholder is not an operational sender. Configure the sending domain's email authentication with the hosting provider, and test delivery to the owner's saved address during rollout. SMTP credentials and external email providers are not configured by this feature. Until setup is complete, Email me stays unavailable with a setup explanation. The dashboard cannot choose arbitrary recipients. Sending creates `report_email_requests` lazily in the private SQLite database. Include this table in normal backups; it protects against duplicate sends and removes keys older than 30 days during subsequent sends.
+
+Local verification uses fictional fixture orders and a fake mail transport. It verifies destination restriction, MIME attachments, submission failure and duplicate suppression without sending a real email. Deployment and actual inbox delivery must be verified separately.
+
+The operating hours and reporting update was deployed to `https://dyws.ca/` on October 26, 2026, using a verified source snapshot based on `e3db56d`. The prior release remains available for rollback. PHP SQLite3 backup preserved a consistent database copy; private runtime JSON and existing orders were verified unchanged during cutover. Forty five public HTTPS checks passed, including all three report formats and one fictional delivery completed through the driver flow. The public demo continues to lock owner settings and email sending. See [the deployment receipt](operations-reporting-deployment-20261026.json) for source hashes, backup location and verification.

@@ -9,7 +9,7 @@ final class ApiError extends RuntimeException {public int $http; public function
 final class Store {
  private int $transactionDepth=0;
  public PDO $db; private array $catalog; public string $tenant; public ?Plugins $plugins=null;
- public function __construct(string $path,array $catalog,string $tenant='dyws-diner') {
+ public function __construct(string $path,array $catalog,string $tenant='dyws-diner',private string $timeZone='America/Edmonton',private bool $acceptingOrders=true) {
   if(strlen($GLOBALS['dyws_config']['tracking_secret']??'')<32)throw new RuntimeException('Tracking secret must be configured.');$this->catalog=$catalog;$this->tenant=$tenant;
   $this->db=new PDO('sqlite:'.$path,null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
   $this->db->exec('PRAGMA foreign_keys=ON; PRAGMA busy_timeout=5000; PRAGMA journal_mode=WAL;');
@@ -52,14 +52,17 @@ final class Store {
    $lines[]=['id'=>$id,'variant'=>$variant,'name'=>$item['name'],'sku'=>$item['sku']??'','unit'=>$item['unit']??'each','description'=>$item['description']??'','image'=>$item['image']??null,'option'=>$option,'price'=>$price,'quantity'=>$qty];$subtotal+=$price*$qty;
   }
   if($subtotal>100000)throw new ApiError('Orders are limited to $1,000.');
-  $fee=$fulfillment==='delivery'?($this->catalog['deliveryFee']??395):0;$tax=(int)round(($subtotal+$fee)*$this->catalog['taxBasisPoints']/10000);$total=$subtotal+$fee+$tax;
+  $fee=Catalog::deliveryCharge($this->catalog,$subtotal,$fulfillment,$locationId);$tax=(int)round(($subtotal+$fee)*$this->catalog['taxBasisPoints']/10000);$total=$subtotal+$fee+$tax;
   $pluginData=$body['pluginData']??[];if(!is_array($pluginData)||count($pluginData)>20||strlen(json_encode($pluginData,JSON_THROW_ON_ERROR))>8192)throw new ApiError('Additional order fields are too large.');
   foreach($pluginData as $plugin=>$value)if(!is_string($plugin)||!preg_match('/^[a-z][a-z0-9-]{0,59}$/D',$plugin)||!is_array($value))throw new ApiError('Invalid additional order fields.');
   $canonical=['lines'=>$lines,'customer'=>['name'=>$name,'phone'=>$phone],'notes'=>$notes,'fulfillment'=>$fulfillment,'address'=>$address];if($addressDetails!==null)$canonical['addressDetails']=$addressDetails;if($pluginData)$canonical['pluginData']=$pluginData;if($locationId!=='')$canonical['locationId']=$locationId;$fingerprint=hash('sha256',json_encode($canonical));
   return $this->transaction(function()use($key,$fingerprint,$canonical,$subtotal,$fee,$tax,$total,$paymentProvider){
    $existing=$this->query('SELECT * FROM orders WHERE tenant=? AND request_key=?',[$this->tenant,$key]);
    if($existing){if(!hash_equals($existing[0]['fingerprint'],$fingerprint))throw new ApiError('Request key was already used for a different order.',409);return $this->receipt($existing[0],$key);}
+   if(!$this->acceptingOrders)throw new ApiError('Online ordering is temporarily paused. Please contact the business or try again later.',409);
    $orderLocation=Catalog::orderLocation($this->catalog,$canonical['locationId']??'');
+   $policy=Catalog::locationPolicy($this->catalog,$orderLocation['id']);
+   if(!BusinessHours::isOpen($policy['orderingHours']??null,new \DateTimeImmutable('now',new \DateTimeZone($this->timeZone))))throw new ApiError('Online ordering is closed for this location. Please check its ordering hours ('.$this->timeZone.').',409);
    $this->plugins?->validate('order.validating',$canonical,['subtotal'=>$subtotal,'tax'=>$tax,'deliveryFee'=>$fee,'total'=>$total,'currency'=>$this->catalog['currency']]);
    $id='DYWS-'.strtoupper(bin2hex(random_bytes(6)));$token=hash_hmac('sha256',$id.'|'.$key,$GLOBALS['dyws_config']['tracking_secret']);
    $now=time();$this->execute('INSERT INTO orders(id,tenant,request_key,fingerprint,tracking_hash,tracking_expires,status,payment_status,fulfillment,customer_name,customer_phone,address,notes,lines_json,subtotal,tax,delivery_fee,total,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',[$id,$this->tenant,$key,$fingerprint,hash('sha256',$token),$now+86400,'placed','unpaid',$canonical['fulfillment'],$canonical['customer']['name'],$canonical['customer']['phone'],$canonical['address'],$canonical['notes'],json_encode($canonical['lines']),$subtotal,$tax,$fee,$total,$now,$now]);

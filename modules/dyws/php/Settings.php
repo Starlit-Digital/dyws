@@ -3,14 +3,14 @@ declare(strict_types=1);
 namespace dyws;
 use DateTimeZone;
 
-/** Display preferences only. Internal authorization roles never change. */
+/** Business preferences and order intake. Internal authorization roles never change. */
 final class Settings {
  private string $path;
  public function __construct(array $config) {
   $this->path=dirname($config['database']).'/settings-'.substr(hash('sha256',$config['tenant']),0,16).'.json';
  }
  public function read():array {
-  if(!is_file($this->path))return ['driverRole'=>['singular'=>'Driver','plural'=>'Drivers'],'timeZone'=>'America/Edmonton'];
+  if(!is_file($this->path))return ['driverRole'=>['singular'=>'Driver','plural'=>'Drivers'],'timeZone'=>'America/Edmonton','acceptingOrders'=>true];
   return self::validate(json_decode(file_get_contents($this->path),true,32,JSON_THROW_ON_ERROR));
  }
  private static function validate(array $data):array {
@@ -24,7 +24,8 @@ final class Settings {
   }
   $zone=array_key_exists('timeZone',$data)?$data['timeZone']:'America/Edmonton';
   if(!is_string($zone)||!in_array($zone,DateTimeZone::listIdentifiers(),true))throw new ApiError('Choose a valid timezone.');
-  return ['driverRole'=>$out,'timeZone'=>$zone];
+  $accepting=$data['acceptingOrders']??true;if(array_key_exists('acceptingOrders',$data)&&!is_bool($data['acceptingOrders']))throw new ApiError('Choose whether to accept online orders.');
+  return ['driverRole'=>$out,'timeZone'=>$zone,'acceptingOrders'=>$accepting];
  }
  public function summary():array {
   $settings=$this->read();return ['settings'=>$settings,'revision'=>Catalog::revision($settings),'timeZones'=>DateTimeZone::listIdentifiers()];

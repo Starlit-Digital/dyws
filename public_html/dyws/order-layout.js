@@ -32,5 +32,6 @@ export function applyOrderLayout({stage,root,layout}){
   if(node.querySelector('dt')){const list=doc.createElement('dl');list.className='dyws-order-amount';list.append(node);cell.append(list);}else cell.append(node);grid.append(cell);
  }
  const location=nodes.get('location'),unplaced=location&&!layout.fields.some(field=>field.id==='location')?[location]:[];
- root.replaceChildren(...unplaced,grid,...keep);return true;
+ const hours=root.querySelector('[data-dyws-hours]');
+ root.replaceChildren(...unplaced,...(hours?[hours]:[]),grid,...keep);return true;
 }

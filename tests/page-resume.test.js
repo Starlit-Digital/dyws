@@ -12,7 +12,7 @@ function fixture(){
   const node={ownerDocument:doc,dataset:{},value:'',innerHTML:'',textContent:'',hidden:false,parentElement:{after(){}},
    append(){},prepend(){},remove(){},replaceChildren(){this.innerHTML='';},setAttribute(){},scrollIntoView(){},focus(){doc.activeElement=this;},matches:()=>false,
    contains(other){return other===this||[...nodes.values()].some(n=>n.contains(other));},
-   querySelector(selector){if(selector==='#delivery-runs'||selector==='article'||selector==='[data-dyws-order-initial]')return null;if(!nodes.has(selector))nodes.set(selector,element());return nodes.get(selector);},querySelectorAll:()=>[]};
+   querySelector(selector){if(selector==='#accepting-orders'||selector==='#delivery-runs'||selector==='article'||selector==='[data-dyws-order-initial]')return null;if(!nodes.has(selector))nodes.set(selector,element());return nodes.get(selector);},querySelectorAll:()=>[]};
   return node;
  }
  doc.createElement=element;const root=element(),win=new EventTarget();doc.body=root;

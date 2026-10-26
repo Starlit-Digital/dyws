@@ -1,0 +1,251 @@
+{
+  "deployedAt": "2026-10-26T09:09:12.745688+00:00",
+  "release": "/home/u394197407/domains/dyws.ca/private/releases/0.11.1-operations-20261026T090501Z",
+  "previousRelease": "/home/u394197407/domains/dyws.ca/private/releases/0.11.1-without-stripe-30d6c30",
+  "backup": "/home/u394197407/domains/dyws.ca/private/backups/operations-20261026T090501Z-3",
+  "sourceBase": "e3db56d72d2c2da11dd4ab6aa2f60529d543ca1b",
+  "sourceState": "Verified working tree snapshot",
+  "files": {
+    "README.md": {
+      "sha256": "9413de788aec74f9b451d44d675cf492542008ce030d04530a38af0ace77038b",
+      "previousSha256": "cb8498332fefc2acb5ac5ba5f862feb21185b84f2f64abf5cbc5fd5d084dc9a2"
+    },
+    "composer.json": {
+      "sha256": "f8eae0dacbb2886cf27af2bb59a1ce8f5970520a25f272b1c78eaeec32bff278",
+      "previousSha256": "9a35687162e8399c7002c5a9e6eb7283991c143bc5686967f8991e8b097a2bf6"
+    },
+    "composer.lock": {
+      "sha256": "be485e267447192d808ef5154afa3b7950c7160eef919ad0c2951dfc06ca564a",
+      "previousSha256": "bed25b278eb48126b69e31cdf31d9414e9eb38024d9c5a7618db455b0424b072"
+    },
+    "docs/api.md": {
+      "sha256": "58cc25b79f16c48d6d1a57936085a9abf4433d8793a7c0d1011af6fa434e03ea",
+      "previousSha256": "ee3eb083238efbca289dcea5c22d2f13aca35f6fb442eb6e0da39c91b3c599e9"
+    },
+    "docs/business-operations.md": {
+      "sha256": "75ab88fe3f45290cf9f5a006ba07c55cc26fbb90c3455859118409855f2a1d98",
+      "previousSha256": null
+    },
+    "docs/deployment.md": {
+      "sha256": "ab6fd92f7b9d23907ee1057a28ef50bb4b7dc51388a7d6d385af35d7f85ec3e1",
+      "previousSha256": "fc50ff2d7496909f877de53d6e78d55266ef751de2e925f8a410f9b22bcbdcfc"
+    },
+    "docs/order-reporting.md": {
+      "sha256": "b232c8aec935de78dc5f3611e22543b5906656d0b973292719ff5416da59b02a",
+      "previousSha256": "f1aedc2c449f7ff5dd116abd103e620b10dc08fd6ab572c441fa013cd6dd72f8"
+    },
+    "modules/dyws/php/BusinessHours.php": {
+      "sha256": "3ac59cc3c2b3727c919d9dc098e2731dd4f5f57fad4306d6083a6dbe9d3d672f",
+      "previousSha256": null
+    },
+    "modules/dyws/php/Catalog.php": {
+      "sha256": "694d02f146010b44f66282053c7697b1f882b52841b9354227a419b0b3c6600d",
+      "previousSha256": "72f69cc0513fb8388425e84fc99270917e26f2a4015683df0548925aafb46624"
+    },
+    "modules/dyws/php/PageData.php": {
+      "sha256": "b650ecd182756e7910e2f006747072dec4b0d02e9e526ed19a5eb8648d1431eb",
+      "previousSha256": "b955529738487af5001bb5b5efb8cf8832e57c298031d40d156cd39a386fb9bd"
+    },
+    "modules/dyws/php/Settings.php": {
+      "sha256": "2dd21fc976e9c23577998cbbe0cebfbe0e6f875e971e1eaf07f9e04e6e14cf34",
+      "previousSha256": "2358c3bd5089f03a85496b0ab432063207a2f480d13d0802dcfad1099a4737b4"
+    },
+    "modules/dyws/php/Store.php": {
+      "sha256": "955ec9347314871ed588404b64e573f088733b2e789bcd366758ab57a37a3af1",
+      "previousSha256": "925b899a186ea4e0f0ce6890458eb2f8189ca281253fa7a6f3b76c909a046b43"
+    },
+    "modules/dyws/php/api.php": {
+      "sha256": "b9038dc75379202dd7f2acfa495b0c383230014e1b0c81c29b38c8c627952803",
+      "previousSha256": "c5a96fe4e7daa0181dce8b98ff42dd409af0e14167908dadf52d01498912d718"
+    },
+    "modules/dyws/php/bootstrap.php": {
+      "sha256": "0c6af62aa2ef9502be264c7117820b2e1294252c6e95a76844bcd9846f43d968",
+      "previousSha256": "017796afaa201f4c49b79df528bcf3e5b063179a74a3d9dbdae2ab7d9a0578a7"
+    },
+    "modules/dyws/php/render.php": {
+      "sha256": "582f8f831c00302eb015404e1a16244ee1383815189717ed388de88386d11852",
+      "previousSha256": "739866354cfa741fe9cf9af4111b6f4e268a99e11db17ab4ec4ee7562d8aec95"
+    },
+    "package.json": {
+      "sha256": "5a4e340063e0c079d6d72dcda04870e7eebea48611324ad2a6c0f83bc1b4b78e",
+      "previousSha256": "b5c29e6f8006937d60615203eb1e2fdec1cc02a2f81e20c26e8335c4edebfe23"
+    },
+    "plugins/demo-lockdown/DemoPolicy.php": {
+      "sha256": "2415caaa5a0d5cf4a1e96c0267cfa0e8cd525c8b20d8671ff0d5e146db771da7",
+      "previousSha256": "1191857d8299ca6756254d9922440672aa8be44e8706737da4237fcb428c9856"
+    },
+    "plugins/order-reporting/OrderReports.php": {
+      "sha256": "28e18975957689be70938bc6b13b0c97a70023609265e8db39f89f60f6543915",
+      "previousSha256": "56ebc786d423f2a2acc0faf9988c8578ada3e92b0d00514a0a212bdda78d082a"
+    },
+    "plugins/order-reporting/ReportEmail.php": {
+      "sha256": "66aacd6bd81eadf36f16714f0c86f45e91150c9cef319468822cdbd38235dde8",
+      "previousSha256": null
+    },
+    "plugins/order-reporting/ReportExport.php": {
+      "sha256": "ec225cac048f7e08367c9b25cf2b9906d287a17f5ac537d60862606d29fc8425",
+      "previousSha256": null
+    },
+    "plugins/order-reporting/plugin.json": {
+      "sha256": "528d1be201030f21d6a5afa41a7026cc63e77039b78435cd6680b2a22198cf32",
+      "previousSha256": "44a09d98ebce0d7f94acf0c963c92674b724fa7c45673bdaf90ea87fc388fd06"
+    },
+    "plugins/order-reporting/plugin.php": {
+      "sha256": "f22f4638c8a62f86cda68d3e50afed9d09e4f13dccb1e5c901d75b0556eaa62a",
+      "previousSha256": "8ac1a3f0723408fff478fd9283ac9a8cd5834a840fc421b29fe810ed3ac89f0d"
+    },
+    "public_html/dyws/business-hours-editor.js": {
+      "sha256": "f38b0361611bf4459c039647c407736b9d529488672f9c1918b899289361684c",
+      "previousSha256": null
+    },
+    "public_html/dyws/business-policy.js": {
+      "sha256": "1c390ca781aa77a5e727dae66f7b09c0b4cd875cb8dff0e0439f9d1847fd73d3",
+      "previousSha256": null
+    },
+    "public_html/dyws/business-settings.js": {
+      "sha256": "2e8957aa007ef7b4f128e6a7264808ce1f2afed1a345111afefff18f23fc6d65",
+      "previousSha256": "a06537891fa09e81ce32350e746f9e882a503c1e0a5e3c76aacf655be33a72d5"
+    },
+    "public_html/dyws/catalog-data.js": {
+      "sha256": "d0c25b17661bb5f82edcf851713a8c54070d16e4cb0edf04a032b461686affd1",
+      "previousSha256": "942a25579f6bdf9e3293147c0851e44a5343bfb4ec61bf7cb424e5b2471ae4c3"
+    },
+    "public_html/dyws/component.js": {
+      "sha256": "ac5779b51367dd3ca7f54f7bf44239932e1983e7b452e8dfe06ab5618ec76d8a",
+      "previousSha256": "15b20261db7fba4991e8af3b910bfc595b04b1213cb17e9823d7e65669c03fbc"
+    },
+    "public_html/dyws/dyws.css": {
+      "sha256": "6524dabcbb6faaf9308af1f83c9aea219ea4324ea4915d082ede4b39bc2a2010",
+      "previousSha256": "d1f2c4c23544d0329dd300a417a467c61d75bd33eff1a4a8508036f050a78c9c"
+    },
+    "public_html/dyws/order-layout.js": {
+      "sha256": "15da77ea9d52bb5fabb91d340b706a9f60dc0ddf6c56e5b6be59cb4a1ce0e6f5",
+      "previousSha256": "bb35e5817d914903d402f61c12b0c5b12340bf142dc2179834a279c772f74b61"
+    },
+    "public_html/dyws/orders.js": {
+      "sha256": "99d27f44edbe354b74bd86a724cd9db0fd276f8ed4d50bc63a86cffad9f99231",
+      "previousSha256": "44ec40a6998bc30564b083bc76cc6ef9b9cb507371ffe77c18786ad521a69ef5"
+    },
+    "public_html/home.php": {
+      "sha256": "af13dff66a747c0e3ded79e12dc18ae25e0f358b8fd290032da3f7c26fe1e340",
+      "previousSha256": "e9afcb5b300cfcd3bfa5fbe0b80c28efee8a993aaece272dbf87414b7e2eee7f"
+    },
+    "public_html/orders/page.php": {
+      "sha256": "337a433435bef6068be9c26f154d86766e14795ea837a65faee2f870be8b03e4",
+      "previousSha256": "3817f9c84dde241dbc5030aa29398d80fb5efe24599918d6285a997cf6f52bd5"
+    },
+    "public_html/platform/preloads.json": {
+      "sha256": "97f79329cf9b1e35f59cce6780e813768c082dd6c8d52c1998e57159fb0f0cc2",
+      "previousSha256": "78bc43b7617f037ca5a8506124645ec6244031b172e0d48bff76fbf2449fb5ca"
+    },
+    "public_html/plugins/order-reporting/export-controls.js": {
+      "sha256": "7069f841b2a585fd700f7c844d44c219ccc6cdb8b26ce79e18dd768c9b3d0ad0",
+      "previousSha256": null
+    },
+    "public_html/plugins/order-reporting/index.js": {
+      "sha256": "965f4655988254c9776bd8c13b44b9952fe575a4ab59fb640dc4106504cc95eb",
+      "previousSha256": "919ccbf0e78a220b7907e596b1a3e617d45f81bb399868126f6878c64ce36372"
+    },
+    "public_html/plugins/order-reporting/insights.js": {
+      "sha256": "98de3a56e6314760f17996a55f54d8eaf11fa371b96867816c124013e9a70af9",
+      "previousSha256": null
+    },
+    "public_html/plugins/order-reporting/reporting.css": {
+      "sha256": "ed33d66a1ffc9b176aa666df51a5782634934ee44b7341d07b08910bbca59213",
+      "previousSha256": "6623086e5669aed52d76cd4c713265dc7900987af1ff506d122ebefdd1eacf69"
+    },
+    "public_html/settings/page.php": {
+      "sha256": "82bd6eb9f2089ce3a778eafe1f0c01561640bc9443602f746bedec514360bee2",
+      "previousSha256": "0f29e9e824b9ca790b4b7258addca5ee7b47a6aea33b4e13b4d31a92ac4e595b"
+    },
+    "public_html/templates/shop.php": {
+      "sha256": "2e2f5a95ed682e1fc77b764755b27998de452be111f2cbae2a40d0cfffa220c8",
+      "previousSha256": "c12d928911ac25cad12d2948f449b8ee6b3268aecb093caee64965a7292a4c80"
+    }
+  },
+  "publicFilesChanged": 17,
+  "runtimeJsonPreserved": true,
+  "existingOrdersPreserved": true,
+  "databaseIntegrity": "ok",
+  "sqliteBackup": "SQLite backup API",
+  "maintenanceSeconds": 3.09,
+  "emailSendingEnabled": false,
+  "demoLockdownPreserved": true,
+  "composerInstall": "Locked dependencies installed and host PDF render passed",
+  "httpsVerification": {
+    "verifiedAt": "2026-10-26T09:11:08.071247+00:00",
+    "transport": "Public HTTPS with certificate verification",
+    "checksPassed": 45,
+    "checks": [
+      "/api/?route=/health 200",
+      "/api/?route=/catalog 200",
+      "/api/?route=/manager/orders 401",
+      "/api/?route=/login 200",
+      "/api/?route=/login 200",
+      "/api/?route=/manager/settings 403",
+      "/api/?route=/manager/settings 200",
+      "/api/?route=/manager/ordering 403",
+      "/api/?route=/manager/settings 403",
+      "/api/?route=/manager/plugins/order-reporting/export-options 200",
+      "/api/?route=/manager/plugins/order-reporting/email 403",
+      "/api/?route=/manager/orders 200",
+      "/api/?route=/manager/orders/DYWS-9CEB5E570310/assign 200",
+      "/api/?route=/manager/orders/DYWS-9CEB5E570310/status 200",
+      "/api/?route=/manager/orders/DYWS-9CEB5E570310/status 200",
+      "/api/?route=/manager/orders/DYWS-9CEB5E570310/status 200",
+      "/api/?route=/driver/orders/DYWS-9CEB5E570310/status 200",
+      "/api/?route=/manager/orders/DYWS-9CEB5E570310/payment 200",
+      "/api/?route=/driver/orders/DYWS-9CEB5E570310/status 200",
+      "/api/?route=/manager/orders 200",
+      "/api/?route=/manager/plugins/order-reporting/dashboard 200",
+      "/api/?route=/manager/plugins/order-reporting/export 200",
+      "/api/?route=/manager/plugins/order-reporting/export 200",
+      "/api/?route=/manager/plugins/order-reporting/export 200",
+      "/dyws/business-hours-editor.js 200",
+      "/dyws/business-policy.js 200",
+      "/dyws/business-settings.js 200",
+      "/dyws/catalog-data.js 200",
+      "/dyws/component.js 200",
+      "/dyws/dyws.css 200",
+      "/dyws/order-layout.js 200",
+      "/dyws/orders.js 200",
+      "/platform/preloads.json 200",
+      "/plugins/order-reporting/export-controls.js 200",
+      "/plugins/order-reporting/index.js 200",
+      "/plugins/order-reporting/insights.js 200",
+      "/plugins/order-reporting/reporting.css 200",
+      "/ 200",
+      "/private/demo-data/config.json 404",
+      "/vendor/autoload.php 404",
+      "/server/bootstrap.php 404",
+      "/setup/ 404",
+      "/2027-pricing/ 200",
+      "/api/?route=/logout 200",
+      "/api/?route=/logout 200"
+    ],
+    "fictionalOrder": "DYWS-9CEB5E570310",
+    "fictionalOrderStatus": "delivered",
+    "realPaymentsPerformed": false,
+    "exports": [
+      "pdf",
+      "csv",
+      "txt"
+    ],
+    "runtimeCatalogDefaultsPreserved": true,
+    "demoOwnerSettingsLocked": true,
+    "emailSendingEnabled": false
+  },
+  "browserVerification": {
+    "ordersSwitch": "Visible and enabled state correct; public demo mutation rejected",
+    "settings": "Separate location and ordering hours and both delivery fee inputs visible; public demo editing remains locked",
+    "reports": "Charts and advanced KPIs rendered; PDF downloaded through the live browser",
+    "pdf": "Five page PDF generated by the live host; first and last pages rendered and visually checked",
+    "email": "Unavailable in the public demo; placeholder recipient and no configured sender",
+    "browserConsole": "No browser warnings or errors"
+  },
+  "localValidation": {
+    "framework": "Complete npm test suite passed",
+    "javascriptTests": 133,
+    "privateStripe": "Separate private integration suite passed without changing the framework checkout"
+  }
+}

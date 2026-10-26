@@ -17,7 +17,7 @@ try {
  foreach(['','   ',str_repeat('a',61),"Bad\nName",['wrong']] as $invalid){$body['settings']['driverRole']['singular']=$invalid;$body['revision']=$saved['revision'];denied(fn()=>$settings->save($body));}
  $body['settings']['driverRole']=['singular'=>'助理','plural'=>'Équipe'];$saved=$settings->save($body);check($saved['settings']['driverRole']['singular']==='助理','Unicode names');
  $body['revision']=$saved['revision'];$body['settings']['driverRole']=['singular'=>'<Admin & Handler>','plural'=>'Team'];$body['settings']['manager_password_hash']='must not persist';$saved=$settings->save($body);
- check(count($saved['settings'])===2,'Only display settings persisted');
+ check(count($saved['settings'])===3,'Only supported business settings persisted');
  check($saved['settings']['driverRole']['singular']==='<Admin & Handler>','Plain text labels retained');
  $path=glob($dir.'/settings-*.json')[0];check((fileperms($path)&0777)===0600,'Settings file is private');
  check($saved['settings']['timeZone']==='America/Edmonton','Legacy settings default to Edmonton');

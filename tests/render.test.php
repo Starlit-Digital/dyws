@@ -26,4 +26,11 @@ try{dyws_render_menu($catalog);throw new RuntimeException('Unsafe image rendered
 $shop=dyws_load_catalog(__DIR__.'/../examples/general-store/catalog.json');$shop['currency']='USD';$shop['categories'][0]['items'][1]['variants'][0]['price']=2050;
 verify(str_contains(dyws_render_item($shop,'tote'),'US$20.50'),'Initial price uses selected variant and catalog currency');
 verify(!str_contains(dyws_render_menu($shop),'tracking_secret'),'Rendered catalog does not contain private config');
+$hours=['enabled'=>true,'days'=>array_fill(0,7,['mode'=>'hours','open'=>'22:00','close'=>'02:00'])];
+$published=$shop;$published['businessName']='<Example & Business>';$published['locationHours']=$hours;$published['orderingHours']=$hours;$published['acceptingOrders']=false;
+$html=dyws_render_business_hours($published);
+verify(str_contains($html,'Location hours')&&str_contains($html,'Ordering hours')&&str_contains($html,'next day'),'Published schedules distinguish location and order hours, including overnight periods');
+verify(str_contains($html,'&lt;Example &amp; Business&gt;')&&!str_contains($html,'<Example & Business>'),'Published business names are escaped');
+verify(str_contains($html,'temporarily paused'),'Storefront explains paused ordering');
+verify(dyws_render_business_hours($shop)==='','Unconfigured schedules do not invent opening hours');
 echo "PHP rendering: $checks checks passed.\n";

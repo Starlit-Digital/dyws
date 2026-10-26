@@ -1,0 +1,26 @@
+import {escapeHTML as esc,money} from '../../dyws/api.js';
+import {comparison} from './charts.js';
+
+export function premiumCards(data) {
+ const s=data.current.summary,p=data.previous,amount=v=>money(v,data.currency),percent=v=>v===null?'No data':v+'%';
+ return [
+  {label:'Repeat customers',value:percent(s.repeatCustomerRate),detail:`${s.repeatCustomers} of ${s.customers} estimated customers`},
+  {label:'Items per order',value:s.itemsPerOrder??'No data',detail:`${s.units} items in orders that were not cancelled`},
+  {label:'Cancelled order value',value:amount(s.cancelledValue),detail:`${s.cancelled} orders · ${percent(s.cancellationRate)} cancellation rate`},
+  {label:'Value per customer',value:amount(s.averageCustomerValue),detail:comparison(s.averageCustomerValue,p.averageCustomerValue,amount)},
+  {label:'New customers',value:s.newCustomers,detail:`${s.returningCustomers} customers had an earlier order`},
+  {label:'Refunds / payments',value:percent(s.refundRate),detail:`${amount(s.refunded)} refunded in this period`},
+  {label:'Average delivery fee',value:amount(s.averageDeliveryFee),detail:'Delivery orders only, excluding cancellations'},
+  {label:'Slower deliveries',value:s.deliveryP90Seconds===null?'No data':Math.round(s.deliveryP90Seconds/60)+' min',detail:`90% finished within this time · ${s.deliverySamples} measured orders`}
+ ];
+}
+
+export function insightsHTML(data) {
+ const r=data.current,s=r.summary,amount=v=>money(v,data.currency),days=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+ const max=Math.max(1,...r.heatmap.flat()),minutes=v=>v===null?'No data':Math.round(v/60)+' min';
+ const heatmap=`<section class="dyws-demand"><h2>When customers order</h2><p class="dyws-note">Order count by weekday and hour in ${esc(data.timeZone)}. Includes cancelled orders. Every cell shows its count.</p><div class="dyws-table-wrap" tabindex="0" role="region" aria-label="Order demand by weekday and hour"><table class="dyws-heatmap"><caption>Weekday and hour demand</caption><thead><tr><th scope="col">Day</th>${Array.from({length:24},(_,h)=>`<th scope="col">${String(h).padStart(2,'0')}</th>`).join('')}</tr></thead><tbody>${r.heatmap.map((hours,i)=>`<tr><th scope="row">${days[i]}</th>${hours.map((count,h)=>`<td class="dyws-heat-${count===0?0:Math.min(4,Math.ceil(count/max*4))}" title="${days[i]} ${String(h).padStart(2,'0')}:00, ${count} orders">${count}</td>`).join('')}</tr>`).join('')}</tbody></table></div></section>`;
+ const barRows=(rows,label,key)=>{const maximum=Math.max(1,...rows.map(row=>row[key]));return `<div class="dyws-report-bars">${rows.map(row=>`<div><span>${esc(label(row))}</span><strong>${row[key]}</strong><meter min="0" max="${maximum}" value="${row[key]}" aria-label="${esc(label(row))}">${row[key]}</meter></div>`).join('')||'<p>No data for this period.</p>'}</div>`;};
+ const locations=`<section><h2>Location performance</h2>${barRows(r.locations,l=>l.name,'orders')}<div class="dyws-table-wrap" tabindex="0" role="region" aria-label="Location performance"><table><caption>Value by location</caption><thead><tr><th scope="col">Location</th><th scope="col">Orders</th><th scope="col">Cancelled</th><th scope="col">Ordered value</th><th scope="col">Average order</th></tr></thead><tbody>${r.locations.map(l=>`<tr><td>${esc(l.name)}</td><td>${l.orders}</td><td>${l.cancelled}</td><td>${esc(amount(l.orderedValue))}</td><td>${esc(amount(l.averageOrder))}</td></tr>`).join('')}</tbody></table></div></section>`;
+ const speed=`<section><h2>Fulfillment speed</h2><p class="dyws-note">Median shows a typical order. P90 shows the time within which 90% of measured orders finished. Missing event pairs are excluded.</p><div class="dyws-table-wrap" tabindex="0" role="region" aria-label="Fulfillment speed"><table><caption>Measured elapsed times</caption><thead><tr><th scope="col">Stage</th><th scope="col">Median</th><th scope="col">P90</th><th scope="col">Orders</th></tr></thead><tbody>${[['acceptance','Accept order'],['preparation','Prepare order'],['delivery','Deliver order']].map(([key,label])=>`<tr><th scope="row">${label}</th><td>${minutes(s[key+'MedianSeconds'])}</td><td>${minutes(s[key+'P90Seconds'])}</td><td>${s[key+'Samples']}</td></tr>`).join('')}</tbody></table></div></section>`;
+ return `<details class="dyws-kpi-definitions"><summary>How these KPIs are calculated</summary><p>Customer counts are estimates based on normalized phone numbers. Shared numbers can represent several people. A repeat customer has an earlier order or more than one order in this period. Cancelled orders are excluded from customer, item and ordered value metrics. Historic data retained by this installation determines whether a customer is new.</p><p>Refunds use the date of the refund and may relate to earlier sales, so the refund percentage can exceed 100%. Ordered value includes tax and delivery fees. These are demonstration records, not real collections. Profit, conversion and on time delivery need cost, visit and promised time data that is not currently recorded.</p></details>${heatmap}<div class="dyws-report-grid">${locations}${speed}</div><section><h2>Most ordered products</h2>${barRows(r.items.slice(0,8),i=>i.name+(i.option?' · '+i.option:''),'quantity')}</section>`;
+}
