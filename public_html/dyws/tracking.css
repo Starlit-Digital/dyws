@@ -61,7 +61,7 @@
 @media(max-width:600px) {
  .dyws-tracking-panel .dyws-tracking-timeline { grid-auto-flow:row; grid-template-columns:minmax(0,1fr); gap:0; margin-block:28px; font-size:1em; }
  .dyws-tracking-timeline li { display:grid; grid-template-columns:44px minmax(0,1fr); column-gap:16px; text-align:start; min-height:76px; padding-block-end:20px; }
- .dyws-tracking-timeline li:last-child { min-height:44px; padding-block-end:0; }
+ .dyws-tracking-timeline li:last-child { min-height:var(--dyws-control-height); padding-block-end:0; }
  .dyws-tracking-timeline li:not(:last-child)::after { inset-inline-start:21px; inset-block-start:22px; inline-size:2px; block-size:100%; }
  .dyws-tracking-timeline .dyws-step-marker { margin:0; }
  .dyws-tracking-timeline .dyws-step-label { padding-inline:0; padding-block-start:3px; }
@@ -129,8 +129,15 @@
 .dyws-cancellation{margin-block:1rem;padding-block:1rem;border-block:1px solid var(--dyws-color-border)}
 .dyws-cancellation [hidden],.dyws-cancellation[hidden]{display:none!important}
 .dyws-cancellation p{margin:.5rem 0;overflow-wrap:anywhere}
-.dyws-cancellation button{min-height:44px;padding:8px 14px;border-radius:10px;font-weight:600}
+.dyws-cancellation button{min-height:var(--dyws-control-height);padding:var(--dyws-control-padding);border-radius:var(--dyws-control-radius);font-weight:600}
 .dyws-cancellation .dyws-cancel-error:empty{display:none}
 
 .dyws-tracking-panel .dyws-cancel-keep{background:var(--dyws-tracking-accent);color:var(--dyws-color-bg)}
-.dyws-tracking-panel .dyws-tracking-return{border-radius:10px;min-height:44px;padding:8px 18px;box-shadow:none}
+.dyws-tracking-panel .dyws-tracking-return{border-radius:var(--dyws-control-radius);min-height:var(--dyws-control-height);padding:8px 18px;box-shadow:none}
+
+.dyws-tracking-panel details.dyws-tracking-details{display:block;margin-block:var(--dyws-space-4);border:1px solid var(--dyws-line-soft);border-radius:var(--dyws-field-radius);padding:var(--dyws-space-3)}
+.dyws-tracking-panel details.dyws-tracking-details[hidden]{display:none}
+.dyws-tracking-panel details.dyws-tracking-details>summary{cursor:pointer;min-height:var(--dyws-control-height);display:flex;align-items:center;gap:var(--dyws-space-2);font-weight:600}
+.dyws-tracking-panel details.dyws-tracking-details>summary::before{content:'+'}
+.dyws-tracking-panel details.dyws-tracking-details[open]>summary::before{content:'−'}
+.dyws-tracking-panel .dyws-tracking-directions{display:inline-flex;align-items:center;min-height:var(--dyws-control-height);color:var(--dyws-color-warm)}

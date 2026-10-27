@@ -1,4 +1,4 @@
-@import url('./tokens.css?v=22');
+@import url('./tokens.css?v=23');
 /* Loaded inside the ordering element's shadow root. No host page selectors. */
 .dyws-ordering button, .dyws-ordering input, .dyws-ordering textarea, .dyws-ordering select { font: inherit; touch-action: manipulation; }
 .dyws-ordering button { cursor: pointer; min-height: 48px; border: 0; border-radius: 12px; padding: 10px 18px; background: var(--dyws-color-accent); color: var(--dyws-color-button-text); font-weight: 700; }
@@ -194,7 +194,7 @@
 .dyws-review-tip { display: flex; justify-content: space-between; gap: 1rem; }
 .dyws-ordering .dyws-pickup-tools{min-width:0;margin:0 0 1rem;padding:0;border:0;text-align:left}
 .dyws-ordering .dyws-pickup-tools[hidden],.dyws-ordering .dyws-pickup-tools [hidden]{display:none}
-.dyws-ordering .dyws-option-toggle{display:flex;align-items:center;gap:.6rem;min-height:44px}
+.dyws-ordering .dyws-option-toggle{display:flex;align-items:center;gap:.6rem;min-height:var(--dyws-control-height)}
 .dyws-ordering .dyws-option-toggle input{width:1.25rem;height:1.25rem;min-height:0;margin:0;padding:0;flex:none}
 .dyws-pickup-clock{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem}
 .dyws-pickup-tools label,.dyws-pickup-tools small{margin-bottom:.6rem}
@@ -202,7 +202,7 @@
 .dyws-pickup-map{height:220px;width:100%;border-radius:.5rem;overflow:hidden;margin:.75rem 0}
 .dyws-pickup-tools figure{margin:.75rem 0}
 .dyws-pickup-tools img{width:100%;max-height:220px;object-fit:cover}
-.dyws-pickup-tools [data-pickup-directions]{display:inline-flex;align-items:center;min-height:44px;color:var(--dyws-color-warm);text-underline-offset:3px}
+.dyws-pickup-tools [data-pickup-directions]{display:inline-flex;align-items:center;min-height:var(--dyws-control-height);color:var(--dyws-color-warm);text-underline-offset:3px}
 .dyws-fulfillment-summary{margin:.5rem 0 1rem;padding:.75rem;border:1px solid currentColor;border-radius:.5rem;text-align:left}
 
 /* Persistent native labels sit in each field's frame, including filled fields. */
@@ -230,14 +230,28 @@
 .dyws-ordering .dyws-final-review .dyws-review-confirm{flex:1.4 1 6em}
 
 /* Compact rounded rectangles retain generous, consistent touch targets. */
-.dyws-ordering button,.dyws-ordering .dyws-cap-notice a{border-radius:10px;min-height:44px;padding:8px 14px;font-weight:600}
+.dyws-ordering button,.dyws-ordering .dyws-cap-notice a{border-radius:var(--dyws-control-radius);min-height:var(--dyws-control-height);padding:var(--dyws-control-padding);font-weight:600}
 .dyws-ordering button:active:not(:disabled){filter:brightness(.92)}
 .dyws-ordering .dyws-quantity{grid-template-columns:44px 28px 44px;gap:8px}
 .dyws-ordering .dyws-quantity button{width:44px;min-width:44px;height:44px;padding:6px}
 .dyws-ordering .dyws-quantity>span{width:28px}
-.dyws-ordering .dyws-tip-editor .dyws-tip-remove{width:44px;min-height:44px;padding:8px}
+.dyws-ordering .dyws-tip-editor .dyws-tip-remove{width:44px;min-height:var(--dyws-control-height);padding:8px}
 .dyws-ordering .dyws-pillbox{border-radius:12px;padding:3px;gap:3px}
-.dyws-ordering .dyws-pillbox span{border-radius:9px;min-height:44px;padding:6px 10px;font-weight:600}
+.dyws-ordering .dyws-pillbox span{border-radius:9px;min-height:var(--dyws-control-height);padding:6px 10px;font-weight:600}
 .dyws-ordering .dyws-pillbox input:checked+span{box-shadow:none}
 .dyws-ordering .dyws-final-review .dyws-actions .dyws-review-pause{padding:8px}
 .dyws-ordering .dyws-cancellation-note{margin:0 0 12px;line-height:1.4}
+
+/* Disclosure and review controls share the same accessible target and quiet styling. */
+.dyws-ordering [hidden]{display:none!important}
+.dyws-ordering .dyws-field-error{display:block;padding:0 .75rem .5rem;color:var(--dyws-color-emphasis);font-size:.85em}
+.dyws-ordering [aria-invalid="true"]{outline:2px solid var(--dyws-color-emphasis);outline-offset:-2px}
+.dyws-ordering button.dyws-edit{display:inline-flex;align-items:center;min-height:var(--dyws-control-height);padding:var(--dyws-space-1) var(--dyws-space-2);background:transparent;border:0;box-shadow:none;color:var(--dyws-color-warm);font-size:.85em;text-decoration:underline;text-underline-offset:3px}
+.dyws-ordering .dyws-review-details p{margin-block:var(--dyws-space-1)}
+.dyws-ordering .dyws-review-fulfillment{position:relative;padding:var(--dyws-space-3);border:1px solid var(--dyws-line-soft);border-radius:var(--dyws-field-radius);margin-block:var(--dyws-space-3)}
+.dyws-ordering .dyws-review-fulfillment .dyws-fulfillment-summary{padding:0;border:0;margin:0}
+.dyws-ordering .dyws-review-fulfillment p{margin-block:var(--dyws-space-2)}
+.dyws-ordering .dyws-review-notice:empty,.dyws-slot-status:empty{display:none}
+.dyws-ordering .dyws-review-options{font-size:.85em;margin-block:var(--dyws-space-2)}
+.dyws-ordering .dyws-directions-toggle{margin-block:var(--dyws-space-2)}
+.dyws-ordering label.dyws-field{border-radius:var(--dyws-field-radius)}

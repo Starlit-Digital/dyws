@@ -17,6 +17,18 @@ $hours=['enabled'=>true,'days'=>array_fill(0,7,['mode'=>'hours','open'=>'09:00',
 rejects(fn()=>Fulfillment::create('pickup',$schedule,$zone,'north',['locationHours'=>$hours],$now));
 $hours['days'][0]=['mode'=>'hours','open'=>'22:00','close'=>'02:00'];
 check(Fulfillment::create('pickup',['date'=>'2030-01-08','time'=>'01:45'],$zone,'north',['locationHours'=>$hours],$now)['scheduled'],'Overnight opening belongs to previous day');
+$available=Fulfillment::availability('2030-01-07',$zone,'north',[],$now);
+check($available['slots'][0]['time']==='12:30','Availability includes exact lead boundary');
+check(Fulfillment::availability('2030-01-07',$zone,'north',[],$now+1)['slots'][0]['time']==='12:45','One second later advances to next quarter');
+$future=Fulfillment::availability(null,$zone,'north',['locationHours'=>$hours],$at('2030-01-07 23:40'));
+check($future['date']==='2030-01-08'&&$future['slots'][0]['time']==='00:15','Earliest availability crosses midnight during overnight hours');
+$closed=['enabled'=>true,'days'=>array_fill(0,7,['mode'=>'closed'])];
+check(Fulfillment::availability(null,$zone,'north',['locationHours'=>$closed],$now)['slots']===[],'Fully closed week has no slots');
+foreach([['2027-03-14','02:'],['2026-11-01','01:']] as [$date,$hour]){
+ $slots=Fulfillment::availability($date,$zone,'north',[],$at($date.' 00:00'))['slots'];
+ check(!array_filter($slots,fn($slot)=>str_starts_with($slot['time'],$hour)),'Nonexistent or repeated DST times are omitted');
+}
+rejects(fn()=>Fulfillment::availability('2030-02-30',$zone,'north',[],$now));
 $path=tempnam(sys_get_temp_dir(),'dyws-pickup-');$GLOBALS['dyws_config']=['tracking_secret'=>str_repeat('s',64)];
 $catalog=json_decode(file_get_contents(__DIR__.'/../examples/starlit-diner/catalog.json'),true);$catalog['locationHours']=null;$catalog['orderingHours']=null;$catalog['locations']=[];
 $body=['idempotencyKey'=>bin2hex(random_bytes(16)),'fulfillment'=>'pickup','customer'=>['name'=>'Fictional Pickup Guest','phone'=>'7805550100'],'lines'=>[['id'=>'breakfast0','quantity'=>1]],'pickupSchedule'=>['date'=>(new DateTimeImmutable('tomorrow',new DateTimeZone($zone)))->format('Y-m-d'),'time'=>'12:00'],'fulfillmentMeta'=>['type'=>'delivery','timeZone'=>'UTC']];

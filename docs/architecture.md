@@ -91,3 +91,20 @@ The cleanup CLI removes expired sessions and location records and scrubs demo cu
 `GuestDetails` owns a separate browser capability, profile and structured address book. It does not use operator or tracking sessions. `guest-details.js` owns the checkout controls and keeps fetched contacts only in page memory. The first party HTTP adapter handles the HttpOnly cookie; the realtime relay never receives it.
 
 Explicit consent saves validated details in the order transaction. Each new successful order renews the profile and cookie for 180 days. Replays of the same order do not renew or recreate data. Foreign profile and address IDs cannot cross the capability boundary, and stale forms cannot silently recreate removed data. Forget cascades to all addresses while preserving business order records. Terms and removal controls remain available outside checkout at `terms/`.
+
+## Checkout and operational presentation
+
+`component.js` owns the custom element, cart, dialog and adapter boundary.
+`checkout.js` owns checkout mounting and validation, `checkout-fields.js` owns
+persistent labels and inline field errors, `pickup.js` owns availability and
+optional directions, and `order-review.js` owns review, edits and confirmation.
+Guest and plugin setup must finish before Review is enabled in the shared
+component. Site builds no longer patch this lifecycle.
+
+`order-priority.js` defines the browser work queue. Immediate orders are due at
+creation; scheduled pickups are due for preparation 30 minutes before pickup.
+The Store query uses the same sort before its 200 row limit. Active work comes
+first in ascending due order, followed by finished orders newest first. Manager
+Due now and Scheduled views divide active work using that preparation time;
+Completed includes completed pickups and delivered orders. All includes cancelled
+orders. These views do not change statuses, send notifications or dispatch orders.

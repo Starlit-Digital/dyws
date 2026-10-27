@@ -40,6 +40,8 @@ try {
  $pending=$store->create(order());$store->execute('UPDATE orders SET created_at=1 WHERE id=?',[$pending['id']]);
  for($n=0;$n<201;$n++){$history=$store->create(order());$store->execute("UPDATE orders SET status='cancelled' WHERE id=?",[$history['id']]);}
  $board=$store->orders();check(count($board)===200,'Order board remains bounded');check($board[0]['id']===$pending['id'],'An older active order remains ahead of more than 200 newer finished orders');
+ $store->execute("UPDATE orders SET status='placed',fulfillment_meta_json=? WHERE tenant=? AND status='cancelled'",[json_encode(['version'=>1,'type'=>'scheduled_pickup','label'=>'Scheduled pickup','scheduled'=>true,'scheduledAt'=>time()+86400]),$store->tenant]);
+ check($store->orders()[0]['id']===$pending['id'],'Due work survives the 200 row bound ahead of future scheduled orders');
  check(count($other->orders())===0,'Active first selection remains tenant scoped');
  echo "Backend: $checks checks passed.\n";
 }finally {unset($other,$store);foreach([$path,$path.'-wal',$path.'-shm']as $f)if(is_file($f))unlink($f);}

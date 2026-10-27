@@ -5,6 +5,25 @@ namespace dyws;
 /** Immutable fulfillment facts for tickets and future order integrations. */
 final class Fulfillment {
  public const LEAD_SECONDS=1800;
+ /** Use the same clock, hours and DST rules as order creation. No slots are reserved. */
+ public static function availability(?string $date,string $zone,string $locationId,array $policy,?int $now=null):array {
+  $now??=time();$today=(new \DateTimeImmutable('@'.$now))->setTimezone(new \DateTimeZone($zone))->setTime(0,0);
+  if($date!==null){
+   if(!preg_match('/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/D',$date))throw new ApiError('Choose a date.');
+   $day=\DateTimeImmutable::createFromFormat('!Y-m-d',$date,new \DateTimeZone($zone));
+   if(!$day||$day->format('Y-m-d')!==$date)throw new ApiError('Choose a valid date.');
+  }else $day=$today;
+  $slots=[];
+  // Eight dates include the remaining part of today and a full weekly hours cycle.
+  for($days=0;$days<($date===null?8:1);$days++,$day=$day->modify('+1 day')){
+   for($minute=0;$minute<1440;$minute+=15){
+    $time=sprintf('%02d:%02d',intdiv($minute,60),$minute%60);
+    try{$meta=self::create('pickup',['date'=>$day->format('Y-m-d'),'time'=>$time],$zone,$locationId,$policy,$now);$slots[]=['time'=>$time,'scheduledAt'=>$meta['scheduledAt']];}catch(ApiError $e){continue;}
+   }
+   if($slots)break;
+  }
+  return ['timeZone'=>$zone,'serverTime'=>$now,'minDate'=>$today->format('Y-m-d'),'date'=>$date??($slots?$day->format('Y-m-d'):$today->format('Y-m-d')),'slots'=>$slots];
+ }
  public static function schedule($value,string $type):?array {
   if($value===null)return null;
   if($type!=='pickup')throw new ApiError('Scheduled times are available for pickup orders only.');

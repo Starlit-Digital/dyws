@@ -38,3 +38,12 @@ Set public tokens on the host page or a containing element. Internal resolved va
 The diner maps its existing shade slider palette to these tokens in demo.css. That stylesheet retains only the host page, hero, footer, navigation, display preferences and theme mapping. Product cards, photos, steppers and the cart no longer depend on it. Photo layouts remain full width on mobile, with the category image on the left and under half the available width on desktop. Controls retain their 48px targets and manipulation touch behavior.
 
 Admin and driver pages use `dyws-shell`, with explicit controller module entry points. The full distribution includes browser setup. Native driver apps remain future work.
+
+## Shared control sizing
+
+`tokens.css` supplies shared spacing steps, `--dyws-control-height` (44px),
+`--dyws-control-radius` (10px), `--dyws-field-radius` (12px), and control padding.
+Hosts can override `--dyws-touch-height`, `--dyws-radius` and `--dyws-input-radius`.
+Compact controls retain visible labels, keyboard focus and minimum touch targets.
+Notes and directions expand on request; customer tracking keeps payment and
+cancellation visible while the receipt uses native expandable details.

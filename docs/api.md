@@ -5,12 +5,13 @@ Entry point: `/diner-demo/api/?route=/health`. Routes below are values of the `r
 | Method | Route | Access | Purpose |
 | --- | --- | --- | --- |
 | GET | /health | Public | Service and demo status |
+| POST | /pickup/availability | Public, rate limited | Available quarter hours for the selected location and date |
 | POST | /pickup/preview | Public, rate limited | Validate scheduled pickup and return fulfillment metadata |
 | POST | /login | Public, rate limited | Manager or driver session |
 | POST | /logout | Bearer | Revoke current session |
 | POST | /orders | Public, rate limited | Create idempotent test order |
 | GET | /tracking/ORDER_ID | X-Tracking-Token | Customer status, saved receipt, public business details and current GPS |
-| GET | /manager/orders | Manager bearer | Up to 200 orders, active before finished, and configured drivers |
+| GET | /manager/orders | Manager bearer | Up to 200 orders, active ordered by preparation due time before finished, and configured drivers |
 | GET | /manager/reports | Manager bearer | Date filtered sales and order metrics |
 | POST | /manager/orders/ORDER_ID/status | Manager bearer | Transition order |
 | POST | /manager/orders/ORDER_ID/assign | Manager bearer | Assign driver |
@@ -167,7 +168,7 @@ Private tracking responses include `driver: {name, vehicleType, vehicleColor, pr
 
 The token protected tracking response also includes `createdAt` as UTC seconds, `business: {name, phone, pickupAddress}` and `summary: {lines, currency, subtotal, tax, deliveryFee, tip, total}`. Summary amounts are saved integer cents. Each line exposes only `name`, `option`, `quantity` and `price`; changing the catalog never rewrites an existing receipt. Tenant, token and expiry checks apply before these fields are returned. Customer names, phone numbers, notes, credentials and plugin order data are not added to the response. The existing delivery address remains available only through the authorized tracking response.
 
-Checkout makes no order creation request during the final review. The ten second countdown or an explicit Place order click submits the reviewed order once. Back and closing the dialog cancel the timer. Taking more time or hiding the page pauses it until the customer deliberately confirms. Submission failures retain the cart and reuse the existing idempotency key when the order is unchanged.
+Checkout makes no order creation request during the final review. Place order submits the reviewed order once. Automatic submission is off by default. Selecting Send after 10 seconds enables the optional countdown for this review only. Back and closing the dialog cancel the timer. Pause, hiding the page or moving the confirmation button out of view pauses the optional countdown until the customer deliberately resumes or confirms. Submission failures retain the cart and reuse the existing idempotency key when the order is unchanged.
 
 ## Order Format templates
 
@@ -421,3 +422,19 @@ show a delay, without restoring the cancelled order or claiming a refund complet
 The demo ledger records one full fictional refund when a captured order is
 cancelled. Existing reporting and tip allocation include the same refund exactly
 once. Customer actions are recorded with actor `customer`.
+
+### Available pickup slots
+
+`POST /pickup/availability` accepts `{locationId, date?}`. The date is a local
+`YYYY-MM-DD` calendar date in the business timezone. Omitting it finds the first
+available date within today and the following seven dates. The response contains
+`timeZone`, `serverTime` in Unix seconds, `minDate`, `date` and `slots`, an array of
+`{time, scheduledAt}`. Times use `HH:MM` with quarter hour minutes. No slot is
+reserved. Empty slots mean no available time on that date or within the searched
+week. Invalid dates and unavailable locations return 422. The route is limited
+to 60 requests per minute and is explicitly allowed in the public demo.
+
+Availability uses the same 30 minute lead, location opening hours, overnight
+hours and daylight saving time rules as order creation. Repeated or nonexistent
+clock times are omitted. Checkout still validates with `/pickup/preview`, and
+order creation validates again against the server clock.

@@ -23,7 +23,7 @@ export function applyOrderLayout({stage,root,layout}){
   const [caption,name,max,autocomplete]=extras[f.id],label=doc.createElement('label'),input=doc.createElement('input');
   label.textContent=caption+', optional';label.dataset.dywsOrderField=f.id;label.dataset.dywsDelivery='';input.name=name;input.maxLength=max;input.autocomplete=autocomplete;label.append(input);nodes.set(f.id,label);
  }
- const keep=[...root.querySelectorAll('[data-dyws-checkout-fields],.dyws-error,.dyws-review-notice,.dyws-cancellation-note')];
+ const keep=[...root.querySelectorAll('[data-dyws-checkout-fields],.dyws-error,.dyws-review-notice,.dyws-cancellation-note,.dyws-review-options')];
  const grid=doc.createElement('div');grid.className='dyws-order-grid';grid.dataset.stage=stage;
  for(const f of [...layout.fields].sort((a,b)=>a.row-b.row||a.column-b.column)){
   const node=nodes.get(f.id);if(!node)continue;

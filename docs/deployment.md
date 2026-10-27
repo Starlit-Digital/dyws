@@ -291,3 +291,19 @@ needed for the synchronous fictional demo ledger.
 The private Stripe plugin additionally requires Refunds read and write permissions,
 the updated refund event subscriptions, and its separate private deployment. Do
 not install it on public demos or describe their ledger actions as real refunds.
+
+## Checkout polish rollout, October 27, 2026
+
+Deploy checkout, checkout field helpers, order review, pickup availability,
+operational priority, tracking presentation and regenerated preloads together.
+The public demo route policy must include `/pickup/availability`. There is no
+catalog or schema migration for this pass. Preserve existing cancellation policy,
+customer records and payment adapters. The core now owns checkout readiness,
+so showcase generation must remove its previous component source patch.
+
+Validate explicit confirmation with no automatic request after ten seconds,
+optional countdown pause, field error focus, notes and directions disclosures,
+earliest valid schedule, stale availability responses, custom layouts, tracking
+cancellation and payment visibility, manager work views, and driver shortcuts.
+Use fictional orders and isolated local data before the ten example rollout.
+The private Stripe integration remains outside the public deployment.

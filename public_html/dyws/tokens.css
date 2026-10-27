@@ -22,6 +22,15 @@
 
 /* Shared presentation tokens adapt to the host's light or dark palette. */
 .dyws-shell,.dyws-catalog,.dyws-ordering,.dyws-tracking-panel {
+ --dyws-control-height:var(--dyws-touch-height,44px);
+ --dyws-control-radius:var(--dyws-radius,10px);
+ --dyws-field-radius:var(--dyws-input-radius,12px);
+ --dyws-space-1:4px;
+ --dyws-space-2:8px;
+ --dyws-space-3:12px;
+ --dyws-space-4:16px;
+ --dyws-space-6:24px;
+ --dyws-control-padding:var(--dyws-space-2) 14px;
  --dyws-color-warm:var(--dyws-warm,color-mix(in srgb,var(--dyws-color-text) 60%,#d59170));
  --dyws-line-soft:color-mix(in srgb,var(--dyws-color-border) 38%,transparent);
  --dyws-panel-fill:linear-gradient(135deg,var(--dyws-color-surface),color-mix(in srgb,var(--dyws-color-bg) 40%,var(--dyws-color-surface)));

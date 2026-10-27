@@ -1,31 +1,11 @@
-import {mountPickup} from './pickup.js';
-import {fulfillmentHTML} from './fulfillment.js';
-import {tipCents} from './tips.js';
-import {deliveryCharge,locationPolicy,isOrderingOpen,scheduleText} from './business-policy.js';
-import {mountGuestDetails,rememberPreference} from './guest-details.js';
-import {captureCheckout,restoreCheckout} from './checkout-draft.js';
-import {splitAddress} from './address-lines.js';
-import {formatPhoneField} from './phone-input.js';
 import {readCatalog} from './catalog-data.js';
 import {lineKey,resolveItem,restoreCart,totals,itemOrderCap,itemQuantity} from './cart.js';
-import {createConfirmationCountdown} from './confirmation-countdown.js';
 import {applyOrderLayout} from './order-layout.js';
+import {captureCheckout} from './checkout-draft.js';
+import {mountCheckout} from './checkout.js';
+import {showOrderReview,sendReviewedOrder} from './order-review.js';
 const escapeHTML = value => String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const formatPhone = value => {const phone=String(value??'');const digits=phone.replace(/\D/g,'').replace(/^1(?=\d{10}$)/,'');return digits.length===10?`(${digits.slice(0,3)}) ${digits.slice(3,6)}-${digits.slice(6)}`:phone;};
-const formatPostalCode = value => {const postal=String(value??'').trim();return /^[a-z]\d[a-z]\s?\d[a-z]\d$/i.test(postal)?postal.replace(/\s/g,'').toUpperCase().replace(/^(.{3})(.{3})$/,'$1 $2'):postal;};
-// Keep native label associations and visible captions after host plugins add fields.
-function frameCheckoutFields(form){
- for(const label of form.querySelectorAll('label')){
-  const input=label.querySelector('input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),select,textarea');
-  if(!input||label.classList.contains('dyws-field'))continue;
-  const textNodes=[...label.childNodes].filter(node=>node.nodeType===3),caption=textNodes.map(node=>node.textContent).join('').trim();
-  if(!caption)continue;
-  const title=form.ownerDocument.createElement('span');title.className='dyws-field-label';title.textContent=caption;
-  textNodes.forEach(node=>node.remove());label.prepend(title);label.classList.add('dyws-field');
-  if(!input.id&&input.name)input.id='dyws-checkout-'+input.name;
-  if(input.id)label.htmlFor=input.id;
- }
-}
 export class DYWSOrdering extends HTMLElement {
   constructor(){super();this.attachShadow({mode:'open'});this.lines=[];this.busy=false;}
   async connectedCallback(){
@@ -46,7 +26,7 @@ export class DYWSOrdering extends HTMLElement {
   persist(){try{localStorage.setItem(this.key,JSON.stringify(this.lines));}catch{} this.updateButton();this.dispatchEvent(new CustomEvent('cart-change',{detail:{count:this.lines.reduce((n,l)=>n+l.quantity,0)},bubbles:true}));void this.plugins?.runAction('cart:updated',{lines:this.lines.map(line=>({...line})),totals:totals(this.lines,this.catalog.taxBasisPoints)});}
   updateButton(){const count=this.lines.reduce((n,l)=>n+l.quantity,0);this.shadowRoot.querySelector('.dyws-cart-launch').textContent=`Your order (${count}) · ${this.amount(totals(this.lines,this.catalog.taxBasisPoints).total)}`;}
   add(id,variant=''){
-    if(!this.catalog || this.busy||this.reviewCountdown)return;
+    if(!this.catalog || this.busy||this.reviewPanel)return;
     const item=resolveItem(this.catalog,id,variant);const key=lineKey(id,variant);
     const row=this.lines.find(l=>lineKey(l.id,l.variant)===key);
     if(itemQuantity(this.lines,id)>=itemOrderCap(this.catalog)){this.showItemLimit();return;}
@@ -54,7 +34,7 @@ export class DYWSOrdering extends HTMLElement {
     this.persist();this.announce(`${item.name} added to your order.`);
   }
   remove(id,variant=''){
-    if(!this.catalog || this.busy||this.reviewCountdown)return;
+    if(!this.catalog || this.busy||this.reviewPanel)return;
     const row=this.lines.find(line=>lineKey(line.id,line.variant)===lineKey(id,variant));
     if(!row)return;
     row.quantity--;
@@ -63,7 +43,7 @@ export class DYWSOrdering extends HTMLElement {
   }
   announce(text){this.shadowRoot.querySelector('[role="status"]').textContent=text;}
   render(){
-    this.shadowRoot.innerHTML=`<link rel="stylesheet" href="${new URL('./ordering.css?v=52',import.meta.url).href}"><div class="dyws-ordering"><button class="dyws-cart-launch" type="button">Your order</button><p id="dyws-status" role="status" aria-live="polite"></p><dialog aria-label="Your order"><header><div class="dyws-store-brand"><slot name="site-logo"></slot><span>${escapeHTML(this.catalog.businessName || this.catalog.restaurant || '')}</span></div><button type="button" class="dyws-muted dyws-close" aria-label="Close order">Close</button></header><div class="dyws-content"></div></dialog></div>`;
+    this.shadowRoot.innerHTML=`<link rel="stylesheet" href="${new URL('./ordering.css?v=53',import.meta.url).href}"><div class="dyws-ordering"><button class="dyws-cart-launch" type="button">Your order</button><p id="dyws-status" role="status" aria-live="polite"></p><dialog aria-label="Your order"><header><div class="dyws-store-brand"><slot name="site-logo"></slot><span>${escapeHTML(this.catalog.businessName || this.catalog.restaurant || '')}</span></div><button type="button" class="dyws-muted dyws-close" aria-label="Close order">Close</button></header><div class="dyws-content"></div></dialog></div>`;
     this.dialog=this.shadowRoot.querySelector('dialog');
     this.shadowRoot.querySelector('.dyws-cart-launch').onclick=()=>this.open();
     this.shadowRoot.querySelector('.dyws-close').onclick=()=>this.dialog.close();
@@ -90,103 +70,9 @@ export class DYWSOrdering extends HTMLElement {
     content.querySelectorAll('[data-change]').forEach(b=>b.onclick=()=>{const n=Number(b.dataset.change);if(Number(b.dataset.delta)>0&&itemQuantity(this.lines,this.lines[n].id)>=itemOrderCap(this.catalog)){this.showItemLimit();return;}this.lines[n].quantity+=Number(b.dataset.delta);this.lines=this.lines.filter(l=>l.quantity>0);this.persist();this.showCart();});
     content.querySelector('.dyws-checkout')?.addEventListener('click',()=>this.checkout());
   }
-  async checkout(){
-    this.pickup?.destroy();this.pickup=null;
-    if(this.getAttribute('catalog')){try{this.catalog=await readCatalog(this,{fresh:true});this.lines=restoreCart(this.catalog,this.lines);this.persist();}catch{this.shadowRoot.querySelector('.dyws-content').insertAdjacentHTML('beforeend','<p role="alert">Unable to check current prices and ordering hours. Please try again.</p>');return;}}
-    if(!this.lines.length){this.showCart();return;}
-    const t=totals(this.lines,this.catalog.taxBasisPoints);const content=this.shadowRoot.querySelector('.dyws-content');
-    const configuredLocations=this.catalog.locations||[],locations=configuredLocations.length?configuredLocations.filter(location=>location.active):[{id:'',name:this.catalog.businessName||this.catalog.restaurant||'Business',address:this.catalog.pickupAddress||'',phone:this.catalog.businessPhone||''}];
-    content.innerHTML=`<form><label data-dyws-order-field="location">Store<select name="locationId" ${configuredLocations.length?'required':''}>${locations.map(location=>`<option value="${escapeHTML(location.id)}">${escapeHTML(location.name)}${location.address?' · '+escapeHTML(location.address):''}</option>`).join('')}</select></label><div class="dyws-checkout-hours" data-dyws-hours></div><div class="dyws-checkout-grid"><label data-dyws-order-field="name">Name<input name="customer" required maxlength="100" autocomplete="off"></label><label data-dyws-order-field="phone">Phone<input name="phone" type="tel" required pattern="[0-9+() .-]{7,30}" maxlength="30" autocomplete="off"></label></div><fieldset class="dyws-fulfillment" data-dyws-order-field="fulfillment"><legend class="dyws-visually-hidden">Order type</legend><div class="dyws-pillbox"><label><input type="radio" name="fulfillment" value="pickup" aria-label="Pickup" checked><span>Pickup</span></label><label><input type="radio" name="fulfillment" value="delivery" aria-label="Delivery"><span>Delivery</span></label></div></fieldset><fieldset class="dyws-delivery-address" aria-label="Delivery address" hidden disabled><div class="dyws-checkout-grid"><label class="dyws-address-street" data-dyws-order-field="street" data-dyws-delivery>Address<input name="addressLine1" required maxlength="120" autocomplete="address-line1"></label><label data-dyws-order-field="unit" data-dyws-delivery>Unit (optional)<input name="addressLine2" maxlength="60" autocomplete="address-line2"></label><input type="hidden" name="addressPostal"></div></fieldset><label data-dyws-order-field="notes">Notes (optional)<textarea name="notes" maxlength="500"></textarea></label><p class="dyws-pickup-location" data-dyws-order-field="pickup">Pickup: <a href="https://www.google.com/maps/search/?api=1&amp;query=${encodeURIComponent(this.catalog.pickupAddress || this.catalog.businessName || this.catalog.restaurant)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHTML(this.catalog.pickupAddress || this.catalog.businessName || this.catalog.restaurant)}, Google Maps, opens in a new tab">${escapeHTML(this.catalog.pickupAddress || this.catalog.businessName || this.catalog.restaurant)} ↗</a></p><div data-dyws-order-field="total"><div class="dyws-tip"><input type="hidden" name="addTip" value="0"><button type="button" class="dyws-tip-add dyws-muted" aria-controls="dyws-tip-amount" aria-expanded="false">Add tip</button><div id="dyws-tip-amount" class="dyws-tip-editor" hidden><span aria-hidden="true">$</span><input name="tipDollars" type="text" inputmode="numeric" pattern="[0-9]+" maxlength="6" autocomplete="off" aria-label="Tip amount in ${escapeHTML(this.catalog.currency)}, whole dollars" placeholder="Tip" disabled><button type="button" class="dyws-tip-remove dyws-muted" aria-label="Remove tip" title="Remove tip"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M9 6V4h6v2M5 6l1 14h12l1-14M10 10v6M14 10v6"/></svg></button></div></div><p><strong class="dyws-checkout-total">Total ${this.amount(t.total)}</strong></p></div><div data-dyws-checkout-fields></div><p role="alert" class="dyws-error"></p><div class="dyws-actions" data-dyws-order-field="actions"><button type="button" class="dyws-muted dyws-back">Back</button><button type="submit" aria-label="Review order">Review</button></div></form>`;
-    content.querySelector('.dyws-back').onclick=()=>{this.checkoutDraft=captureCheckout(content.querySelector('form'));this.showCart();};
-    const form=content.querySelector('form');
-    form.addEventListener('input',formatPhoneField);
-    const orderType=form.querySelector('.dyws-fulfillment'),customerFields=form.elements.customer.closest('.dyws-checkout-grid');
-    if(orderType&&customerFields)customerFields.before(orderType);
-    const selectedLocation=()=>locations.find(location=>location.id===form.elements.locationId.value);
-    this.pickup=mountPickup({form,catalog:this.catalog,selectedLocation,plugins:this.plugins,api:this.pickupAPI});
-    form.elements.locationId.onchange=()=>{const location=selectedLocation(),policy=locationPolicy(this.catalog,location);
-     const hours=form.querySelector('[data-dyws-hours]'),open=this.catalog.acceptingOrders!==false&&isOrderingOpen(policy.orderingHours,this.catalog.timeZone);
-     hours.innerHTML=`${!open?'<p role="status">'+(this.catalog.acceptingOrders===false?'Online ordering is temporarily paused.':'Online ordering is currently closed for this location.')+'</p>':''}${['locationHours','orderingHours'].filter(key=>policy[key]?.enabled).map(key=>`<details><summary>${key==='locationHours'?'Location hours':'Ordering hours'} (${escapeHTML(this.catalog.timeZone||'America/Edmonton')})</summary><p>${escapeHTML(scheduleText(policy[key]))}</p></details>`).join('')}`;
-     form.querySelector('.dyws-fulfillment').onchange?.();const link=form.querySelector('.dyws-pickup-location a');if(link){const address=location?.address||location?.name||'Choose a location';link.textContent=address;if(location){link.href='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(address);link.setAttribute('aria-label',address+', Google Maps, opens in a new tab');}else{link.removeAttribute('href');link.removeAttribute('aria-label');}}};
-    form.elements.locationId.onchange();
-    const pluginData={};let fieldsReady=!this.plugins;
-    form.querySelector('.dyws-fulfillment').onchange=()=>{this.pickup?.sync();const delivery=form.elements.fulfillment.value==='delivery';const address=form.querySelector('.dyws-delivery-address');if(address){address.hidden=!delivery;address.disabled=!delivery;}for(const label of form.querySelectorAll('[data-dyws-delivery]')){label.hidden=!delivery;label.querySelectorAll('input').forEach(input=>input.disabled=!delivery);if(label.parentElement.classList.contains('dyws-order-cell'))label.parentElement.hidden=!delivery;}const pickup=form.querySelector('.dyws-pickup-location');if(pickup){pickup.hidden=delivery;if(pickup.parentElement.classList.contains('dyws-order-cell'))pickup.parentElement.hidden=delivery;}const fee=deliveryCharge(this.catalog,t.subtotal,delivery?'delivery':'pickup',selectedLocation());const total=t.subtotal+fee+Math.round((t.subtotal+fee)*this.catalog.taxBasisPoints/10000)+((form.elements.addTip.value==='1')&&/^[0-9]{1,6}$/.test(form.elements.tipDollars.value)?tipCents(form.elements.tipDollars.value):0);form.querySelector('.dyws-checkout-total').textContent=(delivery?'Delivery '+this.amount(fee)+' · ':'')+'Total '+this.amount(total);};
-    const syncTip=(focus=false)=>{const enabled=form.elements.addTip.value==='1',input=form.elements.tipDollars;form.querySelector('#dyws-tip-amount').hidden=!enabled;input.disabled=!enabled;input.required=enabled;const add=form.querySelector('.dyws-tip-add');add.hidden=enabled;add.setAttribute('aria-expanded',String(enabled));form.querySelector('.dyws-fulfillment').onchange();if(focus&&enabled)input.focus();};
-    form.querySelector('.dyws-tip-add').onclick=()=>{form.elements.addTip.value='1';syncTip(true);};
-    form.querySelector('.dyws-tip-remove').onclick=()=>{form.elements.addTip.value='0';form.elements.tipDollars.value='';syncTip();form.querySelector('.dyws-tip-add').focus();};
-    form.elements.tipDollars.oninput=()=>syncTip();
-    form.onsubmit=async event=>{
-      event.preventDefault();if(this.busy||this.reviewCountdown||!fieldsReady||!form.reportValidity())return;
-      const values=new FormData(form);if(!values.get('customer').trim()){content.querySelector('.dyws-error').textContent='Enter a name.';return;}
-      const location=selectedLocation();if(!location){form.querySelector('.dyws-error').textContent='Choose an available location.';return;}
-      if(this.catalog.acceptingOrders===false){form.querySelector('.dyws-error').textContent='Online ordering is temporarily paused. Please try again later.';return;}
-      if(!isOrderingOpen(locationPolicy(this.catalog,location).orderingHours,this.catalog.timeZone)){form.querySelector('.dyws-error').textContent='Online ordering is closed for this location. Please check its ordering hours.';return;}
-      this.busy=true;this.shadowRoot.querySelector('.dyws-close').disabled=true;form.querySelectorAll('button').forEach(b=>b.disabled=true);
-      const addressDetails=values.get('fulfillment')==='delivery'?Object.fromEntries([['line1','addressLine1'],['line2','addressLine2'],['postalCode','addressPostal'],['city','addressCity'],['region','addressRegion'],['country','addressCountry']].map(([key,field])=>[key,String(values.get(field)||'').trim()])):undefined;
-      const streetInput=form.elements.addressLine1;
-      if(addressDetails&&streetInput?.dataset.dywsAddressDisplay===streetInput.value)addressDetails.line1=streetInput.dataset.dywsAddressLine1;
-      if(addressDetails)addressDetails.postalCode=formatPostalCode(addressDetails.postalCode);
-      const order={locationId:location.id,orderLocation:location,businessName:this.catalog.businessName || this.catalog.restaurant,currency:this.catalog.currency,lines:this.lines.map(l=>({...l})),...t,customer:{name:values.get('customer').trim(),phone:values.get('phone').trim()},notes:String(values.get('notes')||'').trim(),fulfillment:values.get('fulfillment'),pluginData,rememberDetails:rememberPreference(form),addressDetails,address:addressDetails?[addressDetails.line1,addressDetails.line2,addressDetails.city,addressDetails.region,addressDetails.postalCode,addressDetails.country].filter(Boolean).join(', '):''};
-      try {
-      Object.assign(order,await this.pickup.read());
-      order.tip=tipCents(form.elements.tipDollars.value,(form.elements.addTip.value==='1'));
-      await this.plugins?.validate('checkout:validating',{form,order,pluginData});
-      if(!this.isConnected||!this.dialog.open)return;
-      const fingerprint=JSON.stringify(order);if(this.pendingFingerprint!==fingerprint){this.pendingFingerprint=fingerprint;this.pendingKey=crypto.randomUUID();}order.idempotencyKey=this.pendingKey;const fee=deliveryCharge(this.catalog,t.subtotal,order.fulfillment,location);order.deliveryFee=fee;order.tax=Math.round((t.subtotal+fee)*this.catalog.taxBasisPoints/10000);order.total=t.subtotal+fee+order.tax+order.tip;
-      this.reviewOrder({order,form,content});
-      }catch(error){form.querySelector('.dyws-error').textContent=error.message||'Unable to review. Your cart has been kept.';}
-      finally{this.busy=false;this.shadowRoot.querySelector('.dyws-close').disabled=false;form.querySelectorAll('button').forEach(b=>b.disabled=false);}
-    };
-    if(this.plugins){
-     const buttons=[...form.querySelectorAll('button')];buttons.forEach(button=>button.disabled=true);
-     await this.plugins.runAction('checkout:fields',{root:form.querySelector('[data-dyws-checkout-fields]'),form,pluginData});
-     buttons.forEach(button=>button.disabled=false);
-    }
-    this.applyLayout('checkout',form);
-    restoreCheckout(form,this.checkoutDraft||[]);syncTip();form.elements.locationId.onchange();form.querySelector('.dyws-fulfillment').onchange();
-    const saved=await mountGuestDetails({form,api:this.guestAPI,termsURL:this.termsURL,hasDraft:!!this.checkoutDraft,onForget:()=>{this.checkoutDraft=null;}});
-    if(!form.isConnected)return;
-    restoreCheckout(form,(this.checkoutDraft||[]).filter(field=>['rememberDetails','savedProfileId','savedAddressId','addressLabel','customAddressLabel','defaultAddress'].includes(field.name)));
-    saved?.afterRestore(this.checkoutDraft);saved?.sync();form.elements.locationId.onchange();form.querySelector('.dyws-fulfillment').onchange();
-    frameCheckoutFields(form);fieldsReady=true;form.elements.customer.focus();
-  }
-  reviewOrder({order,form,content}){
-    this.cancelReview();form.hidden=true;
-    const review=document.createElement('section');this.reviewPanel=review;review.className='dyws-final-review';review.tabIndex=-1;review.setAttribute('aria-label','Order review');review.setAttribute('aria-describedby','dyws-review-notice');
-    const pickupAddress=order.orderLocation?.address||this.catalog.pickupAddress||this.catalog.businessName||'the business';
-    const addressHTML=(value,city='')=>splitAddress(value,city).map(escapeHTML).join('<br>');
-    const deliveryStreet=[order.addressDetails?.line1,order.addressDetails?.line2].filter(Boolean).join(', ');
-    const deliveryCity=[order.addressDetails?.city,order.addressDetails?.region,order.addressDetails?.postalCode].filter(Boolean).join(', ');
-    const pickupLink=`<a href="https://www.google.com/maps/search/?api=1&amp;query=${encodeURIComponent(pickupAddress)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHTML(pickupAddress)}, Google Maps, opens in a new tab">${addressHTML(pickupAddress)}</a>`;
-    review.innerHTML=`<p data-dyws-order-field="location">${escapeHTML(order.orderLocation?.name||this.catalog.businessName||'')}</p><ul class="dyws-review-items" data-dyws-order-field="items">${order.lines.map(line=>`<li><span>${escapeHTML(line.quantity)} × ${escapeHTML(line.name)}${line.option?`<small>${escapeHTML(line.option)}</small>`:''}</span><strong>${this.amount(line.price*line.quantity)}</strong></li>`).join('')}</ul><dl class="dyws-review-charges"><div data-dyws-order-field="delivery" ${order.fulfillment==='delivery'?'':'hidden'}><dt>Delivery</dt><dd>${this.amount(order.deliveryFee)}</dd></div><div data-dyws-order-field="tax"><dt>Tax (${this.catalog.taxBasisPoints/100}%)</dt><dd>${this.amount(order.tax)}</dd></div></dl><div class="dyws-review-details"><p><span data-dyws-order-field="name">${escapeHTML(order.customer.name)}</span><br><span data-dyws-order-field="phone">${escapeHTML(formatPhone(order.customer.phone))}</span></p><p><span data-dyws-order-field="address">${order.fulfillment==='delivery'?'':'<strong>Pickup:</strong> '}${order.fulfillment==='delivery'?addressHTML(deliveryStreet)+(deliveryCity?'<br>'+escapeHTML(deliveryCity):''):pickupLink}</span><span data-dyws-order-field="postal" hidden></span></p><p data-dyws-order-field="notes" ${order.notes?'':'hidden'}><strong>Notes</strong><br>${escapeHTML(order.notes)}</p></div><div data-dyws-order-field="total">${fulfillmentHTML(order)}<p class="dyws-review-tip"><span>Tip</span><strong>${this.amount(order.tip)}</strong></p><p class="dyws-grand-total">Total ${this.amount(order.total)}</p></div><p id="dyws-review-notice" class="dyws-review-notice" role="status" aria-live="polite" aria-atomic="true">Sends automatically in 10 seconds.</p><div class="dyws-review-footer"><div data-dyws-order-field="actions" class="dyws-actions"><button type="button" class="dyws-review-back dyws-muted">Back</button><button data-dyws-order-field="pause" type="button" class="dyws-review-pause dyws-muted" aria-label="Pause automatic submission">10 sec</button><button type="button" class="dyws-review-confirm" aria-label="Place order">Place order</button></div></div>`;
-    const cancellation=locationPolicy(this.catalog,order.orderLocation).customerCancellation;
-    if(cancellation?.enabled){const note=document.createElement('p');note.className='dyws-note dyws-cancellation-note';note.textContent=`Cancel within ${cancellation.minutes} ${cancellation.minutes===1?'minute':'minutes'} of placing your order, before pickup or dispatch.`;review.querySelector('.dyws-review-footer').prepend(note);}
-    const customLayout=this.applyLayout('review',review);
-    const actions=review.querySelector('.dyws-review-back').parentElement;actions.insertBefore(review.querySelector('.dyws-review-pause'),review.querySelector('.dyws-review-confirm'));
-    content.append(review);review.focus();
-    review.querySelector('.dyws-review-back').onclick=()=>{this.cancelReview();form.querySelector('button[type="submit"]').focus();};
-    review.querySelector('.dyws-review-confirm').onclick=()=>this.reviewCountdown?.confirm();
-    review.querySelector('.dyws-review-pause').onclick=()=>this.reviewCountdown?.toggle();
-    this.reviewCountdown=createConfirmationCountdown({document:this.ownerDocument,onTick:seconds=>{review.querySelector('.dyws-review-pause').textContent=`${seconds} sec`;},onPause:()=>{
-      review.querySelector('.dyws-review-notice').textContent='Paused. Place order when ready.';
-      const pause=review.querySelector('.dyws-review-pause');pause.textContent='Paused';pause.dataset.paused='true';pause.setAttribute('aria-label','Resume countdown');
-    },onResume:()=>{review.querySelector('.dyws-review-pause').dataset.paused='false';review.querySelector('.dyws-review-pause').setAttribute('aria-label','Pause automatic submission');review.querySelector('.dyws-review-notice').textContent='Sends when the countdown ends.';},onConfirm:()=>{void this.sendReviewedOrder({order,form,content,review});}});
-    if(customLayout&&typeof IntersectionObserver==='function'){this.reviewVisibility=new IntersectionObserver(entries=>{if(entries.some(entry=>entry.intersectionRatio<.99))this.reviewCountdown?.pause();},{threshold:1});this.reviewVisibility.observe(review.querySelector('.dyws-review-confirm'));}
-  }
-  async sendReviewedOrder({order,form,content,review}){
-    if(this.busy||!this.dialog.open||!this.isConnected||this.reviewPanel!==review)return;
-    this.reviewCountdown?.cancel();this.reviewCountdown=null;this.busy=true;this.shadowRoot.querySelector('.dyws-close').disabled=true;review.querySelectorAll('button').forEach(b=>b.disabled=true);
-    review.querySelector('.dyws-review-notice').textContent='Sending…';
-    try {
-        if(typeof this.submitOrder!=='function') throw new Error('No checkout adapter is configured.');
-        const result=await this.submitOrder(order);
-        if(!result?.id)throw new Error('Order confirmation was not received.');
-        this.pickup?.destroy();this.pickup=null;this.checkoutDraft=null;this.lines=[];this.persist();
-        content.innerHTML=`<h3>Order received</h3><p>Reference <strong>${escapeHTML(result.id)}</strong></p>${result.paymentProvider!=='demo'?'<p>Continue to payment below.</p>':''}<button type="button" class="dyws-done">Back to menu</button>`;
-        content.querySelector('.dyws-done').onclick=()=>{this.dialog.close();this.dispatchEvent(new CustomEvent('order-confirmation-closed',{bubbles:true}));};
-        this.dispatchEvent(new CustomEvent('order-complete',{detail:{id:result.id,demo:result.demo===true,trackingToken:result.trackingToken},bubbles:true}));
-      }catch(error){this.cancelReview();form.querySelector('.dyws-error').textContent=error.message||'Unable to submit. Your cart has been kept.';form.querySelector('button[type="submit"]').focus();}
-      finally{this.busy=false;this.shadowRoot.querySelector('.dyws-close').disabled=false;}
-  }
+  checkout(){return mountCheckout.call(this);}
+  reviewOrder(args){return showOrderReview.call(this,args);}
+  sendReviewedOrder(args){return sendReviewedOrder.call(this,args);}
+
 }
 customElements.define('dyws-ordering',DYWSOrdering);

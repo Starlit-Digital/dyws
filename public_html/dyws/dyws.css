@@ -1,9 +1,9 @@
 /* DYWS light DOM styles. Cart styles load separately inside its shadow root. */
-@import url('./tokens.css?v=22');
+@import url('./tokens.css?v=23');
 @import url('./status.css?v=1');
 @import url('./catalog.css?v=22');
-@import url('./admin.css?v=29');
-@import url('./tracking.css?v=52');
+@import url('./admin.css?v=30');
+@import url('./tracking.css?v=53');
 .dyws-plugin-area:empty { display: none; }
 .dyws-catalog .dyws-product > .dyws-plugin-area { grid-column: 1 / -1; }
 
