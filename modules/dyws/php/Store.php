@@ -7,8 +7,10 @@ require_once __DIR__.'/Catalog.php';
 require_once __DIR__.'/Tips.php';
 require_once __DIR__.'/Fulfillment.php';
 require_once __DIR__.'/DriverTips.php';
+require_once __DIR__.'/CustomerDrivers.php';
+require_once __DIR__.'/DeliveryAddresses.php';
 use RuntimeException;
-final class ApiError extends RuntimeException {public int $http; public function __construct(string $message,int $http=422){parent::__construct($message);$this->http=$http;}}
+final class ApiError extends RuntimeException {public function __construct(string $message,public int $http=422,public ?string $errorCode=null,public array $context=[]){parent::__construct($message);}}
 final class Store {
  private int $transactionDepth=0;
  public PDO $db; private array $catalog; public string $tenant; public ?Plugins $plugins=null;
@@ -23,7 +25,12 @@ final class Store {
    }
    $this->db->exec(file_get_contents(__DIR__.'/schema.sql'));
   $columns=array_column($this->query('PRAGMA table_info(orders)'),'name');
-  foreach(['cancellation_window_minutes'=>'INTEGER NOT NULL DEFAULT 0 CHECK(cancellation_window_minutes BETWEEN 0 AND 1440)','customer_cancelled_at'=>'INTEGER','cancellation_payment_state'=>"TEXT NOT NULL DEFAULT ''",'fulfillment_meta_json'=>"TEXT NOT NULL DEFAULT '{}'",'tip'=>'INTEGER NOT NULL DEFAULT 0 CHECK(tip>=0 AND tip%100=0)', 'currency'=>"TEXT NOT NULL DEFAULT 'CAD'",'payment_provider'=>"TEXT NOT NULL DEFAULT 'demo'",'address_json'=>"TEXT NOT NULL DEFAULT '{}'",'plugin_data_json'=>"TEXT NOT NULL DEFAULT '{}'",'order_location_json'=>"TEXT NOT NULL DEFAULT '{}'"] as $column=>$definition)if(!in_array($column,$columns,true))$this->db->exec("ALTER TABLE orders ADD COLUMN $column $definition");
+  foreach(['customer_id'=>'TEXT','cancellation_window_minutes'=>'INTEGER NOT NULL DEFAULT 0 CHECK(cancellation_window_minutes BETWEEN 0 AND 1440)','customer_cancelled_at'=>'INTEGER','cancellation_payment_state'=>"TEXT NOT NULL DEFAULT ''",'fulfillment_meta_json'=>"TEXT NOT NULL DEFAULT '{}'",'tip'=>'INTEGER NOT NULL DEFAULT 0 CHECK(tip>=0 AND tip%100=0)', 'currency'=>"TEXT NOT NULL DEFAULT 'CAD'",'payment_provider'=>"TEXT NOT NULL DEFAULT 'demo'",'address_json'=>"TEXT NOT NULL DEFAULT '{}'",'plugin_data_json'=>"TEXT NOT NULL DEFAULT '{}'",'order_location_json'=>"TEXT NOT NULL DEFAULT '{}'"] as $column=>$definition)if(!in_array($column,$columns,true))$this->db->exec("ALTER TABLE orders ADD COLUMN $column $definition");
+  $this->db->exec(file_get_contents(__DIR__.'/customers.sql'));
+  if(!in_array('delivery_address_id',$columns,true))$this->db->exec('ALTER TABLE orders ADD COLUMN delivery_address_id TEXT');
+  if(!in_array('delivery_address_id',array_column($this->query('PRAGMA table_info(guest_addresses)'),'name'),true))$this->db->exec('ALTER TABLE guest_addresses ADD COLUMN delivery_address_id TEXT');
+  $this->db->exec(file_get_contents(__DIR__.'/delivery-addresses.sql'));
+  (new DeliveryAddresses($this))->backfill();
   $refundColumns=array_column($this->query('PRAGMA table_info(payment_refund_deltas)'),'name');
   if(!in_array('tip',$refundColumns,true))$this->db->exec('ALTER TABLE payment_refund_deltas ADD COLUMN tip INTEGER NOT NULL DEFAULT 0 CHECK(tip>=0)');
   });
@@ -53,7 +60,7 @@ final class Store {
   $date=array_key_exists('date',$body)?self::text($body['date'],10):null;
   return Fulfillment::availability($date,$this->timeZone,$location['id'],Catalog::locationPolicy($this->catalog,$location['id']));
  }
- public function create(array $body,string $paymentProvider='demo'):array {
+ public function create(array $body,string $paymentProvider='demo',?string $customerId=null):array {
   $body=$this->plugins?->applyFilters('order.input',$body)??$body;
   $key=self::text($body['idempotencyKey']??null,80);if(!preg_match('/^[A-Za-z0-9-]{16,80}$/',$key))throw new ApiError('Invalid request key.');
   $customer=$body['customer']??[];$name=self::text($customer['name']??null,100);$phone=self::text($customer['phone']??null,30);if(!preg_match('/^[0-9+() .-]{7,30}$/',$phone))throw new ApiError('Enter a phone number.');
@@ -76,7 +83,7 @@ final class Store {
   $fee=Catalog::deliveryCharge($this->catalog,$subtotal,$fulfillment,$locationId);$tax=(int)round(($subtotal+$fee)*$this->catalog['taxBasisPoints']/10000);$tip=Tips::validate(array_key_exists('tip',$body)?$body['tip']:0);$total=$subtotal+$fee+$tax+$tip;
   $pluginData=$body['pluginData']??[];if(!is_array($pluginData)||count($pluginData)>20||strlen(json_encode($pluginData,JSON_THROW_ON_ERROR))>8192)throw new ApiError('Additional order fields are too large.');
   foreach($pluginData as $plugin=>$value)if(!is_string($plugin)||!preg_match('/^[a-z][a-z0-9-]{0,59}$/D',$plugin)||!is_array($value))throw new ApiError('Invalid additional order fields.');
-  $canonical=['lines'=>$lines,'customer'=>['name'=>$name,'phone'=>$phone],'notes'=>$notes,'fulfillment'=>$fulfillment,'address'=>$address];if($addressDetails!==null)$canonical['addressDetails']=$addressDetails;if($pluginData)$canonical['pluginData']=$pluginData;if($locationId!=='')$canonical['locationId']=$locationId;if($tip)$canonical['tip']=$tip;if($pickupSchedule)$canonical['pickupSchedule']=$pickupSchedule;$fingerprint=hash('sha256',json_encode($canonical));
+  $canonical=['lines'=>$lines,'customer'=>['name'=>$name,'phone'=>$phone],'notes'=>$notes,'fulfillment'=>$fulfillment,'address'=>$address];if($addressDetails!==null)$canonical['addressDetails']=$addressDetails;if($pluginData)$canonical['pluginData']=$pluginData;if($locationId!=='')$canonical['locationId']=$locationId;if($tip)$canonical['tip']=$tip;if($pickupSchedule)$canonical['pickupSchedule']=$pickupSchedule;if($customerId!==null)$canonical['customerId']=$customerId;$fingerprint=hash('sha256',json_encode($canonical));
   return $this->transaction(function()use($key,$fingerprint,$canonical,$subtotal,$fee,$tax,$tip,$total,$paymentProvider){
    $existing=$this->query('SELECT * FROM orders WHERE tenant=? AND request_key=?',[$this->tenant,$key]);
    if($existing){if(!hash_equals($existing[0]['fingerprint'],$fingerprint))throw new ApiError('Request key was already used for a different order.',409);return $this->receipt($existing[0],$key);}
@@ -94,6 +101,11 @@ final class Store {
    $this->execute('UPDATE orders SET tip=?,currency=?,payment_provider=?,address_json=? WHERE tenant=? AND id=?',[$tip,$this->catalog['currency'],$paymentProvider,json_encode($canonical['addressDetails']??new \stdClass()),$this->tenant,$id]);
    $this->execute('UPDATE orders SET plugin_data_json=? WHERE tenant=? AND id=?',[json_encode($canonical['pluginData']??new \stdClass()),$this->tenant,$id]);
    $this->execute('UPDATE orders SET order_location_json=? WHERE tenant=? AND id=?',[json_encode($orderLocation,JSON_THROW_ON_ERROR),$this->tenant,$id]);
+   if(isset($canonical['customerId'])){
+    if(!$this->query('SELECT 1 FROM customers WHERE tenant=? AND id=?',[$this->tenant,$canonical['customerId']]))throw new ApiError('Customer account not found.',401);
+    $this->execute('UPDATE orders SET customer_id=? WHERE tenant=? AND id=?',[$canonical['customerId'],$this->tenant,$id]);
+   }
+   (new DeliveryAddresses($this))->ordered($this->get($id));
    $this->event($id,'placed','customer');return $this->receipt($this->get($id),$key);
   });
  }
@@ -110,6 +122,7 @@ final class Store {
   $transitions=['placed'=>['accepted','cancelled'],'accepted'=>['preparing','cancelled'],'preparing'=>['ready','cancelled'],'ready'=>$o['fulfillment']==='pickup'?['completed','cancelled']:['out_for_delivery','cancelled'],'out_for_delivery'=>['delivered'],'delivered'=>[],'completed'=>[],'cancelled'=>[]];
   if($driver!==null && ($o['driver_id']!==$driver||!in_array($status,['out_for_delivery','delivered'],true)))throw new ApiError('This delivery is not assigned to you.',403);
   if(!in_array($status,$transitions[$o['status']]??[],true))throw new ApiError('This status change is not allowed.',409);
+  if($status==='out_for_delivery'&&$o['driver_id'])CustomerDrivers::assertAllowed($this,$o,$o['driver_id']);
   if($status==='out_for_delivery'&&!$o['driver_id'])throw new ApiError('Assign a driver first.',409);
   if(in_array($status,['delivered','completed'],true)&&!in_array($o['payment_status'],['paid','partially_refunded'],true))throw new ApiError('Payment must be confirmed before completing the order.',409);
   $this->plugins?->validate('order.status_changing',$this->safeOrder($o),$status,$actor);
@@ -118,7 +131,7 @@ final class Store {
   if($status==='delivered')$runs->completed($id);
   $this->event($id,$status,$actor);return $this->safeOrder($this->get($id));
  });}
- public function assign(string $id,string $driver):void{$this->transaction(function()use($id,$driver){$o=$this->get($id);if((new DeliveryRuns($this))->membership($id))throw new ApiError('Cancel the planned run before reassigning this order.',409);if($o['fulfillment']!=='delivery'||in_array($o['status'],['out_for_delivery','delivered','completed','cancelled'],true))throw new ApiError('Driver assignment is not available for this order.',409);$this->execute('UPDATE orders SET driver_id=?,updated_at=? WHERE tenant=? AND id=?',[$driver,time(),$this->tenant,$id]);$this->event($id,'driver_assigned','manager');});}
+ public function assign(string $id,string $driver):void{$this->transaction(function()use($id,$driver){$o=$this->get($id);if((new DeliveryRuns($this))->membership($id))throw new ApiError('Cancel the planned run before reassigning this order.',409);if($o['fulfillment']!=='delivery'||in_array($o['status'],['out_for_delivery','delivered','completed','cancelled'],true))throw new ApiError('Driver assignment is not available for this order.',409);CustomerDrivers::assertAllowed($this,$o,$driver);$this->execute('UPDATE orders SET driver_id=?,updated_at=? WHERE tenant=? AND id=?',[$driver,time(),$this->tenant,$id]);$this->event($id,'driver_assigned','manager');});}
  public function payment(string $id,string $kind,string $actor='manager'):void{$this->transaction(function()use($id,$kind,$actor){$o=$this->get($id);if($o['payment_provider']!=='demo')throw new ApiError('Online payments are confirmed by the payment provider. Manage refunds with that provider.',409);if($kind==='capture'&&($o['payment_status']!=='unpaid'||$o['status']==='cancelled'))throw new ApiError('Payment cannot be recorded.',409);if($kind==='refund'&&$o['payment_status']!=='paid')throw new ApiError('Only a paid order can be refunded.',409);if(!in_array($kind,['capture','refund'],true))throw new ApiError('Unknown payment action.');$this->execute('INSERT INTO payments(tenant,order_id,kind,amount,created_at) VALUES(?,?,?,?,?)',[$this->tenant,$id,$kind,$o['total'],time()]);$this->execute('UPDATE orders SET payment_status=?,updated_at=? WHERE tenant=? AND id=?',[$kind==='capture'?'paid':'refunded',time(),$this->tenant,$id]);$this->event($id,'test_payment_'.$kind,$actor);});}
  public function startLocation(string $id,array $session,string $source):array {
   if(!in_array($source,['device','simulated'],true))throw new ApiError('Choose a GPS source.');
@@ -197,7 +210,7 @@ final class Store {
  public function tracking(string $id,string $token):array{$rows=$this->query('SELECT * FROM orders WHERE tenant=? AND id=? AND tracking_hash=? AND tracking_expires>?',[$this->tenant,$id,hash('sha256',$token),time()]);if(!$rows)throw new ApiError('Tracking link is unavailable or expired.',404);$o=$rows[0];$location=null;if($o['status']==='out_for_delivery'){$locations=$this->query('SELECT latitude,longitude,accuracy,recorded_at FROM locations WHERE tenant=? AND order_id=? AND recorded_at>?',[$this->tenant,$id,time()-900]);$location=$locations[0]??null;}
  $summary=['lines'=>array_map(static fn($line)=>array_intersect_key($line,array_flip(['name','option','quantity','price'])),json_decode($o['lines_json'],true)),'currency'=>$o['currency'],'subtotal'=>(int)$o['subtotal'],'tax'=>(int)$o['tax'],'deliveryFee'=>(int)$o['delivery_fee'],'tip'=>(int)$o['tip'],'total'=>(int)$o['total']];
  return ['id'=>$id,'cancellation'=>Cancellation::summary($o),'demo'=>true,'status'=>$o['status'],'paymentStatus'=>$o['payment_status'],'paymentProvider'=>$o['payment_provider'],'checkoutStatus'=>$this->query('SELECT status FROM payment_attempts WHERE tenant=? AND order_id=?',[$this->tenant,$id])[0]['status']??null,'fulfillment'=>$o['fulfillment'],'fulfillmentMeta'=>Fulfillment::read($o),'summary'=>$summary,'orderLocation'=>$this->orderLocation($o),'business'=>['name'=>$this->catalog['businessName'],'phone'=>$this->orderLocation($o)['phone']?:($this->catalog['businessPhone']??''),'pickupAddress'=>$this->orderLocation($o)['address']],'createdAt'=>(int)$o['created_at'],'driver'=>$this->trackingDriver($o),'deliveryAddress'=>$o['address'],'updatedAt'=>(int)$o['updated_at'],'events'=>$this->query('SELECT status,created_at FROM events WHERE tenant=? AND order_id=? ORDER BY id',[$this->tenant,$id]),'location'=>$location,'locationSource'=>$this->locationSummary($id)['source'],'deliveryRun'=>(new DeliveryRuns($this))->progress($id),'gpsStale'=>$location?time()-(int)$location['recorded_at']>60:true];}
- public function safeOrder(array $o):array{$o['cancellation']=Cancellation::summary($o);unset($o['cancellation']['serverTime']);unset($o['cancellation_window_minutes'],$o['customer_cancelled_at'],$o['cancellation_payment_state']);$o['fulfillmentMeta']=Fulfillment::read($o);unset($o['fulfillment_meta_json']);$o['orderLocation']=$this->orderLocation($o);unset($o['order_location_json']);$o['pluginData']=json_decode($o['plugin_data_json']??'{}',true);unset($o['plugin_data_json']);$o['addressDetails']=json_decode($o['address_json']??'{}',true);unset($o['address_json']);$o['gps']=$this->locationSummary($o['id']);$o['deliveryRun']=(new DeliveryRuns($this))->membership($o['id']);unset($o['request_key'],$o['fingerprint'],$o['tracking_hash'],$o['tracking_expires']);$o['lines']=json_decode($o['lines_json'],true);unset($o['lines_json']);return $o;}
+ public function safeOrder(array $o):array{$o['cancellation']=Cancellation::summary($o);unset($o['cancellation']['serverTime']);unset($o['cancellation_window_minutes'],$o['customer_cancelled_at'],$o['cancellation_payment_state']);$o['fulfillmentMeta']=Fulfillment::read($o);unset($o['fulfillment_meta_json']);$o['orderLocation']=$this->orderLocation($o);unset($o['order_location_json']);$o['pluginData']=json_decode($o['plugin_data_json']??'{}',true);unset($o['plugin_data_json']);$o['addressDetails']=json_decode($o['address_json']??'{}',true);unset($o['address_json']);$o['gps']=$this->locationSummary($o['id']);$o['deliveryRun']=(new DeliveryRuns($this))->membership($o['id']);unset($o['customer_id'],$o['delivery_address_id'],$o['request_key'],$o['fingerprint'],$o['tracking_hash'],$o['tracking_expires']);$o['lines']=json_decode($o['lines_json'],true);unset($o['lines_json']);return $o;}
  public function orders(?string $driver=null):array{$args=[$this->tenant];$sql='SELECT * FROM orders WHERE tenant=?';if($driver!==null){$sql.=' AND driver_id=? AND status IN (\'ready\',\'out_for_delivery\')';$args[]=$driver;}$sql.=" ORDER BY CASE WHEN status IN ('completed','delivered','cancelled') THEN 1 ELSE 0 END, CASE WHEN status IN ('completed','delivered','cancelled') THEN -created_at ELSE COALESCE(CAST(json_extract(fulfillment_meta_json,'$.scheduledAt') AS INTEGER)-1800,created_at) END, id LIMIT 200";return array_map(fn($o)=>$this->safeOrder($o),$this->query($sql,$args));}
  public function driverTips(string $driver,?int $now=null):array{return DriverTips::summary($this,$driver,$this->timeZone,$now);}
  public function reports(int $from,int $to):array{

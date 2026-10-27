@@ -6,3 +6,5 @@ export {createTracking} from './tracking.js?v=52';
 export {lineKey,resolveItem,restoreCart,totals} from './cart.js';
 export {createRealtimeAPI} from './realtime.js';
 export {createPluginHost} from './plugins.js?v=39';
+export {mountCustomerAccount} from './customer-account.js';
+export {mountCustomerOrder} from './customer-order.js';

@@ -40,6 +40,32 @@ connector foundations still require their complete checkout integration. The
 separate Stripe plugin includes the tip in Checkout and refund reconciliation.
 See [tip API and earnings definitions](docs/api.md#optional-tips-october-27-2026).
 
+## Customer accounts and driver preferences
+
+Stores can enable email magic link sign in. A customer's first verified sign in
+creates an account automatically, with no password. Signed in orders appear in
+order history, and existing guest orders can be added using their private tracking
+link. Receipt history remains available after tracking expires.
+
+Delivery orders receive permanent DYWS address IDs, including the apartment or
+unit. Verified account orders link the customer and destination within the store.
+The private address history API exposes those associations across sign ins and
+devices. Device saved addresses remain separate, editable bookmarks. Changing or
+forgetting one does not rewrite previous orders or remove a driver block.
+
+After a completed delivery, customers can report the driver, block them from
+future deliveries at that store and remove the block later. Blocks cover all
+addresses on the customer account. Staff see the reason a driver cannot be
+selected. The server enforces blocks during assignment, delivery run creation and
+departure, including assignments made before a block was added. Reports are
+visible to the store, with no report text exposed to drivers.
+
+[API contracts](docs/api.md#customer-accounts-and-driver-reports-october-27-2026)
+and [email setup](docs/deployment.md#customer-accounts-and-email) describe the
+integration. A configured sender and working host mail transport are required.
+Customer accounts stay disabled in the shared public demos. Guest checkout and
+remembered device details remain available independently.
+
 ## Remembered guest details
 
 Customers can choose **Remember my details on this device** without creating an account. Checkout offers Home, Work and custom address labels, an optional default address, individual removal and **Forget my details**. A new successful order renews a 180 day expiry for both the access cookie and private saved details. Browsing and retries of an existing order do not extend it. Customer contact details never go into browser storage.

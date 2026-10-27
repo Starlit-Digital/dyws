@@ -9,6 +9,7 @@ mountStorefront({
  ordering:document.querySelector('dyws-ordering'),
  container:[...document.querySelectorAll('[data-dyws-rendered],#menu')],
  navigation:document.querySelector('nav[aria-label="Menu categories"]'),
+ accountURL:new URL('./account/',import.meta.url).href,
  termsURL:new URL('./terms/',import.meta.url).href,
  loading:document.querySelector('#loading'),api,hydrate:true,plugins,
  onOrderComplete:receipt=>{if(receipt.trackingToken)location.assign(new URL('./tracking/',import.meta.url).href+'#'+encodeURIComponent(receipt.id)+'.'+encodeURIComponent(receipt.trackingToken));}

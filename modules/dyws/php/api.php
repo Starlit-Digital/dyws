@@ -10,6 +10,8 @@ try {
  $realtime=new \dyws\Realtime($config,$store);
  $expired=$store->pruneLocations();if($expired)$realtime->changed(array_merge([$store->tenant.':operators'],array_map(fn($id)=>$store->tenant.':order:'.$id,$expired)));
  $accounts=new \dyws\AdminAccounts($config);
+ $customers=new \dyws\CustomerAccounts($store,$config);
+ $customerDrivers=new \dyws\CustomerDrivers($store);
  $method=$_SERVER['REQUEST_METHOD'];$route=$_GET['route']??'/health';if(!is_string($route)||strlen($route)>180)throw new \dyws\ApiError('Invalid route.',400);
  $pluginRoute=$plugins->match($method,$route);$raw='';
  if($method==='POST'){
@@ -22,6 +24,27 @@ try {
  if(!empty($config['required_plugins']))$plugins->validate('request.validating',$method,$route,$body);
  $result=null;
  if($method==='GET'&&$route==='/health')$result=['service'=>'dyws','demo'=>true];
+ elseif(str_starts_with($route,'/customer/')){
+  $customers->guard();dyws_limit_requests($store,$config,'customer-api',120,60);
+  if($method==='GET'&&$route==='/customer/session')$result=$customers->state();
+  elseif($method==='POST'&&$route==='/customer/auth/request'){
+   dyws_limit_requests($store,$config,'customer-links',10,900);$result=$customers->requestLink($body);
+  }elseif($method==='POST'&&in_array($route,['/customer/auth/inspect','/customer/auth/verify'],true)){
+   dyws_limit_requests($store,$config,'customer-verify',30,900);$result=$route==='/customer/auth/inspect'?$customers->inspectLink($body):$customers->verify($body);
+  }elseif($method==='POST'&&$route==='/customer/logout')$result=$customers->logout();
+  else{
+   $customer=$customers->requireCustomer();$id=$customer['id'];
+   if($method==='GET'&&$route==='/customer/orders')$result=$customers->orders($id,dyws_customer_offset());
+   elseif($method==='GET'&&$route==='/customer/addresses')$result=(new \dyws\DeliveryAddresses($store))->listing($id,dyws_customer_offset());
+   elseif($method==='GET'&&$route==='/customer/blocks')$result=['blocks'=>$customerDrivers->blocks($id)];
+   elseif($method==='POST'&&$route==='/customer/blocks')$result=$customerDrivers->unblock($id,$body);
+   elseif($method==='POST'&&preg_match('~^/customer/orders/([A-Z]{2,7}-[A-F0-9]{12})/(claim|report|block)$~D',$route,$m)){
+    dyws_limit_requests($store,$config,'customer-order-actions',30,900);
+    $result=match($m[2]){'claim'=>$customers->claim($id,$m[1],$_SERVER['HTTP_X_TRACKING_TOKEN']??''),'report'=>$customerDrivers->report($id,$m[1],$body),'block'=>$customerDrivers->block($id,$m[1])};
+   }else throw new \dyws\ApiError('Endpoint not found.',404);
+  }
+ }
+ elseif($method==='GET'&&$route==='/manager/customer-reports'){dyws_authorize($store,['manager']);$result=$customerDrivers->reports(dyws_customer_offset());}
  elseif($route==='/guest-details'&&in_array($method,['GET','POST'],true)){
   $guest=new \dyws\GuestDetails($store,$config);$guest->guard();
   dyws_limit_requests($store,$config,'guest-details',120,900);
@@ -70,14 +93,17 @@ try {
  elseif($method==='POST'&&$route==='/orders'){
   dyws_limit_requests($store,$config,'orders',20,3600);
   if(($body['demoAcknowledged']??false)!==true)throw new \dyws\ApiError('Confirm the order details.');
+  $customer=$customers->current();if($customer)$customers->guard();
+  if(!empty($body['customerAccountRequired'])&&!$customer)throw new \dyws\ApiError('Your customer session expired. Sign in again before ordering.',401);
+  if(isset($body['customerAccountId'])&&$body['customerAccountId']!==($customer['id']??null))throw new \dyws\ApiError('Your customer account changed. Open checkout again before ordering.',409);
   $guest=new \dyws\GuestDetails($store,$config);$renewal=null;
   $guestRequest=isset($body['rememberDetails'])||isset($_SERVER['HTTP_X_DYWS_GUEST']);
   if($guestRequest)$guest->guard();
   $preference=$guest->validatePreference($body['rememberDetails']??null);
-  $result=$store->transaction(function()use($store,$body,$plugins,$guest,$guestRequest,$preference,&$renewal){
+  $result=$store->transaction(function()use($store,$body,$plugins,$guest,$guestRequest,$preference,$customer,&$renewal){
    $key=is_string($body['idempotencyKey']??null)?$body['idempotencyKey']:'';
    $existing=$store->query('SELECT id FROM orders WHERE tenant=? AND request_key=?',[$store->tenant,$key]);
-   $receipt=$store->create($body,$plugins->paymentProvider());
+   $receipt=$store->create($body,$plugins->paymentProvider(),$customer['id']??null);
    if($guestRequest&&!$existing)$renewal=$guest->ordered($store->get($receipt['id']),$preference);
    return $receipt;
   });
@@ -152,7 +178,7 @@ try {
  $plugins->doAction('api.respond',$route,$method,$result);
  header('Server-Timing: app;dur='.round((microtime(true)-($_SERVER['REQUEST_TIME_FLOAT']??microtime(true)))*1000,2));
  echo json_encode($result,JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES);
-}catch(\dyws\ApiError $e){http_response_code($e->http);echo json_encode(['error'=>$e->getMessage()]);}
+}catch(\dyws\ApiError $e){http_response_code($e->http);echo json_encode(['error'=>$e->getMessage()]+($e->errorCode?['code'=>$e->errorCode,'context'=>$e->context]:[]));}
 catch(JsonException $e){http_response_code(400);echo json_encode(['error'=>'Invalid JSON request.']);}
 catch(Throwable $e){error_log('dyws API failure: '.$e->getMessage());http_response_code(500);echo json_encode(['error'=>'The order service is temporarily unavailable.']);}
 
@@ -167,3 +193,7 @@ catch(Throwable $e){error_log('dyws API failure: '.$e->getMessage());http_respon
   $rows=$store->query('SELECT * FROM sessions WHERE token_hash=? AND tenant=? AND expires_at>?',[hash('sha256',$m[1]),$store->tenant,time()]);
   if(!$rows)throw new \dyws\ApiError('Your session expired. Sign in again.',401);$session=$rows[0];if(!in_array($session['role'],$roles,true))throw new \dyws\ApiError('Access denied.',403);return $session;
  }
+
+function dyws_customer_offset():int {
+ $value=$_GET['offset']??'0';if(!is_string($value)||!preg_match('/^[0-9]{1,7}$/D',$value))throw new \dyws\ApiError('Invalid history page.');return (int)$value;
+}

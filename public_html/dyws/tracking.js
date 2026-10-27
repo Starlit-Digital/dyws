@@ -1,3 +1,4 @@
+import {mountCustomerOrder} from './customer-order.js';
 import {driverIconImage} from './driver-icons.js';
 import {statusBadge} from './status-badge.js';
 import {formatTime} from './date-time.js';
@@ -6,7 +7,7 @@ import {statusText,escapeHTML} from './api.js';
 import {trackingDetails} from './tracking-details.js';
 import {defaultRole} from './role-labels.js';
 import {deliveryStatus,terminalStatuses} from './delivery-status.js?v=40';
-export function createTracking({api,container,role=defaultRole,trackingPage,renderLocation,renderPayment,plugins,shopPage,storageKey='dyws-tracking',panelId='customer-tracking',document:doc=globalThis.document,now=Date.now,onReady=()=>{}}) {
+export function createTracking({api,container,role=defaultRole,trackingPage,accountURL,renderLocation,renderPayment,plugins,shopPage,storageKey='dyws-tracking',panelId='customer-tracking',document:doc=globalThis.document,now=Date.now,onReady=()=>{}}) {
  if(typeof api!=='function'||!container)throw new TypeError('dyws tracking requires an API client and container.');
  let timer,clock,active,panel,unwatch=null,polling=false,again=false,lastData,estimate,unavailable=false,lastChecked=0,lastAnnouncement='',paymentState='',cancelBusy=false,confirmingCancellation=false,readVersion=0;
  const refreshWhenVisible=()=>{if(!doc.hidden)void poll();};
@@ -75,8 +76,9 @@ export function createTracking({api,container,role=defaultRole,trackingPage,rend
    <p class="dyws-tracking-updated dyws-note"></p><ol class="dyws-tracking-timeline" aria-label="Order progress"></ol><p class="dyws-tracking-complete" hidden>Order complete.</p>
 
    <div class="dyws-tracking-driver" hidden><span class="dyws-tracking-driver-icon"></span><p class="dyws-driver-label"></p><strong class="dyws-driver-name"></strong><p class="dyws-driver-vehicle"></p></div><div class="dyws-tracking-gps"></div><div class="dyws-tracking-map"></div>
-   <details class="dyws-tracking-details" hidden><summary>Order details</summary><article class="dyws-tracking-receipt"></article></details><div class="dyws-tracking-help"></div>
+   <details class="dyws-tracking-details" hidden><summary>Order details</summary><article class="dyws-tracking-receipt"></article></details><div class="dyws-tracking-help"></div><div class="dyws-customer-account-actions"></div>
    ${trackingPage?`<p><a class="dyws-tracking-link" href="${escapeHTML(trackingPage)}#${encodeURIComponent(id)}.${encodeURIComponent(token)}">Track order</a></p>`:''}<p class="dyws-tracking-error" role="alert"></p>${shopPage?`<a class="dyws-tracking-return" href="${escapeHTML(shopPage)}">Back to menu</a>`:'<button class="dyws-dismiss-tracking" type="button">Hide tracking</button>'}`;
+  void mountCustomerOrder({root:panel.querySelector('.dyws-customer-account-actions'),api,accountURL,id,token});
   panel.dataset.pending='false';
   const dismiss=panel.querySelector('.dyws-dismiss-tracking');if(dismiss)dismiss.onclick=()=>{destroy();try{sessionStorage.removeItem(storageKey);}catch{}};
   panel.querySelector('.dyws-cancel-order').onclick=()=>{confirmingCancellation=true;cancellationSummary();panel.querySelector('.dyws-cancel-keep').focus();};
@@ -128,7 +130,7 @@ export function createTracking({api,container,role=defaultRole,trackingPage,rend
    if(e.status===404){
     panel.dataset.pending='false';panel.querySelector('.dyws-pending-indicator').hidden=true;panel.querySelector('.dyws-tracking-driver').hidden=true;write('.dyws-driver-name','');write('.dyws-driver-vehicle','');
     for(const selector of ['.dyws-cancellation','.dyws-tracking-details','.dyws-tracking-timeline','.dyws-tracking-complete','.dyws-tracking-arrival'])panel.querySelector(selector).hidden=true;
-    for(const selector of ['.dyws-tracking-receipt','.dyws-tracking-fulfillment-details','.dyws-tracking-help','.dyws-tracking-payment','.dyws-tracking-gps'])panel.querySelector(selector).replaceChildren();
+    for(const selector of ['.dyws-tracking-receipt','.dyws-tracking-fulfillment-details','.dyws-tracking-help','.dyws-customer-account-actions','.dyws-tracking-payment','.dyws-tracking-gps'])panel.querySelector(selector).replaceChildren();
     active=null;lastData=null;renderLocation?.clear?.();panel.querySelector('.dyws-tracking-map').replaceChildren();write('.dyws-tracking-status','Tracking unavailable');write('.dyws-tracking-message','This tracking link is unavailable or has expired.');write('.dyws-tracking-updated','');announce('expired','This tracking link is unavailable or has expired.');clearInterval(clock);unwatch?.();unwatch=null;unlisten();again=false;return;
    }
    if(lastData)summary();else{write('.dyws-tracking-status','Connecting to your order');write('.dyws-arrival-value','Reconnecting');write('.dyws-arrival-detail','We could not load your order yet. Retrying automatically.');announce('connecting','We could not load your order yet. Retrying automatically.');}

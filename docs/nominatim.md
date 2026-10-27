@@ -24,6 +24,12 @@ missing values. Apartment fields stay separate. A postal code is filled only
 when the result includes a house number and a complete Canadian postal code;
 a street or city result cannot supply a building's postal code.
 
+Permanent delivery address identity belongs to DYWS core. Order creation resolves
+the selected fields, including the separately entered apartment or unit, into an
+internal address ID. Nominatim identifiers are not used as permanent keys. Manual
+entry follows the same path, and customer driver blocks remain account wide even
+when address wording changes. See [destination identity](api.md#permanent-delivery-destinations).
+
 ## Configuration
 
 Activate Nominatim Address Lookup in Plugins. A new installation has it inactive.

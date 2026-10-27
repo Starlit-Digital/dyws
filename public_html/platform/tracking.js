@@ -4,7 +4,7 @@ import {markReady} from '../dyws/diagnostics.js';
 import {plugins} from './plugins.js?v=39';
 import {loadRole} from '../dyws/role-labels.js';
 const role=await loadRole(api);
-const tracking=createTracking({api,role,onReady:()=>markReady(),plugins,renderPayment:plugins.renderPayment,container:document.querySelector('main'),shopPage:document.body.dataset.trackingPage==='true'?new URL('../',import.meta.url).href:undefined,trackingPage:document.body.dataset.trackingPage==='true'?undefined:new URL('../tracking/',import.meta.url).href,renderLocation:plugins.createLocationRenderer({api})});
+const tracking=createTracking({api,role,accountURL:new URL('../account/',import.meta.url).href,onReady:()=>markReady(),plugins,renderPayment:plugins.renderPayment,container:document.querySelector('main'),shopPage:document.body.dataset.trackingPage==='true'?new URL('../',import.meta.url).href:undefined,trackingPage:document.body.dataset.trackingPage==='true'?undefined:new URL('../tracking/',import.meta.url).href,renderLocation:plugins.createLocationRenderer({api})});
 export const showTracking=tracking.show;
 if(document.body.dataset.trackingPage==='true'){
  const {id,token}=bootstrap?.tracking||{};

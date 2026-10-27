@@ -1,0 +1,17 @@
+.dyws-account { max-width: 52rem; margin: 0 auto; padding: 1.25rem; }
+.dyws-account [hidden] { display: none !important; }
+.dyws-account form { display: grid; gap: 1rem; max-width: 38rem; }
+.dyws-account label { display: grid; gap: .4rem; }
+.dyws-account input,.dyws-account select,.dyws-account textarea { width: 100%; min-width: 0; box-sizing: border-box; font: inherit; }
+.dyws-account button,.dyws-account input,.dyws-account select { min-height: 44px; }
+.dyws-account article { padding: 1rem 0; border-bottom: 1px solid var(--dyws-color-border,#71808a); }
+.dyws-account .dyws-check { display: flex; align-items: start; }
+.dyws-account .dyws-check input { width: 1.25rem; min-height: 1.25rem; flex: none; }
+.dyws-account .dyws-actions { flex-wrap: wrap; }
+.dyws-account [data-account-error] { color: var(--dyws-color-text,#d86767); }
+.dyws-account p,.dyws-account h2,.dyws-account h3 { overflow-wrap: anywhere; }
+.dyws-account details { margin: 1rem 0; }
+.dyws-account textarea { min-height: 6rem; }
+.dyws-account ul { padding-left: 1.4rem; }
+
+.dyws-account { font-size: var(--font-size,17px); }

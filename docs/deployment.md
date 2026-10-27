@@ -307,3 +307,93 @@ earliest valid schedule, stale availability responses, custom layouts, tracking
 cancellation and payment visibility, manager work views, and driver shortcuts.
 Use fictional orders and isolated local data before the ten example rollout.
 The private Stripe integration remains outside the public deployment.
+
+## Customer accounts and email
+
+The framework now includes customer accounts, order history and driver reporting
+and blocks. This source change does not deploy or enable mail on any merchant or
+hosted demo installation. Shared public demos keep real customer accounts disabled,
+even if an email flag is accidentally set.
+
+Before enabling on an ordinary store, configure PHP's host mail transport and an
+authorized sender for that store's domain. Keep the following in the existing
+private configuration, outside `public_html` and Git:
+
+```json
+{
+  "public_base_url": "https://store.example/shop",
+  "customer_accounts": {
+    "enabled": true,
+    "from": "accounts@store.example"
+  }
+}
+```
+
+Use the actual HTTPS store origin and installation path. DYWS uses PHP `mail()`;
+it does not provision a mailbox or configure SMTP, SPF, DKIM or DMARC. This flag
+indicates host configuration, not confirmed inbox delivery. Verify receipt in a
+test mailbox before opening customer sign in. Transport rejection returns a clear
+503 and removes the issued token. There is no production token preview, email log
+or development bypass in the API. Tests use a private temporary sendmail capture
+and fictional email addresses, without contacting an external mail service.
+
+Back up the SQLite database and source before deploying the complete framework
+change. Store initialization adds nullable `orders.customer_id`, the customer
+history index and the tables in `modules/dyws/php/customers.sql` transactionally.
+Existing orders, staff credentials, tracking tokens and guest details remain in
+place. Accounts are created only on successful email verification. Copy the new
+`public_html/account` adapter, the customer JavaScript and CSS modules and the
+updated PHP module together. The Apache DirectoryIndex and development router
+both support `/account/`. Custom hosts should supply their own account adapter
+and `accountURL` to `mountStorefront`.
+
+Include `public_html/account/.htaccess` on Apache compatible hosts. Its scoped
+headers preserve `no-store` and `no-referrer` when parent site headers override
+PHP responses. Other web servers need equivalent account directory rules.
+
+The address identity migration also adds nullable `delivery_address_id` columns
+to `orders` and `guest_addresses`, plus the tables and indexes in
+`modules/dyws/php/delivery-addresses.sql`. Deploy `DeliveryAddresses.php` with the
+rest of the PHP module. On first access for each tenant, missing destinations and
+verified account associations are filled in the initialization transaction.
+Repeated initialization reuses existing IDs; indexed checks avoid rescanning
+already migrated orders. Large histories should be migrated during the rollout
+window by running the bootstrap once for each tenant configuration before traffic
+resumes. The migration makes no geocoder or mail requests.
+
+Backfill preserves order text, totals, fingerprints, tracking capabilities,
+customer IDs, reports, blocks and device bookmark IDs. It does not assign guest
+orders to accounts based on email, name or address. Legacy freeform delivery
+addresses receive their own identities; pickup orders remain without a delivery
+address ID. Include both new tables in private backups. Address and account
+history persists when device details expire or are forgotten. Merchants must
+include these records in their retention and account removal procedures.
+
+Expired links and customer sessions become unusable immediately at their stored
+expiry. New sign in requests prune them. Quiet installations can also schedule:
+
+```sh
+DYWS_CONFIG=/private/path/config.json php server/cleanup-customer-accounts.php
+```
+
+This command removes only expired login capabilities and sessions. It does not
+delete customer accounts, orders, reports or driver blocks. Store retention and
+customer record removal need the merchant's policy. Signing out revokes this
+browser only; removing remembered guest details is a separate operation.
+
+For rollback, restore the complete previous source with customer account entry
+points disabled. Keep a consistent database backup. Older code does not enforce
+driver blocks, so it must not resume dispatch until blocks are handled by staff
+or the enforcing version is restored. The new columns and tables can remain;
+do not discard customer records just to revert source.
+
+Verification: `npm test` includes real HTTP account and dispatch checks. The
+optional `tests/customer-accounts-browser.cjs` Playwright check exercises sign in,
+checkout ownership, history, reporting, staff warnings, unblocking, sign out,
+mobile widths and enlarged text. `DYWS_CUSTOMER_SCREENSHOTS` selects a private
+output directory for its fictional screenshots.
+
+The October 27 source update is deployed to all ten dyws.ca demos, with real
+customer email still disabled by public demo policy. See the
+[deployment report](customer-accounts-deployment-20261027.md) for verification
+and preservation results.

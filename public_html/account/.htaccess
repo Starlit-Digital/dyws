@@ -1,0 +1,4 @@
+<IfModule mod_headers.c>
+Header always set Cache-Control "no-store"
+Header always set Referrer-Policy "no-referrer"
+</IfModule>

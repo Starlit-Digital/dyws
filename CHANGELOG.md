@@ -1,6 +1,17 @@
 # Changelog
 
-## Unreleased · 2026-10-25
+## Unreleased · 2026-10-27
+
+Customer email magic link accounts, private order history, and completed delivery
+reports and driver blocks. Staff receive explicit blocked driver assignment and
+departure errors, including delivery runs. Includes customer and staff screens,
+mail configuration guidance and account isolation and dispatch tests. Email must
+be configured per merchant installation; shared public demos remain disabled.
+
+Add permanent delivery address IDs and unique customer and destination pairs
+within each store. Include units, preserve receipt addresses, migrate existing
+orders and device bookmarks, and expose private account address history. Driver
+blocks continue to cover every address on the verified account.
 
 - Separate the private Stripe plugin, SDK, legacy entry points and integration tests from the public framework and install kit. New installations do not include or activate Stripe.
 - Preserve generic payment interfaces, historical provider records and approved callbacks for separately installed plugins. Keep Starlit managed service agreements separate from the public framework and fictional diner.

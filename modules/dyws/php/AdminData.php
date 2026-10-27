@@ -3,7 +3,10 @@ declare(strict_types=1);
 
 function dyws_admin_orders(array $config,\dyws\Store $store):array {
  $drivers=[];foreach($config['drivers'] as $id=>$driver)if($driver['active']??true)$drivers[]=['id'=>$id,'name'=>$driver['name'],'profileIcon'=>$driver['profileIcon']??'car'];
- return ['orders'=>$store->orders(),'drivers'=>$drivers,'runs'=>(new \dyws\DeliveryRuns($store))->listing()];
+ $customerDrivers=new \dyws\CustomerDrivers($store);
+ $orders=array_map(fn($o)=>$customerDrivers->dispatch($o+['customer_id'=>$store->get($o['id'])['customer_id']]),$store->orders());
+ foreach($orders as &$order)unset($order['customer_id']);unset($order);
+ return ['orders'=>$orders,'drivers'=>$drivers,'runs'=>(new \dyws\DeliveryRuns($store))->listing()];
 }
 function dyws_driver_locations(\dyws\Store $store):array {
  $orders=$store->query("SELECT o.id,o.driver_id,o.address FROM orders o LEFT JOIN delivery_run_stops ds ON ds.tenant=o.tenant AND ds.order_id=o.id AND ds.active=1 WHERE o.tenant=? AND o.status='out_for_delivery' AND o.driver_id IS NOT NULL ORDER BY o.driver_id,coalesce(ds.position,999),o.updated_at DESC",[$store->tenant]);

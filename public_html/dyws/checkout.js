@@ -51,7 +51,7 @@ export async function mountCheckout(){
       const streetInput=form.elements.addressLine1;
       if(addressDetails&&streetInput?.dataset.dywsAddressDisplay===streetInput.value)addressDetails.line1=streetInput.dataset.dywsAddressLine1;
       if(addressDetails)addressDetails.postalCode=formatPostalCode(addressDetails.postalCode);
-      const order={locationId:location.id,orderLocation:location,businessName:this.catalog.businessName || this.catalog.restaurant,currency:this.catalog.currency,lines:this.lines.map(l=>({...l})),...t,customer:{name:values.get('customer').trim(),phone:values.get('phone').trim()},notes:String(values.get('notes')||'').trim(),fulfillment:values.get('fulfillment'),pluginData,rememberDetails:rememberPreference(form),addressDetails,address:addressDetails?[addressDetails.line1,addressDetails.line2,addressDetails.city,addressDetails.region,addressDetails.postalCode,addressDetails.country].filter(Boolean).join(', '):''};
+      const order={locationId:location.id,orderLocation:location,businessName:this.catalog.businessName || this.catalog.restaurant,currency:this.catalog.currency,lines:this.lines.map(l=>({...l})),...t,customerAccountRequired:!!this.customerAccountId,customerAccountId:this.customerAccountId||undefined,customer:{name:values.get('customer').trim(),phone:values.get('phone').trim()},notes:String(values.get('notes')||'').trim(),fulfillment:values.get('fulfillment'),pluginData,rememberDetails:rememberPreference(form),addressDetails,address:addressDetails?[addressDetails.line1,addressDetails.line2,addressDetails.city,addressDetails.region,addressDetails.postalCode,addressDetails.country].filter(Boolean).join(', '):''};
       try {
       Object.assign(order,await this.pickup.read());
       order.tip=tipCents(form.elements.tipDollars.value,(form.elements.addTip.value==='1'));
@@ -68,6 +68,14 @@ export async function mountCheckout(){
     }
     this.applyLayout('checkout',form);
     restoreCheckout(form,this.checkoutDraft||[]);syncTip();form.elements.locationId.onchange();form.querySelector('.dyws-fulfillment').onchange();
+    this.customerAccountId=null;
+    if(this.customerAPI){
+     const accountNote=document.createElement('p');accountNote.className='dyws-note';form.prepend(accountNote);
+     try{const state=await this.customerAPI('/customer/session');this.customerAccountId=state.customer?.id||null;
+      if(state.customer)accountNote.textContent='Order as '+state.customer.email+'. Saved to your account.';
+      else if(state.enabled)accountNote.innerHTML=`<a href="${escapeHTML(this.accountURL)}" target="_blank" rel="noopener noreferrer">Sign in for order history and driver preferences</a>`;
+     }catch{accountNote.textContent='Account sign in is unavailable. You can continue as a guest.';}
+    }
     const saved=await mountGuestDetails({form,api:this.guestAPI,termsURL:this.termsURL,hasDraft:!!this.checkoutDraft,onForget:()=>{this.checkoutDraft=null;}});
     if(!form.isConnected)return;
     restoreCheckout(form,(this.checkoutDraft||[]).filter(field=>['rememberDetails','savedProfileId','savedAddressId','addressLabel','customAddressLabel','defaultAddress'].includes(field.name)));

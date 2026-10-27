@@ -80,6 +80,7 @@ final class GuestDetails {
     if($id===''&&count($rows)>=10)throw new ApiError('You have 10 saved addresses. Remove one or turn off remembering for this order.');
     $id=$id?:bin2hex(random_bytes(16));
     $this->store->execute('INSERT INTO guest_addresses(tenant,profile_id,id,label,address_json,created_at) VALUES(?,?,?,?,?,?) ON CONFLICT(tenant,profile_id,id) DO UPDATE SET label=excluded.label,address_json=excluded.address_json',[$this->store->tenant,$p['id'],$id,$preference['label'],json_encode($address,JSON_THROW_ON_ERROR),time()]);
+    $this->store->execute('UPDATE guest_addresses SET delivery_address_id=? WHERE tenant=? AND profile_id=? AND id=?',[$order['delivery_address_id'],$this->store->tenant,$p['id'],$id]);
     if($preference['default'])$this->store->execute('UPDATE guest_details SET default_address_id=? WHERE tenant=? AND id=?',[$id,$this->store->tenant,$p['id']]);
     elseif($p['default_address_id']===$id)$this->store->execute('UPDATE guest_details SET default_address_id=NULL WHERE tenant=? AND id=?',[$this->store->tenant,$p['id']]);
    }

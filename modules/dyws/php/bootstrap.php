@@ -4,6 +4,7 @@ use dyws\Store;
 use dyws\ApiError;
 require_once __DIR__.'/Store.php';
 require_once __DIR__.'/GuestDetails.php';
+require_once __DIR__.'/CustomerAccounts.php';
 require_once __DIR__.'/Catalog.php';
 require_once __DIR__.'/Lookup.php';
 require_once __DIR__.'/AdminAccounts.php';

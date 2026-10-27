@@ -26,3 +26,16 @@ Order Reporting and DataTables consume the same presentation tokens. Chart expor
 
 
 Remembered guest details are optional. Supply `termsURL` to `mountStorefront` (or the `terms-url` element attribute) to enable checkout controls. Supply the same origin HTTP API, and preserve `{guest: true}` on guest calls and order submission if using a custom adapter. The standard adapter forwards `rememberDetails` automatically. Contact details remain in page memory and private SQLite, with only an opaque HttpOnly cookie in the browser. See `docs/api.md` for the contract and 180 day renewal semantics.
+
+## Customer accounts
+
+Pass the store's `accountURL` to `mountStorefront` to show account status in
+checkout. `mountCustomerAccount` supplies email sign in, receipt history, driver
+reports and block controls with an injected API client and DOM roots.
+`mountCustomerOrder` connects private tracking to verified account ownership.
+Load `customer-account.css` alongside the shared styles for the account page.
+
+Cookie authenticated requests use `customer: true` with `createAPIClient` or
+`createRealtimeAPI`; they always travel over HTTP to the store origin. Customer
+sessions and email links are never stored in browser storage. See the framework's
+`docs/api.md` and `docs/deployment.md` for mail configuration and server contracts.

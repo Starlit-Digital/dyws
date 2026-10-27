@@ -37,7 +37,11 @@
     "./order-list.js": "./order-list.js",
     "./business-settings.js": "./business-settings.js",
     "./orders.js": "./orders.js",
-    "./order-selection.js": "./order-selection.js"
+    "./order-selection.js": "./order-selection.js",
+    "./customer-account.js": "./customer-account.js",
+    "./customer-account.css": "./customer-account.css",
+    "./customer-order.js": "./customer-order.js",
+    "./customer-reports.js": "./customer-reports.js"
   },
   "files": [
     "*.js",

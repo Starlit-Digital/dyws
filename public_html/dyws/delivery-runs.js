@@ -7,7 +7,7 @@ export function mountDeliveryRuns({root,api,getToken,onSaved,onError,role}) {
  const form=root.querySelector('form'),driverSelect=form.elements.driver,orderSelect=form.elements.order,list=root.querySelector('.dyws-run-list'),draft=root.querySelector('.dyws-run-draft');
  const available=()=>data.orders.filter(o=>o.fulfillment==='delivery'&&o.status==='ready'&&!o.deliveryRun&&(!o.driver_id||o.driver_id===driver));
  const label=o=>o?`${o.id} · ${o.orderLocation?.name||''} · ${o.customer_name} · ${o.address}`:'Unavailable order';
- function choices(){const previous=orderSelect.value;orderSelect.innerHTML='<option value="">Choose an order</option>'+available().filter(o=>!selected.includes(o.id)).map(o=>`<option value="${o.id}">${esc(label(o))}</option>`).join('');orderSelect.value=previous;}
+ function choices(){const previous=orderSelect.value;orderSelect.innerHTML='<option value="">Choose an order</option>'+available().filter(o=>!selected.includes(o.id)).map(o=>`<option value="${o.id}" ${(o.blockedDriverIds||[]).includes(driver)?'disabled':''}>${esc(label(o))}${(o.blockedDriverIds||[]).includes(driver)?' · Customer has blocked this driver':''}</option>`).join('');orderSelect.value=previous;}
  function renderDraft(){draft.innerHTML=selected.map((id,i)=>`<li><span>${esc(label(data.orders.find(o=>o.id===id)))}</span><div class="dyws-actions"><button type="button" class="dyws-secondary" data-move="${i}" ${i===0?'disabled':''} aria-label="Move stop ${i+1} earlier">↑</button><button type="button" class="dyws-secondary" data-remove="${i}" aria-label="Remove stop ${i+1}">Remove</button></div></li>`).join('');choices();}
  function changed(){requestKey=null;renderDraft();}
  driverSelect.onchange=()=>{driver=driverSelect.value;changed();};

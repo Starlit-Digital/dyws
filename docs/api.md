@@ -438,3 +438,123 @@ Availability uses the same 30 minute lead, location opening hours, overnight
 hours and daylight saving time rules as order creation. Repeated or nonexistent
 clock times are omitted. Checkout still validates with `/pickup/preview`, and
 order creation validates again against the server clock.
+
+## Customer accounts and driver reports, October 27, 2026
+
+Customer accounts are scoped to an installation tenant. They are separate from
+staff credentials and remembered guest details. A verified first email sign in
+creates the account automatically. No password, name or address is required for
+registration. See [mail configuration and rollout](deployment.md#customer-accounts-and-email).
+
+Every `/customer/` request requires `X-DYWS-Customer: 1`. These endpoints use an
+HttpOnly session cookie and HTTPS, with HTTP allowed only for localhost
+development. An Origin, when present, must match `public_base_url`; cross site
+fetches are rejected. The shared JavaScript API accepts `customer: true` and uses
+HTTP for these requests. Order creation also always uses HTTP so customer cookies
+reach the installation rather than a separate WebSocket relay.
+
+| Method and route | Contract |
+| --- | --- |
+| `GET /customer/session` | Returns `enabled`, a setup message, and `customer: null` or `{id, email, expiresAt}`. |
+| `POST /customer/auth/request` | `{email}` requests a link for both new and existing accounts. The response is the same for either case and does not contain a token. Maximum ten requests per source IP per fifteen minutes. A separate mailbox limit permits three emails per fifteen minutes and returns the same accepted response on further attempts. Mail transport failure returns 503 and revokes that link. |
+| `POST /customer/auth/inspect` | `{token}` returns the email for an unexpired link without consuming it. The page asks the person to continue as that email, preventing an unexpected account switch. |
+| `POST /customer/auth/verify` | `{token}` atomically creates or finds the account, consumes all outstanding links for that email, rotates this browser's customer session and sets the cookie. A replay or expired link returns 410. |
+| `POST /customer/logout` | `{}` revokes this browser's session and clears its cookie. Other devices keep their own sessions. |
+| `GET /customer/orders?offset=0` | Returns only the signed in customer's orders, twenty at a time with `nextOffset`. Newest first by creation time and order ID. Includes receipts, totals, fulfillment, delivery driver, report and block status. Excludes tracking capabilities, payment provider internals, plugin data and other customers' records. Offset pagination reflects the current history; refresh starts again at zero. |
+| `GET /customer/addresses?offset=0` | Returns only destinations used by the signed in account as `{addresses: [{id, addressDetails, address, firstUsedAt, lastUsedAt}], nextOffset}`. Twenty at a time, newest order usage first with ID as tie breaker. Timestamps are Unix seconds. Legacy freeform destinations have an empty object for `addressDetails`. Reads do not create associations. An email or customer ID in the request cannot select another account. |
+| `POST /customer/orders/{id}/claim` | `{}` plus `X-Tracking-Token` links an unowned guest order. Requires both a verified customer session and an unexpired tracking capability. An order already owned by another account returns 409. The same owner's retry is safe. An active assignment that would conflict with an existing block prevents the claim. |
+| `POST /customer/orders/{id}/report` | `{reason, details, blockDriver}`. Reasons: `late`, `conduct`, `handling`, `other`. Details are optional, up to 2000 bytes. `blockDriver` is a boolean, default false. Only the owner of a delivered delivery can report its recorded driver. There is one report per order; identical retries do not duplicate it, changed report text returns 409. The report and optional block commit together. |
+| `POST /customer/orders/{id}/block` | `{}` blocks that completed delivery's recorded driver without requiring a report. Repeating it is safe. |
+| `GET /customer/blocks` | Lists the signed in account's blocked drivers. |
+| `POST /customer/blocks` | `{action: "unblock", driverId}` removes only that customer's block, retaining submitted reports. |
+| `GET /manager/customer-reports?offset=0` | Manager bearer session required. Returns fifty reports and `nextOffset`, including current block status. Drivers and tracking capabilities cannot access it. |
+
+Links contain 256 bits of randomness and expire after fifteen minutes. They are
+stored as SHA256 hashes. The email URL uses `/account/#login=...`, keeping the
+capability out of HTTP request URLs. The page removes the fragment immediately.
+GET requests, mail previews and link inspection do not consume a link. Verification
+requires the explicit Continue action. Sessions use independent random tokens,
+store only hashes, expire after thirty days and do not slide on reads. Cookies
+use HttpOnly, SameSite=Lax, Secure on HTTPS, an installation path and a tenant
+specific name. Customer tokens and contact details are not stored in browser
+storage.
+
+`POST /orders` associates a valid customer session on the server. A request with
+that session must include the customer header. The body cannot nominate an owner
+using email, `customerId` or other customer details. `customerAccountRequired: true`
+rejects expired sessions instead of silently placing a guest order.
+`customerAccountId`, when supplied by checkout, is only an expectation check and
+must match the current session. The trusted owner is part of the idempotency
+fingerprint; a retry under another account cannot claim the order. The standard
+checkout sends these expectations after displaying the signed in email.
+
+### Permanent delivery destinations
+
+Core assigns an opaque `ADR-...` ID in `delivery_addresses` to each distinct
+normalized destination within a tenant. `orders.delivery_address_id` references
+it; pickup orders have no delivery destination. Account order history exposes
+`deliveryAddressId`. Driver, plugin and tracking projections omit permanent
+address identifiers. There is no public address directory or lookup by email.
+
+The destination includes all six structured address fields, especially `line2`
+for apartment or unit. Equality normalizes case, whitespace, postal spacing,
+Canada and US country names, Canadian province names and common unit labels.
+Missing locality or unit fields remain missing; the resolver does not guess them.
+Other wording differences can receive distinct IDs. Freeform requests have their
+own normalized text key and are never guessed into a structured address. Each
+order retains its original text and fields, even when it shares a destination ID.
+The first stored address is the display snapshot for that destination's history.
+
+IDs are generated internally from validated order fields. Submitted `addressId`,
+`deliveryAddressId`, email, provider IDs and guest bookmark IDs cannot choose a
+destination or account owner. Map selections and manual entry use the same core
+resolver; changes to Nominatim IDs or plugin availability do not affect identity.
+These records describe delivery destinations, not proof of residence or coverage.
+
+`customer_delivery_addresses` has the unique key `(tenant, customer_id, address_id)`.
+A verified account order, or a valid tracking capability claim, creates this
+association atomically with ownership. `firstUsedAt` and `lastUsedAt` are the
+earliest and latest associated order creation times. A guest order can share a
+destination without belonging to any account. Separate accounts at the same
+destination keep separate order histories and driver preferences.
+
+Existing device saved address IDs remain editable bookmarks. Their internal
+`delivery_address_id` points to the permanent destination and changes when a new
+order saves edited address fields. Removing or forgetting a bookmark does not
+delete order history, account associations or blocks. This API supplies address
+history plumbing; the existing checkout picker still manages device bookmarks.
+
+### Driver block enforcement
+
+Blocks cover every delivery address and store branch within the same tenant for
+that customer account. They do not match shared household addresses, names,
+phone numbers, guest orders or other accounts. Store assignment, delivery run
+creation and every departure recheck the block under the SQLite write transaction.
+A block added after assignment stops departure. For a planned run, staff cancel
+the run and select another driver. A run with a blocked stop fails atomically.
+A delivery already on the way is allowed to finish; staff and the customer see
+this practical limit. Blocks stay effective if email sign in is later disabled.
+
+A blocked operation returns HTTP 409:
+
+```json
+{
+  "error": "Cannot assign this driver to this delivery location because the customer account has blocked them. Choose another driver.",
+  "code": "customer_blocked_driver",
+  "context": {"orderId": "DYWS-0123456789AB", "driverId": "example-driver"}
+}
+```
+
+Manager order projections include `blockedDriverIds`, `assignmentWarning` and
+`driverReports`. The assignment selector disables blocked choices and delivery
+run choices identify incompatible stops. Driver order projections and private
+tracking exclude customer account identifiers, report text and block lists. A
+driver attempting a blocked departure receives the rejection above, without
+report details. Reports are customer allegations for store review, with no
+automatic account suspension or refund side effect.
+
+Host integrations can use `mountCustomerAccount`, `mountCustomerOrder`, and
+`mountStorefront({accountURL, ...})`. Keep the account URL on the same store
+origin. Existing guest orders can be saved from the tracking page after signing
+in through My account. Old orders are never linked using unverified contact
+matches. Account history remains available when an order's tracking link expires.
