@@ -184,6 +184,7 @@
       "dyws/cart.js",
       "dyws/catalog-data.js",
       "dyws/catalog.js?v=39",
+      "dyws/checkout-account.js",
       "dyws/checkout-draft.js",
       "dyws/checkout-fields.js",
       "dyws/checkout.js",

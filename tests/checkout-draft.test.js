@@ -14,3 +14,9 @@ test('removed locations and unrelated sensitive plugin fields are not restored',
  const form={elements:[{name:'locationId',value:'current',tagName:'SELECT',options:[{value:'current',disabled:false}]},{name:'password',value:'secret'}]};
  restoreCheckout(form,[{name:'locationId',value:'removed'}]);assert.equal(form.elements[0].value,'current');assert.equal(captureCheckout(form).length,1);
 });
+
+test('email survives checkout navigation only in the in memory draft',()=>{
+ const form={elements:[{name:'email',type:'email',value:'guest@example.test',dataset:{}}]};
+ const draft=captureCheckout(form);form.elements[0].value='';restoreCheckout(form,draft);
+ assert.equal(form.elements[0].value,'guest@example.test');
+});

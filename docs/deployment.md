@@ -96,7 +96,7 @@ The hosted demo uses HTTPS polling. A WebSocket relay is optional and must be de
 
 ## Maintenance and recovery
 
-`php server/cleanup.php` removes expired GPS, sharing sessions, operator sessions and rate buckets, and scrubs demo customer name, phone, structured address and notes after seven days. Aggregate order and payment amounts remain. No cleanup scheduler is installed automatically.
+`php server/cleanup.php` removes expired GPS, sharing sessions, operator sessions and rate buckets, and scrubs demo customer name, phone, email, structured address and notes after seven days. Aggregate order and payment amounts remain. No cleanup scheduler is installed automatically.
 
 Back up private configuration, catalogs, settings and SQLite together. Protect backups as private data. Verify restores before relying on them. Restore matching code and data deliberately; an older code directory alone may not understand migrated records. Hosted backups and access files are operational records, not source repository artifacts.
 
@@ -397,3 +397,5 @@ The October 27 source update is deployed to all ten dyws.ca demos, with real
 customer email still disabled by public demo policy. See the
 [deployment report](customer-accounts-deployment-20261027.md) for verification
 and preservation results.
+
+Checkout email adds `customer_email TEXT NOT NULL DEFAULT ''` to orders and remembered guest profiles through the normal additive Store migration. Existing email values are not inferred from contacts or address records. Deploy the checkout module, account helper, layout schema and PHP changes together. Existing deployments without customer email transport can still collect optional order contact email.

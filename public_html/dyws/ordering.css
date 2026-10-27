@@ -23,6 +23,7 @@
 .dyws-ordering select { min-height: 48px; padding: 10px; width: 100%; border-radius: 10px; background: var(--dyws-color-surface); color: inherit; }
 .dyws-ordering .dyws-actions { display: flex; flex-wrap: wrap; gap: 12px; }
 .dyws-ordering .dyws-note { color: var(--dyws-color-muted); font-size: .85em; }
+.dyws-ordering [data-dyws-order-field="email"] { min-width:0; overflow-wrap:anywhere; }
 .dyws-ordering .dyws-error { color: var(--dyws-color-emphasis); }
 .dyws-ordering #dyws-status { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 .dyws-ordering input[type='checkbox'] { width: 26px; min-height: 26px; vertical-align: middle; }

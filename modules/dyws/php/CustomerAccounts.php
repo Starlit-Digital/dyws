@@ -39,8 +39,7 @@ final class CustomerAccounts {
  public function requireCustomer():array {$this->enabled();$customer=$this->current();if(!$customer)throw new ApiError('Sign in with your email to open your customer account.',401);return $customer;}
  public function state():array {return $this->availability()+['customer'=>$this->current()];}
  private static function email(mixed $value):string {
-  $email=strtolower(Store::text($value,254));
-  if(!filter_var($email,FILTER_VALIDATE_EMAIL)||preg_match('/[\r\n]/',$email))throw new ApiError('Enter a valid email address.');return $email;
+  return Store::email($value,true);
  }
  public function prune():void {
   foreach(['customer_links','customer_sessions'] as $table)$this->store->execute("DELETE FROM $table WHERE tenant=? AND expires_at<=?",[$this->store->tenant,time()]);

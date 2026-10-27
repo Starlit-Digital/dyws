@@ -67,7 +67,7 @@ export async function mountGuestDetails({form,api,termsURL,hasDraft=false,onForg
    state=await api('/guest-details',{method:'POST',body:{action,addressId:selected}});
    render();
    if(action==='forget'){
-    for(const name of ['customer','phone'])if(!field(name).readOnly)field(name).value='';
+    for(const name of ['customer','phone','email'])if(field(name)&&!field(name).readOnly)field(name).value='';
     clearAddress();remember.checked=false;onForget();status.textContent='Saved details removed.';
    }else if(action==='remove'){clearAddress();onForget();status.textContent='Address removed.';}
    else{field('savedAddressId').value=selected;field('defaultAddress').checked=true;status.textContent='Default updated.';}
@@ -80,7 +80,7 @@ export async function mountGuestDetails({form,api,termsURL,hasDraft=false,onForg
   render();remember.disabled=false;
   if(!hasDraft&&!touched){
    remember.checked=!!state.profileId;
-   for(const [name,key]of [['customer','name'],['phone','phone']])if(!field(name).value&&!field(name).readOnly)field(name).value=state.customer?.[key]||'';
+   for(const [name,key]of [['customer','name'],['phone','phone'],['email','email']])if(field(name)&&!field(name).value&&!field(name).readOnly)field(name).value=state.customer?.[key]||'';
    const address=state.addresses.find(a=>a.id===state.defaultAddressId);
    if(address&&!field('addressLine1')?.value&&!field('addressLine2')?.value){field('savedAddressId').value=address.id;applySavedAddress(form,address);labelAddress(address);}
   }
@@ -90,7 +90,7 @@ export async function mountGuestDetails({form,api,termsURL,hasDraft=false,onForg
   if(!draft||remember.disabled)return;
   const saved=name=>draft.find(input=>input.name===name)?.value||'';
   if(saved('savedProfileId')&&saved('savedProfileId')!==state.profileId){
-   for(const name of ['customer','phone'])if(!field(name).readOnly)field(name).value='';
+   for(const name of ['customer','phone','email'])if(field(name)&&!field(name).readOnly)field(name).value='';
    clearAddress();remember.checked=false;field('savedProfileId').value=state.profileId||'';onForget();
    status.textContent='Saved details unavailable. Enter them again.';
   }else if(saved('savedAddressId')&&!state.addresses.some(address=>address.id===saved('savedAddressId'))){

@@ -11,14 +11,16 @@ header('X-Content-Type-Options: nosniff');
 <main>
  <h1>Terms and Conditions</h1>
  <p>Saving your details is optional. You can always order without saving them or creating an account.</p>
+ <h2>Checkout email</h2>
+ <p>Email is optional for guest checkout. The store keeps it with your order for contact about that order. Entering an email does not sign you in or grant access to an account. Use the sign in link to verify your email before ordering if you want account history and driver preferences.</p>
  <h2>Customer accounts</h2>
  <p>When this store offers customer accounts, enter your email to receive a sign in link. Your first verified sign in creates an account. Links expire after 15 minutes and work once. Your account session lasts up to 30 days, or until you sign out.</p>
- <p>Orders placed while signed in appear in your account. To add a guest order, use its private tracking page while that link is valid. We do not match old orders using a name, phone number or address.</p>
+ <p>Orders placed while signed in appear in your account. To add a guest order, use its private tracking page while that link is valid. We do not match old orders using a name, phone number, typed email or address.</p>
  <p>Your account retains the delivery addresses used for those orders, including apartment or unit details. These stay with your order history when you forget details saved on a device.</p>
  <p>After a delivery, you can report its driver to the store and block that driver from future deliveries for your account. Blocks apply to every address on your account at this store. They do not identify guest orders or other accounts. Deliveries already on the way may still arrive. You can remove a block in My account.</p>
  <p>The store can read your reports. Drivers do not receive your report text. Account and order records remain in the private store database. Signing out or forgetting device details does not delete those records. Contact the store for help with your records.</p>
  <h2>What we remember</h2>
- <p>Choose “Remember my details on this device” to save your name, phone number and selected delivery address when you order. Label addresses Home, Work or a custom name, and choose a default. Always check your details before ordering.</p>
+ <p>Choose “Remember my details on this device” to save your name, phone number, email if supplied, and selected delivery address when you order. Label addresses Home, Work or a custom name, and choose a default. Always check your details before ordering.</p>
  <h2>How long we remember</h2>
  <p>Your saved details expire 180 days after your latest successful order on this browser. Each new order starts a fresh 180 day period. Browsing, edits and unsuccessful orders do not extend it. Expired details become unavailable and are removed during cleanup.</p>
  <h2>Your browser and your privacy</h2>

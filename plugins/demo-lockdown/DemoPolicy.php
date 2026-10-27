@@ -58,14 +58,15 @@ final class DemoPolicy {
   return $token;
  }
  public function orderInput(array $body):array {
-  $body['customer']=self::CUSTOMER;$body['notes']='';$body['pluginData']=[];
+  $hasEmail=isset($body['customer']['email']);$body['customer']=self::CUSTOMER;if($hasEmail)$body['customer']['email']='jordan@example.test';$body['notes']='';$body['pluginData']=[];
   unset($body['address'],$body['addressDetails']);
   if(($body['fulfillment']??'')==='delivery')$body['addressDetails']=self::ADDRESS;
   return $body;
  }
  public function order(array $order):void {
   $address=implode(', ',array_filter(self::ADDRESS));
-  if($order['customer']!==self::CUSTOMER||$order['notes']!==''||!empty($order['pluginData'])||($order['fulfillment']==='delivery'&&($order['address']!==$address||$order['addressDetails']!==self::ADDRESS)))throw new ApiError('Use the provided customer details.',403);
+  $customer=$order['customer'];if(isset($customer['email'])){if($customer['email']!=='jordan@example.test')throw new ApiError('Use the provided customer details.',403);unset($customer['email']);}
+  if($customer!==self::CUSTOMER||$order['notes']!==''||!empty($order['pluginData'])||($order['fulfillment']==='delivery'&&($order['address']!==$address||$order['addressDetails']!==self::ADDRESS)))throw new ApiError('Use the provided customer details.',403);
   if($this->store->query('SELECT count(*) AS n FROM orders WHERE tenant=?',[$this->store->tenant])[0]['n']>=500)throw new ApiError('The order limit has been reached. Please try again later.',429);
  }
  public function presentation(array $value,string $page):array {

@@ -4,7 +4,7 @@ declare(strict_types=1);
 function dyws_admin_orders(array $config,\dyws\Store $store):array {
  $drivers=[];foreach($config['drivers'] as $id=>$driver)if($driver['active']??true)$drivers[]=['id'=>$id,'name'=>$driver['name'],'profileIcon'=>$driver['profileIcon']??'car'];
  $customerDrivers=new \dyws\CustomerDrivers($store);
- $orders=array_map(fn($o)=>$customerDrivers->dispatch($o+['customer_id'=>$store->get($o['id'])['customer_id']]),$store->orders());
+ $orders=array_map(function($o)use($store,$customerDrivers){$private=$store->get($o['id']);return $customerDrivers->dispatch($o+['customer_id'=>$private['customer_id'],'customer_email'=>$private['customer_email']]);},$store->orders());
  foreach($orders as &$order)unset($order['customer_id']);unset($order);
  return ['orders'=>$orders,'drivers'=>$drivers,'runs'=>(new \dyws\DeliveryRuns($store))->listing()];
 }

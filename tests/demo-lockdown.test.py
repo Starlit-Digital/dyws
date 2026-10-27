@@ -104,7 +104,7 @@ with tempfile.TemporaryDirectory(prefix='dyws-lockdown-') as temp:
   db.execute('UPDATE orders SET created_at=? WHERE id=?',(int(time.time())-90000,seed_ids[1]));db.commit()
   request('/health');check(db.execute('SELECT count(*) FROM delivery_runs WHERE id=?',(rid,)).fetchone()[0]==0)
   check(db.execute('PRAGMA foreign_key_check').fetchall()==[])
-  order={'idempotencyKey':str(uuid.uuid4()),'customer':{'name':'DO NOT STORE THIS','phone':'7805550199'},'address':'DO NOT STORE THIS','notes':'DO NOT STORE THIS','pluginData':{'test':{'private':'DO NOT STORE THIS'}},'fulfillment':'delivery','demoAcknowledged':True,'lines':[{'id':'breakfast0','quantity':1,'price':1}]}
+  order={'idempotencyKey':str(uuid.uuid4()),'customer':{'name':'DO NOT STORE THIS','phone':'7805550199','email':'do-not-store@example.test'},'address':'DO NOT STORE THIS','notes':'DO NOT STORE THIS','pluginData':{'test':{'private':'DO NOT STORE THIS'}},'fulfillment':'delivery','demoAcknowledged':True,'lines':[{'id':'breakfast0','quantity':1,'price':1}]}
   receipt=request('/orders',order,status=201);oid=receipt['id'];check(receipt['paymentProvider']=='demo' and receipt['total']>1495)
   check(request('/orders',order,status=201)['id']==oid)
   request('/tracking/'+oid,status=404)
@@ -147,8 +147,8 @@ with tempfile.TemporaryDirectory(prefix='dyws-lockdown-') as temp:
   db.execute('UPDATE orders SET tracking_expires=?,tracking_hash=? WHERE id=?',(before[1],'0'*64,oid));db.commit()
   check(page_request(handoff,admin_cookie)[0]==404)
   db.execute('UPDATE orders SET tracking_hash=? WHERE id=?',(before[0],oid));db.commit()
-  row=db.execute('SELECT customer_name,customer_phone,address,notes,plugin_data_json FROM orders WHERE id=?',(oid,)).fetchone()
-  check('DO NOT STORE THIS' not in str(row) and row[0]=='Jordan Taylor' and '123 Example Avenue' in row[2])
+  row=db.execute('SELECT customer_name,customer_phone,address,notes,plugin_data_json,customer_email FROM orders WHERE id=?',(oid,)).fetchone()
+  check('DO NOT STORE THIS' not in str(row) and row[0]=='Jordan Taylor' and '123 Example Avenue' in row[2] and row[5]=='jordan@example.test' and 'do-not-store@example.test' not in str(row))
   request('/manager/orders/'+oid+'/assign',{'driverId':'driver'},manager)
   request('/manager/orders/'+oid+'/payment',{'kind':'capture'},manager)
   for status in ['accepted','preparing','ready']:request('/manager/orders/'+oid+'/status',{'status':status},manager)

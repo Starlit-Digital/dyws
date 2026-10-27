@@ -30,7 +30,7 @@ export function fieldError(input,message,{focus=true}={}){
 }
 export function validateFields(form){
  let first;
- const labels={customer:'Enter a name.',phone:'Enter a phone number.',addressLine1:'Enter an address.',tipDollars:'Enter whole dollars.',pickupDate:'Choose a date.',pickupHour:'Choose an hour.',pickupMinute:'Choose minutes.',locationId:'Choose a store.'};
+ const labels={customer:'Enter a name.',phone:'Enter a phone number.',email:'Enter a valid email address.',addressLine1:'Enter an address.',tipDollars:'Enter whole dollars.',pickupDate:'Choose a date.',pickupHour:'Choose an hour.',pickupMinute:'Choose minutes.',locationId:'Choose a store.'};
  for(const input of form.elements){
   clearFieldError(input);
   if(!input.willValidate||input.checkValidity())continue;

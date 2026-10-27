@@ -24,7 +24,7 @@ with tempfile.TemporaryDirectory(prefix='dyws-guest-test-') as work:
   with sqlite3.connect(cfg['database']) as db:
    db.execute('PRAGMA foreign_keys=ON');return db.execute(query,args).fetchall()
  def order(**changes):
-  return {'idempotencyKey':str(uuid.uuid4()),'customer':{'name':'Example Guest','phone':'7805550142'},'lines':[{'id':'breakfast0','variant':'','quantity':1}],'demoAcknowledged':True,'fulfillment':'delivery','addressDetails':{'line1':'123 Fictional Road','line2':'Unit 4','city':'Edmonton','region':'AB','postalCode':'T5A 0A1','country':'Canada'},**changes}
+  return {'idempotencyKey':str(uuid.uuid4()),'customer':{'name':'Example Guest','phone':'7805550142','email':'guest@example.test'},'lines':[{'id':'breakfast0','variant':'','quantity':1}],'demoAcknowledged':True,'fulfillment':'delivery','addressDetails':{'line1':'123 Fictional Road','line2':'Unit 4','city':'Edmonton','region':'AB','postalCode':'T5A 0A1','country':'Canada'},**changes}
  def cookie():return next(c for c in jar if c.name.startswith('dyws_guest_'))
  try:
   for _ in range(50):

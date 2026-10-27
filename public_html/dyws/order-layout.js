@@ -1,8 +1,8 @@
 /** Optional layouts only move existing controls. Missing or invalid layouts leave core markup intact. */
 export const orderFields={
  cart:{fields:['items','subtotal','tax','total','actions'],required:['items','total','actions']},
- checkout:{fields:['location','name','phone','fulfillment','street','unit','postal','city','region','country','notes','pickup','total','actions'],required:['name','phone','fulfillment','street','total','actions']},
- review:{fields:['location','items','delivery','tax','name','address','phone','postal','notes','total','pause','actions'],required:['items','delivery','tax','total','pause','actions']}
+ checkout:{fields:['location','name','phone','email','fulfillment','street','unit','postal','city','region','country','notes','pickup','total','actions'],required:['name','phone','fulfillment','street','total','actions']},
+ review:{fields:['location','items','delivery','tax','name','address','phone','email','postal','notes','total','pause','actions'],required:['items','delivery','tax','total','pause','actions']}
 };
 export function validOrderLayout(stage,layout){
  const schema=orderFields[stage];if(!schema||!layout||!Number.isInteger(layout.rows)||layout.rows<1||layout.rows>30||!Array.isArray(layout.fields)||layout.fields.length>30)return false;
@@ -31,7 +31,7 @@ export function applyOrderLayout({stage,root,layout}){
   cell.style.gridRow=String(f.row);cell.style.gridColumn=f.column+' / span '+f.span;
   if(node.querySelector('dt')){const list=doc.createElement('dl');list.className='dyws-order-amount';list.append(node);cell.append(list);}else cell.append(node);grid.append(cell);
  }
- const location=nodes.get('location'),unplaced=location&&!layout.fields.some(field=>field.id==='location')?[location]:[];
+ const unplaced=['location','email'].filter(id=>nodes.has(id)&&!layout.fields.some(field=>field.id===id)).map(id=>nodes.get(id));
  const hours=root.querySelector('[data-dyws-hours]');
  root.replaceChildren(...unplaced,...(hours?[hours]:[]),grid,...keep);return true;
 }

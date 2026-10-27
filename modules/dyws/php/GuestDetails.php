@@ -33,7 +33,7 @@ final class GuestDetails {
  public function read():array {
   $p=$this->profile();if(!$p)return ['profileId'=>null,'addresses'=>[]];
   $rows=$this->store->query('SELECT id,label,address_json FROM guest_addresses WHERE tenant=? AND profile_id=? ORDER BY created_at,id',[$this->store->tenant,$p['id']]);
-  return ['profileId'=>$p['id'],'customer'=>['name'=>$p['customer_name'],'phone'=>$p['customer_phone']],'defaultAddressId'=>$p['default_address_id'],'expiresAt'=>(int)$p['expires_at'],'addresses'=>array_map(fn($r)=>['id'=>$r['id'],'label'=>$r['label'],'addressDetails'=>json_decode($r['address_json'],true,512,JSON_THROW_ON_ERROR)],$rows)];
+  return ['profileId'=>$p['id'],'customer'=>['name'=>$p['customer_name'],'phone'=>$p['customer_phone'],'email'=>$p['customer_email']],'defaultAddressId'=>$p['default_address_id'],'expiresAt'=>(int)$p['expires_at'],'addresses'=>array_map(fn($r)=>['id'=>$r['id'],'label'=>$r['label'],'addressDetails'=>json_decode($r['address_json'],true,512,JSON_THROW_ON_ERROR)],$rows)];
  }
  public function manage(array $body):array {
   $action=$body['action']??'';if(!in_array($action,['forget','remove','default'],true))throw new ApiError('Choose a saved details action.');
@@ -65,11 +65,11 @@ final class GuestDetails {
   $expires=(int)$order['created_at']+self::LIFETIME;
   if(!$p){
    $token=bin2hex(random_bytes(32));$p=['id'=>bin2hex(random_bytes(16)),'default_address_id'=>null];
-   $this->store->execute('INSERT INTO guest_details(tenant,id,token_hash,customer_name,customer_phone,expires_at) VALUES(?,?,?,?,?,?)',[$this->store->tenant,$p['id'],hash('sha256',$token),$order['customer_name'],$order['customer_phone'],$expires]);
+   $this->store->execute('INSERT INTO guest_details(tenant,id,token_hash,customer_name,customer_phone,customer_email,expires_at) VALUES(?,?,?,?,?,?,?)',[$this->store->tenant,$p['id'],hash('sha256',$token),$order['customer_name'],$order['customer_phone'],$order['customer_email'],$expires]);
   }
   $this->store->execute('UPDATE guest_details SET expires_at=? WHERE tenant=? AND id=?',[$expires,$this->store->tenant,$p['id']]);
   if($save){
-   $this->store->execute('UPDATE guest_details SET customer_name=?,customer_phone=? WHERE tenant=? AND id=?',[$order['customer_name'],$order['customer_phone'],$this->store->tenant,$p['id']]);
+   $this->store->execute('UPDATE guest_details SET customer_name=?,customer_phone=?,customer_email=? WHERE tenant=? AND id=?',[$order['customer_name'],$order['customer_phone'],$order['customer_email'],$this->store->tenant,$p['id']]);
    $address=json_decode($order['address_json'],true,512,JSON_THROW_ON_ERROR);
    if($order['fulfillment']==='delivery'&&!empty($address['line1'])){
     $rows=$this->store->query('SELECT * FROM guest_addresses WHERE tenant=? AND profile_id=?',[$this->store->tenant,$p['id']]);$id='';

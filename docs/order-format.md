@@ -21,3 +21,5 @@ Templates are stored outside the web root in `order-format-<tenant hash>.json` b
 The public diner demo permits exploring the editor and previewing layouts, with saving and assignments locked by Installation Lockdown. The private diner installation supports saving and assignment normally. Only the installation owner can activate the plugin in the public demo.
 
 See [API contracts](api.md), [plugin capabilities](plugin-hooks.md) and [deployment](deployment.md).
+
+Checkout and review support the email field. Older saved layouts remain valid; core retains an unplaced email field so existing templates cannot discard contact entry or account sign in.

@@ -37,12 +37,12 @@ function renderPalette(){
   button.ondragstart=e=>{dragged=button.dataset.paletteField;e.dataTransfer.setData('text/plain',dragged);e.dataTransfer.effectAllowed='move';};button.ondragend=()=>{dragged=null;root.querySelectorAll('.dyws-drop-active').forEach(node=>node.classList.remove('dyws-drop-active'));};
  }
 }
-const sample={name:'Jordan Taylor',phone:'(780) 555-0142',address:'123 Example Avenue NW',postal:'T5A 1A1',notes:'Please include napkins.',pickup:'15321 Starlit Lane NW'};
+const sample={name:'Jordan Taylor',phone:'(780) 555-0142',email:'jordan@example.test',address:'123 Example Avenue NW',postal:'T5A 1A1',notes:'Please include napkins.',pickup:'15321 Starlit Lane NW'};
 function fieldPreview(f){
  const info=definition(f.id);if(info.kind==='items')return '<div class="dyws-preview-items"><div><span>1 × Diner Omelette</span><b>$13.95</b></div><div><span>1 × Buttermilk Pancakes</span><b>$11.95</b></div></div>';
  if(info.kind==='total')return '<strong class="dyws-preview-total">Total '+(draft.stage==='cart'?'$27.20':'$31.34')+'</strong>';
  if(info.kind==='amount')return `<div class="dyws-preview-amount"><span>${esc(info.label)}</span><b>${({subtotal:'$25.90',tax:draft.stage==='cart'?'$1.30':'$1.49',delivery:'$3.95'})[f.id]||'$0.00'}</b></div>`;
- if(info.kind==='input'||info.kind==='textarea')return `<div class="dyws-preview-label">${esc(info.label)}${info.required?'':' <small>optional</small>'}<div class="dyws-preview-input ${info.kind==='textarea'?'dyws-preview-textarea':''}">${esc(({name:'Jordan Taylor',phone:'(780) 555-0142',street:'123 Example Avenue NW',unit:'Unit 4',postal:'T5A 1A1',city:'Edmonton',region:'AB',country:'Canada',notes:''})[f.id]||'')}</div></div>`;
+ if(info.kind==='input'||info.kind==='textarea')return `<div class="dyws-preview-label">${esc(info.label)}${info.required?'':' <small>optional</small>'}<div class="dyws-preview-input ${info.kind==='textarea'?'dyws-preview-textarea':''}">${esc(({name:'Jordan Taylor',phone:'(780) 555-0142',email:'jordan@example.test',street:'123 Example Avenue NW',unit:'Unit 4',postal:'T5A 1A1',city:'Edmonton',region:'AB',country:'Canada',notes:''})[f.id]||'')}</div></div>`;
  if(info.kind==='fulfillment')return '<div class="dyws-preview-label">Order type<div class="dyws-preview-pills"><span>Pickup</span><strong>✓ Delivery</strong></div></div>';
  if(info.kind==='actions')return draft.stage==='cart'?'<span class="dyws-preview-button">Checkout</span>':`<div class="dyws-preview-actions"><span class="dyws-preview-button dyws-preview-muted">Back</span><span class="dyws-preview-button">${draft.stage==='checkout'?'Review':'Place order'}</span></div>`;
  if(info.kind==='pause')return '<span class="dyws-preview-button dyws-preview-muted">Take more time</span>';

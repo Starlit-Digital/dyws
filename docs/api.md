@@ -28,7 +28,7 @@ Order body:
 {
   "idempotencyKey": "f72ecab0-cb1e-4875-a18d-486897745522",
   "demoAcknowledged": true,
-  "customer": {"name": "Test Guest", "phone": "7805550142"},
+  "customer": {"name": "Test Guest", "phone": "7805550142", "email": "guest@example.test"},
   "fulfillment": "delivery",
   "addressDetails": {"line1": "123 Example Avenue NW", "line2": "Unit 4"},
   "notes": "Test only",
@@ -218,7 +218,7 @@ The optional `order-printer` plugin provides manager configuration and separatel
 
 ## Remembered guest details
 
-`GET /guest-details` returns `{profileId: null, addresses: []}` for a browser without valid saved details. Otherwise it returns `profileId`, `customer: {name, phone}`, `defaultAddressId`, `expiresAt` (Unix seconds) and `addresses: [{id, label, addressDetails}]`. Reads never renew expiry and never set an access cookie before consent.
+`GET /guest-details` returns `{profileId: null, addresses: []}` for a browser without valid saved details. Otherwise it returns `profileId`, `customer: {name, phone, email}`, `defaultAddressId`, `expiresAt` (Unix seconds) and `addresses: [{id, label, addressDetails}]`. Reads never renew expiry and never set an access cookie before consent.
 
 `POST /guest-details` accepts one of:
 
@@ -558,3 +558,14 @@ Host integrations can use `mountCustomerAccount`, `mountCustomerOrder`, and
 origin. Existing guest orders can be saved from the tracking page after signing
 in through My account. Old orders are never linked using unverified contact
 matches. Account history remains available when an order's tracking link expires.
+
+
+## Checkout email
+
+`POST /orders` accepts optional `customer.email`, trimmed, lowercased and validated as an email address of at most 254 bytes. Omitted or blank values preserve the previous request fingerprint. A supplied normalized email participates in idempotency; changing it on a retry returns 409. Invalid email returns 422.
+
+A valid customer session supplies the authoritative account and email. A different nonempty submitted email returns 409 so checkout must be reviewed again. Without a session, a matching email is contact data only. It grants no order history, address associations or driver block inheritance. Guest order claims continue to require both a verified session and the private tracking capability.
+
+The store saves contact email in `orders.customer_email`. Only authenticated manager order responses include that field; generic order projections, driver responses, tracking, kitchen tickets and aggregate reports exclude it. No email is sent on order submission. The checkout button explicitly requests a magic link through the existing customer auth API, then refreshes the verified session when the customer returns to the checkout tab. A reviewed order retains the account it was reviewed for.
+
+With the existing remember details consent, `guest_details.customer_email` is saved privately and returned as `customer.email`. Forget and expiry remove that saved value along with the profile. Checkout drafts stay in page memory. Old orders and saved profiles migrate with an empty email, without changes to identities, receipts or fingerprints. Demo lockdown replaces supplied email with `jordan@example.test` and keeps real account email delivery disabled.

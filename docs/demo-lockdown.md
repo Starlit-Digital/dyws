@@ -19,7 +19,7 @@ Visitors can browse, place fictional pickup and delivery orders, use Orders and 
 
 Catalog, business settings, password changes, driver management, integration settings and plugin toggles are blocked by a server request allowlist. Unknown endpoints are denied by default. The browser also disables editing controls. Removing a disabled attribute or calling the API directly does not bypass the policy.
 
-The server replaces customer name, phone, address, notes and custom plugin data with fixed fictional values before storage. Checkout prepopulates the same readonly fields. It never imports an existing installation's data. Web server request metadata and browser submitted bytes still reach the host; this is not an anonymous or private personal data entry service.
+The server replaces customer name, phone, supplied email, address, notes and custom plugin data with fixed fictional values before storage. Checkout prepopulates the same readonly fields. It never imports an existing installation's data. Web server request metadata and browser submitted bytes still reach the host; this is not an anonymous or private personal data entry service.
 
 Only Installation Lockdown, Order Reporting and DataTables can be active. Google Maps stays installed but inactive. Stripe is excluded from the current kit; any separately installed payment plugin remains restricted by demo policy. No real payments, external API credentials, WebSocket relay or device GPS are configured. The local Manning Town Centre reference image represents the fixed simulated driver location; there is no live routing or traffic estimate. The host sends `Permissions-Policy: geolocation=()` as an additional browser safeguard.
 
