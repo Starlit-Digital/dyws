@@ -1,5 +1,5 @@
 """Exercise manager authorization and optional reporting plugin lifecycle over HTTP."""
-import json,os,pathlib,shutil,socket,subprocess,tempfile,time,urllib.request,urllib.error,urllib.parse
+import json,os,pathlib,shutil,socket,subprocess,tempfile,time,urllib.request,urllib.error,urllib.parse,datetime
 root=pathlib.Path(__file__).resolve().parents[1]
 with tempfile.TemporaryDirectory(prefix='dyws-report-api-') as temp:
  work=pathlib.Path(temp);subprocess.run(['php',str(root/'server/setup.php'),str(work)],check=True,capture_output=True)
@@ -36,6 +36,15 @@ with tempfile.TemporaryDirectory(prefix='dyws-report-api-') as temp:
   request(route,{'acceptingOrders':True,'revision':state['revision']},token=admin,status=409)
   request(route,{'acceptingOrders':True,'revision':saved['revision']},token=admin)
   receipt=request('/orders',order,status=201)
+  future=(datetime.date.today()+datetime.timedelta(days=2)).isoformat()
+  selection={'pickupSchedule':{'date':future,'time':'12:15'}}
+  preview=request('/pickup/preview',selection)
+  check(preview['type']=='scheduled_pickup' and preview['localDate']==future and preview['localTime']=='12:15')
+  scheduled=request('/orders',{**order,**selection,'idempotencyKey':'scheduled-pickup-api-key'},status=201)
+  check(scheduled['fulfillmentMeta']==preview)
+  check(next(o for o in request('/manager/orders',token=admin)['orders'] if o['id']==scheduled['id'])['fulfillmentMeta']==preview)
+  request('/pickup/preview',{'pickupSchedule':{'date':future,'time':'12:50'}},status=422)
+  request('/pickup/preview',{'pickupSchedule':{'date':'2000-01-01','time':'12:15'}},status=422)
   state=request('/manager/settings',token=admin);request(route,{'acceptingOrders':False,'revision':state['revision']},token=admin)
   check(request('/orders',order,status=201)['id']==receipt['id'])
   state=request('/manager/settings',token=admin);request(route,{'acceptingOrders':True,'revision':state['revision']},token=admin)
@@ -43,6 +52,8 @@ with tempfile.TemporaryDirectory(prefix='dyws-report-api-') as temp:
   closed={'enabled':True,'days':[{'mode':'closed','open':'09:00','close':'17:00'} for _ in range(7)]}
   data['catalog']['locationHours']=closed
   request('/manager/catalog',data,token=admin)
+  request('/pickup/preview',selection,status=422)
+  request('/orders',{**order,**selection,'idempotencyKey':'scheduled-closed-api-key'},status=422)
   order.update({'idempotencyKey':'policy-api-delivery-key','fulfillment':'delivery','address':'123 Example Road','deliveryFee':0,'total':1})
   receipt=request('/orders',order,status=201)
   check(receipt['total']==1937)

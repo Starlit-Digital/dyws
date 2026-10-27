@@ -2,7 +2,7 @@ import {driverIcon} from '../../dyws/driver-icons.js';
 import {traceLoad,markReady} from '../../dyws/diagnostics.js';
 import {createGPSCache} from '../../dyws/gps-cache.js';
 let sdkPromise;
-function googleSDK(key){
+export function googleSDK(key){
  if(globalThis.google?.maps?.importLibrary)return Promise.resolve(globalThis.google.maps);
  if(sdkPromise)return sdkPromise;
  sdkPromise=new Promise((resolve,reject)=>{

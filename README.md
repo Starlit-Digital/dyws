@@ -18,6 +18,19 @@ Checkout uses one Location field with address autocomplete, an optional Unit fie
 
 ![Current order review](docs/screenshots/review-layout-20261024/paused-review.png)
 
+## Optional tips
+
+Checkout offers an Add tip button near the total. Selecting it replaces the button
+with a whole dollar input and mobile numeric keypad. The trashcan removes the tip
+and restores the button. The review, receipt and order
+details show the tip separately. Drivers see daily, weekly, monthly, yearly and
+all time earnings in My profile, including refunds and recent deliveries.
+Managers see per order tips, driver totals and separate report and export metrics.
+All payment connectors can prepare the saved tip inclusive total; the six
+connector foundations still require their complete checkout integration. The
+separate Stripe plugin includes the tip in Checkout and refund reconciliation.
+See [tip API and earnings definitions](docs/api.md#optional-tips-october-27-2026).
+
 ## Remembered guest details
 
 Customers can choose **Remember my details on this device** without creating an account. Checkout offers Home, Work and custom address labels, an optional default address, individual removal and **Forget my details**. A new successful order renews a 180 day expiry for both the access cookie and private saved details. Browsing and retries of an existing order do not extend it. Customer contact details never go into browser storage.
@@ -294,3 +307,9 @@ The public repository is [Starlit-Digital/dyws](https://github.com/Starlit-Digit
 ## Order printer pilot
 
 The optional Order Printer plugin pairs an ESP32 controller over its own setup WiFi, then retrieves accepted venue orders directly from DYWS. BLE diagnostics remain available. See [the printer plan, costs and API contract](docs/order-printer.md) and [firmware build and wiring](firmware/order-printer/README.md). The plugin is inactive by default and physical hardware validation is pending.
+Pickup checkout supports an optional address to store map and scheduled pickup
+with a date, hour and quarter hour selection. Scheduled times require at least
+30 minutes of preparation and must fall within the selected store's hours.
+Orders expose versioned fulfillment metadata, and staff views and printer tickets
+clearly distinguish scheduled pickup, ordinary pickup and delivery. See the
+[API contract](docs/api.md) and [map setup](docs/gps-maps-realtime.md).

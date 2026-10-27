@@ -11,6 +11,21 @@ abstract class Connector {
   $this->key=hash_hkdf('sha256',$config['tracking_secret'],32,'dyws-payment:'.$id.':'.$config['tenant']);
  }
  public function definition():array{return $this->definition;}
+ /** Pure preparation for a trusted checkout integration. No network or ledger write. */
+ public function checkoutArguments(Store $store,string $id):array {
+  if($store->tenant!==$this->config['tenant'])throw new ApiError('Payment belongs to another business.',403);
+  $order=$store->get($id);
+  if($order['payment_provider']!==$this->definition['id']||$order['payment_status']!=='unpaid'||$order['status']==='cancelled')throw new ApiError('This order is not available for this payment connector.',409);
+  if((int)$order['total']!==(int)$order['subtotal']+(int)$order['tax']+(int)$order['delivery_fee']+(int)$order['tip'])throw new ApiError('Order payment components do not reconcile.',409);
+  $key=substr(hash('sha256',$store->tenant.'|'.$id.'|'.$this->definition['id']),0,32);
+  return ['payload'=>$this->orderPayload($order,$key),'idempotencyKey'=>$key];
+ }
+ protected function orderPayload(array $order,string $key):array {throw new ApiError('Order checkout preparation is unavailable.',409);}
+ protected static function decimal(int $cents):string{return intdiv($cents,100).'.'.str_pad((string)($cents%100),2,'0',STR_PAD_LEFT);}
+ protected static function charges(array $order):array {
+  $lines=[];foreach(['subtotal'=>'Order items','delivery_fee'=>'Delivery fee','tax'=>'Configured tax','tip'=>'Tip'] as $field=>$name)if($order[$field]>0)$lines[]=['name'=>$name,'amount'=>(int)$order[$field]];
+  return $lines;
+ }
  public function read():array {
   if(!is_file($this->path))return ['environment'=>'sandbox','credentials'=>[],'verifiedAt'=>null];
   try{$d=json_decode(file_get_contents($this->path),true,32,JSON_THROW_ON_ERROR);$plain=openssl_decrypt(base64_decode($d['ciphertext'],true),'aes-256-gcm',$this->key,OPENSSL_RAW_DATA,base64_decode($d['iv'],true),base64_decode($d['tag'],true),$this->config['tenant']);if($plain===false)throw new \RuntimeException();return json_decode($plain,true,32,JSON_THROW_ON_ERROR);}catch(\Throwable){throw new ApiError('Payment credentials could not be opened.',503);}

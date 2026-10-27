@@ -64,10 +64,11 @@ function dyws_admin_navigation(array $config,array $boot):string {
  return $html;
 }
 function dyws_admin_initial_orders(array $boot):string {
- $rows=$boot['responses']['/manager/orders']['orders']??[];$html='<div data-dyws-order-initial class="dyws-table-wrap"><table><thead><tr><th>Order</th><th>Customer</th><th>Status</th><th>Total</th></tr></thead><tbody>';$count=0;
+ $rows=$boot['responses']['/manager/orders']['orders']??[];$html='<div data-dyws-order-initial class="dyws-table-wrap"><table><thead><tr><th>Order</th><th>Customer</th><th>Status</th><th>Fulfillment</th><th>Total</th><th>Tip</th></tr></thead><tbody>';$count=0;
  foreach($rows as $order){if(in_array($order['status'],['completed','delivered','cancelled'],true))continue;$count++;
-  $html.='<tr>';foreach([$order['id'],$order['customer_name'],str_replace('_',' ',$order['status']),$order['currency'].' '.number_format($order['total']/100,2)]as $cell)$html.='<td>'.htmlspecialchars($cell,ENT_QUOTES,'UTF-8').'</td>';$html.='</tr>';}
- if(!$count)$html.='<tr><td colspan="4">No active orders.</td></tr>';return $html.'</tbody></table></div>';
+  $meta=$order['fulfillmentMeta'];$fulfillment=$meta['label'].($meta['scheduled']?' · '.$meta['localDate'].' '.$meta['localTime'].' '.$meta['timeZone']:'');
+  $html.='<tr>';foreach([$order['id'],$order['customer_name'],str_replace('_',' ',$order['status']),$fulfillment,$order['currency'].' '.number_format($order['total']/100,2),$order['currency'].' '.number_format(($order['tip']??0)/100,2)]as $cell)$html.='<td>'.htmlspecialchars($cell,ENT_QUOTES,'UTF-8').'</td>';$html.='</tr>';}
+ if(!$count)$html.='<tr><td colspan="6">No active orders.</td></tr>';return $html.'</tbody></table></div>';
 }
 function dyws_admin_plugin_forms(array $boot,string $publicRoot):void {
  $dywsInlineSettings=true;

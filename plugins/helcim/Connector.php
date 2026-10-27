@@ -2,6 +2,9 @@
 declare(strict_types=1);
 namespace dyws\Plugins\Helcim;
 final class Connector extends \dyws\Payments\Connector {
+ protected function orderPayload(array $order,string $key):array {
+  return ['paymentType'=>'purchase','amount'=>$order['total']/100,'currency'=>$order['currency']];
+ }
  protected function connection():string{$this->request('terminals.list');return 'API token accepted. Use a Helcim developer test account; Helcim uses the same API hostname for test and live accounts.';}
  public function request(string $operation,array $arguments=[]):array {
   $headers=['api-token: '.$this->credentials()['apiToken']];$base='https://api.helcim.com/v2';

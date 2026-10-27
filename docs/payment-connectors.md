@@ -66,3 +66,49 @@ Helcim requires a delivery URL without its name, so its host approved callback i
 ## Deployment
 
 Deploy each private `plugins/<id>/` directory with its public browser module. Deploy `modules/dyws/php/Payments/`, the matching plugin host, hook catalog, bundled callback allowlist, admin scripts, styles and regenerated preload manifest together. No schema migration is needed. Leave all new plugins inactive until their sandbox credentials can be configured. Preserve existing plugin activation state, encrypted files, catalogs and SQLite. The public demo must retain its restricted activation allowlist and settings policy.
+
+
+## Tip aware order preparation
+
+All six connectors provide `checkoutArguments(Store $store, string $orderId)`.
+This pure server method loads an immutable order in the configured tenant and
+requires that connector's provider, an unpaid order and a noncancelled status.
+It verifies that subtotal, configured tax, delivery fee and tip reconcile to the
+saved total. It returns provider `payload` plus a deterministic `idempotencyKey`.
+A trusted integration can pass that result to `request('checkout.create', $args)`.
+Never accept a Store object, arbitrary provider payload or trusted order snapshot
+from a browser. The existing low level raw payload interface remains for trusted
+extensions, which must apply the same authoritative pricing requirements.
+
+| Connector | Saved tip handling |
+| --- | --- |
+| Square | Separate Tip line in the order, integer cents, automatic provider tax and discounts disabled, additional provider tipping disabled. |
+| PayPal | Separate Tip item included in item total. Configured tax and delivery stay in the amount breakdown, which sums to the saved total. |
+| Helcim | The initialized purchase amount includes the tip. Separate attribution remains in DYWS. |
+| Clover | Separate Tip line in the hosted cart, integer cents, additional provider tipping disabled. |
+| Moneris | `txn_total` includes the tip and `order_no` identifies the saved order. Separate attribution remains in DYWS. |
+| Authorize.net | Total includes the tip, with a separate Tip line marked not taxable and separate tax and shipping components. |
+
+Provider preparation does not enable these connector foundations for customer
+checkout. Merchant currency configuration, durable attempt association, return
+flow, signatures and payment reconciliation are still required for a complete
+integration. Clover and Moneris use their merchant account currency; an integration
+must confirm it matches the order. Provider limits may be lower than the storage
+limit and must be checked before creating an attempt. A second provider tip prompt
+must stay disabled because DYWS already stores the customer's choice.
+
+Provider reconciliation must compare the full saved total, including tip, and
+currency after merchant, tenant, attempt and signature validation. Refund
+integrations use `dyws\Tips::allocate($order, $cumulativeRefund)` and store the
+increment from the previous cumulative allocation in `payment_refund_deltas`,
+including its `tip` column. Never classify tip refunds as tax or product sales.
+The separately installed Stripe plugin implements this flow and uses a separate
+Tip Checkout line. Tests use fake transports and never submit a real payment.
+
+Payload references checked October 27, 2026:
+[Square payment links](https://developer.squareup.com/docs/migrate-from-v1/guides/v1-checkout),
+[PayPal order amounts](https://developer.paypal.com/sdk/orders/v2/definitions/order/),
+[Helcim initialization](https://devdocs.helcim.com/docs/initialize-helcimpayjs),
+[Clover hosted cart](https://docs.clover.com/dev/docs/creating-a-hosted-checkout-session),
+[Moneris preload](https://developer.moneris.com/hosted-solutions/reference/preload-request-api-ref),
+[Authorize.net transaction amounts](https://developer.authorize.net/api/reference/index.html).

@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 namespace dyws\Plugins\OrderPrinter;
-use dyws\{ApiError, Catalog, Store};
+use dyws\{ApiError, Catalog, Store, Fulfillment};
 
 final class PrinterService {
     public const PROFILES = [
@@ -93,7 +93,15 @@ final class PrinterService {
     private function ticket(array $order,array $device,string $kind):string {
         $width=self::PROFILES[$device['profile']]['columns'];
         $location=json_decode($order['order_location_json']??'{}',true);
-        $lines=[$kind==='copy'?'COPY / REPRINT':'NEW ORDER','DEMONSTRATION ORDER',self::clean($location['name']??$device['name']),$order['id'],strtoupper($order['fulfillment']),gmdate('Y-m-d H:i',$order['created_at']).' UTC',self::clean($order['customer_name'])];
+        $meta=Fulfillment::read($order);
+        $lines=[$kind==='copy'?'COPY / REPRINT':'NEW ORDER','DEMONSTRATION ORDER',self::clean($location['name']??$device['name']),$order['id'],strtoupper($meta['label'])];
+        if($meta['scheduled']){
+            $lines[]='PICKUP DATE: '.$meta['localDate'];
+            $lines[]='PICKUP TIME: '.$meta['localTime'];
+            $lines[]='ZONE: '.$meta['timeZone'];
+        }else $lines[]=$meta['type']==='pickup'?'AS SOON AS READY':'DELIVERY ORDER';
+        $lines[]='Placed: '.gmdate('Y-m-d H:i',$order['created_at']).' UTC';
+        $lines[]=self::clean($order['customer_name']);
         foreach(json_decode($order['lines_json'],true,64,JSON_THROW_ON_ERROR) as $line) {
             $lines[]=$line['quantity'].' x '.self::clean($line['name']);
             if(!empty($line['option']))$lines[]='  '.self::clean($line['option']);
@@ -101,6 +109,7 @@ final class PrinterService {
         if($order['notes']!==''){$lines[]='NOTES';$lines[]=self::clean($order['notes']);}
         // Kitchen tickets deliberately omit phone, address and tracking credentials.
         $lines[]='Payment: '.($order['payment_provider']==='demo'?'TEST LEDGER ':'').strtoupper($order['payment_status']);
+        $lines[]='Tip: '.$order['currency'].' '.number_format(($order['tip']??0)/100,2,'.','');
         $lines[]='Total: '.$order['currency'].' '.number_format($order['total']/100,2,'.','');
         $text=implode("\n",array_map(fn($line)=>wordwrap($line,$width,"\n",true),$lines))."\n";
         if(strlen($text)>14000)throw new ApiError('Ticket is too large.',422);
@@ -141,6 +150,8 @@ final class PrinterService {
             $job=$jobs[0];$lease=bin2hex(random_bytes(24));
             $this->store->execute("UPDATE printer_jobs SET state='leased',lease_hash=?,lease_until=?,attempts=attempts+1,updated_at=? WHERE tenant=? AND id=?",[hash('sha256',$lease),time()+90,time(),$tenant,$job['id']]);
             $result['job']=['id'=>$job['id'],'lease'=>$lease,'text'=>$job['payload'],'profile'=>$device['profile'],'cut'=>self::PROFILES[$device['profile']]['cut']];
+            $result['job']['orderId']=$job['order_id'];
+            $result['job']['fulfillmentMeta']=$job['order_id']?Fulfillment::read($this->store->get($job['order_id'])):null;
             return $result;
         });
     }

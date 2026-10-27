@@ -14,6 +14,7 @@ export function deliveryStatus(order,{estimate=undefined,now=Date.now(),role='Dr
  if(unavailable){view.etaTitle='Order updates';view.etaValue='Reconnecting';view.etaDetail='The last order update is shown. Trying again automatically.';return view;}
  if(order.paymentProvider&&order.paymentProvider!=='demo'&&order.paymentStatus==='unpaid'&&status==='placed'){view.message='Complete your payment below to continue.';view.etaTitle='Payment needed';view.etaValue='Waiting for payment';view.etaDetail='Use the payment options below. Confirmation will appear here after payment is verified.';return view;}
  if(status==='placed'){view.pending=true;view.etaTitle='Order confirmation';view.etaValue='Waiting for acceptance';view.etaDetail='Your order has been sent. This page will update as soon as the business accepts it. There is no need to order again.';return view;}
+ if(pickup&&order.fulfillmentMeta?.scheduled){const meta=order.fulfillmentMeta;view.etaTitle='Scheduled pickup';view.etaValue=status==='ready'?'Ready to collect':meta.localTime;view.etaDetail='Pickup on '+meta.localDate+' at '+meta.localTime+' ('+meta.timeZone+').';if(status==='accepted')view.message='The business has confirmed your scheduled pickup.';return view;}
  if(status==='accepted'){view.etaTitle='Up next';view.etaValue='Preparation';view.etaDetail='The business has confirmed your order. We will show you when preparation begins.';return view;}
  if(pickup){if(status==='ready')view.etaValue='Ready now';return view;}
  if(status!=='out_for_delivery')return view;

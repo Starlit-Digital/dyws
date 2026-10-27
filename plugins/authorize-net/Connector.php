@@ -2,6 +2,11 @@
 declare(strict_types=1);
 namespace dyws\Plugins\AuthorizeNet;
 final class Connector extends \dyws\Payments\Connector {
+ protected function orderPayload(array $order,string $key):array {
+  $items=[['itemId'=>'items','name'=>'Order items','quantity'=>'1','unitPrice'=>self::decimal((int)$order['subtotal'])]];
+  if($order['tip']>0)$items[]=['itemId'=>'tip','name'=>'Tip','quantity'=>'1','unitPrice'=>self::decimal((int)$order['tip']),'taxable'=>false];
+  return ['transactionRequest'=>['transactionType'=>'authCaptureTransaction','amount'=>self::decimal((int)$order['total']),'currencyCode'=>$order['currency'],'order'=>['invoiceNumber'=>$order['id']],'lineItems'=>['lineItem'=>$items],'tax'=>['amount'=>self::decimal((int)$order['tax'])],'shipping'=>['amount'=>self::decimal((int)$order['delivery_fee'])]]];
+ }
  protected function connection():string{$r=$this->request('account.verify');if(($r['messages']['resultCode']??'')!=='Ok')throw new \dyws\ApiError('Authorize.net did not accept the sandbox credentials.');return 'Sandbox merchant credentials accepted.';}
  public function request(string $operation,array $arguments=[]):array {
   $c=$this->credentials();$auth=['merchantAuthentication'=>['name'=>$c['loginId'],'transactionKey'=>$c['transactionKey']]];

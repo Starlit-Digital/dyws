@@ -52,7 +52,7 @@ final class AdminAccounts {
  }
  public function summary(Store $store):array {
   $drivers=$this->effective()['drivers'];$out=[];
-  foreach($drivers as $id=>$driver){$count=$store->query("SELECT count(*) AS n FROM orders WHERE tenant=? AND driver_id=? AND status NOT IN ('delivered','completed','cancelled')",[$store->tenant,$id])[0]['n'];$out[]=['id'=>$id,'name'=>$driver['name'],'vehicleType'=>$driver['vehicleType'],'vehicleColor'=>$driver['vehicleColor'],'profileIcon'=>$driver['profileIcon'],'active'=>$driver['active']??true,'activeOrders'=>(int)$count];}
+  foreach($drivers as $id=>$driver){$count=$store->query("SELECT count(*) AS n FROM orders WHERE tenant=? AND driver_id=? AND status NOT IN ('delivered','completed','cancelled')",[$store->tenant,$id])[0]['n'];$out[]=['id'=>$id,'name'=>$driver['name'],'vehicleType'=>$driver['vehicleType'],'vehicleColor'=>$driver['vehicleColor'],'profileIcon'=>$driver['profileIcon'],'active'=>$driver['active']??true,'activeOrders'=>(int)$count,'tipTotals'=>array_map(static fn($group)=>['currency'=>$group['currency'],'periods'=>$group['periods']],$store->driverTips($id)['currencies'])];}
   return ['drivers'=>$out,'revision'=>hash('sha256',json_encode($drivers,JSON_THROW_ON_ERROR))];
  }
  public function saveDriver(Store $store,array $body):array {
@@ -83,7 +83,7 @@ final class AdminAccounts {
   $drivers=$this->effective()['drivers'];$driver=$drivers[$id]??null;
   if(!$driver||!$driver['active'])throw new ApiError('Driver profile is unavailable.',403);
   $profile=['id'=>$id,'name'=>$driver['name'],'vehicleType'=>$driver['vehicleType'],'vehicleColor'=>$driver['vehicleColor'],'profileIcon'=>$driver['profileIcon']];
-  return $profile+['revision'=>hash('sha256',json_encode($profile,JSON_THROW_ON_ERROR))];
+  return $profile+['revision'=>hash('sha256',json_encode($profile,JSON_THROW_ON_ERROR)),'tips'=>$store->driverTips($id)];
  }
  public function saveProfile(Store $store,string $id,array $body):array {
   return $this->locked($store,function()use($store,$id,$body){

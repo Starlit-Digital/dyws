@@ -227,3 +227,44 @@ PHP `mail()` must be configured on the host. The placeholder is not an operation
 Local verification uses fictional fixture orders and a fake mail transport. It verifies destination restriction, MIME attachments, submission failure and duplicate suppression without sending a real email. Deployment and actual inbox delivery must be verified separately.
 
 The operating hours and reporting update was deployed to `https://dyws.ca/` on October 26, 2026, using a verified source snapshot based on `e3db56d`. The prior release remains available for rollback. PHP SQLite3 backup preserved a consistent database copy; private runtime JSON and existing orders were verified unchanged during cutover. Forty five public HTTPS checks passed, including all three report formats and one fictional delivery completed through the driver flow. The public demo continues to lock owner settings and email sending. See [the deployment receipt](operations-reporting-deployment-20261026.json) for source hashes, backup location and verification.
+
+
+## Optional tips
+
+Deploy the matching Store, schema, Tips and DriverTips modules with profile APIs,
+shared payment connector base, all provider connector implementations, reporting
+and export code, printer receipt code, browser controllers, styles and regenerated
+preload graph. Back up SQLite through its backup API first. Startup adds zero
+default `tip` columns to orders and refund deltas, preserving old totals and
+idempotency fingerprints. Driver and event indexes support earnings reads.
+No runtime catalog, settings, account or plugin activation changes are required.
+
+The private Stripe update requires this framework version's `dyws\Tips` and tip
+columns. Deploy the framework and plugin together where Stripe is installed.
+Deploying only the old Stripe plugin with the new tipped checkout would omit the
+tip from provider line items and is unsupported. Preserve signed callbacks and
+pending attempts. The six connector foundations remain inactive or in their
+existing activation state and do not become checkout providers through this update.
+
+The dyws.ca showcase pins a separate engine and adapts browser storage per business.
+Update its pin and rebuild the showcase when deploying this change there; do not
+copy unadapted engine assets over business specific generated scripts. Public demo
+order cleanup still limits displayed history to retained fictional records.
+## Scheduled pickup and pickup maps
+
+Deploy the matching Store, Fulfillment, schema, API, checkout, storefront,
+tracking, order list, initial server rendering, printer and Google Maps plugin
+files together. Regenerate module preloads. The additive migration creates
+`orders.fulfillment_meta_json` with an empty default; existing orders remain
+unscheduled and preserve their amounts. Back up the private SQLite database
+before upgrading. No merchant catalog, credentials or saved plugin settings
+need replacement. Future dates use the server's time zone database; keep that
+database current. The preview endpoint and final order validation share the
+same interpretation.
+
+The map uses the existing optional Google configuration. Include both plugin
+halves and the new `pickup.map` storefront feature declaration. Installation
+Lockdown permits the pickup preview API but retains its fictional map and
+24 hour data retention. Site repositories with pinned engine copies or custom
+checkout adapters must explicitly incorporate these changes and pass their own
+checks before deployment.

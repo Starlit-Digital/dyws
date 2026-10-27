@@ -31,7 +31,7 @@ with tempfile.TemporaryDirectory(prefix='dyws-profile-') as work:
   manager_token=request('/login',{'role':'manager','password':manager})['token'];token=request('/login',{'role':'driver','driverId':'demo-driver','password':password})['token']
   for body in [None,{}]:
    request('/driver/profile',body,status=401);request('/driver/profile',body,manager_token,status=403)
-  profile=request('/driver/profile',token=token);check(profile['profileIcon']=='car');check(set(profile)=={'id','name','vehicleType','vehicleColor','profileIcon','revision'})
+  profile=request('/driver/profile',token=token);check(profile['profileIcon']=='car');check(set(profile)=={'id','name','vehicleType','vehicleColor','profileIcon','revision','tips'})
   initial=db.execute('SELECT name,password_hash,active,vehicle_type,vehicle_color FROM drivers WHERE tenant=? AND id=?',(config['tenant'],'demo-driver')).fetchone()
   db.execute("INSERT INTO drivers(tenant,id,name,password_hash,active,profile_icon) VALUES('other','demo-driver','Other','private',1,'suv')");db.commit()
   for icon in ['suv','pickup','van','motorcycle','bicycle','car']:
@@ -60,13 +60,26 @@ with tempfile.TemporaryDirectory(prefix='dyws-profile-') as work:
   request('/logout',{},token);token=request('/login',{'role':'driver','driverId':'demo-driver','password':password})['token'];check(request('/driver/profile',token=token)['profileIcon']=='van')
   summary=request('/manager/drivers',token=manager_token);check(summary['drivers'][0]['profileIcon']=='van')
   request('/manager/drivers',{'id':'demo-driver','name':profile['name'],'active':True,'password':'','vehicleType':'FORGED','vehicleColor':'Red','revision':summary['revision']},manager_token);check(request('/driver/profile',token=token)==profile)
-  item=request('/catalog')['categories'][0]['items'][0]['id'];receipt=request('/orders',{'idempotencyKey':str(uuid.uuid4()),'demoAcknowledged':True,'customer':{'name':'Fictional Guest','phone':'7805550142'},'fulfillment':'delivery','address':'123 Example Street','lines':[{'id':item,'quantity':1}]},status=201)
+  item=request('/catalog')['categories'][0]['items'][0]['id'];receipt=request('/orders',{'idempotencyKey':str(uuid.uuid4()),'demoAcknowledged':True,'customer':{'name':'Fictional Guest','phone':'7805550142'},'tip':500,'fulfillment':'delivery','address':'123 Example Street','lines':[{'id':item,'quantity':1}]},status=201)
   request('/manager/orders/'+receipt['id']+'/assign',{'driverId':'demo-driver'},manager_token)
   check(request('/tracking/'+receipt['id'],tracking=receipt['trackingToken'])['driver']=={'name':profile['name'],'profileIcon':'van','vehicleType':'Toyota Corolla','vehicleColor':'Blue'})
   check(db.execute('SELECT name,password_hash,active FROM drivers WHERE tenant=? AND id=?',(config['tenant'],'demo-driver')).fetchone()==initial[:3])
   check(db.execute("SELECT vehicle_type,vehicle_color FROM drivers WHERE tenant='other' AND id='demo-driver'").fetchone()==('',''))
   # Existing driver sessions in another tenant cannot cross into this installation.
   foreign='e'*64;db.execute('INSERT INTO sessions VALUES(?,?,?,?,?)',(hashlib.sha256(foreign.encode()).hexdigest(),'other','driver','demo-driver',int(time.time())+500));db.commit();request('/driver/profile',token=foreign,status=401)
+  check(receipt['tip']==500)
+  check(request('/driver/profile',token=token)['tips']['currencies']==[])
+  for state in ['accepted','preparing','ready','out_for_delivery']:
+   request('/manager/orders/'+receipt['id']+'/status',{'status':state},manager_token)
+  request('/manager/orders/'+receipt['id']+'/payment',{'kind':'capture'},manager_token)
+  request('/manager/orders/'+receipt['id']+'/status',{'status':'delivered'},manager_token)
+  earned=request('/driver/profile',token=token)['tips']
+  check(earned['currencies'][0]['periods']['allTime']['net']==500)
+  check(earned['recentOrders'][0]['id']==receipt['id'])
+  request('/manager/orders/'+receipt['id']+'/payment',{'kind':'refund'},manager_token)
+  adjusted=request('/driver/profile',token=token)['tips']['currencies'][0]['periods']['allTime']
+  check(adjusted['gross']==500 and adjusted['refunded']==500 and adjusted['net']==0)
+  check(request('/manager/drivers',token=manager_token)['drivers'][0]['tipTotals'][0]['periods']['allTime']==adjusted)
   check(db.execute('PRAGMA integrity_check').fetchone()[0]=='ok')
   print(f'Driver profiles HTTP: {checks} checks passed.')
  finally:server.terminate();server.wait(timeout=5);db.close()

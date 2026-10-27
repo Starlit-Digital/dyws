@@ -19,6 +19,25 @@ try{
   check($connector->verify()['ok'],'Connection verified');
   $context=new \dyws\PluginContext($id,$config,$id==='helcim'?['/payments/hc/events']:[]);\dyws\Payments\registerConnector($context,$connector);check(($context->routes['POST /manager/plugins/'.$id.'/verify']['handler'])()['ok'],'Verification route uses the real connector');check($connector->summary()['verifiedAt']!==null,'Verification recorded');check(count($calls)>0&&str_starts_with($calls[0]['url'],'https://'),'Real API contract');
   $connector->request('checkout.create',['payload'=>['amount'=>12.34,'txn_total'=>'12.34'],'idempotencyKey'=>'test-request']);$last=end($calls);check($last['method']==='POST','Checkout connector');
+  $GLOBALS['dyws_config']=$config;$catalog=\dyws\Catalog::load(__DIR__.'/../examples/starlit-diner/catalog.json');$store=new \dyws\Store($config['database'],$catalog,$config['tenant']);
+  $order=$store->create(['idempotencyKey'=>bin2hex(random_bytes(16)),'tip'=>500,'customer'=>['name'=>'Fictional Guest','phone'=>'7805550100'],'lines'=>[['id'=>'breakfast0','quantity'=>1]],'fulfillment'=>'pickup'],$id);
+  $args=$connector->checkoutArguments($store,$order['id']);check($args===$connector->checkoutArguments($store,$order['id']),'Deterministic immutable order arguments');$payload=$args['payload'];
+  $sent=match($id){
+   'square'=>array_sum(array_map(fn($line)=>(int)$line['quantity']*$line['base_price_money']['amount'],$payload['order']['line_items'])),
+   'paypal'=>(int)round((float)$payload['purchase_units'][0]['amount']['value']*100),
+   'helcim'=>(int)round($payload['amount']*100),
+   'clover'=>array_sum(array_map(fn($line)=>$line['unitQty']*$line['price'],$payload['shoppingCart']['lineItems'])),
+   'moneris'=>(int)round((float)$payload['txn_total']*100),
+   'authorize-net'=>(int)round((float)$payload['transactionRequest']['amount']*100)
+  };
+  check($sent===$order['total'],'Provider total includes the saved tip exactly once');
+  if($id==='square')check($payload['checkout_options']['allow_tipping']===false&&end($payload['order']['line_items'])['name']==='Tip','Square sends a separate tip and disables a second prompt');
+  if($id==='clover')check($payload['tips']['enabled']===false&&end($payload['shoppingCart']['lineItems'])['name']==='Tip','Clover sends a separate tip and disables a second prompt');
+  if($id==='paypal'){$unit=$payload['purchase_units'][0];check(array_sum(array_map(fn($part)=>(int)round((float)$part['value']*100),$unit['amount']['breakdown']))===$sent,'PayPal amount breakdown reconciles');check(end($unit['items'])['name']==='Tip','PayPal tip item');}
+  if($id==='authorize-net')check(end($payload['transactionRequest']['lineItems']['lineItem'])['itemId']==='tip','Authorize.net tip line');
+  $connector->request('checkout.create',$args);check(count($store->query('SELECT * FROM payments'))===0,'Preparing and sending a connector request never confirms payment');
+  $foreign=new \dyws\Store($config['database'],$catalog,'different-tenant');denied(fn()=>$connector->checkoutArguments($foreign,$order['id']),403);unset($foreign);
+  $store->execute("UPDATE orders SET payment_provider='demo' WHERE id=?",[$order['id']]);denied(fn()=>$connector->checkoutArguments($store,$order['id']),409);unset($store);
   denied(fn()=>$connector->request('arbitrary.delete'),422);
   $state=$plugins->save(['id'=>$id,'active'=>true,'revision'=>$plugins->summary()['revision']]);check($plugins->paymentConnector($id) instanceof $class,'Active connector hook resolves');check($plugins->paymentProvider()==='demo','Connector activation never enables collection');
   check($plugins->match('POST','/manager/plugins/'.$id.'/settings')['access']==='manager','Settings authorized');

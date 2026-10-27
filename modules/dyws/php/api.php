@@ -65,6 +65,7 @@ try {
   $result=$accounts->login($store,$body);
  }
  elseif($method==='POST'&&$route==='/logout'){$s=dyws_authorize($store,['manager','driver']);dyws_admin_cookie($config,$s['role']==='manager'?'dyws_admin_session':'dyws_driver_session','',time()-3600);$store->execute('DELETE FROM sessions WHERE token_hash=?',[$s['token_hash']]);$expired=$store->pruneLocations();if($expired)$realtime->changed(array_map(fn($id)=>$store->tenant.':order:'.$id,$expired));$result=['ok'=>true];}
+ elseif($method==='POST'&&$route==='/pickup/preview'){dyws_limit_requests($store,$config,'pickup-preview',60,60);$result=$store->pickupPreview($body);}
  elseif($method==='POST'&&$route==='/orders'){
   dyws_limit_requests($store,$config,'orders',20,3600);
   if(($body['demoAcknowledged']??false)!==true)throw new \dyws\ApiError('Confirm the order details.');

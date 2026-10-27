@@ -111,3 +111,22 @@ The public `https://dyws.ca/` install overrides this with Installation Lockdown:
 Drivers open My profile in their console to choose Car, SUV, Pickup, Van, Motorcycle or Bicycle. The default is Car. The saved local SVG appears beside their profile and on Google Maps in the driver console, Drivers, Orders and private customer tracking. Changing the icon updates the existing marker even if the GPS coordinates have not changed. The destination retains its separate map pin.
 
 The icon is a visual preference, not verified vehicle information or a routing mode. The renderer continues to request driving routes. It does not infer a heading or start GPS. The approved choices are fixed local assets, with no remote avatar URLs or user SVG uploads. Artwork attribution and licenses are stored in `public_html/dyws/icons/driver/`.
+## Pickup route preview
+
+Pickup checkout offers an optional starting address and a compact Google map.
+The active Google Maps plugin uses the existing configured browser key and
+Routes library to draw an address to address driving route. Google documents
+address strings for both endpoints in [Get a route](https://developers.google.com/maps/documentation/javascript/routes/get-a-route).
+Both the origin and destination markers are labelled. Changing the address or
+location clears the old path immediately, then requests the new route after a
+700 millisecond pause. Responses for an older selection are discarded. Clearing
+the address, selecting delivery or leaving checkout clears the preview.
+
+This flow does not request device GPS. The address remains only in page memory
+and is sent to Google for routing when the map is available. It is excluded from
+the order payload and remembered profiles. An external Google Maps directions
+link follows the current selections even when the plugin is inactive, its key
+is missing, or a route request fails. The locked public demo uses a clearly
+labelled sample area image and fictional starting address, with no live route
+requests. New route rendering tests use a local SDK double; they do not verify
+an installation's billing, quota or browser key configuration.

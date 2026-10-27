@@ -96,3 +96,35 @@ Reports contain only aggregate data. PDF, CSV and text downloads can include a c
 The public framework includes Dompdf through the locked Composer dependencies. PDF rendering disables remote resources, embedded PHP and JavaScript. The official [Dompdf project documentation](https://github.com/dompdf/dompdf/blob/master/README.md) describes the renderer and resource restrictions. The renderer consumes escaped server generated aggregate data, never supplied HTML.
 
 Email me uses the saved business email. It requires a host mail transport and sender configuration described in [deployment notes](deployment.md). No messages are sent automatically, and no recurring schedule is created. The feature reports transport acceptance rather than claiming delivery. Profit margins, website conversion, advertising attribution and promised delivery performance remain unavailable because their required source data is not recorded.
+
+
+## Separate tip accounting
+
+Checkout tips are voluntary whole dollar amounts stored as integer cents.
+Orders, customer receipts, driver delivery cards and printed receipts display
+Tip separately. The reporting dashboard and PDF, CSV and text exports include
+Tips added, Tips collected, Tips refunded and Net tips in summary and daily data.
+The existing ordered value and payment totals include tips. Product sales,
+delivery fees and configured tax exclude tips.
+
+`orderedTips` follows order creation dates. The Order Reporting plugin excludes
+cancelled orders; the core fallback follows its existing ordered value definition
+and includes them. `capturedTips` and `refundedTips` follow ledger event dates.
+`netTips = capturedTips - refundedTips`. Negative net tips are valid when the
+selected period contains refunds of earlier payments. Net product payments,
+net tax, net delivery fees and net tips sum exactly to net payments.
+
+Refund delta snapshots store a separate tip component. They replace cumulative
+refund rows in reports to avoid double counting. Tipped partial refunds are
+allocated proportionally using cumulative integer cent components, with rounding
+carried between successive events. A full refund reverses every original cent.
+Untipped historical orders retain the previous allocation method.
+
+Driver profiles and manager driver cards show earned tips by delivery completion
+date in the business timezone. Today, Monday through today, month to date, year
+to date and all time are available. Currency groups remain separate. A later
+refund reduces the original delivery day's retained earnings. This differs from
+the business payment report, which records the refund on its event date. Driver
+profiles also show historical daily, weekly and monthly data and recent tipped
+deliveries. Pickup tips remain business order tips without driver attribution.
+These are earnings and refund records; no driver payout is created.

@@ -4,7 +4,8 @@ CREATE TABLE IF NOT EXISTS orders (
  payment_status TEXT NOT NULL, fulfillment TEXT NOT NULL, customer_name TEXT NOT NULL, customer_phone TEXT NOT NULL,
  address TEXT NOT NULL, notes TEXT NOT NULL, lines_json TEXT NOT NULL,
  subtotal INTEGER NOT NULL CHECK(subtotal>=0), tax INTEGER NOT NULL CHECK(tax>=0), delivery_fee INTEGER NOT NULL DEFAULT 0, total INTEGER NOT NULL CHECK(total>=0),
- driver_id TEXT, created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL, UNIQUE(tenant,request_key), UNIQUE(tenant,id)
+ fulfillment_meta_json TEXT NOT NULL DEFAULT '{}',
+ tip INTEGER NOT NULL DEFAULT 0 CHECK(tip>=0 AND tip%100=0), driver_id TEXT, created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL, UNIQUE(tenant,request_key), UNIQUE(tenant,id)
 );
 CREATE INDEX IF NOT EXISTS orders_tenant_created ON orders(tenant,created_at);
 CREATE TABLE IF NOT EXISTS events(id INTEGER PRIMARY KEY,tenant TEXT NOT NULL,order_id TEXT NOT NULL,status TEXT NOT NULL,actor TEXT NOT NULL,created_at INTEGER NOT NULL,FOREIGN KEY(tenant,order_id) REFERENCES orders(tenant,id));
@@ -20,7 +21,7 @@ CREATE TABLE IF NOT EXISTS payment_attempts (
 );
 CREATE TABLE IF NOT EXISTS payment_events (tenant TEXT NOT NULL,event_id TEXT NOT NULL,created_at INTEGER NOT NULL,PRIMARY KEY(tenant,event_id));
 
-CREATE TABLE IF NOT EXISTS payment_refund_deltas (tenant TEXT NOT NULL,event_id TEXT NOT NULL,order_id TEXT NOT NULL,amount INTEGER NOT NULL CHECK(amount>0),subtotal INTEGER NOT NULL,tax INTEGER NOT NULL,delivery_fee INTEGER NOT NULL,created_at INTEGER NOT NULL,PRIMARY KEY(tenant,event_id),FOREIGN KEY(tenant,order_id) REFERENCES orders(tenant,id));
+CREATE TABLE IF NOT EXISTS payment_refund_deltas (tenant TEXT NOT NULL,event_id TEXT NOT NULL,order_id TEXT NOT NULL,amount INTEGER NOT NULL CHECK(amount>0),subtotal INTEGER NOT NULL,tax INTEGER NOT NULL,delivery_fee INTEGER NOT NULL,created_at INTEGER NOT NULL,tip INTEGER NOT NULL DEFAULT 0 CHECK(tip>=0),PRIMARY KEY(tenant,event_id),FOREIGN KEY(tenant,order_id) REFERENCES orders(tenant,id));
 
 CREATE TABLE IF NOT EXISTS location_shares (
  tenant TEXT NOT NULL, order_id TEXT NOT NULL, driver_id TEXT NOT NULL,
@@ -60,3 +61,6 @@ CREATE TABLE IF NOT EXISTS guest_addresses (
  PRIMARY KEY(tenant,profile_id,id),
  FOREIGN KEY(tenant,profile_id) REFERENCES guest_details(tenant,id) ON DELETE CASCADE
 );
+
+CREATE INDEX IF NOT EXISTS orders_driver_tips ON orders(tenant,driver_id,status);
+CREATE INDEX IF NOT EXISTS events_order_status ON events(tenant,order_id,status,created_at);

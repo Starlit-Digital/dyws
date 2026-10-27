@@ -1,5 +1,5 @@
 // Checkout navigation state stays in memory for this page session only.
-const fields=['customer','phone','locationId','fulfillment','addressLine1','addressLine2','addressPostal','addressCity','addressRegion','addressCountry','notes','rememberDetails','savedProfileId','savedAddressId','addressLabel','customAddressLabel','defaultAddress'];
+const fields=['customer','phone','locationId','fulfillment','addressLine1','addressLine2','addressPostal','addressCity','addressRegion','addressCountry','notes','schedulePickup','pickupDate','pickupHour','pickupMinute','pickupOrigin','addTip','tipDollars','rememberDetails','savedProfileId','savedAddressId','addressLabel','customAddressLabel','defaultAddress'];
 export function captureCheckout(form){
  return [...form.elements].filter(input=>fields.includes(input.name)&&(input.type!=='radio'||input.checked)).map(input=>({name:input.name,value:input.value,checked:input.type==='checkbox'?input.checked:undefined,addressLine1:input.dataset?.dywsAddressLine1,addressDisplay:input.dataset?.dywsAddressDisplay}));
 }

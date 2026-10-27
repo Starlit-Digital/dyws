@@ -3,6 +3,7 @@ import {mountCatalog} from './catalog.js?v=39';
 import {createTracking} from './tracking.js?v=40';
 export function mountStorefront({ordering,container,navigation,loading,api,tracking,submitOrder,onOrderComplete,hydrate=false,plugins,termsURL}) {
  ordering.plugins=plugins;
+ const previousPickupAPI=ordering.pickupAPI;ordering.pickupAPI=api;
  const previousGuestAPI=ordering.guestAPI,previousTermsURL=ordering.termsURL;
  ordering.termsURL=termsURL||ordering.getAttribute('terms-url');
  ordering.guestAPI=ordering.termsURL?((route,options={})=>api(route,{...options,guest:true})):null;
@@ -14,5 +15,5 @@ export function mountStorefront({ordering,container,navigation,loading,api,track
  const closed=()=>tracker?.scrollIntoView();
  ordering.addEventListener('order-complete',complete);ordering.addEventListener('order-confirmation-closed',closed);
  tracker?.restore();
- return {catalogs,tracking:tracker,destroy(){catalogs.forEach(c=>c.destroy());tracker?.destroy();ordering.removeEventListener('order-complete',complete);ordering.removeEventListener('order-confirmation-closed',closed);ordering.submitOrder=previousSubmit;ordering.guestAPI=previousGuestAPI;ordering.termsURL=previousTermsURL;}};
+ return {catalogs,tracking:tracker,destroy(){catalogs.forEach(c=>c.destroy());tracker?.destroy();ordering.removeEventListener('order-complete',complete);ordering.removeEventListener('order-confirmation-closed',closed);ordering.pickupAPI=previousPickupAPI;ordering.submitOrder=previousSubmit;ordering.guestAPI=previousGuestAPI;ordering.termsURL=previousTermsURL;}};
 }

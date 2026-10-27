@@ -14,7 +14,7 @@ try{
  $catalog=Catalog::validate($catalog);file_put_contents($dir.'/catalog.json',json_encode($catalog));
  $config=['catalog'=>$dir.'/catalog.json','public_base_url'=>'https://orders.example.test'];
  $store=new Store($dir.'/orders.sqlite',$catalog,'printer-test');$service=new PrinterService($config,$store);
- $make=function(string $location='north',string $provider='demo')use($store,$catalog){return $store->create(['idempotencyKey'=>bin2hex(random_bytes(16)),'customer'=>['name'=>"Fictional Guest\x1b@",'phone'=>'7805550142'],'locationId'=>$location,'fulfillment'=>'pickup','notes'=>"No onions\x1dV\nPlease",'lines'=>[['id'=>$catalog['categories'][0]['items'][0]['id'],'quantity'=>1]]],$provider)['id'];};
+ $make=function(string $location='north',string $provider='demo',?array $schedule=null)use($store,$catalog){return $store->create(['idempotencyKey'=>bin2hex(random_bytes(16)),'customer'=>['name'=>"Fictional Guest\x1b@",'phone'=>'7805550142'],'locationId'=>$location,'fulfillment'=>'pickup','pickupSchedule'=>$schedule,'notes'=>"No onions\x1dV\nPlease",'lines'=>[['id'=>$catalog['categories'][0]['items'][0]['id'],'quantity'=>1]]],$provider)['id'];};
  $old=$make();$store->change($old,'accepted','manager');
  rejects(fn()=>$service->createDevice(['name'=>'Kitchen','locationId'=>'unknown']));
  rejects(fn()=>$service->createDevice(['name'=>'Kitchen','locationId'=>'north','profile'=>'usb']));
@@ -58,6 +58,11 @@ try{
  $testRequest=['printerId'=>$printer,'action'=>'test','requestId'=>'test-once'];check($service->manage($testRequest)===$service->manage($testRequest));
  $job=$poll()['job'];check(str_contains($job['text'],'DYWS PRINTER TEST'));$ack($job,'start');$ack($job,'uncertain');
  $service->manage(['printerId'=>$printer,'jobId'=>$job['id'],'action'=>'resolve']);check($ack($job,'sent')['state']==='sent');
+ $schedule=['date'=>(new DateTimeImmutable('tomorrow',new DateTimeZone('America/Edmonton')))->format('Y-m-d'),'time'=>'12:15'];
+ $scheduled=$make('north','demo',$schedule);$store->change($scheduled,'accepted','manager');$job=$poll()['job'];
+ check(str_contains($job['text'],'SCHEDULED PICKUP'));check(str_contains($job['text'],'PICKUP DATE: '.$schedule['date']));check(str_contains($job['text'],'PICKUP TIME: 12:15'));check(str_contains($job['text'],'America/Edmonton'));
+ check($job['fulfillmentMeta']['type']==='scheduled_pickup'&&$job['fulfillmentMeta']['localDate']===$schedule['date']);check($job['orderId']===$scheduled);
+ $ack($job,'start');$ack($job,'sent');
  // Both tenant boundaries and another printer's lease are enforced.
  $otherStore=new Store($dir.'/orders.sqlite',$catalog,'other-tenant');$other=new PrinterService($config,$otherStore);
  check($other->summary()['devices']===[]);rejects(fn()=>$other->deviceRequest('poll',[],$headers),401);rejects(fn()=>$other->manage(['printerId'=>$printer,'action'=>'revoke']),404);

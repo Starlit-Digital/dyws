@@ -51,8 +51,13 @@ export function register(plugin){
  lock();const observer=new MutationObserver(lock);if(locked)observer.observe(doc.querySelector('main'),{childList:true,subtree:true,attributes:true,attributeFilter:['disabled']});
  plugin.onDestroy(()=>{observer.disconnect();banners.forEach(banner=>banner.remove());});
  plugin.addAction('checkout:fields',({form})=>{
-  const fields={customer:'Jordan Taylor',phone:'7805550142',addressLine1:'123 Example Avenue NW',addressLine2:'',addressCity:'Edmonton',addressRegion:'AB',addressPostal:'T5A 1A1',addressCountry:'Canada',notes:''};
+  const fields={pickupOrigin:'123 Example Avenue NW, Edmonton, AB',customer:'Jordan Taylor',phone:'7805550142',addressLine1:'123 Example Avenue NW',addressLine2:'',addressCity:'Edmonton',addressRegion:'AB',addressPostal:'T5A 1A1',addressCountry:'Canada',notes:''};
   for(const [name,value]of Object.entries(fields)){const input=form.elements.namedItem(name);if(input){input.value=value;input.readOnly=true;input.autocomplete='off';}}
+ });
+ plugin.provide('pickup.map',()=>{
+  const element=doc.createElement('figure'),img=doc.createElement('img'),caption=doc.createElement('figcaption');
+  img.src=new URL('../../images/manning-area-map.png',import.meta.url).href;img.alt='Sample area reference map';img.loading='lazy';element.append(img,caption);element.hidden=true;
+  return {element,update({origin,destination,name}){element.hidden=false;caption.textContent='Demo map reference. Starting at '+origin+'. Pickup at '+name+', '+destination+'. No live route requests.';},clear(){element.hidden=true;},destroy(){element.remove();}};
  });
  plugin.provide('location.renderer',()=>{
   const figure=doc.createElement('figure'),img=doc.createElement('img'),caption=doc.createElement('figcaption');

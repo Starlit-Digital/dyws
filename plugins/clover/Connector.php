@@ -2,6 +2,9 @@
 declare(strict_types=1);
 namespace dyws\Plugins\Clover;
 final class Connector extends \dyws\Payments\Connector {
+ protected function orderPayload(array $order,string $key):array {
+  return ['customer'=>['firstName'=>$order['customer_name']],'tips'=>['enabled'=>false],'shoppingCart'=>['lineItems'=>array_map(fn($line)=>['name'=>$line['name'],'note'=>$order['id'],'unitQty'=>1,'price'=>$line['amount']],self::charges($order))]];
+ }
  protected function connection():string{$r=$this->request('merchant.get');if(($r['id']??'')!==$this->credentials()['merchantId'])throw new \dyws\ApiError('The Clover merchant does not match.');return 'Sandbox merchant connection verified. Hosted Checkout permissions need a checkout session test.';}
  public function request(string $operation,array $arguments=[]):array {
   $c=$this->credentials();$headers=['Authorization: Bearer '.$c['accessToken'],'X-Clover-Merchant-Id: '.$c['merchantId']];$mid=$this->id(['id'=>$c['merchantId']]);

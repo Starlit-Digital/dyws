@@ -270,3 +270,10 @@
 .dyws-shell input,.dyws-shell select,.dyws-shell textarea { font-weight:400; }
 /* The tracking arrival card already supplies the outer visual hierarchy. */
 .dyws-shell .dyws-tracking-panel { border:0; box-shadow:none; }
+
+.dyws-tip-periods { display: grid; grid-template-columns: repeat(auto-fit,minmax(120px,1fr)); gap: 1rem; }
+.dyws-tip-periods dd { margin: .25rem 0 0; font-size: 1.3em; font-weight: 700; }
+.dyws-order-charges > div { display: flex; justify-content: space-between; gap: 1rem; }
+[data-driver-tips] { margin-block-end: 1.5rem; }
+[data-driver-tips] details { margin-block: .75rem; }
+.dyws-fulfillment-summary{margin:.4rem 0;padding:.5rem;border:1px solid currentColor;border-radius:.5rem;line-height:1.5}

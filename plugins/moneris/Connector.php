@@ -2,6 +2,9 @@
 declare(strict_types=1);
 namespace dyws\Plugins\Moneris;
 final class Connector extends \dyws\Payments\Connector {
+ protected function orderPayload(array $order,string $key):array {
+  return ['txn_total'=>self::decimal((int)$order['total']),'order_no'=>$order['id']];
+ }
  protected function connection():string{
   $r=$this->request('checkout.create',['payload'=>['txn_total'=>'1.00']]);
   if(!in_array($r['response']['success']??false,[true,'true'],true)||empty($r['response']['ticket']))throw new \dyws\ApiError('Moneris did not accept the sandbox preload. Check the test store, token and checkout configuration.');

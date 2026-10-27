@@ -33,7 +33,7 @@
     "name": "order.validating",
     "runtime": "php",
     "type": "validator",
-    "description": "Accept or reject a new order after authoritative pricing."
+    "description": "Accept or reject a new order after authoritative pricing. Authoritative totals include the separately validated integer cent tip."
   },
   {
     "name": "order.created",

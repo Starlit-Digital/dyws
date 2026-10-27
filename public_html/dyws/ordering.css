@@ -187,3 +187,21 @@
 
 /* Remembered guest details retain the checkout's native controls and reading order. */
 .dyws-ordering .dyws-remember{margin:16px 0}.dyws-ordering .dyws-remember-check{display:flex;align-items:center;gap:10px;margin:12px 0}.dyws-ordering .dyws-remember-check input{flex:none;margin:0}.dyws-ordering .dyws-remember .dyws-note{margin:8px 0;line-height:1.5}.dyws-ordering .dyws-remember a{color:var(--dyws-color-warm);text-underline-offset:3px}.dyws-saved-actions{display:flex;flex-wrap:wrap;gap:8px}.dyws-ordering .dyws-saved-actions button,.dyws-ordering .dyws-forget{font-size:.85em}.dyws-ordering .dyws-guest-status:empty{display:none}.dyws-ordering .dyws-address-save .dyws-checkout-grid{margin:8px 0}
+
+.dyws-tip { margin-block: 1rem; }
+.dyws-ordering .dyws-tip [hidden]{display:none}
+.dyws-tip-editor{display:flex;align-items:center;gap:.6rem;max-width:18rem}
+.dyws-ordering .dyws-tip-editor input{min-width:0;flex:1;width:8rem;margin:0}
+.dyws-ordering .dyws-tip-editor .dyws-tip-remove{display:inline-flex;align-items:center;justify-content:center;flex:none;width:48px;min-height:48px;padding:10px}
+.dyws-review-tip { display: flex; justify-content: space-between; gap: 1rem; }
+.dyws-ordering .dyws-pickup-tools{min-width:0;margin:0 0 1rem;padding:1rem;border:1px solid var(--dyws-border,#aaa);border-radius:.75rem;text-align:left}
+.dyws-ordering .dyws-pickup-tools[hidden],.dyws-ordering .dyws-pickup-tools [hidden]{display:none}
+.dyws-ordering .dyws-option-toggle{display:flex;align-items:center;gap:.6rem;min-height:44px}
+.dyws-ordering .dyws-option-toggle input{width:1.25rem;height:1.25rem;min-height:0;margin:0;padding:0;flex:none}
+.dyws-pickup-clock{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.dyws-pickup-tools label,.dyws-pickup-tools small{margin-bottom:.6rem}
+.dyws-pickup-tools small{display:block}
+.dyws-pickup-map{height:220px;width:100%;border-radius:.5rem;overflow:hidden;margin:.75rem 0}
+.dyws-pickup-tools figure{margin:.75rem 0}
+.dyws-pickup-tools img{width:100%;max-height:220px;object-fit:cover}
+.dyws-fulfillment-summary{margin:.5rem 0 1rem;padding:.75rem;border:1px solid currentColor;border-radius:.5rem;text-align:left}

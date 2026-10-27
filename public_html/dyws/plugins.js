@@ -54,5 +54,6 @@ export async function createPluginHost({api,baseURL=new URL('../plugins/',import
   await runAction('admin:tables',{root:options.root,phase:'dispose'});options.root.replaceChildren();return false;
  }
  const orderLayout=stage=>{try{return providers.get('order.layout')?.(stage)||null;}catch{return null;}};
- return {runAction,applyFilters,validate,orderLayout,createLocationRenderer,renderPayment,renderReports,errors,removeAction:(name,fn)=>remove(actions,name,fn),removeFilter:(name,fn)=>remove(filters,name,fn),removeValidator:(name,fn)=>remove(validators,name,fn),destroy(){for(const fn of cleanup)try{fn();}catch{}styles.forEach(style=>style.remove());actions.clear();filters.clear();validators.clear();providers.clear();}};
+ const createPickupMap=(options={})=>{try{return providers.get('pickup.map')?.({api,document:doc,...options})||null;}catch{recordError('The pickup map could not load.');return null;}};
+ return {runAction,applyFilters,validate,orderLayout,createPickupMap,createLocationRenderer,renderPayment,renderReports,errors,removeAction:(name,fn)=>remove(actions,name,fn),removeFilter:(name,fn)=>remove(filters,name,fn),removeValidator:(name,fn)=>remove(validators,name,fn),destroy(){for(const fn of cleanup)try{fn();}catch{}styles.forEach(style=>style.remove());actions.clear();filters.clear();validators.clear();providers.clear();}};
 }

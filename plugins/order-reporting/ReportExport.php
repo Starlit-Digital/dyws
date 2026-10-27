@@ -14,13 +14,13 @@ final class ReportExport {
   if(str_ends_with($key,'Seconds'))return 'seconds';
   if(str_ends_with($key,'Rate'))return 'percent';
   if($key==='itemsPerOrder')return 'items per order';
-  return in_array($key,['orderedValue','averageOrder','unpaidValue','captured','refunded','netCollected','netSales','netTax','netDeliveryFees','cancelledValue','averageCustomerValue','averageDeliveryFee'],true)?'cents':'count';
+  return in_array($key,['orderedValue','averageOrder','unpaidValue','captured','refunded','netCollected','netSales','netTax','netDeliveryFees','orderedTips','capturedTips','refundedTips','netTips','cancelledValue','averageCustomerValue','averageDeliveryFee'],true)?'cents':'count';
  }
  public static function label(string $key):string {return ucfirst(preg_replace('/([a-z0-9])([A-Z])/','$1 $2',$key));}
  public static function tables(array $data,array $sections):array {
   $r=$data['current'];$tables=[];
   if(in_array('overview',$sections,true))$tables['Overview']=[['Metric','Current','Previous','Units'],...array_map(fn($key)=>[self::label($key),$r['summary'][$key],$data['previous'][$key]??null,self::metricUnit($key)],array_keys($r['summary']))];
-  if(in_array('daily',$sections,true))$tables['Daily trend']=[['Day','Orders','Ordered value (cents)','Payments (cents)','Refunds (cents)','Net payments (cents)'],...array_map(fn($d)=>[$d['date'],$d['orders'],$d['orderedValue'],$d['captured'],$d['refunded'],$d['netCollected']],$r['daily'])];
+  if(in_array('daily',$sections,true))$tables['Daily trend']=[['Day','Orders','Ordered value (cents)','Payments (cents)','Refunds (cents)','Net payments (cents)','Tips added (cents)','Tips collected (cents)','Tips refunded (cents)','Net tips (cents)'],...array_map(fn($d)=>[$d['date'],$d['orders'],$d['orderedValue'],$d['captured'],$d['refunded'],$d['netCollected'],$d['orderedTips'],$d['capturedTips'],$d['refundedTips'],$d['netTips']],$r['daily'])];
   if(in_array('items',$sections,true))$tables['Items']=[['Item','Option','Quantity','Ordered subtotal (cents)'],...array_map(fn($i)=>[$i['name'],$i['option'],$i['quantity'],$i['orderedSubtotal']],$r['items'])];
   if(in_array('locations',$sections,true))$tables['Locations']=[['Location','Orders','Cancelled','Ordered value (cents)','Average order (cents)'],...array_map(fn($l)=>[$l['name'],$l['orders'],$l['cancelled'],$l['orderedValue'],$l['averageOrder']],$r['locations'])];
   if(in_array('operations',$sections,true)){

@@ -3,7 +3,7 @@ declare(strict_types=1);
 namespace dyws\Plugins\OrderReporting;
 use DateTimeImmutable;
 use DateTimeZone;
-use dyws\{Store,ApiError};
+use dyws\{Store,ApiError,Tips};
 
 /** Aggregate private order snapshots and ledger events, without contacts or location data. */
 final class OrderReports {
@@ -38,11 +38,11 @@ final class OrderReports {
  }
  private function aggregate(int $from,int $to,string $currency,string $fulfillment):array {
   $s=$this->store;$tz=new DateTimeZone($this->timeZone);$date=static fn(int $t)=>(new DateTimeImmutable('@'.$t))->setTimezone($tz);
-  $daily=[];for($d=$date($from);$d->getTimestamp()<$to;$d=$d->modify('+1 day'))$daily[$d->format('Y-m-d')]=['date'=>$d->format('Y-m-d'),'orders'=>0,'orderedValue'=>0,'captured'=>0,'refunded'=>0,'netCollected'=>0];
-  $summary=array_fill_keys(['orders','active','completed','cancelled','orderedValue','averageOrder','unpaidOrders','unpaidValue','captured','refunded','netCollected','netSales','netTax','netDeliveryFees','cancelledValue','units','customers','newCustomers','returningCustomers','repeatCustomers','averageCustomerValue','averageDeliveryFee'],0);
+  $daily=[];for($d=$date($from);$d->getTimestamp()<$to;$d=$d->modify('+1 day'))$daily[$d->format('Y-m-d')]=['date'=>$d->format('Y-m-d'),'orders'=>0,'orderedValue'=>0,'captured'=>0,'refunded'=>0,'netCollected'=>0,'orderedTips'=>0,'capturedTips'=>0,'refundedTips'=>0,'netTips'=>0];
+  $summary=array_fill_keys(['orders','active','completed','cancelled','orderedValue','averageOrder','unpaidOrders','unpaidValue','captured','refunded','netCollected','netSales','netTax','netDeliveryFees','orderedTips','capturedTips','refundedTips','netTips','cancelledValue','units','customers','newCustomers','returningCustomers','repeatCustomers','averageCustomerValue','averageDeliveryFee'],0);
   $summary+=['completionRate'=>null,'cancellationRate'=>null,'preparationSeconds'=>null,'deliverySeconds'=>null,'preparationSamples'=>0,'deliverySamples'=>0,'repeatCustomerRate'=>null,'itemsPerOrder'=>null,'refundRate'=>null];
   $args=[$s->tenant,$currency,$from,$to];$where='o.tenant=? AND o.currency=? AND o.created_at>=? AND o.created_at<?';if($fulfillment!=='all'){$where.=' AND o.fulfillment=?';$args[]=$fulfillment;}
-  $orders=$s->query("SELECT o.id,o.status,o.payment_status,o.fulfillment,o.total,o.delivery_fee,o.customer_phone,o.order_location_json,o.lines_json,o.created_at FROM orders o WHERE $where ORDER BY o.created_at,o.id",$args);
+  $orders=$s->query("SELECT o.id,o.status,o.payment_status,o.fulfillment,o.total,o.delivery_fee,o.tip,o.customer_phone,o.order_location_json,o.lines_json,o.created_at FROM orders o WHERE $where ORDER BY o.created_at,o.id",$args);
   $statuses=array_fill_keys(['placed','accepted','preparing','ready','out_for_delivery','delivered','completed','cancelled'],0);$mix=['pickup'=>0,'delivery'=>0];$hours=array_fill(0,24,0);$items=[];$locations=[];$customers=[];$heatmap=array_fill(0,7,array_fill(0,24,0));$deliveryFees=0;$deliveryOrders=0;
   $identity=static function(string $phone):string {$digits=preg_replace('/[^0-9]/','',$phone);if(strlen($digits)===11&&$digits[0]==='1')$digits=substr($digits,1);return hash('sha256',$digits);};
   $historyArgs=[$s->tenant,$currency,$from];$historyWhere="tenant=? AND currency=? AND created_at<? AND status!='cancelled'";if($fulfillment!=='all'){$historyWhere.=' AND fulfillment=?';$historyArgs[]=$fulfillment;}
@@ -58,7 +58,7 @@ final class OrderReports {
    if(in_array($o['status'],['completed','delivered'],true))$summary['completed']++;else $summary['active']++;
    $locations[$branchId]['orderedValue']+=(int)$o['total'];$customerKey=$identity($o['customer_phone']);$customers[$customerKey]=($customers[$customerKey]??0)+1;
    if($o['fulfillment']==='delivery'){$deliveryOrders++;$deliveryFees+=(int)$o['delivery_fee'];}
-   $summary['orderedValue']+=(int)$o['total'];$daily[$key]['orderedValue']+=(int)$o['total'];
+   $summary['orderedTips']+=(int)$o['tip'];$daily[$key]['orderedTips']+=(int)$o['tip'];$summary['orderedValue']+=(int)$o['total'];$daily[$key]['orderedValue']+=(int)$o['total'];
    if($o['payment_status']==='unpaid'){$summary['unpaidOrders']++;$summary['unpaidValue']+=(int)$o['total'];}
    foreach(json_decode($o['lines_json'],true,64,JSON_THROW_ON_ERROR) as $line){$itemKey=json_encode([$line['id'],$line['variant']]);if(!isset($items[$itemKey]))$items[$itemKey]=['id'=>$line['id'],'variant'=>$line['variant'],'name'=>$line['name'],'option'=>$line['option'],'quantity'=>0,'orderedSubtotal'=>0];$summary['units']+=(int)$line['quantity'];$items[$itemKey]['quantity']+=(int)$line['quantity'];$items[$itemKey]['orderedSubtotal']+=(int)$line['quantity']*(int)$line['price'];}
   }
@@ -73,10 +73,10 @@ final class OrderReports {
   foreach($locations as &$location){$count=$location['orders']-$location['cancelled'];$location['averageOrder']=$count?(int)round($location['orderedValue']/$count):0;}unset($location);
   // Payment dates, not order dates. Delta refunds replace the legacy cumulative refund entry.
   $payArgs=[$s->tenant,$currency,$from,$to];$payWhere='p.tenant=? AND o.currency=? AND p.created_at>=? AND p.created_at<?';if($fulfillment!=='all'){$payWhere.=' AND o.fulfillment=?';$payArgs[]=$fulfillment;}
-  $ledger=$s->query("SELECT p.kind,p.amount,p.created_at,o.subtotal,o.tax,o.delivery_fee FROM payments p JOIN orders o ON o.id=p.order_id AND o.tenant=p.tenant WHERE $payWhere AND NOT(p.kind='refund' AND EXISTS(SELECT 1 FROM payment_refund_deltas d WHERE d.tenant=p.tenant AND d.order_id=p.order_id))",$payArgs);
-  $ledger=array_merge($ledger,$s->query("SELECT 'refund' AS kind,p.amount,p.created_at,p.subtotal,p.tax,p.delivery_fee FROM payment_refund_deltas p JOIN orders o ON o.id=p.order_id AND o.tenant=p.tenant WHERE $payWhere",$payArgs));
+  $ledger=$s->query("SELECT p.kind,p.amount,p.created_at,o.subtotal,o.tax,o.delivery_fee,o.tip FROM payments p JOIN orders o ON o.id=p.order_id AND o.tenant=p.tenant WHERE $payWhere AND NOT(p.kind='refund' AND EXISTS(SELECT 1 FROM payment_refund_deltas d WHERE d.tenant=p.tenant AND d.order_id=p.order_id))",$payArgs);
+  $ledger=array_merge($ledger,$s->query("SELECT 'refund' AS kind,p.amount,p.created_at,p.subtotal,p.tax,p.delivery_fee,p.tip FROM payment_refund_deltas p JOIN orders o ON o.id=p.order_id AND o.tenant=p.tenant WHERE $payWhere",$payArgs));
   foreach($ledger as $p){$amount=(int)$p['amount'];$capture=$p['kind']==='capture';$sign=$capture?1:-1;$metric=$capture?'captured':'refunded';$summary[$metric]+=$amount;$key=$date((int)$p['created_at'])->format('Y-m-d');$daily[$key][$metric]+=$amount;$daily[$key]['netCollected']+=$sign*$amount;$summary['netCollected']+=$sign*$amount;
-   $total=(int)$p['subtotal']+(int)$p['tax']+(int)$p['delivery_fee'];$sales=$total?(int)round($amount*(int)$p['subtotal']/$total):0;$fee=$total?(int)round($amount*(int)$p['delivery_fee']/$total):0;$summary['netSales']+=$sign*$sales;$summary['netDeliveryFees']+=$sign*$fee;$summary['netTax']+=$sign*($amount-$sales-$fee);
+   $parts=Tips::allocate($p,$amount);$summary['netSales']+=$sign*$parts['subtotal'];$summary['netDeliveryFees']+=$sign*$parts['delivery_fee'];$summary['netTax']+=$sign*$parts['tax'];$tipMetric=$capture?'capturedTips':'refundedTips';$summary[$tipMetric]+=$parts['tip'];$summary['netTips']+=$sign*$parts['tip'];$daily[$key][$tipMetric]+=$parts['tip'];$daily[$key]['netTips']+=$sign*$parts['tip'];
   }
   $summary['refundRate']=$summary['captured']?round(100*$summary['refunded']/$summary['captured'],1):null;
   foreach(['acceptance'=>['placed','accepted'],'preparation'=>['accepted','ready'],'delivery'=>['out_for_delivery','delivered']] as $metric=>$pair){

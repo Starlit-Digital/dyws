@@ -5,6 +5,7 @@ Entry point: `/diner-demo/api/?route=/health`. Routes below are values of the `r
 | Method | Route | Access | Purpose |
 | --- | --- | --- | --- |
 | GET | /health | Public | Service and demo status |
+| POST | /pickup/preview | Public, rate limited | Validate scheduled pickup and return fulfillment metadata |
 | POST | /login | Public, rate limited | Manager or driver session |
 | POST | /logout | Bearer | Revoke current session |
 | POST | /orders | Public, rate limited | Create idempotent test order |
@@ -164,7 +165,7 @@ Private tracking responses include `driver: {name, vehicleType, vehicleColor, pr
 
 ## Customer tracking receipt
 
-The token protected tracking response also includes `createdAt` as UTC seconds, `business: {name, phone, pickupAddress}` and `summary: {lines, currency, subtotal, tax, deliveryFee, total}`. Summary amounts are saved integer cents. Each line exposes only `name`, `option`, `quantity` and `price`; changing the catalog never rewrites an existing receipt. Tenant, token and expiry checks apply before these fields are returned. Customer names, phone numbers, notes, credentials and plugin order data are not added to the response. The existing delivery address remains available only through the authorized tracking response.
+The token protected tracking response also includes `createdAt` as UTC seconds, `business: {name, phone, pickupAddress}` and `summary: {lines, currency, subtotal, tax, deliveryFee, tip, total}`. Summary amounts are saved integer cents. Each line exposes only `name`, `option`, `quantity` and `price`; changing the catalog never rewrites an existing receipt. Tenant, token and expiry checks apply before these fields are returned. Customer names, phone numbers, notes, credentials and plugin order data are not added to the response. The existing delivery address remains available only through the authorized tracking response.
 
 Checkout makes no order creation request during the final review. The ten second countdown or an explicit Looks good! click submits the reviewed order once. Back and closing the dialog cancel the timer. Taking more time or hiding the page pauses it until the customer deliberately confirms. Submission failures retain the cart and reuse the existing idempotency key when the order is unchanged.
 
@@ -281,3 +282,109 @@ Active Order Reporting installations expose these manager only routes:
 * `POST /manager/plugins/order-reporting/email`: same report selection plus `idempotencyKey`, 16 through 80 letters, numbers or hyphens. The destination is always the saved business email, never a request supplied address. Limit: five requests per hour per requester. Returns `accepted`, `recipient` and an honest transport status. An accepted submission does not confirm inbox delivery.
 
 Email requests retain a tenant scoped key, fingerprint and status for 30 days. An uncertain or failed attempt is not automatically resent. Accepted retries return the original success without another email. Changing a selection or destination with the same key returns 409. No customer contacts are included in report data or attachments. Email is unavailable until the host mail sender is configured. Public demo visitors may download aggregate reports but cannot send email or change operating settings.
+
+
+## Optional tips, October 27, 2026
+
+`POST /orders` accepts `tip`, an integer number of cents divisible by 100.
+Omission means zero. Negative, fractional, string, boolean, null and out of range
+values return 422. The storage safety limit is 99,999,900 cents. The browser
+accepts up to six digits of whole dollars through an Add tip button and an
+`inputmode="numeric"` field. No amount is preselected. Unchecking excludes the tip.
+The choice stays in the page's checkout draft across Back and dialog reopen,
+then clears on success or page reload. It is never saved with guest details.
+
+The server calculates `total = subtotal + deliveryFee + tax + tip`. The configured
+tax base remains subtotal plus delivery fee. Client totals are ignored. A positive
+tip participates in the canonical idempotency fingerprint. Omitted and zero tips
+share the existing fingerprint format, preserving retries of old orders.
+The order receipt, authorized order projections and tracking `summary` expose
+`tip` separately. Existing records migrate to zero without changing their total.
+
+`GET /driver/profile` and the profile in `GET /driver/orders` include read only
+`tips: {timeZone, currencies, recentOrders}`. Each currency group contains
+`periods: {today, week, month, year, allTime}` and complete retained `daily`,
+`weekly` and `monthly` series. Each bucket has integer cent `gross`, `refunded`
+and `net`, plus the number of tipped deliveries. Weeks start Monday. The most
+recent 50 tipped deliveries include `id`, `currency`, `earnedAt`, `tip`,
+`refundedTip` and `netTip`, without customer contacts. Totals and historical
+series are not limited to the 200 order board rows or 50 recent deliveries.
+
+Earnings count captured, delivered orders assigned to the authenticated driver.
+They use the first delivered event time, falling back to the saved update time
+only for legacy records without that event. Assignment cannot change after
+starting delivery. Pending, cancelled, pickup and other drivers' orders do not
+contribute. Later refunds restate retained earnings in the delivery period;
+these figures are not payout records. Profile revisions remain based only on
+editable display fields, so earnings changes do not cause save conflicts.
+
+`GET /manager/drivers` includes `tipTotals` per driver, grouped by currency with
+the same period definitions. Manager reports expose `orderedTips`, `capturedTips`,
+`refundedTips` and `netTips`. See the reporting definitions for order versus
+payment dates. Public demo history still expires under its existing 24 hour rule.
+## Pickup scheduling and fulfillment metadata
+
+`POST /pickup/preview` accepts `{locationId, pickupSchedule: {date, time}}`, where
+`date` is `YYYY-MM-DD` and `time` is `HH:mm`, using hours 00 through 23 and minutes
+00, 15, 30 or 45. The public endpoint checks the selected active location, its
+open hours and a minimum of 30 minutes from the server clock. It creates no order
+and is limited to 60 requests per minute per request bucket. Checkout calls it
+before review so future time zone differences between browsers and the server
+cannot change the displayed UTC instant. Host adapters using the ordering
+component directly must provide `ordering.pickupAPI`, with the same signature as
+the ordinary API client. `mountStorefront` supplies it automatically.
+
+Pass the same optional `pickupSchedule` to `POST /orders`. Omit it or use null for
+ordinary pickup. Scheduling is rejected for delivery orders. Invalid dates,
+nonexistent and repeated local clock times, closed locations and times less than
+30 minutes ahead return 422. Online ordering must also be enabled and open when
+the order is submitted. Disabled location hours impose no pickup hours limit.
+Opening periods that cross midnight include their following morning. A retry
+with an existing request key returns the original receipt without reapplying
+current clock, availability or time zone settings. Changing the requested date
+or time with the same key returns 409.
+
+Every new order stores `fulfillmentMeta` version 1, generated by the server.
+The receipt, scoped customer tracking, manager orders, status responses and
+printer job responses expose it. Caller supplied metadata is ignored.
+
+```json
+{
+  "version": 1,
+  "type": "scheduled_pickup",
+  "label": "Scheduled pickup",
+  "scheduled": true,
+  "scheduledAt": 1894037400,
+  "scheduledAtUtc": "2030-01-07T17:30:00Z",
+  "localDate": "2030-01-07",
+  "localTime": "12:30",
+  "timeZone": "America/New_York",
+  "locationId": "north"
+}
+```
+
+`type` is `pickup`, `scheduled_pickup` or `delivery`. The original `fulfillment`
+field remains `pickup` or `delivery` for workflow compatibility. Unscheduled
+orders have `scheduled: false` and null schedule fields. The time zone is an
+immutable business setting snapshot. Legacy orders have a null time zone,
+because their historical zone was never recorded. Consumers should use `type`
+and the schedule fields rather than parsing labels or notes. UTC timestamps are
+seconds, not milliseconds. Version 1 does not schedule deliveries or kitchen
+preparation automatically.
+
+Customer review, tracking and operator markup include `data-order-type`, and
+scheduled orders add `data-pickup-date`, `data-pickup-time`,
+`data-pickup-time-zone`, `data-pickup-at` and a `<time datetime="…">` element.
+These describe the same saved record for future website or email renderers.
+No new order email sender is installed. Order hooks can read `fulfillmentMeta`
+from the receipt or safe order. Customer details and tracking access remain
+private. Starting addresses used for pickup directions are not saved to orders
+or remembered guest profiles.
+
+The printer poll job adds `orderId` and `fulfillmentMeta` (null for printer test
+jobs). Tickets clearly label `SCHEDULED PICKUP`, `PICKUP` or `DELIVERY`. Scheduled
+tickets print the pickup date, time and zone separately from the placed time.
+Existing acceptance and printer queue rules still apply, so a scheduled ticket
+prints when eligible rather than waiting until pickup time. Tracking links for
+scheduled orders expire 24 hours after pickup time. Locked public demos still
+delete all fictional orders 24 hours after creation.

@@ -13,7 +13,7 @@ Register these in a private plugin's PHP entry with addAction, addFilter or addV
 | 3 | catalog.public | Filter | `(catalog)` after inactive products are removed. Add public metadata and presentation hints. Core still prices orders from its private catalog. |
 | 4 | catalog.validating | Validator | `(catalog)` after core catalog validation and manager authorization, before saving. Enforce merchant specific product rules. |
 | 5 | catalog.saved | Action | `(catalog, revision)` after a successful save. Notify an index or invalidate an external cache. |
-| 6 | order.validating | Validator | `(order, totals)` for a new order after core field validation and authoritative integer pricing, inside its transaction. Order includes canonical lines, customer, fulfillment, address and optional pluginData. Totals include subtotal, tax, deliveryFee, total and currency. No new validation on an already successful idempotent retry. |
+| 6 | order.validating | Validator | `(order, totals)` for a new order after core field validation and authoritative integer pricing, inside its transaction. Order includes canonical lines, customer, fulfillment, address and optional pluginData. Totals include subtotal, tax, deliveryFee, tip, total and currency. A positive tip is included in the canonical order. No new validation on an already successful idempotent retry. |
 | 7 | order.created | Action | `(receipt, store)` after persistence. Receipt includes ID and tracking token; do not publish it. Retried successful submissions can invoke this again. Deduplicate work by order ID. |
 | 8 | order.status_changing | Validator | `(order, nextStatus, actor)` after core permissions, assignment, payment and transition checks, before writing inside the transaction. A plugin may impose additional restrictions, never authorize an invalid transition. |
 | 9 | order.status_changed | Action | `(order, store)` after the authorised status request succeeds. Attach operational notifications or audit work. |
@@ -139,3 +139,15 @@ The core validates the entire layout before moving its existing DOM controls. In
 | 40 | payments.connector_event | PHP action | `(providerId, verifiedEvent)` after provider signature verification and duplicate body suppression. Observation only, never an authorization to charge or mark an order paid. |
 
 See [payment connector contracts](payment-connectors.md) for operations, settings APIs, limitations and provider documentation. Connector activation does not select a payment provider for checkout.
+## Pickup map provider
+
+`pickup.map` is an optional browser provider consumed by the storefront.
+It receives `{api, document}` and returns `{element, update, clear, destroy}`.
+`update({origin, destination, name})` draws the selected address to store route.
+`clear()` invalidates pending work and hides old routes; `destroy()` also releases
+the view. Providers must discard stale asynchronous results and must not request
+driver GPS. Google Maps supplies the real route; Installation Lockdown supplies
+a labelled fictional reference. Core retains a directions link without a provider.
+Like `order.layout`, this is a provider capability, not an action in the hook
+catalog. Pickup controls and fulfillment summaries live inside the required total
+field so saved custom layouts cannot remove them.
