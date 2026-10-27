@@ -26,5 +26,11 @@
     "checkout.create",
     "receipt.get"
   ],
-  "webhook": null
+  "webhook": null,
+  "refundPolicy": {
+    "checkedAt": "2026-10-27",
+    "merchantNote": "Refund transaction fees depend on the merchant agreement and payment method. Check the account pricing for the actual amount.",
+    "source": "https://support.moneris.com/article/processing-fees-50094",
+    "customerDeduction": 0
+  }
 }

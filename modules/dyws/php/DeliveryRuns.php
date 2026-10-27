@@ -70,6 +70,16 @@ final class DeliveryRuns {
    return $this->get($id,$driver);
   });
  }
+ /** Remove only this stop from an unstarted run, retaining the cancellation event. */
+ public function removeCancelledOrder(string $order):void {
+  $m=$this->membership($order);if(!$m)return;
+  if($m['status']!=='planned')throw new ApiError('This delivery has already left the store.',409);
+  $s=$this->store;$s->execute('DELETE FROM delivery_run_stops WHERE tenant=? AND run_id=? AND order_id=?',[$s->tenant,$m['id'],$order]);
+  $left=$s->query('SELECT order_id FROM delivery_run_stops WHERE tenant=? AND run_id=? ORDER BY position',[$s->tenant,$m['id']]);
+  foreach($left as $position=>$stop)$s->execute('UPDATE delivery_run_stops SET position=? WHERE tenant=? AND run_id=? AND order_id=?',[$position+1,$s->tenant,$m['id'],$stop['order_id']]);
+  $s->execute('UPDATE delivery_runs SET status=?,revision=revision+1,updated_at=? WHERE tenant=? AND id=?',[$left?'planned':'cancelled',time(),$s->tenant,$m['id']]);
+  $s->event($order,'run_stop_cancelled','customer');
+ }
  public function guardChange(string $order,string $status,?string $startingRun):void {
   $m=$this->membership($order);if(!$m)return;
   if($status==='out_for_delivery'&&$startingRun===$m['id']&&$m['status']==='planned')return;

@@ -109,6 +109,10 @@ with tempfile.TemporaryDirectory(prefix='dyws-lockdown-') as temp:
   check(request('/orders',order,status=201)['id']==oid)
   request('/tracking/'+oid,status=404)
   check(request('/tracking/'+oid,tracking=receipt['trackingToken'])['status']=='placed')
+  # Cancellation is allowed through lockdown, with capability and policy enforced by core.
+  request('/tracking/'+oid+'/cancel',{},status=404)
+  request('/tracking/'+oid+'/cancel',{},tracking=receipt['trackingToken'],status=409)
+  request('/tracking/'+oid+'/cancel/refund',{},tracking=receipt['trackingToken'],status=403)
   # Admin can preview a different browser's order using its existing tracking capability.
   handoff='/plugins/demo-lockdown/tracking.php?order='+oid
   before=db.execute('SELECT tracking_hash,tracking_expires FROM orders WHERE id=?',(oid,)).fetchone()

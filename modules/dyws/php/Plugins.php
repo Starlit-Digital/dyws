@@ -7,7 +7,7 @@ require_once __DIR__.'/Payments/register.php';
 
 /** Plugins are trusted installed PHP code, not sandboxed or uploaded through HTTP. */
 final class PluginContext {
- public array $routes=[],$actions=[],$filters=[],$activation=[],$deactivation=[],$paymentProviders=[],$validators=[];
+ public array $routes=[],$actions=[],$filters=[],$activation=[],$deactivation=[],$paymentProviders=[],$paymentCancellations=[],$validators=[];
  public function __construct(public readonly string $id,public readonly array $config,private array $aliases=[],public readonly ?Store $store=null){}
  public function route(string $method,string $path,string $access,callable $handler,array $options=[]):void {
   if(!in_array($method,['GET','POST'],true)||!in_array($access,['public','manager','driver'],true))throw new \InvalidArgumentException('Invalid plugin route.');
@@ -17,6 +17,7 @@ final class PluginContext {
   $maxBody=$options['maxBody']??32768;if(!is_int($maxBody)||$maxBody<1||$maxBody>262144)throw new \InvalidArgumentException('Invalid body limit.');
   $this->routes[$key]=['access'=>$access,'handler'=>$handler,'maxBody'=>$maxBody,'rateLimit'=>$options['rateLimit']??null];
  }
+ public function providePaymentCancellation(callable $handler):void{$this->paymentCancellations[$this->id]=$handler;}
  public function providePayment(callable $provider):void{$this->paymentProviders[]=$provider;}
  public function addValidator(string $hook,callable $callback,int $priority=10):void{$this->validators[$hook][]=[$priority,$callback];}
  public function addAction(string $hook,callable $callback,int $priority=10):void{$this->actions[$hook][]=[$priority,$callback];}
@@ -123,6 +124,19 @@ final class Plugins {
  /** Payment selection must fail closed, unlike optional presentation hooks. */
  public function paymentConnector(string $id):?\dyws\Payments\Connector {
   $this->boot();$connector=$this->applyFilters('payments.connector',[],$id)['connector']??null;return $connector instanceof \dyws\Payments\Connector?$connector:null;
+ }
+ /** Explicit money operation, separate from optional observation hooks. */
+ private function cancellationHandler(string $provider):?callable {
+  $this->boot();
+  if(!isset($this->installed[$provider]))return null;
+  // Hosts may retain settlement handlers alongside signed callbacks after deactivation.
+  if(!in_array($provider,$this->state()['active'],true)&&empty($this->retained[$provider]))return null;
+  try{return $this->load($provider)->paymentCancellations[$provider]??null;}catch(\Throwable){return null;}
+ }
+ public function supportsPaymentCancellation(string $provider):bool{return $provider==='demo'||$this->cancellationHandler($provider)!==null;}
+ public function cancelPayment(string $provider,string $id):string {
+  $handler=$this->cancellationHandler($provider);if(!$handler)throw new ApiError('The payment cancellation plugin is unavailable.',503);
+  return $handler($id);
  }
  public function paymentProvider():string {
   if(isset($this->state()['invalid']))throw new ApiError('Plugin settings need attention before accepting orders.',503);

@@ -27,5 +27,11 @@
     "checkout.create",
     "payment.get"
   ],
-  "webhook": "/plugins/clover/webhook"
+  "webhook": "/plugins/clover/webhook",
+  "refundPolicy": {
+    "checkedAt": "2026-10-27",
+    "merchantNote": "Canada: fees depend on the signed merchant agreement. Confirm refund and processing fees with the account provider.",
+    "source": "https://merchants.fiserv.com/content/dam/firstdata/ca/en/pdf/CA-Merchant-Terms.pdf",
+    "customerDeduction": 0
+  }
 }

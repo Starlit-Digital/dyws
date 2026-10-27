@@ -228,3 +228,16 @@
 .dyws-ordering .dyws-final-review .dyws-review-back{flex:1 1 3.5em}
 .dyws-ordering .dyws-final-review .dyws-actions .dyws-review-pause{flex:1 1 4.5em;min-width:0}
 .dyws-ordering .dyws-final-review .dyws-review-confirm{flex:1.4 1 6em}
+
+/* Compact rounded rectangles retain generous, consistent touch targets. */
+.dyws-ordering button,.dyws-ordering .dyws-cap-notice a{border-radius:10px;min-height:44px;padding:8px 14px;font-weight:600}
+.dyws-ordering button:active:not(:disabled){filter:brightness(.92)}
+.dyws-ordering .dyws-quantity{grid-template-columns:44px 28px 44px;gap:8px}
+.dyws-ordering .dyws-quantity button{width:44px;min-width:44px;height:44px;padding:6px}
+.dyws-ordering .dyws-quantity>span{width:28px}
+.dyws-ordering .dyws-tip-editor .dyws-tip-remove{width:44px;min-height:44px;padding:8px}
+.dyws-ordering .dyws-pillbox{border-radius:12px;padding:3px;gap:3px}
+.dyws-ordering .dyws-pillbox span{border-radius:9px;min-height:44px;padding:6px 10px;font-weight:600}
+.dyws-ordering .dyws-pillbox input:checked+span{box-shadow:none}
+.dyws-ordering .dyws-final-review .dyws-actions .dyws-review-pause{padding:8px}
+.dyws-ordering .dyws-cancellation-note{margin:0 0 12px;line-height:1.4}

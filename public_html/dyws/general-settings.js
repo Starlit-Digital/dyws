@@ -1,4 +1,4 @@
-import {mountBusinessSettings} from './business-settings.js?v=39';
+import {mountBusinessSettings} from './business-settings.js?v=52';
 import {configureTimeZone} from './date-time.js';
 import {adminPage} from './admin-navigation.js?v=39';
 export async function mountGeneralSettings({root=document,api,storageKey,onSave=()=>{}}){

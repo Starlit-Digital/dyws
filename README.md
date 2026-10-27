@@ -322,3 +322,9 @@ with a date, hour and quarter hour selection. Scheduled times require at least
 Orders expose versioned fulfillment metadata, and staff views and printer tickets
 clearly distinguish scheduled pickup, ordinary pickup and delivery. See the
 [API contract](docs/api.md) and [map setup](docs/gps-maps-realtime.md).
+
+Customer cancellation can be enabled per location with a whole minute window.
+The tracking page confirms cancellation and the full refund, including tip.
+See [API behavior](docs/api.md#customer-cancellation),
+[provider fees](docs/payment-connectors.md#refund-fees-checked-october-27-2026)
+and [deployment requirements](docs/deployment.md#customer-cancellation-october-27-2026).

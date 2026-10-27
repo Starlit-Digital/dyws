@@ -388,3 +388,36 @@ Existing acceptance and printer queue rules still apply, so a scheduled ticket
 prints when eligible rather than waiting until pickup time. Tracking links for
 scheduled orders expire 24 hours after pickup time. Locked public demos still
 delete all fictional orders 24 hours after creation.
+
+## Customer cancellation
+
+Catalog and location objects accept `customerCancellation: {enabled: false,
+minutes: 4}`. Minutes must be an integer from 1 to 1440. Locations have independent
+policies. With no locations, the business policy applies. Missing policies are
+disabled. Manager catalog saves keep the existing revision check.
+
+Each new order snapshots `cancellation_window_minutes`. Later settings changes do
+not change its deadline. Existing orders migrate with cancellation disabled.
+Tracking returns `cancellation: {enabled, minutes, deadline, serverTime, available,
+cancelledAt, paymentState, refundAmount, fee}`. Times are Unix seconds. The deadline
+is exclusive and measured from order creation. Availability also requires placed,
+accepted, preparing or ready status. `refundAmount` is the entire saved total,
+including tip, and `fee` is zero. Provider fees paid by the business are not a
+customer deduction. Admin orders include the same summary without `serverTime`.
+
+`POST /tracking/ORDER_ID/cancel`, with an empty JSON body and the existing
+`X-Tracking-Token`, cancels an eligible order. It returns current tracking data.
+Missing, incorrect, expired or foreign capabilities return 404. Closed windows
+and orders already collected or dispatched return 409. The server checks all
+conditions inside the transaction. Repeated requests for a customer cancelled
+order return its current state without another refund. Required status validators
+still run. A planned delivery run loses only the cancelled order, with remaining
+stop positions and revision updated. Active runs cannot be cancelled this way.
+
+Cancellation commits before provider work. Payment states are `pending`,
+`refund_pending`, `attention`, `refunded` and `not_charged`. Only the verified
+payment ledger confirms `refunded`. Provider outages retain a durable job and
+show a delay, without restoring the cancelled order or claiming a refund completed.
+The demo ledger records one full fictional refund when a captured order is
+cancelled. Existing reporting and tip allocation include the same refund exactly
+once. Customer actions are recorded with actor `customer`.

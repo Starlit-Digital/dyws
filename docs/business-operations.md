@@ -29,3 +29,12 @@ The switch uses the settings revision to reject stale updates. It is restricted 
 * Separate pickup and delivery schedules, or multiple opening periods in one day.
 
 These additional controls are suggestions and are not implemented in this change.
+
+## Customer cancellation
+
+Each location can enable customer cancellation and choose a whole number of
+minutes, initially four. The setting is off by default. Orders keep the policy
+that applied when they were placed. The customer sees a concise checkout notice
+and a Cancel order button on tracking until the deadline or pickup/dispatch.
+Confirmation shows a full refund including tip. Provider costs remain business
+costs, as described in [refund fee research](payment-connectors.md#refund-fees-checked-october-27-2026).

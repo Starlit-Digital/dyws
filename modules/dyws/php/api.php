@@ -82,7 +82,16 @@ try {
   });
   $guest->renewCookie($renewal);http_response_code(201);
  }
- elseif($method==='GET'&&preg_match('~^/tracking/([A-Z]{2,7}-[A-F0-9]{12})$~',$route,$m)){dyws_limit_requests($store,$config,'tracking',120,60);$result=$plugins->applyFilters('tracking.public',$store->tracking($m[1],$_SERVER['HTTP_X_TRACKING_TOKEN']??''));}
+ elseif($method==='POST'&&preg_match('~^/tracking/([A-Z]{2,7}-[A-F0-9]{12})/cancel$~',$route,$m)){
+  dyws_limit_requests($store,$config,'customer-cancel',20,60);
+  $changed=false;$result=$plugins->applyFilters('tracking.public',\dyws\Cancellation::cancel($store,$m[1],$_SERVER['HTTP_X_TRACKING_TOKEN']??'',$changed));
+  if($changed)$plugins->doAction('order.status_changed',$store->safeOrder($store->get($m[1])),$store);
+ }
+ elseif($method==='GET'&&preg_match('~^/tracking/([A-Z]{2,7}-[A-F0-9]{12})$~',$route,$m)){
+  dyws_limit_requests($store,$config,'tracking',120,60);$token=$_SERVER['HTTP_X_TRACKING_TOKEN']??'';$store->tracking($m[1],$token);
+  if(\dyws\Cancellation::settle($store,$m[1]))$realtime->changed([$store->tenant.':operators',$store->tenant.':order:'.$m[1]]);
+  $result=$plugins->applyFilters('tracking.public',$store->tracking($m[1],$token));
+ }
  elseif($method==='GET'&&$route==='/manager/orders'){dyws_authorize($store,['manager']);$result=dyws_admin_orders($config,$store);}
  elseif($method==='GET'&&$route==='/manager/lookup'){
   dyws_authorize($store,['manager']);dyws_limit_requests($store,$config,'lookup',120,60);

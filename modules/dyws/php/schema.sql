@@ -1,4 +1,7 @@
 CREATE TABLE IF NOT EXISTS orders (
+ cancellation_window_minutes INTEGER NOT NULL DEFAULT 0 CHECK(cancellation_window_minutes BETWEEN 0 AND 1440),
+ customer_cancelled_at INTEGER,
+ cancellation_payment_state TEXT NOT NULL DEFAULT '',
  id TEXT PRIMARY KEY, tenant TEXT NOT NULL, request_key TEXT NOT NULL, fingerprint TEXT NOT NULL,
  tracking_hash TEXT NOT NULL, tracking_expires INTEGER NOT NULL, status TEXT NOT NULL,
  payment_status TEXT NOT NULL, fulfillment TEXT NOT NULL, customer_name TEXT NOT NULL, customer_phone TEXT NOT NULL,
@@ -64,3 +67,9 @@ CREATE TABLE IF NOT EXISTS guest_addresses (
 
 CREATE INDEX IF NOT EXISTS orders_driver_tips ON orders(tenant,driver_id,status);
 CREATE INDEX IF NOT EXISTS events_order_status ON events(tenant,order_id,status,created_at);
+
+CREATE TABLE IF NOT EXISTS cancellation_jobs (
+ tenant TEXT NOT NULL,order_id TEXT NOT NULL,next_attempt INTEGER NOT NULL,
+ lease TEXT NOT NULL DEFAULT '',lease_until INTEGER NOT NULL DEFAULT 0,attempts INTEGER NOT NULL DEFAULT 0,
+ PRIMARY KEY(tenant,order_id),FOREIGN KEY(tenant,order_id) REFERENCES orders(tenant,id) ON DELETE CASCADE
+);

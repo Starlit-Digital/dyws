@@ -1,6 +1,6 @@
-import './component.js?v=40';
+import './component.js?v=52';
 import {mountCatalog} from './catalog.js?v=39';
-import {createTracking} from './tracking.js?v=40';
+import {createTracking} from './tracking.js?v=52';
 export function mountStorefront({ordering,container,navigation,loading,api,tracking,submitOrder,onOrderComplete,hydrate=false,plugins,termsURL}) {
  ordering.plugins=plugins;
  const previousPickupAPI=ordering.pickupAPI;ordering.pickupAPI=api;

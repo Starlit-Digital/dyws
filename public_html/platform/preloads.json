@@ -35,7 +35,7 @@
       "dyws/role-labels.js",
       "dyws/status-badge.js",
       "dyws/tracking-details.js",
-      "dyws/tracking.js?v=40",
+      "dyws/tracking.js?v=52",
       "platform/api.js",
       "platform/plugins.js?v=39",
       "platform/tracking.js?v=40"
@@ -121,7 +121,7 @@
       "dyws/api.js",
       "dyws/business-hours-editor.js",
       "dyws/business-policy.js",
-      "dyws/business-settings.js?v=39",
+      "dyws/business-settings.js?v=52",
       "dyws/catalog-editor.js?v=39",
       "dyws/date-time.js",
       "dyws/diagnostics.js",
@@ -181,7 +181,7 @@
       "dyws/catalog-data.js",
       "dyws/catalog.js?v=39",
       "dyws/checkout-draft.js",
-      "dyws/component.js?v=40",
+      "dyws/component.js?v=52",
       "dyws/confirmation-countdown.js",
       "dyws/date-time.js",
       "dyws/delivery-status.js?v=40",
@@ -200,7 +200,7 @@
       "dyws/storefront.js?v=40",
       "dyws/tips.js",
       "dyws/tracking-details.js",
-      "dyws/tracking.js?v=40",
+      "dyws/tracking.js?v=52",
       "platform/api.js",
       "platform/plugins.js?v=39"
     ]
@@ -230,7 +230,7 @@
     "demo-lockdown": [
       "dyws/order-selection.js",
       "plugins/demo-lockdown/demo-login.js?v=3",
-      "plugins/demo-lockdown/index.js?v=1.0.5"
+      "plugins/demo-lockdown/index.js?v=1.0.6"
     ],
     "order-reporting": [
       "dyws/api.js",

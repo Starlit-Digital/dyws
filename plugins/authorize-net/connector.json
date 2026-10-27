@@ -27,5 +27,11 @@
     "checkout.create",
     "transaction.get"
   ],
-  "webhook": "/plugins/authorize-net/webhook"
+  "webhook": "/plugins/authorize-net/webhook",
+  "refundPolicy": {
+    "checkedAt": "2026-10-27",
+    "merchantNote": "Refund and void transaction fees can apply to the merchant. The processor agreement determines the actual amount.",
+    "source": "https://support.authorize.net/knowledgebase/article/KA-04277/en-us",
+    "customerDeduction": 0
+  }
 }

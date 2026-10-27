@@ -112,3 +112,28 @@ Payload references checked October 27, 2026:
 [Clover hosted cart](https://docs.clover.com/dev/docs/creating-a-hosted-checkout-session),
 [Moneris preload](https://developer.moneris.com/hosted-solutions/reference/preload-request-api-ref),
 [Authorize.net transaction amounts](https://developer.authorize.net/api/reference/index.html).
+
+## Refund fees, checked October 27, 2026
+
+The owner selected a full customer refund, including tip. No universal provider
+percentage was found that must be withheld from that refund. Fees below concern
+the business account. DYWS does not subtract them from customer refunds or invent
+a rate for contract pricing. The cancellation confirmation shows the full amount;
+manager settings distinguish provider fees from customer refunds. Each connector
+exposes a dated `refundPolicy` note and official source in its settings response.
+
+| Provider | Published business cost |
+| --- | --- |
+| Stripe | Standard Canadian pricing generally has no additional refund fee, except some bank transfer cases. Original processing, Connect and currency conversion fees are retained. Custom pricing can differ. [Pricing](https://stripe.com/en-ca/pricing), [refund documentation](https://docs.stripe.com/refunds). |
+| Square | Original processing fees are retained; a full refund returns the full purchase amount to the customer. [Canada refunds](https://squareup.com/help/ca/en/article/6116-process-refunds). |
+| PayPal | No fee to issue a commercial refund; original receiving fees are retained. [Canada business fees](https://www.paypal.com/ca/business/paypal-business-fees). |
+| Helcim | No extra refund fee; original processing fees remain. A void before settlement can avoid processing fees. [Pricing](https://www.helcim.com/pricing/), [payments](https://devdocs.helcim.com/docs/payments). |
+| Moneris | Refund transaction fees apply according to account and payment method pricing. No single universal percentage was verified. [Processing fees](https://support.moneris.com/article/processing-fees-50094), [pricing](https://www.moneris.com/pricing). |
+| Clover / Fiserv | Canadian merchant charges depend on the signed application and agreement. No universal refund rate was verified. [Canadian merchant terms](https://merchants.fiserv.com/content/dam/firstdata/ca/en/pdf/CA-Merchant-Terms.pdf). |
+| Authorize.net | Merchant refund or void transaction fees can apply. Account and processor terms determine the amount. [Fee explanation](https://support.authorize.net/knowledgebase/article/KA-04277/en-us). |
+
+These notes are informational, not a fee calculator. Confirm the merchant's actual
+agreement before enabling payments. Voids, refunds, processing fees, currency
+conversion and disputes are different operations. Current ledger reporting tracks
+customer payment and refund amounts; it does not claim to reconcile processor fees
+or net bank payouts. Connector foundations remain sandbox preparation only.

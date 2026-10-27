@@ -198,3 +198,24 @@ root. See [configuration and API contracts](nominatim.md).
 ## Order Printer
 
 `order-printer` is an optional ordering plugin with an `admin:settings` panel and an `order.status_changed` observer. It reconciles its durable queue during polling, so it does not rely on observer delivery. It remains inactive by default and is not allowed by public demo lockdown. [Configuration and protocol](order-printer.md).
+
+## Customer cancellation settlement
+
+A complete payment provider registers
+`$plugin->providePaymentCancellation(fn(string $orderId): string => ...)`.
+It must stop an open checkout or refund the remaining payment in full, including
+tip, using provider idempotency and authoritative stored attempt identifiers.
+This is an explicit required operation, not an optional observation action.
+Network work runs outside the cancellation transaction, with a durable leased
+`cancellation_jobs` entry. Return `pending`, `refund_pending`, `attention`,
+`not_charged`, or `refunded`; the last value requires an already verified refund
+ledger. A browser return cannot establish payment or refund success.
+
+Enabling cancellation with a selected provider that lacks this handler rejects
+new orders with 503. Existing order settlement can resolve a deactivated provider
+only when the host already permits its retained callback routes. Keep its private
+files, credentials and callbacks installed until every payment settles. The six
+public connector foundations do not yet own customer checkout or automatic
+refunds. They must implement the complete reconciliation contract before selecting
+themselves for checkout. The separate private Stripe plugin implements sandbox
+cancellation. Core includes no Stripe code.

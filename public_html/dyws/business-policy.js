@@ -1,6 +1,6 @@
 export const weekDays=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
 export function locationPolicy(catalog,location={}) {
- return Object.fromEntries(['locationHours','orderingHours','deliveryPricing'].map(key=>[key,location[key]??catalog[key]??null]));
+ return Object.fromEntries(['locationHours','orderingHours','deliveryPricing','customerCancellation'].map(key=>[key,location[key]??catalog[key]??null]));
 }
 export function deliveryCharge(catalog,subtotal,fulfillment,location={}) {
  if(fulfillment!=='delivery')return 0;

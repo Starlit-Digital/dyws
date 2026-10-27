@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createTracking} from '../public_html/dyws/tracking.js';
 const settle=async()=>{for(let i=0;i<30;i++)await Promise.resolve();};
-function element(){return {dataset:{},ownerDocument:{createElement:()=>element()},replaceWith(){},children:[],nodes:new Map(),textWrites:0,_text:'',get textContent(){return this._text;},set textContent(value){this.textWrites++;this._text=value;},innerHTML:'',hidden:false,setAttribute(){},prepend(n){this.children.unshift(n);},append(n){this.children.push(n);},replaceChildren(...n){this.children=n;},contains(n){return this.children.includes(n);},remove(){this.removed=true;},querySelector(s){if(s==='button:disabled'||s==='.dyws-dismiss-tracking')return null;if(!this.nodes.has(s))this.nodes.set(s,element());return this.nodes.get(s);}};}
+function element(){return {focus(){this.focused=true;},dataset:{},ownerDocument:{createElement:()=>element()},replaceWith(){},children:[],nodes:new Map(),textWrites:0,_text:'',get textContent(){return this._text;},set textContent(value){this.textWrites++;this._text=value;},innerHTML:'',hidden:false,setAttribute(){},prepend(n){this.children.unshift(n);},append(n){this.children.push(n);},replaceChildren(...n){this.children=n;},contains(n){return this.children.includes(n);},remove(){this.removed=true;},querySelector(s){if(s==='button:disabled'||s==='.dyws-dismiss-tracking')return null;if(!this.nodes.has(s))this.nodes.set(s,element());return this.nodes.get(s);}};}
 test('Customer observes driver completion, clears map and estimate, stops polling and retains confirmation',async()=>{
  const container=element();let notify,stop=0,clears=0,mapCallback,reads=0;const hooks=[];
  const now=Date.now();let data={status:'out_for_delivery',fulfillment:'delivery',paymentStatus:'paid',location:{recorded_at:now/1000,latitude:53,longitude:-113},gpsStale:false,events:[],updatedAt:now/1000};
@@ -77,4 +77,27 @@ test('Pending notices announce changes once, preserve payment controls and stop 
   data={...data,paymentStatus:'paid',status:'accepted'};notify();await settle();assert.match(live.textContent,/Order accepted/);assert.equal(panel.querySelector('.dyws-pending-indicator').hidden,true);
   fail=404;notify();await settle();assert.match(live.textContent,/expired/);assert.equal(panel.querySelector('.dyws-tracking-details').hidden,true);assert.equal(panel.querySelector('.dyws-tracking-timeline').hidden,true);assert.equal(panel.querySelector('.dyws-tracking-updated').textContent,'');
  }finally{tracker.destroy();}
+});
+
+
+test('Cancellation needs confirmation, includes the full tip and stops after settlement',async()=>{
+ const container=element();let notify,posts=0,stops=0;
+ let data={status:'placed',fulfillment:'pickup',paymentProvider:'stripe',paymentStatus:'paid',events:[],summary:{currency:'CAD'},cancellation:{enabled:true,available:true,deadline:1240,serverTime:1000,refundAmount:2535,fee:0}};
+ const api=async(path,options)=>{if(options.method==='POST'){posts++;assert.equal(path,'/tracking/order/cancel');assert.equal(options.trackingToken,'token');data={...data,status:'cancelled',updatedAt:1001,cancellation:{...data.cancellation,available:false,cancelledAt:1001,paymentState:'refund_pending'}};}return data;};api.watch=(_,fn)=>{notify=fn;return ()=>stops++;};
+ const tracker=createTracking({api,container,document:{createElement:element},now:()=>9000000});
+ try{
+  tracker.show('order','token');await settle();const panel=container.children[0],box=panel.querySelector('.dyws-cancellation');assert.equal(box.hidden,false,'Server clock overrides a fast device clock');
+  panel.querySelector('.dyws-cancel-order').onclick();assert.equal(posts,0);assert.equal(panel.querySelector('.dyws-cancel-keep').focused,true);assert.match(box.querySelector('.dyws-cancel-refund').textContent,/25.35, including tip/);
+  panel.querySelector('.dyws-cancel-keep').onclick();assert.equal(posts,0);
+  panel.querySelector('.dyws-cancel-order').onclick();await panel.querySelector('.dyws-cancel-confirm').onclick();assert.equal(posts,1);assert.equal(stops,0);assert.match(box.querySelector('.dyws-cancel-note').textContent,/pending/);
+  data={...data,paymentStatus:'refunded',cancellation:{...data.cancellation,paymentState:'refunded'}};notify();await settle();assert.equal(stops,1);assert.equal(box.querySelector('.dyws-cancel-note').textContent,'Payment refunded.');
+ }finally{tracker.destroy();}
+});
+
+test('Cancellation errors stay visible and deadlines hide the button',async()=>{
+ const container=element();let notify;
+ let data={status:'placed',fulfillment:'pickup',paymentProvider:'demo',paymentStatus:'unpaid',events:[],cancellation:{enabled:true,available:true,deadline:1240,serverTime:1000,refundAmount:2535,fee:0}};
+ const api=async(path,options)=>{if(options.method==='POST')throw new Error('Cancellation unavailable.');return data;};api.watch=(_,fn)=>{notify=fn;return ()=>{};};
+ const tracker=createTracking({api,container,document:{createElement:element}});
+ try{tracker.show('order','token');await settle();const panel=container.children[0],box=panel.querySelector('.dyws-cancellation');panel.querySelector('.dyws-cancel-order').onclick();await panel.querySelector('.dyws-cancel-confirm').onclick();assert.equal(panel.querySelector('.dyws-cancel-error').textContent,'Cancellation unavailable.');assert.equal(box.hidden,false);data={...data,cancellation:{...data.cancellation,serverTime:1240}};notify();await settle();assert.equal(box.hidden,true);}finally{tracker.destroy();}
 });

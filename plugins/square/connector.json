@@ -28,5 +28,11 @@
     "payment.get",
     "order.get"
   ],
-  "webhook": "/plugins/square/webhook"
+  "webhook": "/plugins/square/webhook",
+  "refundPolicy": {
+    "checkedAt": "2026-10-27",
+    "merchantNote": "Canada: original processing fees are retained by Square. A full refund returns the full purchase amount to the customer.",
+    "source": "https://squareup.com/help/ca/en/article/6116-process-refunds",
+    "customerDeduction": 0
+  }
 }

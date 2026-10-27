@@ -125,3 +125,12 @@
  .dyws-pending-indicator { color:CanvasText; }
  .dyws-pending-indicator span { background:CanvasText; }
 }
+
+.dyws-cancellation{margin-block:1rem;padding-block:1rem;border-block:1px solid var(--dyws-color-border)}
+.dyws-cancellation [hidden],.dyws-cancellation[hidden]{display:none!important}
+.dyws-cancellation p{margin:.5rem 0;overflow-wrap:anywhere}
+.dyws-cancellation button{min-height:44px;padding:8px 14px;border-radius:10px;font-weight:600}
+.dyws-cancellation .dyws-cancel-error:empty{display:none}
+
+.dyws-tracking-panel .dyws-cancel-keep{background:var(--dyws-tracking-accent);color:var(--dyws-color-bg)}
+.dyws-tracking-panel .dyws-tracking-return{border-radius:10px;min-height:44px;padding:8px 18px;box-shadow:none}

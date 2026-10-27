@@ -29,5 +29,11 @@
     "order.capture",
     "capture.get"
   ],
-  "webhook": "/plugins/paypal/webhook"
+  "webhook": "/plugins/paypal/webhook",
+  "refundPolicy": {
+    "checkedAt": "2026-10-27",
+    "merchantNote": "Canada: no fee to issue a commercial refund. Original receiving fees are not returned to the business.",
+    "source": "https://www.paypal.com/ca/business/paypal-business-fees",
+    "customerDeduction": 0
+  }
 }

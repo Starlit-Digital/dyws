@@ -2,12 +2,13 @@
 declare(strict_types=1);
 namespace dyws;
 require_once __DIR__.'/BusinessHours.php';
+require_once __DIR__.'/Cancellation.php';
 
 /** Product data is JSON. Prices are integer minor units, never floating point. */
 final class Catalog {
  public static function load(string $path):array { return self::validate(json_decode(file_get_contents($path),true,64,JSON_THROW_ON_ERROR)); }
  public static function validate(array $data):array {
-  $out=['schemaVersion'=>2,'businessName'=>Store::text($data['businessName']??$data['restaurant']??null,120),'platformName'=>Store::text($data['platformName']??'dyws',100),'currency'=>$data['currency']??'CAD','taxBasisPoints'=>$data['taxBasisPoints']??0,'deliveryFee'=>$data['deliveryFee']??395,'deliveryFeeBasisPoints'=>$data['deliveryFeeBasisPoints']??0,'locationHours'=>BusinessHours::validate($data['locationHours']??null),'orderingHours'=>BusinessHours::validate($data['orderingHours']??null),'pickupAddress'=>Store::text($data['pickupAddress']??'',240,false),'businessPhone'=>Store::text($data['businessPhone']??'',30,false),'businessEmail'=>Store::text($data['businessEmail']??'',254,false),'itemOrderCap'=>$data['itemOrderCap']??10,'categories'=>[]];
+  $out=['schemaVersion'=>2,'businessName'=>Store::text($data['businessName']??$data['restaurant']??null,120),'platformName'=>Store::text($data['platformName']??'dyws',100),'currency'=>$data['currency']??'CAD','taxBasisPoints'=>$data['taxBasisPoints']??0,'deliveryFee'=>$data['deliveryFee']??395,'deliveryFeeBasisPoints'=>$data['deliveryFeeBasisPoints']??0,'locationHours'=>BusinessHours::validate($data['locationHours']??null),'orderingHours'=>BusinessHours::validate($data['orderingHours']??null),'pickupAddress'=>Store::text($data['pickupAddress']??'',240,false),'businessPhone'=>Store::text($data['businessPhone']??'',30,false),'businessEmail'=>Store::text($data['businessEmail']??'',254,false),'itemOrderCap'=>$data['itemOrderCap']??10,'customerCancellation'=>Cancellation::policy($data['customerCancellation']??null),'categories'=>[]];
   if(!is_int($out['itemOrderCap'])||$out['itemOrderCap']<1||$out['itemOrderCap']>99)throw new ApiError('Item Order Cap must be a whole number from 1 to 99.');
   if($out['businessPhone']!==''&&!preg_match('/^[0-9+() .-]{7,30}$/D',$out['businessPhone']))throw new ApiError('Enter a valid business phone number.');
   if($out['businessEmail']!==''&&!filter_var($out['businessEmail'],FILTER_VALIDATE_EMAIL))throw new ApiError('Enter a valid business email address.');
@@ -15,7 +16,7 @@ final class Catalog {
   if(!is_array($data['locations']??[])||!array_is_list($data['locations']??[])||count($data['locations']??[])>50)throw new ApiError('Use up to 50 business locations.');
   foreach($data['locations']??[] as $location){
    if(!is_array($location))throw new ApiError('Invalid business location.');
-   $location=['id'=>self::id($location['id']??null),'name'=>Store::text($location['name']??null,120),'address'=>Store::text($location['address']??null,240),'phone'=>Store::text($location['phone']??'',30,false),'active'=>$location['active']??true,'locationHours'=>BusinessHours::validate($location['locationHours']??null),'orderingHours'=>BusinessHours::validate($location['orderingHours']??null),'deliveryPricing'=>self::deliveryPricing($location['deliveryPricing']??null)];
+   $location=['id'=>self::id($location['id']??null),'name'=>Store::text($location['name']??null,120),'address'=>Store::text($location['address']??null,240),'phone'=>Store::text($location['phone']??'',30,false),'active'=>$location['active']??true,'locationHours'=>BusinessHours::validate($location['locationHours']??null),'orderingHours'=>BusinessHours::validate($location['orderingHours']??null),'deliveryPricing'=>self::deliveryPricing($location['deliveryPricing']??null),'customerCancellation'=>Cancellation::policy($location['customerCancellation']??null)];
    if(isset($locationIds[$location['id']]))throw new ApiError('Location IDs must be unique.');
    if(!is_bool($location['active'])||($location['phone']!==''&&!preg_match('/^[0-9+() .-]{7,30}$/D',$location['phone'])))throw new ApiError('Check the location phone number and availability.');
    $locationIds[$location['id']]=true;$out['locations'][]=$location;
@@ -55,7 +56,7 @@ final class Catalog {
   return ['flatFee'=>$value['flatFee'],'basisPoints'=>$value['basisPoints']];
  }
  public static function locationPolicy(array $catalog,string $id):array {
-  foreach($catalog['locations']??[] as $location)if($location['id']===$id)return array_replace($catalog,array_filter(array_intersect_key($location,array_flip(['locationHours','orderingHours','deliveryPricing'])),fn($value)=>$value!==null));
+  foreach($catalog['locations']??[] as $location)if($location['id']===$id)return array_replace($catalog,array_filter(array_intersect_key($location,array_flip(['locationHours','orderingHours','deliveryPricing','customerCancellation'])),fn($value)=>$value!==null));
   return $catalog;
  }
  public static function deliveryCharge(array $catalog,int $subtotal,string $fulfillment,string $locationId=''):int {

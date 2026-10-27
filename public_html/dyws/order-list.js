@@ -39,7 +39,7 @@ export function mountOrderList({root,plugins,renderOrder}){
    const focused=root.ownerDocument.activeElement,editing=focused?.matches?.('input,select,textarea,[contenteditable="true"]');
    // Preserve a selection or typed value while an operator is working.
    if(force||!editing||!detail.contains(focused))show();
-   const key=JSON.stringify([getTimeZone(),dateKey(),data.orders.map(o=>[o.id,o.created_at,o.customer_name,o.orderLocation,o.status,o.fulfillment,o.fulfillmentMeta,o.payment_status,o.total,o.tip,o.currency])]);
+   const key=JSON.stringify([getTimeZone(),dateKey(),data.orders.map(o=>[o.id,o.created_at,o.customer_name,o.orderLocation,o.status,o.fulfillment,o.fulfillmentMeta,o.payment_status,o.cancellation?.cancelledAt,o.cancellation?.paymentState,o.total,o.tip,o.currency])]);
    if(key===signature||(!force&&editing&&(tableRoot.contains(focused)||filters.includes(focused)||focused===date))){focusSelection();return;}
    signature=key;root.querySelector('[data-order-zone]').textContent=getTimeZone();
    await plugins?.runAction('admin:tables',{root:tableRoot,phase:'dispose'});instance=null;

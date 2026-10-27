@@ -268,3 +268,26 @@ Lockdown permits the pickup preview API but retains its fictional map and
 24 hour data retention. Site repositories with pinned engine copies or custom
 checkout adapters must explicitly incorporate these changes and pass their own
 checks before deployment.
+
+## Customer cancellation, October 27, 2026
+
+Deploy Cancellation, Catalog, Store, DeliveryRuns, schema, API and plugin host
+changes together with settings, checkout, tracking, order views and regenerated
+preloads. Store adds cancellation snapshot columns and a durable job table without
+rewriting old totals, tips, capabilities or payment records. Existing orders and
+merchant locations default to cancellation disabled. Back up each private database
+and catalog before upgrading. Public demo instances may explicitly enable a four
+minute fictional cancellation window; visitor settings remain locked.
+
+Complete online payment integrations require a compatible cancellation handler.
+For installations with one, run `php scripts/process-cancellations.php
+--config=/absolute/private/config.json` every minute with the web application's
+file permissions. The worker uses leases, makes provider calls outside database
+transactions, retries pending work, and publishes status invalidations. Tracking
+reads and verified callbacks also advance due jobs, but are not a replacement for
+the scheduled worker. Monitor pending jobs and provider failures. No worker is
+needed for the synchronous fictional demo ledger.
+
+The private Stripe plugin additionally requires Refunds read and write permissions,
+the updated refund event subscriptions, and its separate private deployment. Do
+not install it on public demos or describe their ledger actions as real refunds.
