@@ -13,7 +13,7 @@
   --dyws-color-border: var(--dyws-border, #777);
   --dyws-color-button-text: var(--dyws-button-text, #fff8ed);
   color: var(--dyws-color-text);
-  font: var(--dyws-font, 18px/1.5 system-ui, sans-serif);
+  font: var(--dyws-font, 17px/1.5 system-ui, sans-serif);
 }
 .dyws-shell *,
 .dyws-catalog *,

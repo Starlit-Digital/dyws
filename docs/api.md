@@ -167,7 +167,7 @@ Private tracking responses include `driver: {name, vehicleType, vehicleColor, pr
 
 The token protected tracking response also includes `createdAt` as UTC seconds, `business: {name, phone, pickupAddress}` and `summary: {lines, currency, subtotal, tax, deliveryFee, tip, total}`. Summary amounts are saved integer cents. Each line exposes only `name`, `option`, `quantity` and `price`; changing the catalog never rewrites an existing receipt. Tenant, token and expiry checks apply before these fields are returned. Customer names, phone numbers, notes, credentials and plugin order data are not added to the response. The existing delivery address remains available only through the authorized tracking response.
 
-Checkout makes no order creation request during the final review. The ten second countdown or an explicit Looks good! click submits the reviewed order once. Back and closing the dialog cancel the timer. Taking more time or hiding the page pauses it until the customer deliberately confirms. Submission failures retain the cart and reuse the existing idempotency key when the order is unchanged.
+Checkout makes no order creation request during the final review. The ten second countdown or an explicit Place order click submits the reviewed order once. Back and closing the dialog cancel the timer. Taking more time or hiding the page pauses it until the customer deliberately confirms. Submission failures retain the cart and reuse the existing idempotency key when the order is unchanged.
 
 ## Order Format templates
 

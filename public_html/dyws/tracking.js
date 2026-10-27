@@ -23,7 +23,7 @@ export function createTracking({api,container,role=defaultRole,trackingPage,rend
   panel.dataset.status=lastData.status;
   panel.dataset.pending=String(view.pending);
   panel.querySelector('.dyws-pending-indicator').hidden=!view.pending;
-  write('.dyws-tracking-kind',lastData.fulfillment==='pickup'?'Pickup order':'Delivery order');
+  write('.dyws-tracking-kind',lastData.fulfillmentMeta?.label||(lastData.fulfillment==='pickup'?'Pickup':'Delivery'));
   write('.dyws-tracking-status',view.title);write('.dyws-tracking-message',view.message);
   const arrival=panel.querySelector('.dyws-tracking-arrival');arrival.hidden=view.terminal;
   write('.dyws-arrival-label',view.etaTitle);write('.dyws-arrival-value',view.etaValue);write('.dyws-arrival-detail',view.etaDetail);
@@ -33,7 +33,7 @@ export function createTracking({api,container,role=defaultRole,trackingPage,rend
    return `<li class="dyws-step-${done?'done':step.state}" ${step.state==='current'?'aria-current="step"':''}><span class="dyws-step-marker" aria-hidden="true">${done?'✓':index+1}</span><span class="dyws-step-label">${escapeHTML(step.label)}<small>${done?'Complete':step.state==='current'?'Current':'Upcoming'}</small></span></li>`;
   }).join('');
   if(stages.innerHTML!==html)stages.innerHTML=html;
-  write('.dyws-tracking-updated',view.terminal?(view.title+' at '+time(view.stamp)):delayed?'Updates delayed. Reconnecting…':'Updates automatically · Last checked '+time(lastChecked/1000));
+  write('.dyws-tracking-updated',view.terminal?(view.title+' at '+time(view.stamp)):delayed?'Updates delayed. Reconnecting…':'Checked '+time(lastChecked/1000));
   panel.querySelector('.dyws-tracking-complete').hidden=!view.complete;
   // Clock ticks and route timestamps are visual only. Announce meaningful changes once.
   const driver=[lastData.driver?.name,lastData.driver?.vehicleColor,lastData.driver?.vehicleType].filter(Boolean).join(', ');
@@ -49,10 +49,10 @@ export function createTracking({api,container,role=defaultRole,trackingPage,rend
    <div class="dyws-tracking-meta"><p class="dyws-tracking-reference">Order <strong>${escapeHTML(id)}</strong></p><span class="dyws-tracking-kind"></span></div>
    <div class="dyws-tracking-heading"><${heading} class="dyws-tracking-status">Connecting…</${heading}><p class="dyws-tracking-message"></p></div>
    <div class="dyws-tracking-arrival"><div class="dyws-pending-indicator" aria-hidden="true" hidden><svg viewBox="0 0 48 48" focusable="false"><circle cx="24" cy="24" r="17"/><path d="M24 14v11l7 4"/></svg><span></span><span></span><span></span></div><p class="dyws-arrival-label">Order status</p><strong class="dyws-arrival-value">Checking your order</strong><p class="dyws-arrival-detail"></p></div>
-   <p class="dyws-tracking-updated dyws-note"></p><ol class="dyws-tracking-timeline" aria-label="Order progress"></ol><p class="dyws-tracking-complete" hidden>Your order is complete. No further action is needed.</p>
+   <p class="dyws-tracking-updated dyws-note"></p><ol class="dyws-tracking-timeline" aria-label="Order progress"></ol><p class="dyws-tracking-complete" hidden>Order complete.</p>
    <div class="dyws-tracking-driver" hidden><span class="dyws-tracking-driver-icon"></span><p class="dyws-driver-label"></p><strong class="dyws-driver-name"></strong><p class="dyws-driver-vehicle"></p></div><div class="dyws-tracking-gps"></div><div class="dyws-tracking-map"></div>
    <div class="dyws-tracking-details" hidden><h2 class="dyws-visually-hidden">Order details</h2><article class="dyws-tracking-receipt"></article><div class="dyws-tracking-service"><div class="dyws-tracking-fulfillment-details"></div><div class="dyws-tracking-payment"></div><div class="dyws-tracking-help"></div></div></div>
-   ${trackingPage?`<p><a class="dyws-tracking-link" href="${escapeHTML(trackingPage)}#${encodeURIComponent(id)}.${encodeURIComponent(token)}">Open private tracking page</a></p>`:''}<p class="dyws-tracking-error" role="alert"></p>${shopPage?`<a class="dyws-tracking-return" href="${escapeHTML(shopPage)}">Back to menu</a>`:'<button class="dyws-dismiss-tracking" type="button">Hide tracking</button>'}`;
+   ${trackingPage?`<p><a class="dyws-tracking-link" href="${escapeHTML(trackingPage)}#${encodeURIComponent(id)}.${encodeURIComponent(token)}">Track order</a></p>`:''}<p class="dyws-tracking-error" role="alert"></p>${shopPage?`<a class="dyws-tracking-return" href="${escapeHTML(shopPage)}">Back to menu</a>`:'<button class="dyws-dismiss-tracking" type="button">Hide tracking</button>'}`;
   panel.dataset.pending='false';
   const dismiss=panel.querySelector('.dyws-dismiss-tracking');if(dismiss)dismiss.onclick=()=>{destroy();try{sessionStorage.removeItem(storageKey);}catch{}};
   clearTimeout(timer);clearInterval(clock);clock=setInterval(summary,10000);listen();

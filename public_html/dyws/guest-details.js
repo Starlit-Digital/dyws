@@ -25,8 +25,8 @@ export async function mountGuestDetails({form,api,termsURL,hasDraft=false,onForg
  if(!api||!termsURL)return null;
  const doc=form.ownerDocument,preferences=doc.createElement('section'),picker=doc.createElement('section');
  preferences.className='dyws-remember';picker.className='dyws-saved-addresses';picker.hidden=true;
- preferences.innerHTML=`<input type="hidden" name="savedProfileId"><label class="dyws-remember-check"><input type="checkbox" name="rememberDetails" disabled><span>Remember my details on this device</span></label><p class="dyws-note">Saved for 180 days from your latest order. Remove them any time. <a href="${escapeHTML(termsURL)}" target="_blank" rel="noopener noreferrer">Terms and Conditions<span class="dyws-visually-hidden">, opens in a new tab</span></a></p><div class="dyws-address-save" hidden><div class="dyws-checkout-grid"><label>Save address as<select name="addressLabel"><option value="Home">Home</option><option value="Work">Work</option><option value="custom">Custom name</option></select></label><label class="dyws-custom-label" hidden>Address name<input name="customAddressLabel" maxlength="40" disabled></label></div><label class="dyws-remember-check"><input type="checkbox" name="defaultAddress"><span>Use as my default address</span></label></div><button type="button" class="dyws-muted dyws-forget" hidden>Forget my details</button><p class="dyws-note dyws-guest-status" role="status" aria-live="polite"></p>`;
- picker.innerHTML='<label>Saved addresses<select name="savedAddressId"><option value="">Use another address</option></select></label><div class="dyws-saved-actions"><button type="button" class="dyws-muted dyws-remove-address" hidden>Remove address</button><button type="button" class="dyws-muted dyws-default-address" hidden>Make default</button></div>';
+ preferences.innerHTML=`<input type="hidden" name="savedProfileId"><label class="dyws-remember-check"><input type="checkbox" name="rememberDetails" disabled><span>Remember me on this device</span></label><p class="dyws-note"><a href="${escapeHTML(termsURL)}" target="_blank" rel="noopener noreferrer">Privacy &amp; terms<span class="dyws-visually-hidden">, opens in a new tab</span></a></p><div class="dyws-address-save" hidden><div class="dyws-checkout-grid"><label>Save as<select name="addressLabel"><option value="Home">Home</option><option value="Work">Work</option><option value="custom">Custom name</option></select></label><label class="dyws-custom-label" hidden>Address name<input name="customAddressLabel" maxlength="40" disabled></label></div><label class="dyws-remember-check"><input type="checkbox" name="defaultAddress"><span>Default address</span></label></div><button type="button" class="dyws-muted dyws-forget" hidden>Forget my details</button><p class="dyws-note dyws-guest-status" role="status" aria-live="polite"></p>`;
+ picker.innerHTML='<label>Saved addresses<select name="savedAddressId"><option value="">New address</option></select></label><div class="dyws-saved-actions"><button type="button" class="dyws-muted dyws-remove-address" hidden>Remove address</button><button type="button" class="dyws-muted dyws-default-address" hidden>Make default</button></div>';
  form.prepend(picker);form.querySelector('.dyws-error').before(preferences);
  const field=name=>form.elements.namedItem(name),status=preferences.querySelector('.dyws-guest-status');
  const remember=field('rememberDetails'),labels=preferences.querySelector('.dyws-address-save'),custom=preferences.querySelector('.dyws-custom-label');
@@ -41,7 +41,7 @@ export async function mountGuestDetails({form,api,termsURL,hasDraft=false,onForg
  };
  const render=()=>{
   field('savedProfileId').value=state.profileId||'';forget.hidden=!state.profileId;picker.hidden=!state.addresses.length;
-  field('savedAddressId').replaceChildren(new Option('Use another address',''),...state.addresses.map(a=>new Option(a.label+(a.id===state.defaultAddressId?' (default)':'')+' · '+[a.addressDetails.line1,a.addressDetails.line2].filter(Boolean).join(', '),a.id)));
+  field('savedAddressId').replaceChildren(new Option('New address',''),...state.addresses.map(a=>new Option(a.label+(a.id===state.defaultAddressId?' (default)':'')+' · '+[a.addressDetails.line1,a.addressDetails.line2].filter(Boolean).join(', '),a.id)));
  };
  const labelAddress=address=>{
   field('addressLabel').value=['Home','Work'].includes(address.label)?address.label:'custom';field('customAddressLabel').value=address.label;
@@ -68,9 +68,9 @@ export async function mountGuestDetails({form,api,termsURL,hasDraft=false,onForg
    render();
    if(action==='forget'){
     for(const name of ['customer','phone'])if(!field(name).readOnly)field(name).value='';
-    clearAddress();remember.checked=false;onForget();status.textContent='Your saved details have been removed.';
+    clearAddress();remember.checked=false;onForget();status.textContent='Saved details removed.';
    }else if(action==='remove'){clearAddress();onForget();status.textContent='Address removed.';}
-   else{field('savedAddressId').value=selected;field('defaultAddress').checked=true;status.textContent='Default address updated.';}
+   else{field('savedAddressId').value=selected;field('defaultAddress').checked=true;status.textContent='Default updated.';}
   }catch(error){status.textContent=error.message||'Could not update saved details. Please try again.';}
   finally{controls.forEach(([input,disabled])=>input.disabled=disabled);pending=false;sync();(action==='forget'?remember:field('savedAddressId')).focus();}
  };
@@ -84,7 +84,7 @@ export async function mountGuestDetails({form,api,termsURL,hasDraft=false,onForg
    const address=state.addresses.find(a=>a.id===state.defaultAddressId);
    if(address&&!field('addressLine1')?.value&&!field('addressLine2')?.value){field('savedAddressId').value=address.id;applySavedAddress(form,address);labelAddress(address);}
   }
- }catch{status.textContent='Saved details are unavailable. You can still place your order.';}
+ }catch{status.textContent='Saved details unavailable. Enter your details.';}
  sync();
  return {sync,afterRestore(draft){
   if(!draft||remember.disabled)return;
@@ -92,9 +92,9 @@ export async function mountGuestDetails({form,api,termsURL,hasDraft=false,onForg
   if(saved('savedProfileId')&&saved('savedProfileId')!==state.profileId){
    for(const name of ['customer','phone'])if(!field(name).readOnly)field(name).value='';
    clearAddress();remember.checked=false;field('savedProfileId').value=state.profileId||'';onForget();
-   status.textContent='Previously saved details are no longer available. Enter your details to continue.';
+   status.textContent='Saved details unavailable. Enter them again.';
   }else if(saved('savedAddressId')&&!state.addresses.some(address=>address.id===saved('savedAddressId'))){
-   clearAddress();onForget();status.textContent='That saved address was removed. Choose or enter another address.';
+   clearAddress();onForget();status.textContent='Address removed. Choose another.';
   }
   sync();
  }};

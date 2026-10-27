@@ -14,9 +14,18 @@ This is a development preview. Orders and delivery workflows work against persis
 
 ## Current checkout
 
-Checkout uses one Location field with address autocomplete, an optional Unit field and phone formatting while typing. Selected addresses include city, province and postal code. The review uses two line addresses and an inline countdown between Back and Looks good!. Click the countdown to pause or resume from the remaining seconds. The control shows a play symbol while paused. Customer details stay in page memory across Back navigation and dialog close and reopen, until the order completes or the page reloads. All stages share divider free spacing and the available viewport height. Leaving the page pauses it until deliberately resumed. Canadian locality names are cached from the Statistics Canada National Address Register.
+Checkout uses one Address field with address autocomplete, an optional Unit field and phone formatting while typing. Selected addresses include city, province and postal code. The review uses two line addresses and an inline countdown between Back and Place order. Click the countdown to pause or resume from the remaining seconds. The control shows a play symbol while paused. Customer details stay in page memory across Back navigation and dialog close and reopen, until the order completes or the page reloads. All stages share divider free spacing and the available viewport height. Leaving the page pauses it until deliberately resumed. Canadian locality names are cached from the Statistics Canada National Address Register.
 
 ![Current order review](docs/screenshots/review-layout-20261024/paused-review.png)
+
+## Compact ordering controls
+
+Cart, checkout and review omit the repeated order heading. Native labels remain
+visible in the field borders, including filled fields and address suggestions.
+The controls use Checkout, Review and Place order. Pickup uses concise labels,
+with scheduling errors shown when needed. The 30 minute minimum and automatic
+review countdown are unchanged. The default text size is 17px, including the
+diner display control and shared DYWS surfaces. Saved larger sizes remain valid.
 
 ## Optional tips
 
@@ -92,7 +101,7 @@ The hosted public demo includes delivery runs, the connected tracking timeline a
 | Cart | Visible item quantities, increment and decrement controls, removal icons, options, subtotal, tax, delivery fee and final total. |
 | Checkout | Configurable per item cap, default 10 across options, with a call the store prompt for larger orders. Pickup or delivery, customer name, phone, structured street address, optional unit, city, province or state, postal code, country and order notes. |
 | Server validation | Product and option validation, quantity limits, integer cent calculations, authoritative pricing and idempotent order submission. Client totals are not trusted. |
-| Confirmation | A final review with item prices, delivery fee, tax and total, plus Back and Looks good!, counting down from 10 before sending. Click to send sooner, pause for more time, or go back without creating an order. Closing or hiding the page cancels or pauses the countdown. A unique order reference and a private order status page after checkout. The tracking token handoff leaves only the order reference in the page URL. |
+| Confirmation | A final review with item prices, delivery fee, tax and total, plus Back and Place order, counting down from 10 before sending. Click to send sooner, pause for more time, or go back without creating an order. Closing or hiding the page cancels or pauses the countdown. A unique order reference and a private order status page after checkout. The tracking token handoff leaves only the order reference in the page URL. |
 | Progress | A connected, accessible timeline for Received, Confirmed, Preparing, Ready, On the way and Delivered, plus pickup and cancellation states. Run customers see how many stops remain ahead. Driver completion updates the customer view. A pending confirmation notice, order receipt, fulfillment details and business contact link keep the page useful while waiting. Polite announcements report meaningful changes, with reduced motion support. |
 | Arrival estimates | Google route estimates when a current driver location and usable route are available. Otherwise the page explains when an estimate can be shown. |
 | Update recovery | Automatic polling or optional WebSocket updates, refresh on return to tracking, recovery from stalled reads and clear delayed update messages. |

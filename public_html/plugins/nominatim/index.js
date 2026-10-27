@@ -4,7 +4,7 @@ function element(doc,tag,text,className){const node=doc.createElement(tag);if(te
 function setValue(input,value){if(!input||value===undefined||value===null)return;input.value=String(value).slice(0,input.maxLength>0?input.maxLength:500);input.dispatchEvent(new Event('input',{bubbles:true}));input.dispatchEvent(new Event('change',{bubbles:true}));}
 function widget({doc,api,config,onSelect,field=null}){
  const box=element(doc,'section',null,'dyws-address-lookup');box.setAttribute('aria-label','Address lookup');
- const label=element(doc,'label','Location'),input=field||element(doc,'input');input.type='search';input.maxLength=240;input.autocomplete='off';input.placeholder=config.demo?'Try the example address':'Street address and city';const inputWrap=element(doc,'span',null,'dyws-lookup-input-wrap'),enter=element(doc,'span','↵','dyws-lookup-enter');enter.setAttribute('aria-hidden','true');inputWrap.append(input,enter);label.append(inputWrap);
+ const label=element(doc,'label','Address'),input=field||element(doc,'input');input.type='search';input.maxLength=240;input.autocomplete='off';input.placeholder=config.demo?'Try the example address':'Street address and city';const inputWrap=element(doc,'span',null,'dyws-lookup-input-wrap'),enter=element(doc,'span','↵','dyws-lookup-enter');enter.setAttribute('aria-hidden','true');inputWrap.append(input,enter);label.append(inputWrap);
  const status=element(doc,'p',null,'dyws-lookup-status');status.setAttribute('role','status');status.setAttribute('aria-live','polite');
  const results=element(doc,'ul',null,'dyws-lookup-results');
  box.append(label,results,status);
@@ -40,7 +40,6 @@ export function register(plugin){
   }
   const country=element(doc,'input');country.type='hidden';country.name='addressCountry';country.value='Canada';root.append(country);
   if(settings.demo)for(const [name,value]of Object.entries({addressCity:'Edmonton',addressRegion:'AB',addressCountry:'Canada'})){const input=form.elements.namedItem(name);input.value=value;input.readOnly=true;}
-  const unitLabel=form.elements.namedItem('addressLine2')?.closest('label');if(unitLabel)for(const node of unitLabel.childNodes)if(node.nodeType===3)node.textContent='Unit';
   const street=form.elements.namedItem('addressLine1'),streetLabel=street?.closest('label');if(!streetLabel)return;
   const view=widget({doc,api:plugin.api,config:settings,field:street,onSelect:row=>{
    for(const [key,name]of Object.entries({line1:'addressLine1',city:'addressCity',region:'addressRegion',postalCode:'addressPostal',country:'addressCountry'}))setValue(form.elements.namedItem(name),row[key]);
