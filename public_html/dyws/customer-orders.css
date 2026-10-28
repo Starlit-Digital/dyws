@@ -35,3 +35,5 @@ body.dyws-customer-orders-page{max-width:1480px}
 .dyws-order-selection-status{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
 @media(max-width:800px){.dyws-customer-orders{grid-template-columns:minmax(0,1fr)}.dyws-customer-order-rail{position:static;max-height:none}.dyws-customer-order-rail ul{grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr))}.dyws-customer-order-detail .dyws-order-destination{grid-template-columns:minmax(0,1fr)}.dyws-account .dyws-customer-driver{padding:18px}}
 @media(forced-colors:active){.dyws-shell .dyws-customer-order-card[aria-pressed=true]{outline:3px solid Highlight}}
+/* Explicit foregrounds keep nested disclosures and card labels in the active palette. */
+.dyws-customer-driver,.dyws-customer-driver summary,.dyws-order-card-top{color:var(--dyws-color-text)}

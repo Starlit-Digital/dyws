@@ -78,9 +78,15 @@ final class DYWSRenderer {
  }
 }
 
-/** Render navigation from the verified customer cookie, never staff or demo identity. */
-function dyws_render_customer_account_link(array $config,\dyws\Store $store,string $prefix=''):string {
+/** Render the verified account menu, or a plugin guarded demo preview. */
+function dyws_render_customer_account_link(array $config,\dyws\Store $store,string $prefix='',bool $preview=false):string {
  $signedIn=(new \dyws\CustomerAccounts($store,$config))->current()!==null;
- $account=$prefix.'account/';$signin=$account.'sign-in/';
- return '<a class="account-link" data-dyws-customer-link data-account-url="'.dyws_escape($account).'" data-signin-url="'.dyws_escape($signin).'" href="'.dyws_escape($signedIn?$account:$signin).'">'.($signedIn?'My account':'Sign in').'</a>';
+ $presentation=$store->plugins?->applyFilters('page.presentation',[],'customer-navigation')??[];
+ $locked=($presentation['customerNavigationLocked']??false)===true;$preview=$preview&&$locked;
+ $account=$prefix.'account/';$signin=$account.'sign-in/';$orders=$account.'orders/';$state=$signedIn?'signed-in':($preview?'preview':'signed-out');
+ $html='<div class="dyws-customer-navigation-control" data-dyws-customer-navigation data-account-url="'.dyws_escape($account).'" data-signin-url="'.dyws_escape($signin).'" data-orders-url="'.dyws_escape($orders).'" data-demo-locked="'.($locked?'true':'false').'" data-preview-account="'.($preview?'true':'false').'" data-customer-state="'.$state.'">';
+ if($signedIn||$preview)$html.='<details class="dyws-account-menu"><summary data-dyws-customer-link aria-label="My account">My account<span aria-hidden="true">▾</span></summary><div class="dyws-account-menu-panel"><a data-dyws-account-orders href="'.dyws_escape($orders).'">My orders</a><button type="button" data-dyws-account-logout disabled'.($locked?' title="Locked by the installation owner"':'').'>Sign out</button><p class="dyws-account-menu-status" role="status" aria-live="polite">'.($locked?'Demo account actions are locked.':'').'</p></div></details>';
+ else $html.='<a class="account-link" data-dyws-customer-link href="'.dyws_escape($signin).'">Sign in</a>';
+ return $html.'</div>';
 }
+function dyws_render_customer_preferences():string {return '<starlit-preferences-center data-dyws-preferences target="body"></starlit-preferences-center>';}

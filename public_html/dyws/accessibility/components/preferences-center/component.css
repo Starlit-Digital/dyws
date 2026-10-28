@@ -1,0 +1,3 @@
+/* Accessibility center. Component specific layout, shared controls live in shared/ui.css. */
+/* DYWS site adaptation: retain the accessible label with a compact gear trigger. */
+.launcher{width:48px;height:48px;min-width:48px;padding:12px}.launcher span{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}

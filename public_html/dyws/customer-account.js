@@ -23,7 +23,7 @@ export function customerSignInHTML({locked=false}={}){
 export function mountCustomerAccount({root,message,error,api,loginToken=null,demoLocked=false,storeName='',view='account',ordersURL='orders/',signinLocked=false}){
  if(view==='signin'&&signinLocked){
   message.textContent='This is a public demo. Email sign in is locked by the installation owner. No email will be sent.';
-  root.innerHTML=customerSignInHTML({locked:true});root.addEventListener('submit',event=>event.preventDefault());
+  root.innerHTML=customerSignInHTML({locked:true})+`<p><a href="${esc(new URL('../',ordersURL).href)}">Explore the demo customer account</a></p>`;root.addEventListener('submit',event=>event.preventDefault());
   return {refresh:async()=>{},openLink:async()=>{}};
  }
  if(demoLocked){

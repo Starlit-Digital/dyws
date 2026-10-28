@@ -50,3 +50,23 @@
 
 .dyws-skip-link{position:absolute;inset-block-start:8px;inset-inline-start:12px;transform:translateY(-200%);z-index:10000;padding:12px 18px;min-height:44px;background:var(--dyws-color-bg);color:var(--dyws-color-text);border:2px solid currentColor;border-radius:8px}
 .dyws-skip-link:focus{transform:none}
+
+/* One consistent customer header: brand, accessibility settings, account. */
+.dyws-site-header{display:flex;align-items:center;flex-wrap:wrap;gap:12px}
+.dyws-site-header>a{flex:1 1 6rem;min-width:0;max-width:none;overflow-wrap:anywhere}
+.dyws-site-header .dyws-header-actions,.dyws-site-header .dyws-customer-navigation{display:flex;align-items:center;flex-wrap:nowrap;gap:10px;margin:0 0 0 auto;padding:0;flex:none}
+.dyws-site-header starlit-preferences-center{display:block;flex:none;width:48px;height:48px}
+.dyws-site-header.dyws-customer-header,.dyws-site-header.store-header{padding-block:16px}
+.dyws-site-header.dyws-customer-header{max-width:none;padding-inline:0}
+.dyws-customer-navigation-control{display:inline-flex;position:relative;max-width:100%;--dyws-menu-bg:var(--dyws-surface,var(--surface,#292a2e));--dyws-menu-text:var(--dyws-text,var(--ink,#fff8ed));--dyws-menu-line:var(--dyws-border,var(--line,#777))}
+.dyws-customer-navigation-control .account-link,.dyws-account-menu>summary{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:10px 14px;border:1px solid var(--dyws-menu-line);border-radius:12px;background:var(--dyws-menu-bg);color:var(--dyws-menu-text);font:650 1rem/1.4 system-ui,sans-serif;text-decoration:none;cursor:pointer;list-style:none;box-sizing:border-box}
+.dyws-account-menu{position:relative;margin:0!important;max-width:100%}.dyws-account-menu>summary::-webkit-details-marker{display:none}.dyws-account-menu>summary::marker{content:''}
+.dyws-account-menu>summary>span{font-size:.8em}.dyws-account-menu[open]>summary>span{transform:rotate(180deg)}
+.dyws-account-menu-panel{position:absolute;z-index:1000;inset-block-start:calc(100% + 8px);inset-inline-end:0;min-width:min(14rem,calc(100vw - 32px));max-width:calc(100vw - 32px);padding:8px;border:1px solid var(--dyws-menu-line);border-radius:14px;background:var(--dyws-menu-bg);color:var(--dyws-menu-text);box-shadow:0 12px 30px #0003}
+.dyws-account-menu:not([open])>.dyws-account-menu-panel{display:none}
+.dyws-customer-navigation-control .dyws-account-menu-panel>a,.dyws-customer-navigation-control .dyws-account-menu-panel>button{display:flex;align-items:center;width:100%;min-height:48px;box-sizing:border-box;margin:0;padding:12px;border:0;border-radius:8px;background:transparent;color:var(--dyws-menu-text);font:inherit;text-align:start;text-decoration:none;white-space:normal;overflow-wrap:anywhere;cursor:pointer}
+.dyws-account-menu-panel>a:hover,.dyws-account-menu-panel>button:hover:not(:disabled){background:var(--dyws-raised,var(--raised,#323338))}
+.dyws-account-menu-panel>button:disabled{opacity:.6;cursor:not-allowed}.dyws-account-menu-status{font-size:.85rem;margin:6px 12px;max-width:18rem;overflow-wrap:anywhere}.dyws-account-menu-status:empty{display:none}
+.dyws-customer-navigation-control :focus-visible{outline:3px solid var(--dyws-emphasis,var(--red,#ffadb0));outline-offset:3px}
+.dyws-site-header>a{color:var(--dyws-text,var(--ink,#fff8ed))!important;text-decoration:none!important}
+body[data-dyws-customer-page][data-reading-font=studio]:not(.storefront) :is(h1,h2){font-family:Georgia,serif}

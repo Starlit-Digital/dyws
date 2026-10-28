@@ -1,3 +1,4 @@
+import {customerNavigationHTML} from './customer-navigation.js';
 /** A tracking capability can be claimed only by a verified customer session. */
 export async function mountCustomerOrder({root,api,accountURL,id,token}){
  if(!accountURL)return;
@@ -5,8 +6,7 @@ export async function mountCustomerOrder({root,api,accountURL,id,token}){
  try{
   const state=await call('/customer/session');if(!state.enabled||!root.isConnected)return;
   const button=root.ownerDocument.createElement('button'),note=root.ownerDocument.createElement('p');button.type='button';button.textContent='Save order to my account';note.setAttribute('role','status');
-  const link=root.ownerDocument.createElement('a'),signinURL=new URL('sign-in/',accountURL).href;link.dataset.dywsCustomerLink='';link.dataset.accountUrl=accountURL;link.dataset.signinUrl=signinURL;link.href=state.customer?accountURL:signinURL;link.target='_blank';link.rel='noopener noreferrer';link.textContent=state.customer?'My account':'Sign in';
-  root.append(button,note,link);
+  root.append(button,note);root.insertAdjacentHTML('beforeend',customerNavigationHTML({accountURL,signedIn:!!state.customer}));
   button.onclick=async()=>{
    button.disabled=true;note.textContent='';
    try{

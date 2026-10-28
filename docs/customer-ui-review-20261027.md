@@ -46,3 +46,38 @@ The script lives in the hosting repository and writes generated evidence under
 `docs/customer-ui-deployment-20261027.json` in that repository. The release is
 `/home/u394197407/domains/dyws.ca/private/releases/customer-ui-20261028T005711Z`.
 Existing business records, catalogs and runtime configuration are preserved.
+
+
+## Consistent customer headers and preferences
+
+All customer pages use the same header: store identity on the left, then the
+accessibility gear and customer control on the right. A signed out customer sees
+Sign in. A verified customer sees a native My account disclosure containing
+My orders and Sign out. Escape closes the disclosure and returns focus, outside
+click closes it, and only one account disclosure opens at a time. Sign out uses
+the authenticated customer endpoint and clears private account content before
+redirecting to sign in. Session changes in another tab refresh the header.
+
+Demo account and orders pages expose the fictional preview dropdown. My orders
+navigates normally, while Sign out remains disabled. Demo storefront, tracking
+and sign in pages retain Sign in. The plugin denies account mutations even if
+a visitor changes disabled controls in developer tools.
+
+Customer pages now share the existing Starlit preferences center. Its source is
+vendored under public_html/dyws/accessibility so standalone DYWS installations
+work without showcase files. The adapter uses a stable store scoped preference
+key across storefront, tracking, account, orders and sign in. Existing validated
+showcase and diner display preferences migrate on first use. Browser storage
+contains accessibility preferences only. Diner palette mapping remains intact.
+Local adaptations include presentational dialog headers, native select sizing
+and explicit order control foreground colors for WebKit.
+
+The header follow up passed the framework suite and merchant browser flow,
+including magic link access, private order history, driver report and block,
+unblock and header sign out. The demo browser check passed with zero customer
+API calls and eleven server guard checks. A further 100 page header check in
+Chromium and WebKit verified preference persistence, menu keyboard behavior,
+disabled demo actions and responsive controls. The 100 page accessibility and
+mobile audit reports zero automated violations and zero mobile findings. The
+open settings dialog also reports zero violations in both engines. Short
+landscape dialogs scroll their header and footer so neither covers settings.

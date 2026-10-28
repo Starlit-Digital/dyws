@@ -94,6 +94,7 @@ final class DemoPolicy {
   return $normalize($value);
  }
  public function presentation(array $value,string $page):array {
+  $value['customerNavigationLocked']=true;
   if($page==='customer-signin')$value['customerSignInLocked']=true;
   $value['notice']='Admin: admin / admin. Driver: driver / driver. Settings are locked.';
   $value['username']='admin';$value['driverId']='driver';$value['gpsMessage']='Using a simulated Manning Town Centre location. Device location is not requested.';return $value;
