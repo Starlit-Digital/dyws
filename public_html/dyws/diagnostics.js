@@ -12,6 +12,7 @@ export async function traceLoad(name,task){
  try{const result=await task();ok=true;return result;}finally{entries.push({name,start:round(start),duration:round(performance.now()-start),ok});if(entries.length>200)entries.shift();render();}
 }
 export function markReady(name='Page ready'){
+ if(name==='Page ready')globalThis.window?.dywsCustomerStartup?.ready('content');
  if(typeof document!=='undefined'&&name==='Page ready'){document.querySelector('[data-dyws-skeleton]')?.remove();document.querySelector('[data-dyws-initial-preview]')?.remove();}
  if(!enabled||ready.has(name))return;ready.add(name);entries.push({name,start:0,duration:round(performance.now()),ok:true});render();
 }

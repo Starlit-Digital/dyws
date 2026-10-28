@@ -24,7 +24,7 @@ export function mountCustomerAccount({root,message,error,api,loginToken=null,dem
  if(view==='signin'&&signinLocked){
   message.textContent='This is a public demo. Email sign in is locked by the installation owner. No email will be sent.';
   root.innerHTML=customerSignInHTML({locked:true});root.addEventListener('submit',event=>event.preventDefault());
-  return {refresh:async()=>{},openLink:async()=>{}};
+  return {ready:Promise.resolve(),refresh:async()=>{},openLink:async()=>{}};
  }
  if(demoLocked){
   message.textContent='This is a public demo. All customer details, orders and drivers below are fictional. Account controls are locked. No emails or reports are sent.';
@@ -39,7 +39,7 @@ export function mountCustomerAccount({root,message,error,api,loginToken=null,dem
   }else{root.innerHTML=customerAccountPreviewHTML({storeName});lock(root);}
   root.addEventListener('submit',event=>event.preventDefault());
   // No account handlers or API calls are mounted for a demo, including pasted login links.
-  return {refresh:async()=>{},openLink:async()=>{}};
+  return {ready:Promise.resolve(),refresh:async()=>{},openLink:async()=>{}};
  }
  const call=(route,options={})=>api(route,{...options,customer:true});
  let busy=false,orders=[],nextOffset=null,historyBrowser=null;
@@ -93,6 +93,6 @@ export function mountCustomerAccount({root,message,error,api,loginToken=null,dem
    root.querySelector('[data-another]').onclick=()=>void action(async()=>{loginToken=null;signin(await call('/customer/session'));});
   }catch(e){loginToken=null;await load();error.textContent=e.message;}
  }
- void action(open);
- return {refresh:()=>action(load),openLink:token=>{loginToken=token;return action(open);}};
+ const ready=action(open);
+ return {ready,refresh:()=>action(load),openLink:token=>{loginToken=token;return action(open);}};
 }

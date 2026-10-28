@@ -90,3 +90,11 @@ function dyws_render_customer_account_link(array $config,\dyws\Store $store,stri
  return $html.'</div>';
 }
 function dyws_render_customer_preferences():string {return '<starlit-preferences-center data-dyws-preferences target="body"></starlit-preferences-center>';}
+
+/** Shared first paint scaffold; inactive when scripting is unavailable. */
+function dyws_render_customer_startup_head(string $prefix=''):string {
+ return '<link rel="stylesheet" href="'.$prefix.'dyws/customer-startup.css"><link rel="stylesheet" href="'.$prefix.'dyws/accessibility/shared/content.css" data-dyws-preferences-content><script src="'.$prefix.'dyws/customer-startup.js"></script>';
+}
+function dyws_render_customer_startup_skeleton():string {
+ return '<div data-dyws-page-skeleton role="status" aria-label="Loading page"><span class="dyws-startup-label">Loading page…</span><div class="dyws-startup-header" aria-hidden="true"><i></i><i></i></div><i class="dyws-startup-title" aria-hidden="true"></i><i class="dyws-startup-line" aria-hidden="true"></i><div class="dyws-startup-cards" aria-hidden="true"><i></i><i></i></div></div>';
+}

@@ -12,7 +12,7 @@ if(widget){
    else if(window.dywsPalette&&(slug==='diner'||store.pathname==='/')){const legacy=JSON.parse(localStorage.getItem('dyws.diner.display.v1')||'null');if(legacy)localStorage.setItem(key,JSON.stringify({brightness:legacy.brightness??(legacy.mode==='light'?31:0),size:(legacy.size||17)/17}));}
   }
  }catch{/* Preferences work for this page when device storage is unavailable. */}
- const style=document.createElement('link');const contentReady=new Promise(resolve=>{style.onload=resolve;style.onerror=resolve;});style.rel='stylesheet';style.href=new URL('./accessibility/shared/content.css',import.meta.url).href;document.head.append(style);
+ let style=document.querySelector('[data-dyws-preferences-content]');let contentReady=Promise.resolve();if(!style){style=document.createElement('link');contentReady=new Promise(resolve=>{style.onload=resolve;style.onerror=resolve;});style.rel='stylesheet';style.href=new URL('./accessibility/shared/content.css',import.meta.url).href;document.head.append(style);}
  target.addEventListener('starlit:a11y-change',event=>{
   const {preferences:p}=event.detail;target.dataset.readingFont=p.font;target.dataset.dywsCustomerPage='';let colors=event.detail.palette;
   if(window.dywsPalette){
@@ -29,5 +29,5 @@ if(widget){
  await import('./accessibility/components/preferences-center/index.js');
  await contentReady;
  await Promise.all([...widget.shadowRoot.querySelectorAll('link[rel=stylesheet]')].map(link=>link.sheet?Promise.resolve():new Promise(resolve=>{link.addEventListener('load',resolve,{once:true});link.addEventListener('error',resolve,{once:true});})));
- target.dataset.dywsPreferencesReady='true';
+ target.dataset.dywsPreferencesReady='true';window.dywsCustomerStartup?.ready('theme');
 }
