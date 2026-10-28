@@ -2,6 +2,17 @@ DYWS ORDER PRINTER PROTOTYPE
 Enclosure design, purchasing and assembly handoff
 24 October 2026
 
+MECHANICAL REVISION, 28 OCTOBER 2026
+
+A new modular enclosure now has editable CAD source, STL files and arranged 3MF plates for a 180 x 180 x 180 mm printer. Its assembled footprint is 214 x 220 mm. The longest printed piece is 166 mm and all pieces allow a 5 mm brim. This supersedes the enclosure dimensions, print split, fasteners and CAD status in the original handoff below. The electrical architecture remains the same.
+
+Use the new assembly guide and fit coupon before printing the full set. The new design uses 18 M3 x 12 mm button head screws, 18 M3 nuts, six printed feet and ten rubber pads, with no heat set inserts. The converter uses direct soldered pigtails rather than the earlier right angle header. Geometry has been checked; hardware fit and slicing remain unverified.
+
+/private/var/www/starlit-digital/dyws/docs/hardware/order-printer/enclosure-180/README.md
+/private/var/www/starlit-digital/dyws/docs/hardware/order-printer/dyws-enclosure-180-prototype.zip
+
+ORIGINAL OCTOBER 24 HANDOFF FOLLOWS
+
 PURPOSE
 
 Build one counter mounted device that prints DYWS orders automatically at a venue. An Arduino compatible ESP32 controller obtains jobs directly from the DYWS website backend and sends them to an Epson receipt printer. The phone is used for initial WiFi setup and can leave afterwards.

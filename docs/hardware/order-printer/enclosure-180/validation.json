@@ -1,0 +1,113 @@
+{
+  "units": "mm",
+  "bed": [
+    180,
+    180,
+    180
+  ],
+  "parts": {
+    "tray_front": {
+      "quantity": 1,
+      "size_mm": [
+        156.0,
+        110.0,
+        14.0
+      ],
+      "volume_cm3": 76.855,
+      "watertight": true,
+      "one_connected_solid": true,
+      "sha256": "3fc904982ac5e3d167ff9047a80b712a088a1c2d572009182ae61b546944b906"
+    },
+    "tray_rear": {
+      "quantity": 1,
+      "size_mm": [
+        156.0,
+        110.0,
+        14.0
+      ],
+      "volume_cm3": 75.051,
+      "watertight": true,
+      "one_connected_solid": true,
+      "sha256": "96ff63590ad7e44162f09b17319899dff695cbcbf7b7a2adebfa6ce55f2cb26b"
+    },
+    "electronics_pod": {
+      "quantity": 1,
+      "size_mm": [
+        58.0,
+        166.0,
+        42.0
+      ],
+      "volume_cm3": 99.597,
+      "watertight": true,
+      "one_connected_solid": true,
+      "sha256": "a63eb9e22ac01a26da7afd9cf53ea7677ff7b1863c93b6c5a936f8405835420d"
+    },
+    "electronics_lid": {
+      "quantity": 1,
+      "size_mm": [
+        58.0,
+        166.0,
+        3.0
+      ],
+      "volume_cm3": 28.775,
+      "watertight": true,
+      "one_connected_solid": true,
+      "sha256": "07bcff087e76b22497a1949263533e6d852e0252c8d75834b6ac4b7e0cd4210b"
+    },
+    "join_plate": {
+      "quantity": 4,
+      "size_mm": [
+        16.0,
+        44.0,
+        4.0
+      ],
+      "volume_cm3": 2.744,
+      "watertight": true,
+      "one_connected_solid": true,
+      "sha256": "680d0b3f8dea91239ad55e5773c6d61638a0242651b5f54cfd6a11fb74225d98"
+    },
+    "foot": {
+      "quantity": 6,
+      "size_mm": [
+        16.0,
+        16.0,
+        8.0
+      ],
+      "volume_cm3": 1.911,
+      "watertight": true,
+      "one_connected_solid": true,
+      "sha256": "2a22bbd708633fd7ba21247e6fab715ebaa1f998de7fd99a4a60c52cb0fd933b"
+    },
+    "fit_coupon": {
+      "quantity": 1,
+      "size_mm": [
+        80.0,
+        65.0,
+        26.0
+      ],
+      "volume_cm3": 25.679,
+      "watertight": true,
+      "one_connected_solid": true,
+      "sha256": "01177f2feee7f0b125c59164d0d609f5b084c34900e7071647dcd3a3044eba5b"
+    }
+  },
+  "checks": {
+    "stl_round_trip": true,
+    "each_part_fits_with_5mm_brim": true,
+    "all_plate_objects_fit_with_5mm_brim": true,
+    "assembly_has_no_solid_interference": true,
+    "printer_envelope_clear": true,
+    "joint_hole_centres_align": true,
+    "nominal_electronics_and_usb_envelopes_clear": true,
+    "physical_hardware_fit_tested": false,
+    "slicer_validated": false,
+    "independent_3mf_mesh_round_trip_and_counts": true
+  },
+  "solid_volume_cm3": 302.72,
+  "assembled_footprint_mm": [
+    214,
+    220
+  ],
+  "fully_solid_petg_mass_g": 384.5,
+  "note": "Mass is a full solid geometry calculation, not sliced extrusion or measured print mass."
+}
