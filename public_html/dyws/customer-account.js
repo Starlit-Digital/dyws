@@ -67,7 +67,7 @@ export function mountCustomerAccount({root,message,error,api,loginToken=null,dem
   const state=await call('/customer/session');
   if(!state.customer){signin(state);return;}
   say('Signed in as '+state.customer.email);
-  root.innerHTML='<div class="dyws-actions"><button type="button" data-refresh>Refresh orders</button>'+ (view==='orders'?'':'<button type="button" data-logout>Sign out</button>')+'</div><section><h2>Order history</h2><div data-history></div><button type="button" data-more hidden>More orders</button></section><section><h2>Blocked drivers</h2><p>Blocks apply to every delivery address when you order with this account at this store. A delivery already on the way may still arrive. Contact the store if you need help with it.</p><ul data-blocks role="list"></ul></section>';
+  root.innerHTML='<div class="dyws-actions"><button type="button" data-refresh>Refresh orders</button></div><section><h2>Order history</h2><div data-history></div><button type="button" data-more hidden>More orders</button></section><section><h2>Blocked drivers</h2><p>Blocks apply to every delivery address when you order with this account at this store. A delivery already on the way may still arrive. Contact the store if you need help with it.</p><ul data-blocks role="list"></ul></section>';
   await historyPage();await blocks();
  }
  root.addEventListener('submit',e=>{
@@ -77,8 +77,7 @@ export function mountCustomerAccount({root,message,error,api,loginToken=null,dem
  });
  root.addEventListener('click',e=>{
   const b=e.target.closest('button');if(!b||busy)return;
-  if(b.hasAttribute('data-logout'))void action(async()=>{await call('/customer/logout',{method:'POST',body:{}});await load();});
-  else if(b.hasAttribute('data-refresh'))void action(load);
+  if(b.hasAttribute('data-refresh'))void action(load);
   else if(b.hasAttribute('data-open-report')){const details=b.closest('[data-order]').querySelector('[data-driver-report]');if(details){details.open=true;details.querySelector('select')?.focus();}}
   else if(b.hasAttribute('data-more'))void action(()=>historyPage(nextOffset));
   else if(b.hasAttribute('data-block'))void action(async()=>{await call('/customer/orders/'+b.closest('[data-order]').dataset.order+'/block',{method:'POST',body:{}});await load();say('Driver blocked. They cannot be assigned to future deliveries for your account at this store.');});
