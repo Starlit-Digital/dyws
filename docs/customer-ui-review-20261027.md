@@ -81,3 +81,7 @@ disabled demo actions and responsive controls. The 100 page accessibility and
 mobile audit reports zero automated violations and zero mobile findings. The
 open settings dialog also reports zero violations in both engines. Short
 landscape dialogs scroll their header and footer so neither covers settings.
+
+The My account disclosure also links Account details to `account/`, before
+My orders and Sign out. Both server rendered and refreshed customer menus use
+the same destination, including the guarded fictional account preview.
