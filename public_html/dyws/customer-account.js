@@ -34,7 +34,7 @@ export function mountCustomerAccount({root,message,error,api,loginToken=null,dem
    for(const form of scope.querySelectorAll('form')){const fieldset=scope.ownerDocument.createElement('fieldset');fieldset.disabled=true;fieldset.className='dyws-account-preview';fieldset.append(...form.childNodes);form.append(fieldset);}
   };
   if(view==='orders'){
-   root.innerHTML='<p>Order history for <strong>Demo Customer</strong></p><div class="dyws-actions"><button type="button" disabled>Refresh orders</button><button type="button" disabled>Sign out</button></div><div data-history></div><button type="button" disabled>More orders</button>';
+   root.innerHTML='<p>Order history for <strong>Demo Customer</strong></p><div class="dyws-actions"><button type="button" disabled>Refresh orders</button></div><div data-history></div><button type="button" disabled>More orders</button>';
    mountCustomerOrders({root:root.querySelector('[data-history]'),orders:customerPreviewOrders(storeName),detailHTML:customerOrderHTML,onDetail:lock});
   }else{root.innerHTML=customerAccountPreviewHTML({storeName,ordersURL});lock(root);}
   root.addEventListener('submit',event=>event.preventDefault());
@@ -67,7 +67,7 @@ export function mountCustomerAccount({root,message,error,api,loginToken=null,dem
   const state=await call('/customer/session');
   if(!state.customer){signin(state);return;}
   say('Signed in as '+state.customer.email);
-  root.innerHTML='<div class="dyws-actions"><button type="button" data-refresh>Refresh orders</button><button type="button" data-logout>Sign out</button></div><section><h2>Order history</h2><div data-history></div><button type="button" data-more hidden>More orders</button></section><section><h2>Blocked drivers</h2><p>Blocks apply to every delivery address when you order with this account at this store. A delivery already on the way may still arrive. Contact the store if you need help with it.</p><ul data-blocks role="list"></ul></section>';
+  root.innerHTML='<div class="dyws-actions"><button type="button" data-refresh>Refresh orders</button>'+ (view==='orders'?'':'<button type="button" data-logout>Sign out</button>')+'</div><section><h2>Order history</h2><div data-history></div><button type="button" data-more hidden>More orders</button></section><section><h2>Blocked drivers</h2><p>Blocks apply to every delivery address when you order with this account at this store. A delivery already on the way may still arrive. Contact the store if you need help with it.</p><ul data-blocks role="list"></ul></section>';
   await historyPage();await blocks();
  }
  root.addEventListener('submit',e=>{
