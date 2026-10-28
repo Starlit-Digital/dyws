@@ -1,4 +1,4 @@
-.dyws-demo-callout{box-sizing:border-box;padding:clamp(20px,3vw,32px);margin:0 0 28px;border:3px solid #e8c58e;border-radius:18px;background:#f2e7d4;color:#183240;box-shadow:0 5px 0 #e8c58e;line-height:1.5;text-align:left}
+.dyws-demo-callout{--sda-page:#f2e7d4;--sda-panel:#fffcf5;--sda-text:#183240;--sda-muted:#183240;--sda-accent:#183240;--sda-line:#a99676;box-sizing:border-box;padding:clamp(20px,3vw,32px);margin:0 0 28px;border:3px solid #e8c58e;border-radius:18px;background:#f2e7d4;color:#183240;box-shadow:0 5px 0 #e8c58e;line-height:1.5;text-align:left}
 .dyws-demo-callout h2{margin:0 0 10px;font-family:inherit;font-size:clamp(1.5rem,3vw,2rem);line-height:1.2;color:#183240}
 .dyws-demo-callout p{margin:0 0 18px;color:#183240;font-size:1rem;max-width:75ch}
 .dyws-demo-accounts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:20px 0}
@@ -19,3 +19,4 @@ footer>.dyws-demo-callout{margin:36px 0 0}
 @media(max-width:600px){.dyws-demo-accounts{grid-template-columns:1fr}.dyws-demo-accounts a{width:100%}}
 @media(forced-colors:active){.dyws-demo-callout,.dyws-demo-accounts>div{background:Canvas;color:CanvasText;border-color:CanvasText}.dyws-demo-accounts a{background:ButtonFace;color:ButtonText;border-color:ButtonText}}
 .dyws-demo-callout .dyws-demo-accounts a{color:#fff9ef;text-decoration:none}
+@media(forced-colors:active){.dyws-demo-callout{--sda-page:Canvas;--sda-panel:Canvas;--sda-text:CanvasText;--sda-muted:CanvasText;--sda-accent:LinkText;--sda-line:CanvasText}.dyws-demo-callout :is(h2,h3,p,code){color:CanvasText}.dyws-demo-callout .dyws-demo-accounts a{background:ButtonFace;color:ButtonText;border-color:ButtonText}}

@@ -85,3 +85,17 @@ landscape dialogs scroll their header and footer so neither covers settings.
 The My account disclosure also links Account details to `account/`, before
 My orders and Sign out. Both server rendered and refreshed customer menus use
 the same destination, including the guarded fictional account preview.
+
+## Contrast follow up
+
+The fixed cream demo panel now scopes its accessibility foreground tokens so
+page themes cannot apply light text over its light background. Its main text
+pair measures 10.93:1. The diner map button uses the palette's contrasting accent
+and page colors instead of a fixed white label on a variable background.
+Forced colors mode uses system text, surface and button colors for both areas.
+The contrast audit covers 200 page and theme combinations across ten stores,
+five customer routes, light and dark settings, Chromium and WebKit. The final
+local run reports zero automated color contrast findings. Image backgrounds
+and disabled controls still require visual review; this is not a formal
+accessibility certification. The fixed demo panel was visually inspected in
+dark mode, and forced color foregrounds were checked in Chromium.
