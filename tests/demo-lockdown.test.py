@@ -64,7 +64,7 @@ with tempfile.TemporaryDirectory(prefix='dyws-lockdown-') as temp:
    html=r.read().decode();check('name="username"' in html and '<header' not in html)
    csrf=re.search('name="csrf" value="([a-f0-9]+)"',html)[1]
   with browser.open(urllib.request.Request(base+'/auth/',data=urllib.parse.urlencode({'csrf':csrf,'username':'admin','password':'admin'}).encode())) as r:
-   html=r.read().decode();check(r.url.endswith('/orders/') and 'Jordan Taylor' in html)
+   html=r.read().decode();check(r.url.endswith('/orders/') and 'Demo Customer' in html)
   for page in ['catalog','settings','drivers','password','plugins','reports']:
    with browser.open(base+'/'+page+'/') as r:check(r.status==200 and 'demo-lockdown' in r.read().decode())
   with urllib.request.urlopen(base+'/driver/') as r:check('value="driver"' in r.read().decode())
@@ -148,7 +148,7 @@ with tempfile.TemporaryDirectory(prefix='dyws-lockdown-') as temp:
   check(page_request(handoff,admin_cookie)[0]==404)
   db.execute('UPDATE orders SET tracking_hash=? WHERE id=?',(before[0],oid));db.commit()
   row=db.execute('SELECT customer_name,customer_phone,address,notes,plugin_data_json,customer_email FROM orders WHERE id=?',(oid,)).fetchone()
-  check('DO NOT STORE THIS' not in str(row) and row[0]=='Jordan Taylor' and '123 Example Avenue' in row[2] and row[5]=='jordan@example.test' and 'do-not-store@example.test' not in str(row))
+  check('DO NOT STORE THIS' not in str(row) and row[0]=='Demo Customer' and '123 Example Avenue' in row[2] and row[5]=='demo.customer@example.test' and 'do-not-store@example.test' not in str(row))
   request('/manager/orders/'+oid+'/assign',{'driverId':'driver'},manager)
   request('/manager/orders/'+oid+'/payment',{'kind':'capture'},manager)
   for status in ['accepted','preparing','ready']:request('/manager/orders/'+oid+'/status',{'status':status},manager)

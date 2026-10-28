@@ -3,7 +3,7 @@ declare(strict_types=1);
 namespace dyws\Plugins\DemoLockdown;
 use dyws\{Store,ApiError};
 final class DemoPolicy {
- public const CUSTOMER=['name'=>'Jordan Taylor','phone'=>'7805550142'];
+ public const CUSTOMER=['name'=>'Demo Customer','phone'=>'7805550142'];
  public const ADDRESS=['line1'=>'123 Example Avenue NW','line2'=>'','city'=>'Edmonton','region'=>'AB','postalCode'=>'T5A 1A1','country'=>'Canada'];
  public const LOCATION=['latitude'=>53.61665,'longitude'=>-113.39804,'accuracy'=>8,'name'=>'Manning Town Centre'];
  public function __construct(private array $config,private ?Store $store){}
@@ -58,16 +58,40 @@ final class DemoPolicy {
   return $token;
  }
  public function orderInput(array $body):array {
-  $hasEmail=isset($body['customer']['email']);$body['customer']=self::CUSTOMER;if($hasEmail)$body['customer']['email']='jordan@example.test';$body['notes']='';$body['pluginData']=[];
+  $hasEmail=isset($body['customer']['email']);$body['customer']=self::CUSTOMER;if($hasEmail)$body['customer']['email']='demo.customer@example.test';$body['notes']='';$body['pluginData']=[];
+  // Keep retries of existing demo orders tied to their original contact fingerprint.
+  if($this->store&&is_string($body['idempotencyKey']??null)){
+   $saved=$this->store->query('SELECT customer_name,customer_email FROM orders WHERE tenant=? AND request_key=?',[$this->store->tenant,$body['idempotencyKey']])[0]??null;
+   if($saved&&in_array($saved['customer_name'],['Jordan Taylor',self::CUSTOMER['name']],true)){
+    $body['customer']['name']=$saved['customer_name'];
+    if($hasEmail&&in_array($saved['customer_email'],['jordan@example.test','demo.customer@example.test'],true))$body['customer']['email']=$saved['customer_email'];
+   }
+  }
   unset($body['address'],$body['addressDetails']);
   if(($body['fulfillment']??'')==='delivery')$body['addressDetails']=self::ADDRESS;
   return $body;
  }
  public function order(array $order):void {
   $address=implode(', ',array_filter(self::ADDRESS));
-  $customer=$order['customer'];if(isset($customer['email'])){if($customer['email']!=='jordan@example.test')throw new ApiError('Use the provided customer details.',403);unset($customer['email']);}
+  $customer=$order['customer'];if(isset($customer['email'])){if($customer['email']!=='demo.customer@example.test')throw new ApiError('Use the provided customer details.',403);unset($customer['email']);}
   if($customer!==self::CUSTOMER||$order['notes']!==''||!empty($order['pluginData'])||($order['fulfillment']==='delivery'&&($order['address']!==$address||$order['addressDetails']!==self::ADDRESS)))throw new ApiError('Use the provided customer details.',403);
   if($this->store->query('SELECT count(*) AS n FROM orders WHERE tenant=?',[$this->store->tenant])[0]['n']>=500)throw new ApiError('The order limit has been reached. Please try again later.',429);
+ }
+ /** Present the current fictional customer consistently without rewriting order receipts. */
+ public function response(array $value,string $route,string $method):array {
+  $normalize=function(array $row)use(&$normalize):array{
+   foreach($row as $key=>$item){
+    if(is_array($item))$row[$key]=$normalize($item);
+    elseif($key==='customer_name'&&$item==='Jordan Taylor')$row[$key]=self::CUSTOMER['name'];
+    elseif($key==='customer_email'&&$item==='jordan@example.test')$row[$key]='demo.customer@example.test';
+   }
+   if(isset($row['customer'])&&is_array($row['customer'])){
+    if(($row['customer']['name']??'')==='Jordan Taylor')$row['customer']['name']=self::CUSTOMER['name'];
+    if(($row['customer']['email']??'')==='jordan@example.test')$row['customer']['email']='demo.customer@example.test';
+   }
+   return $row;
+  };
+  return $normalize($value);
  }
  public function presentation(array $value,string $page):array {
   $value['notice']='Admin: admin / admin. Driver: driver / driver. Settings are locked.';

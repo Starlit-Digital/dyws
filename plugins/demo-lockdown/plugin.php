@@ -11,4 +11,5 @@ return #[\dyws\Provides('pickup.map','location.renderer','checkout:fields','admi
  $plugin->addFilter('order.input',[$policy,'orderInput']);
  $plugin->addValidator('order.validating',[$policy,'order']);
  $plugin->addFilter('page.presentation',[$policy,'presentation']);
+ $plugin->addFilter('api.response',[$policy,'response']);
 };

@@ -51,7 +51,7 @@ export function register(plugin){
  lock();const observer=new MutationObserver(lock);if(locked)observer.observe(doc.querySelector('main'),{childList:true,subtree:true,attributes:true,attributeFilter:['disabled']});
  plugin.onDestroy(()=>{observer.disconnect();banners.forEach(banner=>banner.remove());});
  plugin.addAction('checkout:fields',({form})=>{
-  const fields={pickupOrigin:'123 Example Avenue NW, Edmonton, AB',customer:'Jordan Taylor',phone:'7805550142',email:'jordan@example.test',addressLine1:'123 Example Avenue NW',addressLine2:'',addressCity:'Edmonton',addressRegion:'AB',addressPostal:'T5A 1A1',addressCountry:'Canada',notes:''};
+  const fields={pickupOrigin:'123 Example Avenue NW, Edmonton, AB',customer:'Demo Customer',phone:'7805550142',email:'demo.customer@example.test',addressLine1:'123 Example Avenue NW',addressLine2:'',addressCity:'Edmonton',addressRegion:'AB',addressPostal:'T5A 1A1',addressCountry:'Canada',notes:''};
   for(const [name,value]of Object.entries(fields)){const input=form.elements.namedItem(name);if(input){input.value=value;input.readOnly=true;input.autocomplete='off';}}
  });
  plugin.provide('pickup.map',()=>{

@@ -34,6 +34,7 @@ const {spawn,execFileSync}=require('node:child_process');
   assert(!await page.evaluate(()=>JSON.stringify({...localStorage,...sessionStorage}).includes('checkout.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@example.test')));
   await ordering.getByRole('button',{name:'Review order',exact:true}).click();await ordering.locator('.dyws-final-review [data-dyws-order-field=email]').filter({hasText:'checkout.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@example.test'}).waitFor();await ordering.getByRole('button',{name:'Place order',exact:true}).click();await page.waitForURL('**/tracking/?order=*');
   const pickup=new URL(page.url()).searchParams.get('order');assert((await api('/customer/orders')).orders.some(o=>o.id===pickup));
+  await page.goto(base+'/account/orders/');await page.locator('[data-select-order="'+pickup+'"]').click();await page.locator('[data-order-details] [data-order="'+pickup+'"]').waitFor();
   const body=()=>({idempotencyKey:require('node:crypto').randomUUID(),customer:{name:'Fictional Browser Customer',phone:'7805550142'},lines:[{id:'breakfast0',variant:'',quantity:1}],demoAcknowledged:true,fulfillment:'delivery',address:'123 Fictional Road, Edmonton'});
   const delivered=await api('/orders',body(),null,201),id=delivered.id;
   const managerPassword=fs.readFileSync(path.join(fixture,'LOCAL-ACCESS.txt'),'utf8').match(/Manager password: (.+)/)[1];const manager=(await api('/login',{role:'manager',password:managerPassword})).token;

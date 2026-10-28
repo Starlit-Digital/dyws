@@ -15,3 +15,8 @@
 .dyws-account ul { padding-left: 1.4rem; }
 
 .dyws-account { font-size: var(--font-size,17px); }
+
+.dyws-account .dyws-account-preview { border:0; padding:0; margin:0; min-width:0; }
+.dyws-account .dyws-account-preview section { margin-block:1.5rem; }
+.dyws-account .dyws-account-preview :is(input,select,textarea,button):disabled { cursor:not-allowed; opacity:.75; }
+.dyws-account .dyws-account-preview legend { font-weight:700; padding:0; }

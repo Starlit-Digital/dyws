@@ -126,7 +126,7 @@ with tempfile.TemporaryDirectory(prefix='dyws-guest-test-') as work:
   config_path.write_text((demo/'config.json').read_text())
   request('/orders',order(rememberDetails=consent),status=201)
   demo_state=request('/guest-details')
-  assert demo_state['customer']['name']=='Jordan Taylor'
+  assert demo_state['customer']['name']=='Demo Customer'
   assert demo_state['addresses'][0]['addressDetails']['line1']=='123 Example Avenue NW'
   request('/guest-details',{'action':'forget'})
   assert request('/guest-details')['profileId'] is None

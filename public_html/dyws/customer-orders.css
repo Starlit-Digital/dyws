@@ -1,0 +1,37 @@
+.dyws-account-navigation{display:flex;flex-wrap:wrap;gap:8px 24px;margin:0 0 24px}
+.dyws-account-navigation a{display:inline-flex;align-items:center;min-height:44px;text-underline-offset:6px}
+.dyws-account-navigation a[aria-current]{font-weight:750;text-decoration-thickness:3px}
+body.dyws-customer-orders-page{max-width:1480px}
+.dyws-customer-orders-page>header,.dyws-customer-orders-page>footer{max-width:none}
+.dyws-customer-orders-page .dyws-account{max-width:none;padding-inline:0}
+.dyws-customer-orders{display:grid;grid-template-columns:minmax(16rem,20rem) minmax(0,1fr);align-items:start;gap:24px;margin-block:24px}
+.dyws-customer-order-rail{min-width:0;position:sticky;top:20px;max-height:calc(100dvh - 40px);overflow:auto;padding:2px}
+.dyws-order-rail-heading{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:0 4px 16px}
+.dyws-order-rail-heading h2{margin:0}.dyws-order-rail-heading>span{font-size:.8em;color:var(--dyws-color-muted);white-space:nowrap}
+.dyws-account .dyws-customer-order-rail ul{display:grid;gap:12px;padding:0;margin:0;list-style:none}
+.dyws-shell .dyws-customer-order-card{display:grid;gap:12px;width:100%;padding:20px;text-align:left;background:var(--dyws-color-surface);color:var(--dyws-color-text);border:1px solid var(--dyws-color-border);border-radius:16px;overflow-wrap:anywhere;font-weight:400}
+.dyws-shell .dyws-customer-order-card[aria-pressed=true]{border-color:var(--dyws-color-emphasis);box-shadow:inset 4px 0 var(--dyws-color-emphasis);background:var(--dyws-color-raised)}
+.dyws-order-card-top,.dyws-order-card-bottom{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.dyws-order-card-top strong{font-size:.85em}.dyws-order-card-top>span{font-weight:750}
+.dyws-order-card-date,.dyws-order-card-items,.dyws-order-card-bottom{font-size:.8em;color:var(--dyws-color-muted)}
+.dyws-customer-status{display:inline-block;width:fit-content;padding:5px 10px;border-radius:999px;background:var(--dyws-color-raised);color:var(--dyws-color-text);font-weight:650;font-size:.85em}
+.dyws-customer-status[data-status=out_for_delivery]{border:1px solid var(--dyws-color-emphasis)}
+.dyws-account [data-order-details]{min-width:0}
+.dyws-account article.dyws-customer-order-detail{margin:0;padding:clamp(20px,3vw,36px);border:1px solid var(--dyws-color-border);border-radius:20px}
+.dyws-customer-order-detail .dyws-customer-order-heading{display:flex;flex-wrap:wrap;align-items:start;justify-content:space-between;gap:16px;padding:0;margin:0 0 24px;max-width:none}
+.dyws-customer-order-heading h3{font-size:clamp(1.1em,2.4vw,1.6em);margin:8px 0;overflow-wrap:anywhere}
+.dyws-customer-order-heading p{margin:0;color:var(--dyws-color-muted)}
+.dyws-customer-order-heading .dyws-order-detail-total{font-size:1.7em;font-weight:750;color:var(--dyws-color-text)}
+.dyws-customer-order-detail .dyws-order-destination{display:grid;grid-template-columns:1fr 1fr;gap:20px;padding:20px 0;margin:0;border-block:1px solid var(--dyws-color-border)}
+.dyws-order-destination h4,.dyws-customer-driver h4{margin:0 0 8px;font-size:1em}.dyws-order-destination p{margin:0}
+.dyws-customer-order-detail .dyws-order-receipt ul{list-style:none;padding:0;margin-block:20px}
+.dyws-order-receipt li{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-block:12px}
+.dyws-order-receipt dl{display:grid;grid-template-columns:1fr auto;gap:8px;margin:0}.dyws-order-receipt dd{margin:0;text-align:right}.dyws-order-receipt dt{color:var(--dyws-color-muted)}
+.dyws-account .dyws-customer-driver{margin:24px 0 0;padding:24px;border:1px solid var(--dyws-color-border);background:var(--dyws-color-raised)}
+.dyws-driver-overview{display:flex;align-items:center;gap:16px}.dyws-driver-overview p{margin:4px 0}.dyws-customer-driver-avatar{display:grid;place-items:center;flex:0 0 52px;height:52px;border-radius:50%;background:var(--dyws-color-accent);color:var(--dyws-color-button-text);font-size:1.4em;font-weight:750}
+.dyws-driver-controls{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px;padding-top:20px;border-top:1px solid var(--dyws-color-border)}
+.dyws-shell .dyws-driver-controls button{flex:1 1 12rem;background:var(--dyws-color-surface);color:var(--dyws-color-text);border:1px solid var(--dyws-color-border)}
+.dyws-customer-orders-page .dyws-account>section{padding:0;margin:0;background:none}
+.dyws-order-selection-status{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+@media(max-width:800px){.dyws-customer-orders{grid-template-columns:minmax(0,1fr)}.dyws-customer-order-rail{position:static;max-height:none}.dyws-customer-order-rail ul{grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr))}.dyws-customer-order-detail .dyws-order-destination{grid-template-columns:minmax(0,1fr)}.dyws-account .dyws-customer-driver{padding:18px}}
+@media(forced-colors:active){.dyws-shell .dyws-customer-order-card[aria-pressed=true]{outline:3px solid Highlight}}

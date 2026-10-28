@@ -1,0 +1,35 @@
+const {chromium}=require('playwright');
+const assert=require('node:assert/strict');
+const fs=require('node:fs'),os=require('node:os'),path=require('node:path'),net=require('node:net');
+const {spawn,execFileSync}=require('node:child_process');
+(async()=>{
+ const root=path.resolve(__dirname,'..'),fixture=fs.mkdtempSync(path.join(os.tmpdir(),'dyws-account-demo-'));
+ const socket=net.createServer();await new Promise(r=>socket.listen(0,'127.0.0.1',r));const port=socket.address().port;await new Promise(r=>socket.close(r));const base=`http://127.0.0.1:${port}`;
+ const dataPath=path.join(fixture,'data');execFileSync('php',[path.join(root,'plugins/demo-lockdown/setup.php'),dataPath,base]);
+ const configPath=path.join(dataPath,'config.json');
+ const snapshot=()=>execFileSync('php',['-r',`$c=json_decode(file_get_contents($argv[1]),true);$db=new PDO('sqlite:'.$c['database']);$out=[];foreach(['customers','customer_links','customer_sessions','customer_driver_reports','customer_driver_blocks','orders'] as $t)$out[$t]=$db->query('SELECT count(*) FROM '.$t)->fetchColumn();echo json_encode($out);`,configPath],{encoding:'utf8'});
+ const server=spawn('php',['-S',`127.0.0.1:${port}`,'-t',path.join(root,'public_html'),path.join(root,'server/router.php')],{env:{...process.env,DYWS_CONFIG:configPath},stdio:'ignore'});let browser;
+ try{
+  for(let i=0;i<50;i++){try{if((await fetch(base+'/api/?route=/health')).ok)break;}catch{}await new Promise(r=>setTimeout(r,50));}
+  const before=snapshot();browser=await chromium.launch();const context=await browser.newContext({viewport:{width:390,height:900},reducedMotion:'reduce'}),page=await context.newPage();page.setDefaultTimeout(10000);const errors=[],customerRequests=[];page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>{if(new URL(r.url()).searchParams.get('route')?.startsWith('/customer/'))customerRequests.push(r.url());});
+  await page.goto(base+'/account/#login='+'a'.repeat(64));await page.getByText('Customer account preview',{exact:true}).waitFor();assert(!page.url().includes('#'));
+  assert.equal(await page.getByLabel('Name',{exact:true}).inputValue(),'Demo Customer');assert.equal(await page.getByLabel('Email',{exact:true}).inputValue(),'demo.customer@example.test');
+  const controls=page.locator('[data-account-root] input,[data-account-root] select,[data-account-root] textarea,[data-account-root] button');assert(await controls.count()>=6);assert(await controls.evaluateAll(list=>list.every(el=>el.matches(':disabled'))));
+  await page.getByRole('link',{name:'View my orders',exact:true}).click();await page.waitForURL('**/account/orders/');await page.getByRole('heading',{name:'My orders',exact:true}).waitFor();assert.equal(await page.locator('[data-select-order]').count(),3);
+  await page.locator('summary').filter({hasText:'Report driver'}).click();assert.equal(await page.getByLabel('What went wrong?').inputValue(),'handling');assert(await page.getByLabel('Also block this driver',{exact:false}).isChecked());await page.getByText('1 × Example meal',{exact:false}).first().waitFor();
+  await page.locator('[data-select-order="DEMO-000000000003"]').click();await page.locator('[data-order-details]').getByText('Driver: Demo Driver Two',{exact:true}).waitFor();assert(await page.getByRole('button',{name:'Unblock driver',exact:true}).isDisabled());
+  await page.locator('[data-select-order="DEMO-000000000002"]').click();await page.locator('[data-order-details]').getByText('Your delivery is on the way',{exact:true}).waitFor();assert(await page.locator('.dyws-driver-controls button').evaluateAll(list=>list.every(el=>el.disabled)));
+  await page.locator('[data-select-order="DEMO-000000000001"]').click();await page.locator('[data-order-details]').getByText('Driver: Demo Driver One',{exact:true}).waitFor();assert(await page.locator('[data-order-details] input,[data-order-details] select,[data-order-details] textarea,[data-order-details] button').evaluateAll(list=>list.every(el=>el.matches(':disabled'))));
+  const shots=process.env.DYWS_CUSTOMER_SCREENSHOTS||fixture;fs.mkdirSync(shots,{recursive:true});
+  for(const width of [320,390,1280]){await page.setViewportSize({width,height:900});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'Preview overflow at '+width);if(width===1280){const rail=await page.locator('.dyws-customer-order-rail').boundingBox(),detail=await page.locator('[data-order-details]').boundingBox();assert(rail.x+rail.width<detail.x,'Cards stay in the left rail');}await page.screenshot({path:path.join(shots,`demo-orders-${width}.png`)});}
+  await page.setViewportSize({width:320,height:900});await page.evaluate(()=>document.documentElement.style.setProperty('--font-size','34px'));assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'Preview overflow at enlarged text');
+  assert.deepEqual(customerRequests,[],'Demo preview does not read or mutate customer APIs');
+  // Removing UI guards cannot activate account handlers or redeem a pasted login link.
+  await page.evaluate(()=>{const root=document.querySelector('[data-account-root]');for(const e of root.querySelectorAll('[disabled]'))e.removeAttribute('disabled');for(const b of root.querySelectorAll('button:not([data-select-order])'))b.click();for(const f of root.querySelectorAll('form'))f.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));location.hash='login='+'b'.repeat(64);});
+  await page.waitForFunction(()=>!location.hash);assert.deepEqual(customerRequests,[]);
+  const denied=[['/customer/auth/request',{email:'not-sent@example.test'}],['/customer/auth/inspect',{token:'a'.repeat(64)}],['/customer/auth/verify',{token:'a'.repeat(64)}],['/customer/logout',{}],['/customer/orders',null],['/customer/addresses',null],['/customer/blocks',null],['/customer/blocks',{action:'unblock',driverId:'driver'}],...['claim','report','block'].map(action=>['/customer/orders/DYWS-000000000001/'+action,{reason:'handling',details:'Not stored',blockDriver:true}])];
+  for(const [route,body]of denied){const response=await context.request.fetch(base+'/api/?route='+encodeURIComponent(route),{method:body===null?'GET':'POST',data:body===null?undefined:body,headers:{'X-DYWS-Customer':'1'}});assert.equal(response.status(),403,route);}
+  assert.equal(snapshot(),before,'Preview and blocked requests write no accounts, reports, blocks or orders');assert.deepEqual(errors,[]);
+  console.log(JSON.stringify({preview:'passed',disabledControls:'passed',noCustomerAPICalls:'passed',tamperedControls:'passed',serverDenials:denied.length,recordsPreserved:'passed',mobileAndLargeText:'passed',browserErrors:errors}));
+ }finally{await browser?.close();server.kill();fs.rmSync(fixture,{recursive:true,force:true});}
+})().catch(error=>{console.error(error);process.exit(1);});

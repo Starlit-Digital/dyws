@@ -13,7 +13,10 @@
 .dyws-tracking-panel [hidden] { display:none !important; }
 .dyws-customer { --dyws-heading-font:Georgia,serif; max-width:960px; padding-bottom:40px; }
 .dyws-shell.dyws-customer .dyws-tracking-panel { background:transparent; padding:24px 12px; margin-block:12px 24px; }
-.dyws-customer-header { display:flex; align-items:center; justify-content:space-between; gap:16px; }
+.dyws-customer-header { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px 16px; }
+.dyws-customer-header > a { min-width:0; overflow-wrap:anywhere; }
+.dyws-customer-navigation { display:flex; flex-wrap:wrap; align-items:center; gap:8px 20px; margin-left:auto; }
+.dyws-customer-navigation a { display:inline-flex; align-items:center; min-height:44px; color:var(--dyws-color-text); text-underline-offset:4px; }
 .dyws-customer-header > a { display:flex; gap:10px; align-items:center; color:var(--dyws-color-text); font-size:1.3rem; font-weight:750; text-decoration:none; min-height:48px; }
 .dyws-tracking-panel .dyws-tracking-reference { color:var(--dyws-color-muted); font-size:.85em; margin:0 0 16px; }
 .dyws-tracking-panel .dyws-tracking-status { font-family:var(--dyws-heading-font,Georgia,serif);font-size:clamp(2rem,5vw,3.5rem);font-weight:500;line-height:1.12;margin:0 0 16px; }

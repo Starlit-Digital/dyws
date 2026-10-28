@@ -42,3 +42,13 @@ On Apache, set the demo location's `Permissions-Policy` header to `geolocation=(
 Validation: `python3 tests/demo-lockdown.test.py` covers both sign in surfaces, API restrictions, fictional data normalization, individual and run delivery completion, fixed GPS, run limits, active and planned run expiry, retention, state tampering, Admin tracking handoff authorization, tenant isolation, tracking expiry, cookie flags and missing or broken protection. The full `npm test` suite also checks that ordinary installations continue to work.
 
 The driver may edit their own vehicle model, colour and profile icon through `GET` and `POST /driver/profile`. The icon uses six server approved values, and the colour uses 32 named swatches. Only the authenticated driver's display details can change. Names, credentials, activity and all manager settings remain protected. The account integrity fingerprint excludes this cosmetic field, just as it excludes vehicle display details. The shared public driver account shares its vehicle display details and chosen icon between visitors.
+
+## Customer account preview
+
+My account uses the private installation `demo_lockdown` flag to render a fictional account for Demo Customer. The preview shows contact inputs, email sign in, order receipts, report fields, driver blocking and account action buttons. Every form control is disabled inside a disabled fieldset. Receipts and report sections can still be opened for inspection. No customer API handlers are mounted, no login token is redeemed and no sample account, order, report or block is written to storage.
+
+Direct customer mutations remain denied by the same demo request allowlist used for Admin, with the independent customer account availability check also disabling email and customer authentication. Removing disabled attributes cannot authorize account actions. Normal merchant accounts retain their existing interactive behavior.
+
+New demo orders and previews use Demo Customer and `demo.customer@example.test`. Legacy fictional contact values are normalized in API and server rendered presentation. Existing stored receipts and request fingerprints are preserved so retries of earlier demo orders remain valid.
+
+The dedicated `account/orders/` page uses selectable order cards in a left rail and a detail panel containing the receipt, delivery destination, driver information and a driver control strip. Selection and disclosure controls remain available for browsing; all demo account mutations stay disabled. The layout stacks on narrow screens. Merchant installations use the same order view with authenticated history and the existing report and block authorization.
