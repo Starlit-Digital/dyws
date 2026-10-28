@@ -16,7 +16,16 @@ export function customerOrderHTML(o){
  ${o.report?`<p>Report submitted: ${esc(driverReportReasons[o.report.reason]||o.report.reason)}</p><p>${esc(o.report.details)}</p>`:''}${reportForm}</section>`:''}</article>`;
 }
 
-export function mountCustomerAccount({root,message,error,api,loginToken=null,demoLocked=false,storeName='',view='account',ordersURL='orders/'}){
+export function customerSignInHTML({locked=false}={}){
+ return `<section aria-labelledby="customer-signin-heading"><h2 id="customer-signin-heading">Sign in with your email</h2><p>Already have an account? Enter its email address and we will send you a secure sign in link.</p><form data-login><fieldset class="dyws-account-preview" ${locked?'disabled':''}><label>Email<input name="email" type="email" maxlength="254" autocomplete="email" autocapitalize="none" spellcheck="false" required ${locked?'value="demo.customer@example.test" disabled':''}></label><button type="submit" ${locked?'disabled':''}>Email me a sign in link</button></fieldset><p>No password needed. Your first sign in creates your account automatically. The link expires in 15 minutes.</p></form></section>`;
+}
+
+export function mountCustomerAccount({root,message,error,api,loginToken=null,demoLocked=false,storeName='',view='account',ordersURL='orders/',signinLocked=false}){
+ if(view==='signin'&&signinLocked){
+  message.textContent='This is a public demo. Email sign in is locked by the installation owner. No email will be sent.';
+  root.innerHTML=customerSignInHTML({locked:true});root.addEventListener('submit',event=>event.preventDefault());
+  return {refresh:async()=>{},openLink:async()=>{}};
+ }
  if(demoLocked){
   message.textContent='This is a public demo. All customer details, orders and drivers below are fictional. Account controls are locked. No emails or reports are sent.';
   const lock=scope=>{
@@ -38,7 +47,8 @@ export function mountCustomerAccount({root,message,error,api,loginToken=null,dem
  async function action(fn){if(busy)return;busy=true;error.textContent='';root.inert=true;try{await fn();}catch(e){error.textContent=e.message;if(e.status===401)await load();}finally{busy=false;root.inert=false;}}
  function signin(state){
   orders=[];nextOffset=null;say(state.message);
-  root.innerHTML=state.enabled?'<form data-login><label>Email<input name="email" type="email" maxlength="254" autocomplete="email" required></label><button type="submit">Email me a sign in link</button><p>No password needed. Your first sign in creates your account automatically.</p></form>':'';
+  historyBrowser?.destroy();historyBrowser=null;
+  root.innerHTML=state.enabled?customerSignInHTML():'';
   root.querySelector('form')?.addEventListener('submit',e=>{e.preventDefault();const email=e.currentTarget.elements.email.value;void action(async()=>{const result=await call('/customer/auth/request',{method:'POST',body:{email}});say(result.message);});});
  }
  async function historyPage(offset=0){
