@@ -36,7 +36,7 @@ export function mountCustomerAccount({root,message,error,api,loginToken=null,dem
   if(view==='orders'){
    root.innerHTML='<p>Order history for <strong>Demo Customer</strong></p><div class="dyws-actions"><button type="button" disabled>Refresh orders</button></div><div data-history></div><button type="button" disabled>More orders</button>';
    mountCustomerOrders({root:root.querySelector('[data-history]'),orders:customerPreviewOrders(storeName),detailHTML:customerOrderHTML,onDetail:lock});
-  }else{root.innerHTML=customerAccountPreviewHTML({storeName,ordersURL});lock(root);}
+  }else{root.innerHTML=customerAccountPreviewHTML({storeName});lock(root);}
   root.addEventListener('submit',event=>event.preventDefault());
   // No account handlers or API calls are mounted for a demo, including pasted login links.
   return {refresh:async()=>{},openLink:async()=>{}};
