@@ -178,7 +178,7 @@
       "platform/plugins.js?v=39"
     ],
     "storefront": [
-      "demo.js?v=benefits-20261028",
+      "demo.js?v=cart-deals-final-20261028",
       "dyws/address-lines.js",
       "dyws/admin-session.js?v=39",
       "dyws/api.js",
@@ -191,7 +191,7 @@
       "dyws/checkout-draft.js?v=benefits-20261028",
       "dyws/checkout-fields.js",
       "dyws/checkout.js?v=benefits-20261028",
-      "dyws/component.js?v=benefits-20261028",
+      "dyws/component.js?v=cart-deals-final-20261028",
       "dyws/confirmation-countdown.js",
       "dyws/customer-order.js",
       "dyws/date-time.js",
@@ -209,7 +209,7 @@
       "dyws/realtime.js",
       "dyws/role-labels.js",
       "dyws/status-badge.js",
-      "dyws/storefront.js?v=benefits-20261028",
+      "dyws/storefront.js?v=cart-deals-final-20261028",
       "dyws/tips.js",
       "dyws/tracking-details.js?v=benefits-20261028",
       "dyws/tracking.js?v=benefits-20261028",

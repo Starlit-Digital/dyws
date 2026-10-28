@@ -43,7 +43,8 @@
     "./customer-order.js": "./customer-order.js",
     "./customer-reports.js": "./customer-reports.js",
     "./deals.js": "./deals.js",
-    "./payment-choice.js": "./payment-choice.js"
+    "./payment-choice.js": "./payment-choice.js",
+    "./cart-deals.js": "./cart-deals.js"
   },
   "files": [
     "*.js",

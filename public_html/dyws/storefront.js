@@ -1,4 +1,4 @@
-import './component.js?v=benefits-20261028';
+import './component.js?v=cart-deals-final-20261028';
 import {mountCatalog} from './catalog.js?v=benefits-20261028';
 import {createTracking} from './tracking.js?v=benefits-20261028';
 export function mountStorefront({ordering,container,navigation,loading,api,tracking,submitOrder,onOrderComplete,hydrate=false,plugins,termsURL,accountURL}) {

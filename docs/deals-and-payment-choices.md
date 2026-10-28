@@ -148,3 +148,10 @@ and after the migration. Keep runtime settings and apply only explicit demo
 catalogue fields. Once new orders use deals or deferred payment, retain compatible
 code when recovering. Restoring an old database would discard newer orders and
 claims and is not an acceptable code rollback.
+
+Cart previews also fetch the selected claim and authoritative quote. Customers
+can claim relevant offers and change their selected deal without leaving the
+cart. Quantity edits refresh the quote. Ineligible claims show the server reason
+and do not change the total. Cart previews use pickup with no tip; checkout
+recalculates delivery, tip and final tax. A selected claim is never redeemed by
+a preview. Cart totals show original items, named savings, tax and the net total.
