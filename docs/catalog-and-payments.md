@@ -25,11 +25,30 @@ The authoritative catalog is `var/catalog.json`, outside the web root. Initial e
 | active | Whether customers can order the product |
 | unit | Display description such as each, box or hour |
 | optionLabel, variants | Optional named choices with stable IDs and integer prices |
+| optionGroups | Ordered customization groups with choice surcharges and minimum and maximum counts |
 | metadata | Optional public named scalar attributes, never private data |
 
 All quantities are whole units. Availability is a switch, not stock reservation. Images are URLs or relative paths, not uploaded binaries. Supported currencies use two decimal places. Real inventory, shipping calculations, digital fulfillment and jurisdiction based tax rules are separate work.
 
 Admin opens `catalog/`, edits categories and items and saves. The API validates before replacing the private file atomically. Revision checks prevent a stale editor from overwriting another save. Order lines snapshot names, descriptions, SKUs, images, options and prices; later edits do not rewrite old orders. A new order always uses the private server prices and delivery fee.
+
+## Item customization
+
+`examples/pizza/catalog.json` shows a pizza with existing size variants plus crust and topping groups. In the catalogue editor, open an item and use **Add customization group**. Each group has a stable `id`, a display `name`, integer `min` and `max`, and a `choices` list. Each choice has a stable `id`, display `name` and nonnegative integer `price` in cents. The price is added to the selected size price, or the item price when there are no variants. Prices apply once per selected choice per pizza, then multiply by quantity.
+
+Set `min: 2, max: 2` for exactly two choices, `min: 0, max: 3` for up to three, or `min: 1, max: 2` for one to two. A group allows at most 50 choices, with limits within the available choice count. An item allows at most 20 groups. Group IDs must be unique within an item, and choice IDs within a group. Group and choice order follows the catalogue. Existing items without groups retain their current ordering behaviour.
+
+Customizable menu cards expand in place. They show the size, groups, selection rules, individual surcharges, updated unit price and quantity controls. Required choices must be completed before adding. Checkbox groups disable unselected choices at their maximum. Optional single choice groups provide a None choice. Different combinations remain separate cart lines, while identical combinations share a quantity. The item quantity cap covers all combinations.
+
+Order requests add an optional `selections` object to each line, mapping group IDs to lists of choice IDs:
+
+```json
+{"id":"pizza","variant":"large","quantity":1,"selections":{"crust":["stuffed"],"toppings":["pepper","cheese"]}}
+```
+
+The server rejects unknown groups or choices, repeated choices and selections outside the group limits. It ignores submitted prices, calculates the surcharge from the private catalogue, and canonicalizes choice order when checking duplicate lines and idempotency. Saved carts are also repriced and validated. Order snapshots retain the canonical selections and include group names and choice names in `option`, so existing receipts, kitchen orders and printing retain the full customization description.
+
+Deployment requires the PHP catalogue validator, order processing and renderer together with the JavaScript and catalogue CSS. Update application assets using the normal upgrade procedure and refresh cached assets. No database migration or merchant catalogue replacement is needed. Add groups through the editor or merge them deliberately into the private catalogue. The pizza example is a seed only.
 
 ## Payment extensions
 

@@ -33,4 +33,10 @@ verify(str_contains($html,'Location hours')&&str_contains($html,'Ordering hours'
 verify(str_contains($html,'&lt;Example &amp; Business&gt;')&&!str_contains($html,'<Example & Business>'),'Published business names are escaped');
 verify(str_contains($html,'temporarily paused'),'Storefront explains paused ordering');
 verify(dyws_render_business_hours($shop)==='','Unconfigured schedules do not invent opening hours');
+
+
+$pizza=dyws_load_catalog(__DIR__.'/../examples/pizza/catalog.json');$html=dyws_render_item($pizza,'pizza');
+verify(str_contains($html,'<details class="dyws-customize">')&&str_contains($html,'Choose exactly 2'),'Pizza options expand in the item card with bounds');
+verify(str_contains($html,'Stuffed crust +$3.00')&&substr_count($html,'data-choice-group=')===5,'Server rendering includes choices and surcharges');
+
 echo "PHP rendering: $checks checks passed.\n";

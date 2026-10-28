@@ -16,8 +16,8 @@ export async function mountCatalogEditor({root=document,api,storageKey}) {
  const mark=()=>{dirty=true;message.textContent='Unsaved changes';};
  const get=path=>path.split('.').reduce((v,k)=>v?.[k],draft);
  const set=(path,value)=>{const keys=path.split('.');let target=draft;for(const k of keys.slice(0,-1)){if(!target[k])target[k]={};target=target[k];}target[keys.at(-1)]=value;};
- const field=(label,path,{type='text',required=false,money=false,max=120}={})=>{
-  const value=get(path)??'';return `<label>${esc(label)}<input data-field="${path}" ${money?'data-minor="true"':''} type="${type}" value="${esc(money?amount(value||0):value)}" ${required?'required':''} ${type==='number'?'min="0" step="0.01"':'maxlength="'+max+'"'}></label>`;
+ const field=(label,path,{type='text',required=false,money=false,max=120,integer=false}={})=>{
+  const value=get(path)??'';return `<label>${esc(label)}<input data-field="${path}" ${money?'data-minor="true"':''} ${integer?'data-integer="true"':''} type="${type}" value="${esc(money?amount(value||0):value)}" ${required?'required':''} ${type==='number'?'min="0" step="'+(integer?'1':'0.01')+'"':'maxlength="'+max+'"'}></label>`;
  };
  const check=(label,path)=>`<label class="dyws-checkbox"><input type="checkbox" data-field="${path}" ${get(path)?'checked':''}> ${esc(label)}</label>`;
  function imageFields(path){return field('Image URL',path+'.src',{max:1000})+field('Image description',path+'.alt',{max:250});}
@@ -34,6 +34,14 @@ export async function mountCatalogEditor({root=document,api,storageKey}) {
    card.innerHTML=`<summary><span>${esc(item.name||'New item')}</span><span>${esc(draft.currency)} ${amount(item.price)}${item.active?'':' · Hidden'}</span></summary><div class="dyws-field-grid">${field('Item name',p+'.name',{required:true})}${field('Price',p+'.price',{type:'number',money:true,required:true})}<label class="dyws-wide">Description<textarea data-field="${p}.description" maxlength="2000">${esc(item.description)}</textarea></label>${field('SKU',p+'.sku',{max:80})}${field('Unit',p+'.unit',{required:true,max:40})}${imageFields(p+'.image')}${check('Available to order',p+'.active')}</div><div class="dyws-variants"><h3>Options</h3>${field('Option label',p+'.optionLabel',{max:60})}<div data-variants></div><button type="button" data-action="variant-add" data-item="${index}">Add option</button></div><div class="dyws-actions"><button type="button" data-action="item-up" data-item="${index}" ${index===0?'disabled':''}>Move up</button><button type="button" data-action="item-down" data-item="${index}" ${index===category.items.length-1?'disabled':''}>Move down</button><button type="button" data-action="item-remove" data-item="${index}" class="dyws-secondary">Remove item</button></div>`;
    const variants=card.querySelector('[data-variants]');
    for(const [v,variant] of (item.variants||[]).entries())variants.insertAdjacentHTML('beforeend',`<div class="dyws-option-row">${field('Option name',p+`.variants.${v}.name`,{required:true,max:100})}${field('Option price',p+`.variants.${v}.price`,{type:'number',money:true,required:true})}<button type="button" data-action="variant-remove" data-item="${index}" data-variant="${v}" class="dyws-secondary">Remove option</button></div>`);
+   const groups=document.createElement('div');groups.className='dyws-option-groups';groups.innerHTML='<h3>Customization groups</h3><p>Set minimum and maximum choices. Choice prices are added to the item or size price.</p>';
+   for(const [g,group] of (item.optionGroups||[]).entries()){
+    const gp=p+`.optionGroups.${g}`,panel=document.createElement('fieldset');
+    panel.innerHTML=`<legend>Group ${g+1}</legend><div class="dyws-field-grid">${field('Group name',gp+'.name',{required:true,max:100})}${field('Minimum choices',gp+'.min',{type:'number',integer:true,required:true})}${field('Maximum choices',gp+'.max',{type:'number',integer:true,required:true})}</div>`;
+    for(const [v,choice] of group.choices.entries())panel.insertAdjacentHTML('beforeend',`<div class="dyws-option-row">${field('Choice name',gp+`.choices.${v}.name`,{required:true,max:100})}${field('Added price',gp+`.choices.${v}.price`,{type:'number',money:true,required:true})}<button type="button" data-action="choice-remove" data-item="${index}" data-group="${g}" data-variant="${v}">Remove choice</button></div>`);
+    panel.insertAdjacentHTML('beforeend',`<button type="button" data-action="choice-add" data-item="${index}" data-group="${g}">Add choice</button> <button type="button" data-action="group-remove" data-item="${index}" data-group="${g}">Remove group</button>`);groups.append(panel);
+   }
+   groups.insertAdjacentHTML('beforeend',`<button type="button" data-action="group-add" data-item="${index}">Add customization group</button>`);card.append(groups);
    items.append(card);
   }
  }
@@ -50,12 +58,13 @@ export async function mountCatalogEditor({root=document,api,storageKey}) {
   mark();
   let value=input.type==='checkbox'?input.checked:input.value;
   if(input.dataset.minor){try{value=decimalToMinor(value);}catch{return;}}
+  if(input.dataset.integer)value=Number(value);
   set(input.dataset.field,value);mark();
   if(input.dataset.field===`categories.${selected}.name`)renderCategories();
   const card=input.closest('.dyws-item-editor');if(card){const item=draft.categories[selected].items[Number(card.dataset.itemIndex)];card.querySelector('summary span').textContent=item.name||'New item';card.querySelector('summary span:last-child').textContent=`${draft.currency} ${amount(item.price)}${item.active?'':' · Hidden'}`;}
  });
  form.addEventListener('invalid',event=>{const detail=event.target.closest('details');if(detail)detail.open=true;},true);
- function mutate(action,itemIndex,variantIndex){
+ function mutate(action,itemIndex,variantIndex,groupIndex){
   if(!action.endsWith('remove')&&!form.reportValidity())return;
   const c=draft.categories[selected],items=c?.items;let focusItem=itemIndex;
   if(action==='category-add'){if(!form.reportValidity())return;draft.categories.push({id:id('category'),name:'New category',items:[]});selected=draft.categories.length-1;}
@@ -66,10 +75,14 @@ export async function mountCatalogEditor({root=document,api,storageKey}) {
   if(action==='item-up'||action==='item-down'){const other=itemIndex+(action.endsWith('up')?-1:1);[items[itemIndex],items[other]]=[items[other],items[itemIndex]];focusItem=other;}
   if(action==='variant-add'){(items[itemIndex].variants??=[]).push({id:id('option'),name:'New option',price:items[itemIndex].price});items[itemIndex].optionLabel||='Option';}
   if(action==='variant-remove')items[itemIndex].variants.splice(variantIndex,1);
+  if(action==='group-add')(items[itemIndex].optionGroups??=[]).push({id:id('group'),name:'New group',min:0,max:1,choices:[{id:id('choice'),name:'New choice',price:0}]});
+  if(action==='group-remove')items[itemIndex].optionGroups.splice(groupIndex,1);
+  if(action==='choice-add')items[itemIndex].optionGroups[groupIndex].choices.push({id:id('choice'),name:'New choice',price:0});
+  if(action==='choice-remove')items[itemIndex].optionGroups[groupIndex].choices.splice(variantIndex,1);
   mark();renderCategories();renderCategory();
   if(Number.isInteger(focusItem))editor.querySelector(`[data-item-index="${focusItem}"]`)?.setAttribute('open','');
  }
- form.addEventListener('click',event=>{const button=event.target.closest('[data-action]');if(!button||busy||button.disabled)return;mutate(button.dataset.action,button.dataset.item===undefined?undefined:Number(button.dataset.item),Number(button.dataset.variant));});
+ form.addEventListener('click',event=>{const button=event.target.closest('[data-action]');if(!button||busy||button.disabled)return;mutate(button.dataset.action,button.dataset.item===undefined?undefined:Number(button.dataset.item),Number(button.dataset.variant),Number(button.dataset.group));});
  form.onsubmit=event=>{event.preventDefault();if(busy)return;page.action(event.submitter,async()=>{busy=true;form.querySelector('fieldset').disabled=true;try{const data=await page.request('/manager/catalog',{method:'POST',body:{catalog:cleaned(),revision}});draft=createCatalogDraft(data.catalog);revision=data.revision;dirty=false;render();refresh?.reset(data);message.textContent='Catalog saved. The storefront now uses these categories and items.';}finally{busy=false;form.querySelector('fieldset').disabled=false;}});};
  root.querySelector('#reload-catalog').onclick=event=>{if(dirty&&!confirm('Discard your unsaved changes and reload the saved catalog?'))return;page.action(event.target,load);};
  window.addEventListener('beforeunload',event=>{if(dirty){event.preventDefault();event.returnValue='';}});

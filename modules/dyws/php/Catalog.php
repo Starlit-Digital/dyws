@@ -43,11 +43,41 @@ final class Catalog {
      $i['optionLabel']=Store::text($item['optionLabel']??'Option',60);$i['variants']=[];$variants=[];
      foreach($item['variants'] as $v){if(!is_array($v))throw new ApiError('Invalid option.');$v=['id'=>self::id($v['id']??null),'name'=>Store::text($v['name']??null,100),'price'=>$v['price']??null];self::integer($v['price'],0,100000);if(isset($variants[$v['id']]))throw new ApiError('Option IDs must be unique.');$variants[$v['id']]=true;$i['variants'][]=$v;}
     }
+    if(array_key_exists('optionGroups',$item)){
+     if(!is_array($item['optionGroups'])||!array_is_list($item['optionGroups'])||count($item['optionGroups'])>20)throw new ApiError('Use up to 20 option groups.');
+     $i['optionGroups']=[];$groups=[];
+     foreach($item['optionGroups'] as $group){
+      if(!is_array($group))throw new ApiError('Invalid option group.');
+      $g=['id'=>self::id($group['id']??null),'name'=>Store::text($group['name']??null,100),'min'=>$group['min']??0,'max'=>$group['max']??1,'choices'=>[]];
+      self::integer($g['min'],0,50);self::integer($g['max'],1,50);
+      if(isset($groups[$g['id']])||$g['min']>$g['max'])throw new ApiError('Check option group IDs and choice limits.');$groups[$g['id']]=true;
+      if(!is_array($group['choices']??null)||!array_is_list($group['choices'])||count($group['choices'])<1||count($group['choices'])>50||$g['max']>count($group['choices']))throw new ApiError('Add choices and check the group limits.');
+      $choices=[];foreach($group['choices'] as $choice){
+       if(!is_array($choice))throw new ApiError('Invalid choice.');
+       $v=['id'=>self::id($choice['id']??null),'name'=>Store::text($choice['name']??null,100),'price'=>$choice['price']??0];self::integer($v['price'],0,100000);
+       if(isset($choices[$v['id']]))throw new ApiError('Choice IDs must be unique within a group.');$choices[$v['id']]=true;$g['choices'][]=$v;
+      }$i['optionGroups'][]=$g;
+     }
+    }
     $c['items'][]=$i;
    }
    $out['categories'][]=$c;
   }
   return $out;
+ }
+ /** Validate selections and return stable IDs, display labels and authoritative surcharge. */
+ public static function selections(array $item,$input):array {
+  if(!is_array($input)||($input!==[]&&array_is_list($input))||count($input)>20)throw new ApiError('Invalid item choices.');
+  $known=array_column($item['optionGroups']??[],'id');foreach($input as $id=>$values)if(!in_array($id,$known,true))throw new ApiError('Unknown option group.');
+  $selected=[];$labels=[];$price=0;
+  foreach($item['optionGroups']??[] as $g){
+   $values=$input[$g['id']]??[];
+   if(!is_array($values)||!array_is_list($values)||count($values)<$g['min']||count($values)>$g['max'])throw new ApiError('Choose '.$g['min'].' to '.$g['max'].' options for '.$g['name'].'.');
+   $ids=[];foreach($values as $id){if(!is_string($id)||in_array($id,$ids,true)||!in_array($id,array_column($g['choices'],'id'),true))throw new ApiError('Invalid or repeated choice.');$ids[]=$id;}
+   $names=[];foreach($g['choices'] as $choice)if(in_array($choice['id'],$ids,true)){$selected[$g['id']][]=$choice['id'];$price+=$choice['price'];$names[]=$choice['name'];}
+   if($names)$labels[]=$g['name'].': '.implode(', ',$names);
+  }
+  return ['selections'=>$selected,'labels'=>$labels,'price'=>$price];
  }
  public static function deliveryPricing($value):?array {
   if($value===null)return null;

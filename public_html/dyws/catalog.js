@@ -1,11 +1,35 @@
+import {lineKey,resolveItem} from './cart.js?v=options-20261028';
 import {pluginSlot} from './plugin-ui.js?v=39';
 export function mountCatalog({ordering,container,navigation,loading,locale='en-CA',hydrate=false,plugins}) {
  if(!ordering||!container)throw new TypeError('DYWS requires ordering and catalog elements.');
  container.classList.add('dyws-catalog');
+const selectionsFor=row=>{const result={};for(const input of row.querySelectorAll('[data-choice-group]:checked'))(result[input.dataset.choiceGroup]??=[]).push(input.value);return result;};
+function configureOptions(){
+ for(const controls of container.querySelectorAll('[data-order-item]')){
+  const row=controls.closest('.dyws-product'),item=ordering.catalog.categories.flatMap(c=>c.items).find(i=>i.id===controls.dataset.orderItem);
+  if(!item?.optionGroups?.length||row.querySelector('.dyws-customize'))continue;
+  const details=document.createElement('details');details.className='dyws-customize';
+  const summary=document.createElement('summary');summary.textContent='Customize '+item.name;const summaryPrice=document.createElement('span');summaryPrice.className='dyws-customize-price';summary.append(summaryPrice);details.append(summary);
+  const variantLabel=row.querySelector('select')?.closest('label');if(variantLabel)details.append(variantLabel);
+  for(const group of item.optionGroups){
+   const fieldset=document.createElement('fieldset'),legend=document.createElement('legend');
+   const rule=group.min===group.max?`Choose exactly ${group.max}`:group.min===0?`Choose up to ${group.max}`:`Choose ${group.min} to ${group.max}`;
+   legend.textContent=group.name+' · '+rule;fieldset.append(legend);
+   for(const choice of group.choices){
+    const label=document.createElement('label'),input=document.createElement('input');input.type=group.max===1?'radio':'checkbox';input.name=item.id+'_'+group.id;input.dataset.choiceGroup=group.id;input.value=choice.id;
+    label.append(input,document.createTextNode(choice.name+(choice.price?' +'+money(choice.price):'')));fieldset.append(label);
+   }
+   if(group.min===0&&group.max===1){const label=document.createElement('label'),input=document.createElement('input');input.type='radio';input.name=item.id+'_'+group.id;input.checked=true;label.append(input,document.createTextNode('None'));fieldset.append(label);}
+   details.append(fieldset);
+  }
+  const status=document.createElement('p');status.className='dyws-choice-status';status.setAttribute('role','status');status.setAttribute('aria-live','polite');details.append(status,row.querySelector('.dyws-product-action'));row.append(details);
+ }
+}
 function updateItemCounts(){
  for(const controls of container.querySelectorAll('[data-order-item]')){
   const variant=controls.closest('.dyws-product').querySelector('select')?.value||'';
-  const count=ordering.lines.find(line=>line.id===controls.dataset.orderItem && line.variant===variant)?.quantity||0;
+  const row=controls.closest('.dyws-product'),selections=selectionsFor(row);
+  const count=ordering.lines.find(line=>lineKey(line.id,line.variant,line.selections)===lineKey(controls.dataset.orderItem,variant,selections))?.quantity||0;
   const add=controls.querySelector('.dyws-item-add');
   const stepper=controls.querySelector('.dyws-item-stepper');
   const minus=controls.querySelector('.dyws-item-minus');
@@ -14,6 +38,14 @@ function updateItemCounts(){
   add.disabled=false;add.hidden=count>0;stepper.hidden=count===0;
   controls.querySelector('output').textContent=count;
   plus.disabled=false;
+  const status=row.querySelector('.dyws-choice-status');
+  if(status){
+   const item=ordering.catalog.categories.flatMap(c=>c.items).find(i=>i.id===controls.dataset.orderItem);
+   let surcharge=0;
+   for(const g of item.optionGroups){const ids=selections[g.id]||[];for(const c of g.choices)if(ids.includes(c.id))surcharge+=c.price;for(const input of row.querySelectorAll('[data-choice-group]'))if(input.dataset.choiceGroup===g.id&&input.type==='checkbox')input.disabled=!input.checked&&ids.length>=g.max;}
+   const total=money((item.variants?.find(v=>v.id===variant)?.price??item.price)+surcharge);row.querySelector('.dyws-product-action > span').textContent=total;row.querySelector('.dyws-customize-price').textContent=' · '+total;
+   try{resolveItem(ordering.catalog,item.id,variant,selections);status.textContent='';}catch(error){status.textContent=error.message;add.disabled=true;plus.disabled=true;}
+  }
   if(count===0 && (focused===minus||focused===plus))add.focus();
   else if(count>0 && focused===add)plus.focus();
  }
@@ -28,7 +60,7 @@ function decorate(){
  }
 }
 function render(){
- if(hydrate&&container.hasAttribute('data-dyws-rendered')){updatePrices();updateItemCounts();loading?.remove();decorate();return;}
+ if(hydrate&&container.hasAttribute('data-dyws-rendered')){configureOptions();updatePrices();updateItemCounts();loading?.remove();decorate();return;}
  const menu=container;menu.replaceChildren();
  navigation?.replaceChildren();
  for(const category of ordering.catalog.categories){
@@ -58,7 +90,7 @@ function render(){
   menu.append(section);
  }
  loading?.remove();
- updateItemCounts();decorate();
+ configureOptions();updateItemCounts();decorate();
 }
  function updatePrices(){
  for(const controls of container.querySelectorAll('[data-order-item]')){
@@ -69,8 +101,8 @@ function render(){
   row.querySelector('.dyws-product-action > span').textContent=money(item.variants?.find(v=>v.id===select?.value)?.price??item.price);
  }
  }
- const click=event=>{const button=event.target.closest('[data-dyws-action]');if(!button||!container.contains(button)||button.disabled)return;const controls=button.closest('[data-order-item]');const variant=controls.closest('.dyws-product').querySelector('select')?.value||'';if(button.dataset.dywsAction==='remove')ordering.remove(controls.dataset.orderItem,variant);else ordering.add(controls.dataset.orderItem,variant);};
- const change=event=>{if(event.target.matches('select')){updatePrices();updateItemCounts();}};
+ const click=event=>{const button=event.target.closest('[data-dyws-action]');if(!button||!container.contains(button)||button.disabled)return;const controls=button.closest('[data-order-item]');const variant=controls.closest('.dyws-product').querySelector('select')?.value||'';const selections=selectionsFor(controls.closest('.dyws-product'));if(button.dataset.dywsAction==='remove')ordering.remove(controls.dataset.orderItem,variant,selections);else ordering.add(controls.dataset.orderItem,variant,selections);};
+ const change=event=>{if(event.target.matches('select,[data-choice-group],input[type=radio]')){updatePrices();updateItemCounts();}};
  container.addEventListener('click',click);container.addEventListener('change',change);
  ordering.addEventListener('ordering-ready',render);
  if(ordering.catalog)render();

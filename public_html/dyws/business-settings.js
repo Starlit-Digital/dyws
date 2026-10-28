@@ -1,6 +1,6 @@
 import {mountHoursEditor} from './business-hours-editor.js';
 import {escapeHTML as esc} from './api.js';
-import {decimalToMinor,createCatalogDraft} from './catalog-editor.js?v=39';
+import {decimalToMinor,createCatalogDraft} from './catalog-editor.js?v=options-20261028';
 
 /** Business fields share the catalog revision so concurrent edits cannot overwrite items. */
 export async function mountBusinessSettings({root,page}){

@@ -1,8 +1,8 @@
 import {readCatalog} from './catalog-data.js';
-import {lineKey,resolveItem,restoreCart,totals,itemOrderCap,itemQuantity} from './cart.js';
+import {lineKey,resolveItem,restoreCart,totals,itemOrderCap,itemQuantity} from './cart.js?v=options-20261028';
 import {applyOrderLayout} from './order-layout.js';
 import {captureCheckout} from './checkout-draft.js';
-import {mountCheckout} from './checkout.js';
+import {mountCheckout} from './checkout.js?v=options-20261028';
 import {showOrderReview,sendReviewedOrder} from './order-review.js';
 const escapeHTML = value => String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const formatPhone = value => {const phone=String(value??'');const digits=phone.replace(/\D/g,'').replace(/^1(?=\d{10}$)/,'');return digits.length===10?`(${digits.slice(0,3)}) ${digits.slice(3,6)}-${digits.slice(6)}`:phone;};
@@ -25,17 +25,17 @@ export class DYWSOrdering extends HTMLElement {
   amount(value){return this.money.format(value/100);}
   persist(){try{localStorage.setItem(this.key,JSON.stringify(this.lines));}catch{} this.updateButton();this.dispatchEvent(new CustomEvent('cart-change',{detail:{count:this.lines.reduce((n,l)=>n+l.quantity,0)},bubbles:true}));void this.plugins?.runAction('cart:updated',{lines:this.lines.map(line=>({...line})),totals:totals(this.lines,this.catalog.taxBasisPoints)});}
   updateButton(){const count=this.lines.reduce((n,l)=>n+l.quantity,0);this.shadowRoot.querySelector('.dyws-cart-launch').textContent=`Your order (${count}) · ${this.amount(totals(this.lines,this.catalog.taxBasisPoints).total)}`;}
-  add(id,variant=''){
+  add(id,variant='',selections={}){
     if(!this.catalog || this.busy||this.reviewPanel)return;
-    const item=resolveItem(this.catalog,id,variant);const key=lineKey(id,variant);
-    const row=this.lines.find(l=>lineKey(l.id,l.variant)===key);
+    const item=resolveItem(this.catalog,id,variant,selections);const key=lineKey(id,variant,selections);
+    const row=this.lines.find(l=>lineKey(l.id,l.variant,l.selections)===key);
     if(itemQuantity(this.lines,id)>=itemOrderCap(this.catalog)){this.showItemLimit();return;}
     if(row)row.quantity++;else this.lines.push({...item,quantity:1});
     this.persist();this.announce(`${item.name} added to your order.`);
   }
-  remove(id,variant=''){
+  remove(id,variant='',selections={}){
     if(!this.catalog || this.busy||this.reviewPanel)return;
-    const row=this.lines.find(line=>lineKey(line.id,line.variant)===lineKey(id,variant));
+    const row=this.lines.find(line=>lineKey(line.id,line.variant,line.selections)===lineKey(id,variant,selections));
     if(!row)return;
     row.quantity--;
     this.lines=this.lines.filter(line=>line.quantity>0);

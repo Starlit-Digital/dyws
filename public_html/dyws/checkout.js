@@ -6,7 +6,7 @@ import {mountGuestDetails,rememberPreference} from './guest-details.js';
 import {captureCheckout,restoreCheckout} from './checkout-draft.js';
 import {formatPhoneField,formatPhoneInput} from './phone-input.js';
 import {readCatalog} from './catalog-data.js';
-import {restoreCart,totals} from './cart.js';
+import {restoreCart,totals} from './cart.js?v=options-20261028';
 import {frameCheckoutFields,fieldError,validateFields,clearFieldError} from './checkout-fields.js';
 const escapeHTML = value => String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const formatPostalCode = value => {const postal=String(value??'').trim();return /^[a-z]\d[a-z]\s?\d[a-z]\d$/i.test(postal)?postal.replace(/\s/g,'').toUpperCase().replace(/^(.{3})(.{3})$/,'$1 $2'):postal;};

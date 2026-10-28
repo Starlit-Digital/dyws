@@ -32,5 +32,18 @@ try{
  check($receipt['paymentProvider']==='demo','Framework uses the demonstration ledger without a payment plugin');
  $lines=json_decode($store->get($id)['lines_json'],true);
  check($lines[0]['sku']==='NOTE-A5'&&$lines[0]['price']===1295,'Immutable product snapshot and authoritative price');
+ $pizza=Catalog::load(__DIR__.'/../examples/pizza/catalog.json');
+ $pizzaStore=new Store($config['database'],$pizza,'pizza');
+ $selection=['crust'=>['stuffed'],'toppings'=>['cheese','pepper']];
+ $body=orderBody('pizza');$body['fulfillment']='pickup';$body['lines'][0]['variant']='large';$body['lines'][0]['selections']=$selection;
+ $receipt=$pizzaStore->create($body);$snapshot=json_decode($pizzaStore->get($receipt['id'])['lines_json'],true)[0];
+ check($snapshot['price']===2400&&$receipt['total']===2520,'Server adds size and choice prices, ignoring supplied price');
+ check(str_contains($snapshot['option'],'Crust: Stuffed crust')&&str_contains($snapshot['option'],'Toppings: Peppers, Extra cheese'),'Kitchen snapshot includes group labels');
+ foreach([[],['crust'=>['thin'],'toppings'=>['cheese']],['crust'=>['thin'],'toppings'=>['pepper','cheese','olive']],['crust'=>['thin'],'toppings'=>['cheese','cheese']],['crust'=>['fake'],'toppings'=>['cheese','pepper']],array_merge($selection,['unknown'=>[]])] as $bad){$invalid=$body;$invalid['idempotencyKey']=bin2hex(random_bytes(16));$invalid['lines'][0]['selections']=$bad;rejects(fn()=>$pizzaStore->create($invalid));}
+ $duplicate=$body;$duplicate['idempotencyKey']=bin2hex(random_bytes(16));$duplicate['lines'][]=$duplicate['lines'][0];$duplicate['lines'][1]['selections']=['toppings'=>['pepper','cheese'],'crust'=>['stuffed']];rejects(fn()=>$pizzaStore->create($duplicate));
+ $duplicate['lines'][1]['selections']['crust']=['thin'];check(isset($pizzaStore->create($duplicate)['id']),'Different configurations remain separate');
+ foreach([['min'=>3,'max'=>2],['min'=>0,'max'=>4],['min'=>1.5,'max'=>2]] as $limits){$bad=$pizza;$bad['categories'][0]['items'][0]['optionGroups'][1]=array_replace($bad['categories'][0]['items'][0]['optionGroups'][1],$limits);rejects(fn()=>Catalog::validate($bad));}
+ $bad=$pizza;$bad['categories'][0]['items'][0]['optionGroups'][0]['choices'][0]['price']=-1;rejects(fn()=>Catalog::validate($bad));
+ unset($pizzaStore);
  echo "Catalog: $checks checks passed.\n";
 }finally{unset($store,$disabledStore);foreach(glob($dir.'/*') as $file)unlink($file);rmdir($dir);}

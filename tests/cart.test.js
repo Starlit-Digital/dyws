@@ -39,3 +39,14 @@ test('item cap defaults to ten and aggregates variants and duplicate saved lines
  assert.equal(itemQuantity(restoreCart({...catalog,itemOrderCap:20},saved),'sweet1'),16);
  for(const value of [0,100,1.5,'20',null])assert.equal(itemOrderCap({itemOrderCap:value}),10);
 });
+
+const pizza=JSON.parse(readFileSync(new URL('../examples/pizza/catalog.json',import.meta.url)));
+test('pizza groups enforce bounds, charge per choice and canonicalize saved combinations',()=>{
+ const selections={toppings:['cheese','pepper'],crust:['stuffed']};
+ const line=resolveItem(pizza,'pizza','large',selections);
+ assert.equal(line.price,2400);assert.match(line.option,/Crust: Stuffed crust/);assert.match(line.option,/Toppings: Peppers, Extra cheese/);
+ for(const bad of [{},{crust:['thin'],toppings:['pepper']},{crust:['thin'],toppings:['pepper','cheese','olive']},{crust:['thin'],toppings:['cheese','cheese']},{...selections,unknown:[]},{...selections,crust:['unknown']}])assert.throws(()=>resolveItem(pizza,'pizza','large',bad));
+ const restored=restoreCart(pizza,[{...line,price:1,quantity:1},{...line,selections:{crust:['stuffed'],toppings:['pepper','cheese']},quantity:2},{...line,selections:{crust:['thin'],toppings:['pepper','cheese']},quantity:1}]);
+ assert.equal(restored.length,2);assert.equal(restored[0].quantity,3);assert.equal(restored[0].price,2400);assert.equal(restored[1].price,2100);
+ assert.equal(lineKey('pizza','large',selections),lineKey('pizza','large',{crust:['stuffed'],toppings:['pepper','cheese']}));
+});

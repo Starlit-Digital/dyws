@@ -67,3 +67,15 @@
 /* Keep mobile WebKit option pickers at the authored control size. */
 .dyws-catalog select{appearance:none;padding-inline-end:34px;background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%);background-position:calc(100% - 17px) 50%,calc(100% - 12px) 50%;background-size:5px 5px;background-repeat:no-repeat}
 @media(forced-colors:active){.dyws-catalog select{appearance:auto}}
+
+.dyws-catalog .dyws-customize { grid-column: 1 / -1; min-width: 0; }
+.dyws-catalog .dyws-customize summary { cursor: pointer; padding: 14px 0; font-weight: 700; color: var(--dyws-color-emphasis); }
+.dyws-catalog .dyws-customize fieldset { margin: 16px 0; padding: 12px; border: 1px solid var(--dyws-color-muted); border-radius: 12px; min-width: 0; }
+.dyws-catalog .dyws-customize legend { font-weight: 700; padding-inline: 6px; }
+.dyws-catalog .dyws-customize fieldset label { display: flex; align-items: center; gap: 12px; min-height: 48px; overflow-wrap: anywhere; }
+.dyws-catalog .dyws-customize input { width: 22px; height: 22px; flex-shrink: 0; accent-color: var(--dyws-color-accent); }
+.dyws-catalog .dyws-customize .dyws-product-action { flex-direction: row; justify-content: space-between; align-items: center; }
+.dyws-catalog .dyws-choice-status:empty { display: none; }
+.dyws-catalog .dyws-product:has(> .dyws-customize) { grid-template-columns: minmax(0,1fr); gap: 8px; }
+.dyws-catalog .dyws-customize summary { min-height: 48px; box-sizing: border-box; }
+.dyws-catalog .dyws-customize .dyws-product-action { flex-wrap: wrap; }

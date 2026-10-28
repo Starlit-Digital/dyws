@@ -1,5 +1,5 @@
-import './component.js?v=52';
-import {mountCatalog} from './catalog.js?v=39';
+import './component.js?v=options-20261028';
+import {mountCatalog} from './catalog.js?v=options-20261028';
 import {createTracking} from './tracking.js?v=52';
 export function mountStorefront({ordering,container,navigation,loading,api,tracking,submitOrder,onOrderComplete,hydrate=false,plugins,termsURL,accountURL}) {
  ordering.plugins=plugins;
