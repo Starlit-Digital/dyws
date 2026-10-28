@@ -13,3 +13,5 @@ html[data-dyws-startup-theme=dark] [data-dyws-page-skeleton]{background:var(--pa
 [data-dyws-page-skeleton] .dyws-startup-label{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
 @media(max-width:650px){[data-dyws-page-skeleton] .dyws-startup-cards{grid-template-columns:1fr}[data-dyws-page-skeleton] .dyws-startup-header{margin-bottom:32px}[data-dyws-page-skeleton] .dyws-startup-header i{width:140px}}
 @media(forced-colors:active){html[data-dyws-customer-loading] [data-dyws-page-skeleton]{background:Canvas;color:CanvasText}}
+
+html[data-dyws-customer-loading] .dyws-shell:not(.dyws-customer) [data-dyws-page-skeleton]{background:var(--dyws-color-bg,#202124);color:var(--dyws-color-text,#fff8ed)}

@@ -1,3 +1,4 @@
+import {formatPhoneInput} from './phone-input.js';
 import {escapeHTML} from './api.js';
 
 export function applySavedAddress(form,address){
@@ -80,7 +81,7 @@ export async function mountGuestDetails({form,api,termsURL,hasDraft=false,onForg
   render();remember.disabled=false;
   if(!hasDraft&&!touched){
    remember.checked=!!state.profileId;
-   for(const [name,key]of [['customer','name'],['phone','phone'],['email','email']])if(field(name)&&!field(name).value&&!field(name).readOnly)field(name).value=state.customer?.[key]||'';
+   for(const [name,key]of [['customer','name'],['phone','phone'],['email','email']])if(field(name)&&!field(name).value&&!field(name).readOnly)field(name).value=name==='phone'?formatPhoneInput(state.customer?.[key]||''):state.customer?.[key]||'';
    const address=state.addresses.find(a=>a.id===state.defaultAddressId);
    if(address&&!field('addressLine1')?.value&&!field('addressLine2')?.value){field('savedAddressId').value=address.id;applySavedAddress(form,address);labelAddress(address);}
   }

@@ -59,6 +59,7 @@
       "dyws/order-priority.js",
       "dyws/order-selection.js",
       "dyws/orders.js?v=40",
+      "dyws/phone-input.js",
       "dyws/plugin-ui.js?v=39",
       "dyws/plugins.js?v=39",
       "dyws/realtime.js",
@@ -240,6 +241,7 @@
     ],
     "demo-lockdown": [
       "dyws/order-selection.js",
+      "dyws/phone-input.js",
       "plugins/demo-lockdown/demo-login.js?v=3",
       "plugins/demo-lockdown/index.js?v=1.0.6"
     ],

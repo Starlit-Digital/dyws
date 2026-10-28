@@ -4,7 +4,7 @@ import {tipCents} from './tips.js';
 import {deliveryCharge,locationPolicy,isOrderingOpen,scheduleText} from './business-policy.js';
 import {mountGuestDetails,rememberPreference} from './guest-details.js';
 import {captureCheckout,restoreCheckout} from './checkout-draft.js';
-import {formatPhoneField} from './phone-input.js';
+import {formatPhoneField,formatPhoneInput} from './phone-input.js';
 import {readCatalog} from './catalog-data.js';
 import {restoreCart,totals} from './cart.js';
 import {frameCheckoutFields,fieldError,validateFields,clearFieldError} from './checkout-fields.js';
@@ -77,5 +77,6 @@ export async function mountCheckout(){
     restoreCheckout(form,(this.checkoutDraft||[]).filter(field=>['rememberDetails','savedProfileId','savedAddressId','addressLabel','customAddressLabel','defaultAddress'].includes(field.name)));
     saved?.afterRestore(this.checkoutDraft);saved?.sync();form.elements.locationId.onchange();form.querySelector('.dyws-fulfillment').onchange();
     if(form.elements.notes?.value)revealNote();
+    form.elements.phone.value=formatPhoneInput(form.elements.phone.value);
     frameCheckoutFields(form);fieldsReady=true;form.querySelectorAll('button').forEach(button=>button.disabled=false);form.elements.customer.focus();
   }

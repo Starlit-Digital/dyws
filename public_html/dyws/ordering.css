@@ -256,3 +256,5 @@
 .dyws-ordering .dyws-review-options{font-size:.85em;margin-block:var(--dyws-space-2)}
 .dyws-ordering .dyws-directions-toggle{margin-block:var(--dyws-space-2)}
 .dyws-ordering label.dyws-field{border-radius:var(--dyws-field-radius)}
+/* Give formatted contact fields a full row on compact checkout screens. */
+@media(max-width:600px){.dyws-ordering .dyws-checkout-grid{grid-template-columns:minmax(0,1fr)}}

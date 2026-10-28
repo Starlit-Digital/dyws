@@ -21,3 +21,9 @@ No identity or contact information is stored by this controller.
 The diner palette initializer reads the store scoped customer preferences before
 paint, retaining the existing preference migration performed by the runtime.
 The accessibility content stylesheet is reused rather than appended twice.
+
+Admin, plugin editor, authentication and driver pages use the same head helper
+and scaffold. Pages without an accessibility widget signal theme readiness once
+their blocking styles are parsed. Existing admin and driver ready callbacks
+signal initial content. Static sign in pages reveal after parsing, and autofocus
+is restored when needed. Operator skeletons use the operator palette tokens.

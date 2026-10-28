@@ -1,6 +1,7 @@
 /** Locked installation presentation. The PHP policy independently enforces every restriction. */
 import {createDemoAccess} from './demo-login.js?v=3';
 import {readOrderSelection} from '../../dyws/order-selection.js';
+import {formatPhoneInput} from '../../dyws/phone-input.js';
 export function register(plugin){
  const doc=plugin.document,access=createDemoAccess({document:doc});
  const callout=position=>{
@@ -52,7 +53,7 @@ export function register(plugin){
  plugin.onDestroy(()=>{observer.disconnect();banners.forEach(banner=>banner.remove());});
  plugin.addAction('checkout:fields',({form})=>{
   const fields={pickupOrigin:'123 Example Avenue NW, Edmonton, AB',customer:'Demo Customer',phone:'7805550142',email:'demo.customer@example.test',addressLine1:'123 Example Avenue NW',addressLine2:'',addressCity:'Edmonton',addressRegion:'AB',addressPostal:'T5A 1A1',addressCountry:'Canada',notes:''};
-  for(const [name,value]of Object.entries(fields)){const input=form.elements.namedItem(name);if(input){input.value=value;input.readOnly=true;input.autocomplete='off';}}
+  for(const [name,value]of Object.entries(fields)){const input=form.elements.namedItem(name);if(input){input.value=name==='phone'?formatPhoneInput(value):value;input.readOnly=true;input.autocomplete='off';}}
  });
  plugin.provide('pickup.map',()=>{
   const element=doc.createElement('figure'),img=doc.createElement('img'),caption=doc.createElement('figcaption');
