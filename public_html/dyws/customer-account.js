@@ -67,7 +67,7 @@ export function mountCustomerAccount({root,message,error,api,loginToken=null,dem
   const state=await call('/customer/session');
   if(!state.customer){signin(state);return;}
   say('Signed in as '+state.customer.email);
-  root.innerHTML='<div class="dyws-actions"><button type="button" data-refresh>Refresh orders</button><button type="button" data-logout>Sign out</button></div><section><h2>Order history</h2><div data-history></div><button type="button" data-more hidden>More orders</button></section><section><h2>Blocked drivers</h2><p>Blocks apply to every delivery address when you order with this account at this store. A delivery already on the way may still arrive. Contact the store if you need help with it.</p><ul data-blocks></ul></section>';
+  root.innerHTML='<div class="dyws-actions"><button type="button" data-refresh>Refresh orders</button><button type="button" data-logout>Sign out</button></div><section><h2>Order history</h2><div data-history></div><button type="button" data-more hidden>More orders</button></section><section><h2>Blocked drivers</h2><p>Blocks apply to every delivery address when you order with this account at this store. A delivery already on the way may still arrive. Contact the store if you need help with it.</p><ul data-blocks role="list"></ul></section>';
   await historyPage();await blocks();
  }
  root.addEventListener('submit',e=>{

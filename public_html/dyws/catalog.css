@@ -64,3 +64,6 @@
 .dyws-catalog select { border-radius:14px; }
 .dyws-catalog :focus-visible { outline-color:var(--dyws-color-warm); }
 @media(forced-colors:active) { .dyws-catalog button { background:ButtonFace; color:ButtonText; border:1px solid ButtonText; } }
+/* Keep mobile WebKit option pickers at the authored control size. */
+.dyws-catalog select{appearance:none;padding-inline-end:34px;background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%);background-position:calc(100% - 17px) 50%,calc(100% - 12px) 50%;background-size:5px 5px;background-repeat:no-repeat}
+@media(forced-colors:active){.dyws-catalog select{appearance:auto}}

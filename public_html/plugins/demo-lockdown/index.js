@@ -5,7 +5,7 @@ export function register(plugin){
  const doc=plugin.document,access=createDemoAccess({document:doc});
  const callout=position=>{
   const box=doc.createElement('section');box.className='dyws-demo-callout';box.dataset.dywsDemo=position;box.setAttribute('aria-labelledby','dyws-demo-title-'+position);
-  const title=doc.createElement('h2');title.id='dyws-demo-title-'+position;title.textContent='This is a public demo';
+  const title=doc.createElement('h2');title.id='dyws-demo-title-'+position;title.textContent=position==='top'?'This is a public demo':'Explore the public demo';
   const intro=doc.createElement('p');intro.textContent='Try an order, explore the dashboard and take a delivery for a spin. Everything here is fictional. No real payments or deliveries.';
   const accounts=doc.createElement('div');accounts.className='dyws-demo-accounts';
   for(const [role,user]of [['Admin','admin'],['Driver','driver']]){

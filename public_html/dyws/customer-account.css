@@ -20,3 +20,8 @@
 .dyws-account .dyws-account-preview section { margin-block:1.5rem; }
 .dyws-account .dyws-account-preview :is(input,select,textarea,button):disabled { cursor:not-allowed; opacity:.75; }
 .dyws-account .dyws-account-preview legend { font-weight:700; padding:0; }
+.dyws-account h1{overflow-wrap:anywhere}
+.dyws-account button{max-width:100%;overflow-wrap:anywhere}
+.dyws-account [data-blocks]{padding-inline-start:0;list-style:none}
+.dyws-account [data-blocks] li{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.dyws-account [data-account-root]>p>a,.dyws-customer footer a{display:inline-flex;align-items:center;min-height:44px}

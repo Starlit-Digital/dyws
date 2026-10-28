@@ -77,3 +77,10 @@ final class DYWSRenderer {
   return $html.'</div></div></div></article>';
  }
 }
+
+/** Render navigation from the verified customer cookie, never staff or demo identity. */
+function dyws_render_customer_account_link(array $config,\dyws\Store $store,string $prefix=''):string {
+ $signedIn=(new \dyws\CustomerAccounts($store,$config))->current()!==null;
+ $account=$prefix.'account/';$signin=$account.'sign-in/';
+ return '<a class="account-link" data-dyws-customer-link data-account-url="'.dyws_escape($account).'" data-signin-url="'.dyws_escape($signin).'" href="'.dyws_escape($signedIn?$account:$signin).'">'.($signedIn?'My account':'Sign in').'</a>';
+}
