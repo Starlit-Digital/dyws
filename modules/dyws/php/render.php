@@ -79,12 +79,12 @@ final class DYWSRenderer {
 }
 
 /** Render the verified account menu, or a plugin guarded demo preview. */
-function dyws_render_customer_account_link(array $config,\dyws\Store $store,string $prefix='',bool $preview=false):string {
+function dyws_render_customer_account_link(array $config,\dyws\Store $store,string $prefix=''):string {
  $signedIn=(new \dyws\CustomerAccounts($store,$config))->current()!==null;
  $presentation=$store->plugins?->applyFilters('page.presentation',[],'customer-navigation')??[];
- $locked=($presentation['customerNavigationLocked']??false)===true;$preview=$preview&&$locked;
+ $locked=($presentation['customerNavigationLocked']??false)===true;$preview=$locked;
  $account=$prefix.'account/';$signin=$account.'sign-in/';$orders=$account.'orders/';$state=$signedIn?'signed-in':($preview?'preview':'signed-out');
- $html='<div class="dyws-customer-navigation-control" data-dyws-customer-navigation data-account-url="'.dyws_escape($account).'" data-signin-url="'.dyws_escape($signin).'" data-orders-url="'.dyws_escape($orders).'" data-demo-locked="'.($locked?'true':'false').'" data-preview-account="'.($preview?'true':'false').'" data-customer-state="'.$state.'">';
+ $html='<div class="dyws-customer-navigation-control" data-dyws-customer-navigation data-account-url="'.dyws_escape($account).'" data-signin-url="'.dyws_escape($signin).'" data-orders-url="'.dyws_escape($orders).'" data-demo-locked="'.($locked?'true':'false').'" data-customer-state="'.$state.'">';
  if($signedIn||$preview)$html.='<details class="dyws-account-menu"><summary data-dyws-customer-link aria-label="My account">My account<span aria-hidden="true">▾</span></summary><div class="dyws-account-menu-panel"><a data-dyws-account-details href="'.dyws_escape($account).'">Account details</a><a data-dyws-account-orders href="'.dyws_escape($orders).'">My orders</a><button type="button" data-dyws-account-logout disabled'.($locked?' title="Locked by the installation owner"':'').'>Sign out</button><p class="dyws-account-menu-status" role="status" aria-live="polite">'.($locked?'Demo account actions are locked.':'').'</p></div></details>';
  else $html.='<a class="account-link" data-dyws-customer-link href="'.dyws_escape($signin).'">Sign in</a>';
  return $html.'</div>';

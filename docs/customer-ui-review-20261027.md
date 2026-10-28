@@ -99,3 +99,9 @@ local run reports zero automated color contrast findings. Image backgrounds
 and disabled controls still require visual review; this is not a formal
 accessibility certification. The fixed demo panel was visually inspected in
 dark mode, and forced color foregrounds were checked in Chromium.
+
+Demo navigation now always exposes the My account preview menu on storefront,
+tracking, account, orders and sign in pages. Visitors can explore Account details
+and My orders directly, while demo mutation guards remain active. Normal
+merchant session behavior is unchanged. This supersedes the earlier rule that
+storefront and tracking demos showed Sign in.

@@ -60,3 +60,10 @@ navigation. Customer account preview pages retain a browsable My account
 disclosure with My orders and a disabled Sign out. Other public customer pages
 show Sign in. The browser does not request customer sessions for locked
 navigation, and server guards continue to reject account mutations.
+
+Demo customer navigation always displays the My account preview menu, including
+storefront, tracking and sign in pages. Account details and My orders open the
+fictional customer views without authentication. This is a presentation state;
+it does not create a customer session or enable email, reports, blocks or sign
+out mutations. The same menu on a normal installation still requires a verified
+customer session. This supersedes the earlier signed out demo navigation rule.

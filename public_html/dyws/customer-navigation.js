@@ -5,7 +5,7 @@ const controlHTML=(state,account,orders,signin,locked)=>state==='signed-out'
  :`<details class="dyws-account-menu"><summary data-dyws-customer-link aria-label="My account">My account<span aria-hidden="true">▾</span></summary><div class="dyws-account-menu-panel"><a data-dyws-account-details href="${esc(account)}">Account details</a><a data-dyws-account-orders href="${esc(orders)}">My orders</a><button type="button" data-dyws-account-logout ${locked?'disabled title="Locked by the installation owner"':''}>Sign out</button><p class="dyws-account-menu-status" role="status" aria-live="polite">${locked?'Demo account actions are locked.':''}</p></div></details>`;
 
 export function customerNavigationHTML({accountURL,signedIn=false,locked=false}){
- const signin=new URL('sign-in/',accountURL).href,orders=new URL('orders/',accountURL).href,state=signedIn?'signed-in':'signed-out';
+ const signin=new URL('sign-in/',accountURL).href,orders=new URL('orders/',accountURL).href,state=signedIn?'signed-in':locked?'preview':'signed-out';
  return `<div class="dyws-customer-navigation-control" data-dyws-customer-navigation data-account-url="${esc(accountURL)}" data-signin-url="${esc(signin)}" data-orders-url="${esc(orders)}" data-demo-locked="${locked}" data-customer-state="${state}">${controlHTML(state,accountURL,orders,signin,locked)}</div>`;
 }
 
@@ -15,7 +15,7 @@ export function mountCustomerNavigation({root,api,window:win=root.ownerDocument?
  const controls=()=>[...root.querySelectorAll('[data-dyws-customer-navigation]')];
  function paint(){
   for(const wrap of controls()){
-   const locked=wrap.dataset.demoLocked==='true',state=customer?'signed-in':locked&&wrap.dataset.previewAccount==='true'?'preview':'signed-out';
+   const locked=wrap.dataset.demoLocked==='true',state=customer?'signed-in':locked?'preview':'signed-out';
    if(wrap.dataset.customerState!==state){const focused=wrap.contains(doc.activeElement);wrap.innerHTML=controlHTML(state,wrap.dataset.accountUrl,wrap.dataset.ordersUrl,wrap.dataset.signinUrl,locked);wrap.dataset.customerState=state;if(focused)wrap.querySelector('[data-dyws-customer-link]')?.focus();}
    const button=wrap.querySelector('[data-dyws-account-logout]');if(button)button.disabled=locked||busy||!customer;
   }
