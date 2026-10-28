@@ -22,13 +22,14 @@ final class Cancellation {
    $store->tracking($id,$token);$order=$store->get($id);
    if($order['customer_cancelled_at']!==null)return;
    if(!self::summary($order)['available'])throw new ApiError('The cancellation window has closed or this order has already left the store.',409);
-   if($order['payment_provider']!=='demo'&&!$store->plugins?->supportsPaymentCancellation($order['payment_provider']))throw new ApiError('Automatic cancellation is temporarily unavailable. Contact the store.',503);
+   if(!Store::manualPayment($order['payment_provider'])&&!$store->plugins?->supportsPaymentCancellation($order['payment_provider']))throw new ApiError('Automatic cancellation is temporarily unavailable. Contact the store.',503);
    $store->plugins?->validate('order.status_changing',$store->safeOrder($order),'cancelled','customer');
    (new DeliveryRuns($store))->removeCancelledOrder($id);
    $now=time();$store->execute("UPDATE orders SET status='cancelled',customer_cancelled_at=?,updated_at=?,cancellation_payment_state='pending' WHERE tenant=? AND id=?",[$now,$now,$store->tenant,$id]);
    foreach(['locations','location_shares'] as $table)$store->execute("DELETE FROM $table WHERE tenant=? AND order_id=?",[$store->tenant,$id]);
    $store->event($id,'cancelled','customer');$changed=true;
-   if($order['payment_provider']==='demo'){
+   if(in_array($order['payment_provider'],['pay-at-door','pay-at-restaurant'],true)){$store->execute('UPDATE orders SET cancellation_payment_state=? WHERE tenant=? AND id=?',[$order['payment_status']==='unpaid'?'not_charged':($order['payment_status']==='refunded'?'refunded':'attention'),$store->tenant,$id]);}
+   elseif($order['payment_provider']==='demo'){
     if($order['payment_status']==='paid')$store->payment($id,'refund','customer');
     $state=$store->get($id)['payment_status']==='refunded'?'refunded':'not_charged';
     $store->execute('UPDATE orders SET cancellation_payment_state=? WHERE tenant=? AND id=?',[$state,$store->tenant,$id]);

@@ -3,12 +3,15 @@ declare(strict_types=1);
 namespace dyws;
 require_once __DIR__.'/BusinessHours.php';
 require_once __DIR__.'/Cancellation.php';
+require_once __DIR__.'/Deals.php';
 
 /** Product data is JSON. Prices are integer minor units, never floating point. */
 final class Catalog {
  public static function load(string $path):array { return self::validate(json_decode(file_get_contents($path),true,64,JSON_THROW_ON_ERROR)); }
  public static function validate(array $data):array {
-  $out=['schemaVersion'=>2,'businessName'=>Store::text($data['businessName']??$data['restaurant']??null,120),'platformName'=>Store::text($data['platformName']??'dyws',100),'currency'=>$data['currency']??'CAD','taxBasisPoints'=>$data['taxBasisPoints']??0,'deliveryFee'=>$data['deliveryFee']??395,'deliveryFeeBasisPoints'=>$data['deliveryFeeBasisPoints']??0,'locationHours'=>BusinessHours::validate($data['locationHours']??null),'orderingHours'=>BusinessHours::validate($data['orderingHours']??null),'pickupAddress'=>Store::text($data['pickupAddress']??'',240,false),'businessPhone'=>Store::text($data['businessPhone']??'',30,false),'businessEmail'=>Store::text($data['businessEmail']??'',254,false),'itemOrderCap'=>$data['itemOrderCap']??10,'customerCancellation'=>Cancellation::policy($data['customerCancellation']??null),'categories'=>[]];
+  $out=['schemaVersion'=>2,'businessName'=>Store::text($data['businessName']??$data['restaurant']??null,120),'platformName'=>Store::text($data['platformName']??'dyws',100),'currency'=>$data['currency']??'CAD','taxBasisPoints'=>$data['taxBasisPoints']??0,'deliveryFee'=>$data['deliveryFee']??395,'deliveryFeeBasisPoints'=>$data['deliveryFeeBasisPoints']??0,'locationHours'=>BusinessHours::validate($data['locationHours']??null),'orderingHours'=>BusinessHours::validate($data['orderingHours']??null),'pickupAddress'=>Store::text($data['pickupAddress']??'',240,false),'businessPhone'=>Store::text($data['businessPhone']??'',30,false),'businessEmail'=>Store::text($data['businessEmail']??'',254,false),'itemOrderCap'=>$data['itemOrderCap']??10,'allowPayAtDoor'=>$data['allowPayAtDoor']??false,'allowPayAtPickup'=>$data['allowPayAtPickup']??false,'customerCancellation'=>Cancellation::policy($data['customerCancellation']??null),'categories'=>[]];
+  if(array_key_exists('allowPayAtPickup',$data)&&!is_bool($data['allowPayAtPickup']))throw new ApiError('Choose whether to allow pay at restaurant.');
+  if(array_key_exists('allowPayAtDoor',$data)&&!is_bool($data['allowPayAtDoor']))throw new ApiError('Choose whether to allow pay at the door.');
   if(!is_int($out['itemOrderCap'])||$out['itemOrderCap']<1||$out['itemOrderCap']>99)throw new ApiError('Item Order Cap must be a whole number from 1 to 99.');
   if($out['businessPhone']!==''&&!preg_match('/^[0-9+() .-]{7,30}$/D',$out['businessPhone']))throw new ApiError('Enter a valid business phone number.');
   if($out['businessEmail']!==''&&!filter_var($out['businessEmail'],FILTER_VALIDATE_EMAIL))throw new ApiError('Enter a valid business email address.');
@@ -63,6 +66,7 @@ final class Catalog {
    }
    $out['categories'][]=$c;
   }
+  $out['deals']=Deals::validate(array_key_exists('deals',$data)?$data['deals']:[],array_keys($ids));
   return $out;
  }
  /** Validate selections and return stable IDs, display labels and authoritative surcharge. */
@@ -110,7 +114,7 @@ final class Catalog {
   return ['src'=>$src,'alt'=>$alt];
  }
  public static function publicData(array $catalog,string $timeZone='America/Edmonton',bool $acceptingOrders=true):array {
-  $catalog['timeZone']=$timeZone;$catalog['acceptingOrders']=$acceptingOrders;
+  $catalog['deals']=Deals::publicList($catalog,$timeZone);$catalog['timeZone']=$timeZone;$catalog['acceptingOrders']=$acceptingOrders;
   foreach($catalog['categories'] as &$c)$c['items']=array_values(array_filter($c['items'],fn($i)=>$i['active']));unset($c);
   return $catalog;
  }

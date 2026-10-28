@@ -1,8 +1,9 @@
+import {mountMenuDeals} from './deals.js?v=benefits-20261028';
 import {lineKey,resolveItem} from './cart.js?v=options-20261028';
 import {pluginSlot} from './plugin-ui.js?v=39';
-export function mountCatalog({ordering,container,navigation,loading,locale='en-CA',hydrate=false,plugins}) {
+export function mountCatalog({ordering,container,navigation,loading,locale='en-CA',hydrate=false,plugins,showDeals=true}) {
  if(!ordering||!container)throw new TypeError('DYWS requires ordering and catalog elements.');
- container.classList.add('dyws-catalog');
+ container.classList.add('dyws-catalog');let dealMenu;
 const selectionsFor=row=>{const result={};for(const input of row.querySelectorAll('[data-choice-group]:checked'))(result[input.dataset.choiceGroup]??=[]).push(input.value);return result;};
 function configureOptions(){
  for(const controls of container.querySelectorAll('[data-order-item]')){
@@ -53,6 +54,7 @@ function updateItemCounts(){
 ordering.addEventListener('cart-change',updateItemCounts);
 const money=value=>new Intl.NumberFormat(locale,{style:'currency',currency:ordering.catalog.currency}).format(value/100);
 function decorate(){
+ dealMenu?.destroy();dealMenu=mountMenuDeals({ordering,container,showDeals});
  if(!plugins)return;
  for(const controls of container.querySelectorAll('[data-order-item]')){
   const item=ordering.catalog.categories.flatMap(category=>category.items).find(item=>item.id===controls.dataset.orderItem);
@@ -106,5 +108,5 @@ function render(){
  container.addEventListener('click',click);container.addEventListener('change',change);
  ordering.addEventListener('ordering-ready',render);
  if(ordering.catalog)render();
- return {render,destroy(){ordering.removeEventListener('ordering-ready',render);ordering.removeEventListener('cart-change',updateItemCounts);container.removeEventListener('click',click);container.removeEventListener('change',change);}};
+ return {render,destroy(){dealMenu?.destroy();ordering.removeEventListener('ordering-ready',render);ordering.removeEventListener('cart-change',updateItemCounts);container.removeEventListener('click',click);container.removeEventListener('change',change);}};
 }

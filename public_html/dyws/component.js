@@ -1,9 +1,9 @@
 import {readCatalog} from './catalog-data.js';
 import {lineKey,resolveItem,restoreCart,totals,itemOrderCap,itemQuantity} from './cart.js?v=options-20261028';
 import {applyOrderLayout} from './order-layout.js';
-import {captureCheckout} from './checkout-draft.js';
-import {mountCheckout} from './checkout.js?v=options-20261028';
-import {showOrderReview,sendReviewedOrder} from './order-review.js';
+import {captureCheckout} from './checkout-draft.js?v=benefits-20261028';
+import {mountCheckout} from './checkout.js?v=benefits-20261028';
+import {showOrderReview,sendReviewedOrder} from './order-review.js?v=benefits-20261028';
 const escapeHTML = value => String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const formatPhone = value => {const phone=String(value??'');const digits=phone.replace(/\D/g,'').replace(/^1(?=\d{10}$)/,'');return digits.length===10?`(${digits.slice(0,3)}) ${digits.slice(3,6)}-${digits.slice(6)}`:phone;};
 export class DYWSOrdering extends HTMLElement {
@@ -19,7 +19,7 @@ export class DYWSOrdering extends HTMLElement {
     } catch {this.shadowRoot.innerHTML='<p role="alert">Ordering is unavailable. Please try again later.</p>';}
   }
   get key(){return this.getAttribute('storage-key')||'dyws-cart';}
-  disconnectedCallback(){this.cancelReview();this.pickup?.destroy();this.checkoutAccount?.destroy();}
+  disconnectedCallback(){this.checkoutDeals?.destroy();this.cancelReview();this.pickup?.destroy();this.checkoutAccount?.destroy();}
   cancelReview(){this.reviewCountdown?.cancel();this.reviewCountdown=null;this.reviewVisibility?.disconnect();this.reviewVisibility=null;this.reviewPanel?.remove();this.reviewPanel=null;const form=this.shadowRoot.querySelector('form');if(form)form.hidden=false;}
   applyLayout(stage,root){return applyOrderLayout({stage,root,layout:this.plugins?.orderLayout?.(stage)});}
   amount(value){return this.money.format(value/100);}
@@ -43,7 +43,7 @@ export class DYWSOrdering extends HTMLElement {
   }
   announce(text){this.shadowRoot.querySelector('[role="status"]').textContent=text;}
   render(){
-    this.shadowRoot.innerHTML=`<link rel="stylesheet" href="${new URL('./ordering.css?v=53',import.meta.url).href}"><div class="dyws-ordering"><button class="dyws-cart-launch" type="button">Your order</button><p id="dyws-status" role="status" aria-live="polite"></p><dialog aria-label="Your order"><header role="presentation"><div class="dyws-store-brand"><slot name="site-logo"></slot><span>${escapeHTML(this.catalog.businessName || this.catalog.restaurant || '')}</span></div><button type="button" class="dyws-muted dyws-close" aria-label="Close order">Close</button></header><div class="dyws-content"></div></dialog></div>`;
+    this.shadowRoot.innerHTML=`<link rel="stylesheet" href="${new URL('./ordering.css?v=benefits-20261028',import.meta.url).href}"><div class="dyws-ordering"><button class="dyws-cart-launch" type="button">Your order</button><p id="dyws-status" role="status" aria-live="polite"></p><dialog aria-label="Your order"><header role="presentation"><div class="dyws-store-brand"><slot name="site-logo"></slot><span>${escapeHTML(this.catalog.businessName || this.catalog.restaurant || '')}</span></div><button type="button" class="dyws-muted dyws-close" aria-label="Close order">Close</button></header><div class="dyws-content"></div></dialog></div>`;
     this.dialog=this.shadowRoot.querySelector('dialog');
     this.shadowRoot.querySelector('.dyws-cart-launch').onclick=()=>this.open();
     this.shadowRoot.querySelector('.dyws-close').onclick=()=>this.dialog.close();
@@ -63,6 +63,7 @@ export class DYWSOrdering extends HTMLElement {
     content.prepend(notice);if(!this.dialog.open)this.dialog.showModal();notice.focus();
   }
   showCart(){
+    this.checkoutDeals?.destroy();this.checkoutDeals=null;
     this.pickup?.destroy();this.checkoutAccount?.destroy();this.pickup=null;this.cancelReview();
     const content=this.shadowRoot.querySelector('.dyws-content');const t=totals(this.lines,this.catalog.taxBasisPoints);
     content.innerHTML=this.lines.length?'<div data-dyws-order-field="items">'+this.lines.map((l,n)=>`<div class="dyws-line"><div class="dyws-line-info"><strong>${escapeHTML(l.name)}</strong>${escapeHTML(l.option)} <span>${this.amount(l.price*l.quantity)}</span></div><div class="dyws-quantity"><button data-change="${n}" data-delta="-1" aria-label="${l.quantity===1?'Remove':'Remove one'} ${escapeHTML(l.name)}">${l.quantity===1?'<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M9 6V4h6v2M5 6l1 14h12l1-14M10 10v6M14 10v6"/></svg>':'−'}</button><span aria-label="Quantity">${l.quantity}</span><button data-change="${n}" data-delta="1" aria-label="Add one ${escapeHTML(l.name)}">+</button></div></div>`).join('')+`</div><div class="dyws-summary-panel"><dl class="dyws-summary"><div class="dyws-order-pair" data-dyws-order-field="subtotal"><dt>Subtotal</dt><dd>${this.amount(t.subtotal)}</dd></div><div class="dyws-order-pair" data-dyws-order-field="tax"><dt>Tax (${this.catalog.taxBasisPoints/100}%)</dt><dd>${this.amount(t.tax)}</dd></div></dl><p class="dyws-grand-total" data-dyws-order-field="total">Total ${this.amount(t.total)}</p></div><button data-dyws-order-field="actions" class="dyws-checkout" type="button">Checkout</button>`:'<p>Your cart is empty.</p>';

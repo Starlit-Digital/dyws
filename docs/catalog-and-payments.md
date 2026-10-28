@@ -65,3 +65,9 @@ The earlier Stripe implementation supported merchant owned sandbox Checkout only
 ## Verification
 
 The framework suite covers catalog authorization, revisions, nonfood products, inactive items, authoritative pricing, quantity limits and operation without Stripe. Payment extension tests cover absent provider handling, blocked manual capture, protected fulfillment, pending tracking and historical payment migration. Each separately installed plugin must also pass its own integration tests.
+
+## Customer deals and deferred payment
+
+See [deals and payment choices](deals-and-payment-choices.md) for the optional
+restaurant settings, scheduled offer types, customer wallet, single use claims,
+pricing and reporting definitions, provider compatibility and migration contract.

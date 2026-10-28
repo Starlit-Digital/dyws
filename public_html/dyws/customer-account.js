@@ -1,6 +1,7 @@
 import {escapeHTML as esc,money,statusText} from './api.js';
 import {formatDateTime} from './date-time.js';
 import {customerAccountPreviewHTML,customerPreviewOrders} from './customer-account-preview.js';
+import {mountCustomerDeals} from './deals.js?v=benefits-20261028';
 import {mountCustomerOrders} from './customer-orders.js';
 
 export const driverReportReasons={late:'Late delivery',conduct:'Driver conduct',handling:'Order handling',other:'Other concern'};
@@ -9,7 +10,7 @@ export function customerOrderHTML(o){
  const reportForm=reportable?`<details data-driver-report><summary>Report driver</summary><form data-report><label>What went wrong?<select name="reason" required><option value="">Choose a reason</option>${Object.entries(driverReportReasons).map(([id,label])=>`<option value="${id}">${label}</option>`).join('')}</select></label><label>Details (optional)<textarea name="details" maxlength="2000"></textarea></label><label class="dyws-check"><input type="checkbox" name="blockDriver" ${o.driverBlocked?'checked':''}><span>Also block this driver from my future deliveries at this store</span></label><p>The store can read your report. The block covers every delivery address on your account.</p><button type="submit">Submit report</button></form></details>`:'';
  return `<article class="dyws-customer-order-detail" data-order="${esc(o.id)}"><header class="dyws-customer-order-heading"><div><span class="dyws-customer-status" data-status="${esc(o.status)}">${esc(statusText(o.status))}</span><h3>${esc(o.id)}</h3><p>${esc(formatDateTime(o.createdAt))}</p></div><div><p class="dyws-order-detail-total">${price(o.total)}</p><p>Payment ${esc(statusText(o.paymentStatus))}</p></div></header>
  <div class="dyws-order-destination"><div><h4>${o.fulfillment==='delivery'?'Delivery to':'Pickup location'}</h4><p>${esc(o.deliveryAddress||o.orderLocation?.address||o.orderLocation?.name||'')}</p></div><div><h4>${esc(o.orderLocation?.name||'Store')}</h4><p>${esc(o.fulfillmentMeta?.label||o.fulfillment)}</p></div></div>
- <details class="dyws-order-receipt" open><summary>Receipt</summary><ul>${o.lines.map(l=>`<li><span>${l.quantity} × ${esc(l.name)} ${esc(l.option)}</span><strong>${price(l.price*l.quantity)}</strong></li>`).join('')}</ul><dl>${[['Items',o.subtotal],['Delivery',o.deliveryFee],['Tax',o.tax],['Tip',o.tip],['Total',o.total]].map(([label,n])=>`<dt>${label}</dt><dd>${price(n)}</dd>`).join('')}</dl></details>
+ <details class="dyws-order-receipt" open><summary>Receipt</summary><ul>${o.lines.map(l=>`<li><span>${l.quantity} × ${esc(l.name)} ${esc(l.option)}</span><strong>${price(l.price*l.quantity)}</strong></li>`).join('')}</ul><dl>${o.discount?`<dt>${esc(o.deal?.name||'Deal savings')}</dt><dd>−${price(o.discount)}</dd>`:''}${[['Items after deals',o.subtotal],['Delivery',o.deliveryFee],['Tax',o.tax],['Tip',o.tip],['Total',o.total]].map(([label,n])=>`<dt>${label}</dt><dd>${price(n)}</dd>`).join('')}</dl></details>
  ${o.driver?`<section class="dyws-customer-driver" aria-label="Driver information"><div class="dyws-driver-overview"><span class="dyws-customer-driver-avatar" aria-hidden="true">${esc(Array.from(o.driver.name)[0]||'D')}</span><div><h4>Driver: ${esc(o.driver.name)}</h4><p>${esc([o.driver.vehicleColor,o.driver.vehicleType].filter(Boolean).join(' · '))}</p><p>${o.status==='delivered'?'Delivered your order':o.status==='out_for_delivery'?'Your delivery is on the way':'Assigned to your order'}</p></div></div>
  ${o.driverBlocked?'<p><strong>This driver is blocked for your account at this store.</strong></p>':''}
  <div class="dyws-driver-controls" role="group" aria-label="Driver controls"><button type="button" ${reportable?'data-open-report':'disabled'}>${o.report?'Report submitted':'Report driver'}</button>${o.driverBlocked?`<button type="button" data-unblock="${esc(o.driver.id)}">Unblock driver</button>`:`<button type="button" ${o.canReport?'data-block':'disabled'}>Block driver for future deliveries</button>`}</div>
@@ -21,6 +22,7 @@ export function customerSignInHTML({locked=false}={}){
 }
 
 export function mountCustomerAccount({root,message,error,api,loginToken=null,demoLocked=false,storeName='',view='account',ordersURL='orders/',signinLocked=false}){
+ if(view==='deals')return mountCustomerDeals({root,message,error,api,demoLocked});
  if(view==='signin'&&signinLocked){
   message.textContent='This is a public demo. Email sign in is locked by the installation owner. No email will be sent.';
   root.innerHTML=customerSignInHTML({locked:true});root.addEventListener('submit',event=>event.preventDefault());

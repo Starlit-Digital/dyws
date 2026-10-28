@@ -1,4 +1,5 @@
-import {mountBusinessSettings} from './business-settings.js?v=52';
+import {mountDealEditor} from './deal-editor.js?v=benefits-20261028';
+import {mountBusinessSettings} from './business-settings.js?v=benefits-20261028';
 import {configureTimeZone} from './date-time.js';
 import {adminPage} from './admin-navigation.js?v=39';
 export async function mountGeneralSettings({root=document,api,storageKey,onSave=()=>{}}){
@@ -12,6 +13,6 @@ export async function mountGeneralSettings({root=document,api,storageKey,onSave=
   const data=await page.request('/manager/settings',{method:'POST',body:{revision,settings:{timeZone:form.elements.timeZone.value,driverRole:{singular:form.elements.singular.value,plural:form.elements.plural.value}}}});
   display(data);onSave(data.settings);message.textContent='Saved.';
  });};
- try{await Promise.all([reload(),mountBusinessSettings({root,page})]);}catch(e){page.error.textContent=e.message;}
+ try{await Promise.all([reload(),mountBusinessSettings({root,page}),mountDealEditor({root,page})]);}catch(e){page.error.textContent=e.message;}
  refresh=page.autoRefresh({read:()=>page.request('/manager/settings'),apply:data=>{display(data);onSave(data.settings);},forms:[form],initial:latest});
 }

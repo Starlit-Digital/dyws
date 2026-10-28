@@ -258,3 +258,5 @@
 .dyws-ordering label.dyws-field{border-radius:var(--dyws-field-radius)}
 /* Give formatted contact fields a full row on compact checkout screens. */
 @media(max-width:600px){.dyws-ordering .dyws-checkout-grid{grid-template-columns:minmax(0,1fr)}}
+
+.dyws-ordering .dyws-payment-choice{min-width:0;border:0;padding:0;margin:12px 0 20px}.dyws-ordering .dyws-payment-choice legend{font-weight:700}.dyws-ordering .dyws-payment-choice label{display:flex;align-items:center;gap:12px;min-height:44px}.dyws-ordering .dyws-payment-choice input{width:22px;height:22px;flex-shrink:0}

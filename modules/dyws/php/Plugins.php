@@ -133,7 +133,7 @@ final class Plugins {
   if(!in_array($provider,$this->state()['active'],true)&&empty($this->retained[$provider]))return null;
   try{return $this->load($provider)->paymentCancellations[$provider]??null;}catch(\Throwable){return null;}
  }
- public function supportsPaymentCancellation(string $provider):bool{return $provider==='demo'||$this->cancellationHandler($provider)!==null;}
+ public function supportsPaymentCancellation(string $provider):bool{return Store::manualPayment($provider)||$this->cancellationHandler($provider)!==null;}
  public function cancelPayment(string $provider,string $id):string {
   $handler=$this->cancellationHandler($provider);if(!$handler)throw new ApiError('The payment cancellation plugin is unavailable.',503);
   return $handler($id);
@@ -147,7 +147,7 @@ final class Plugins {
    foreach($this->loaded[$id]->paymentProviders??[] as $provider){
     try{$value=$provider();}catch(\Throwable $e){error_log('dyws payment provider '.$id.': '.$e->getMessage());throw new ApiError('Payment settings are unavailable. Please try again later.',503);}
     if($value===null)continue;
-    if(!is_string($value)||!preg_match('/^[a-z][a-z0-9-]{0,59}$/D',$value)||$value==='demo'||$selected!=='demo')throw new ApiError('Check the active payment plugins.',503);
+    if(!is_string($value)||!preg_match('/^[a-z][a-z0-9-]{0,59}$/D',$value)||in_array($value,['demo','pay-at-door','pay-at-restaurant'],true)||$selected!=='demo')throw new ApiError('Check the active payment plugins.',503);
     $selected=$value;
    }
   }

@@ -1,12 +1,13 @@
+import {isOnlinePayment} from './payment-choice.js?v=benefits-20261028';
 import {mountCustomerOrder} from './customer-order.js';
 import {driverIconImage} from './driver-icons.js';
 import {statusBadge} from './status-badge.js';
 import {formatTime} from './date-time.js';
 import {pluginSlot} from './plugin-ui.js?v=39';
 import {statusText,escapeHTML} from './api.js';
-import {trackingDetails} from './tracking-details.js';
+import {trackingDetails} from './tracking-details.js?v=benefits-20261028';
 import {defaultRole} from './role-labels.js';
-import {deliveryStatus,terminalStatuses} from './delivery-status.js?v=40';
+import {deliveryStatus,terminalStatuses} from './delivery-status.js?v=benefits-20261028';
 export function createTracking({api,container,role=defaultRole,trackingPage,accountURL,renderLocation,renderPayment,plugins,shopPage,storageKey='dyws-tracking',panelId='customer-tracking',document:doc=globalThis.document,now=Date.now,onReady=()=>{}}) {
  if(typeof api!=='function'||!container)throw new TypeError('dyws tracking requires an API client and container.');
  let timer,clock,active,panel,unwatch=null,polling=false,again=false,lastData,estimate,unavailable=false,lastChecked=0,lastAnnouncement='',paymentState='',cancelBusy=false,confirmingCancellation=false,readVersion=0;
@@ -31,7 +32,7 @@ export function createTracking({api,container,role=defaultRole,trackingPage,acco
   box.querySelector('.dyws-cancel-keep').disabled=cancelBusy;
   box.querySelector('.dyws-cancel-order').setAttribute('aria-expanded',String(confirmingCancellation));
   const amount=new Intl.NumberFormat('en-CA',{style:'currency',currency:lastData?.summary?.currency||'CAD'}).format((c?.refundAmount??0)/100);
-  box.querySelector('.dyws-cancel-refund').textContent=lastData?.paymentStatus==='unpaid'?(lastData?.paymentProvider==='demo'?'No payment to refund.':`If paid, full refund: ${amount}, including tip.`):`Full refund: ${amount}, including tip.`;
+  box.querySelector('.dyws-cancel-refund').textContent=lastData?.paymentStatus==='unpaid'?(!isOnlinePayment(lastData?.paymentProvider)?'No payment to refund.':`If paid, full refund: ${amount}, including tip.`):`Full refund: ${amount}, including tip.`;
   const states={pending:'Payment cancellation pending.',refund_pending:'Full refund pending.',attention:'Refund delayed. Contact the store for help.',refunded:lastData?.paymentProvider==='demo'?'Test payment refunded.':'Payment refunded.',not_charged:'No payment taken.'};
   box.querySelector('.dyws-cancel-note').textContent=c?.cancelledAt?(states[c.paymentState]||''):available?`Cancel by ${time(c.deadline)}, before pickup or dispatch.`:'';
  }
@@ -107,8 +108,8 @@ export function createTracking({api,container,role=defaultRole,trackingPage,acco
   const nextPaymentState=JSON.stringify([data.paymentProvider,data.paymentStatus,data.status]);
   if(paymentState!==nextPaymentState&&!payment.querySelector('button:disabled')){
    paymentState=nextPaymentState;
-   payment.replaceChildren();const label=doc.createElement('p');label.className='dyws-status-row';label.innerHTML='Payment '+statusBadge(data.paymentStatus);payment.append(label);
-   if(data.paymentProvider!=='demo'&&data.paymentStatus==='unpaid'&&data.status==='placed'){
+   payment.replaceChildren();const label=doc.createElement('p');label.className='dyws-status-row';label.innerHTML=(data.paymentProvider==='pay-at-door'?'Pay at the door · ':data.paymentProvider==='pay-at-restaurant'?'Pay at restaurant · ':'Payment ')+statusBadge(data.paymentStatus);payment.append(label);
+   if(isOnlinePayment(data.paymentProvider)&&data.paymentStatus==='unpaid'&&data.status==='placed'){
     if(renderPayment)renderPayment({order:data,container:payment,trackingToken:current.token,onError:message=>write('.dyws-tracking-error',message)});
     else{const note=doc.createElement('p');note.textContent='Online payment is unavailable. Contact the business for help with this order.';payment.append(note);}
    }

@@ -79,3 +79,13 @@
 .dyws-catalog .dyws-product:has(> .dyws-customize) { grid-template-columns: minmax(0,1fr); gap: 8px; }
 .dyws-catalog .dyws-customize summary { min-height: 48px; box-sizing: border-box; }
 .dyws-catalog .dyws-customize .dyws-product-action { flex-wrap: wrap; }
+.dyws-deals { padding:24px; border-radius:22px; background:var(--dyws-panel-fill,var(--dyws-color-surface)); min-width:0; }
+.dyws-deal-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr)); gap:18px; }
+.dyws-deal-card { padding:18px; border:1px solid var(--dyws-color-border,var(--dyws-color-muted)); border-radius:14px; min-width:0; overflow-wrap:anywhere; }
+.dyws-deal-card h3 { margin:12px 0 8px; }
+.dyws-deal-card p { line-height:1.5; }
+.dyws-deal-card button { font:inherit; padding:10px 16px; min-height:44px; border-radius:10px; max-width:100%; white-space:normal; }
+.dyws-deal-badge { display:inline-block; font:700 .8em/1.4 system-ui,sans-serif; padding:4px 10px; border:1px solid currentColor; border-radius:8px; color:var(--dyws-color-emphasis,var(--dyws-color-text)); vertical-align:middle; }
+.dyws-item-deal-badge { margin:4px 0; }
+.dyws-deal-card button:disabled { opacity:.65; }
+.dyws-shell .dyws-deal-card [hidden] { display:none!important; }

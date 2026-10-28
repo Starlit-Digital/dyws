@@ -36,7 +36,7 @@ try{
 catch(Throwable $e){http_response_code(503);error_log('dyws setup: '.$e->getMessage());$error='Setup could not continue. Check the server log and file permissions.';}
 $ready=$installer&&\dyws\Installer::ready($checks)&&$checks;
 ?>
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Setup | dyws</title><link rel="stylesheet" href="../dyws/dyws.css"><link rel="stylesheet" href="<?= $done?'../dyws/setup.css':'setup.css' ?>"></head>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Setup | dyws</title><link rel="stylesheet" href="../dyws/dyws.css?v=benefits-20261028"><link rel="stylesheet" href="<?= $done?'../dyws/setup.css':'setup.css' ?>"></head>
 <body class="dyws-shell dyws-setup"><header><img src="../assets/dyws.svg" width="44" height="44" alt=""><strong>dyws</strong></header><main>
 <?php if($done): ?>
 <h1>Ready to go</h1><p><?=esc($done['businessName'])?> is set up.</p><p><?= $done['removed']?'Setup has been removed.':'Setup is locked. Remove the remaining public_html/setup folder using your hosting file manager.' ?></p><a class="dyws-setup-link" href="../admin/">Open admin</a>

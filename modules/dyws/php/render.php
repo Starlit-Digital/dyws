@@ -26,6 +26,12 @@ function dyws_render_business_hours(array $catalog):string {
  return $html;
 }
 
+function dyws_render_deals(array $catalog):string {
+ $offers=$catalog['deals']??[];if(!$offers)return '';$html='<section id="dyws-deals" class="dyws-deals" aria-label="Deals"><h2>Deals</h2><p>Claim a deal, then use it on an eligible order before it expires. One deal per order.</p><div class="dyws-deal-grid">';
+ foreach($offers as $d){$html.='<article class="dyws-deal-card"><h3>'.dyws_escape($d['name']).'</h3><p>'.dyws_escape($d['rule']).'</p><p>'.dyws_escape($d['schedule'].' · Expires '.$d['endsOn'].' · '.$d['timeZone']).'</p><button type="button" data-claim-deal="'.dyws_escape($d['id']).'" disabled>Claim deal</button></article>';}
+ return $html.'</div></section>';
+}
+
 /** Functions return HTML so the host chooses where to echo each component. */
 function dyws_render_menu(array $catalog,array $options=[]):string {return (new DYWSRenderer($catalog))->menu($options);}
 function dyws_render_category(array $catalog,string $categoryId,array $options=[]):string {return (new DYWSRenderer($catalog))->category($categoryId,$options);}
@@ -34,14 +40,14 @@ function dyws_render_navigation(array $catalog):string {return (new DYWSRenderer
 
 final class DYWSRenderer {
  private array $catalog;
- public function __construct(array $catalog){$this->catalog=\dyws\Catalog::publicData(\dyws\Catalog::validate($catalog));}
+ public function __construct(array $catalog){$this->catalog=\dyws\Catalog::publicData(\dyws\Catalog::validate($catalog),$catalog['timeZone']??'America/Edmonton');}
  private function wrap(string $html,array $options):string {
   $id=isset($options['id'])?' id="'.dyws_escape((string)$options['id']).'"':'';
   return '<div'.$id.' class="dyws-catalog" data-dyws-rendered tabindex="-1">'.$html.'</div>';
  }
  private function price(int $cents):string {return ($this->catalog['currency']==='USD'?'US$':'$').number_format($cents/100,2,'.',',');}
  private function image(array $image,string $class):string {return '<img class="'.$class.'" src="'.dyws_escape($image['src']).'" alt="'.dyws_escape($image['alt']).'" loading="lazy" decoding="async">';}
- public function menu(array $options=[]):string {return $this->wrap(implode('',array_map(fn($c)=>$this->categoryPanel($c),$this->catalog['categories'])),$options);}
+ public function menu(array $options=[]):string {return $this->wrap(dyws_render_deals($this->catalog).implode('',array_map(fn($c)=>$this->categoryPanel($c),$this->catalog['categories'])),$options);}
  public function category(string $id,array $options=[]):string {
   foreach($this->catalog['categories'] as $category)if($category['id']===$id)return $this->wrap($this->categoryPanel($category),$options);
   throw new InvalidArgumentException('Unknown DYWS category.');
@@ -64,7 +70,8 @@ final class DYWSRenderer {
   $name=dyws_escape($item['name']);
   $html='<article class="dyws-product"><div>';
   if($showImage&&isset($item['image']))$html.=$this->image($item['image'],'dyws-product-image');
-  $html.='<h3>'.$name.'</h3><p>'.dyws_escape($item['description']).'</p>';
+  $badges='';foreach($this->catalog['deals']??[] as $deal)if($deal['activeNow']&&in_array($item['id'],$deal['itemIds'],true))$badges.=' <span class="dyws-deal-badge dyws-item-deal-badge">'.dyws_escape($deal['type']==='quantity'?($deal['buyQuantity']+$deal['getQuantity']).' for '.$deal['buyQuantity']:($deal['type']==='spend_percent'?($deal['percentBasisPoints']/100).'% off':'Deal')).'</span>';
+  $html.='<h3>'.$name.$badges.'</h3><p>'.dyws_escape($item['description']).'</p>';
   $custom=!empty($item['optionGroups']);
   if($custom)$html.='</div><details class="dyws-customize"><summary>Customize '.$name.'<span class="dyws-customize-price"> · '.$this->price($item['variants'][0]['price']??$item['price']).'</span></summary>';
   if(!empty($item['variants'])){
@@ -98,7 +105,7 @@ function dyws_render_customer_account_link(array $config,\dyws\Store $store,stri
  $locked=($presentation['customerNavigationLocked']??false)===true;$preview=$locked;
  $account=$prefix.'account/';$signin=$account.'sign-in/';$orders=$account.'orders/';$state=$signedIn?'signed-in':($preview?'preview':'signed-out');
  $html='<div class="dyws-customer-navigation-control" data-dyws-customer-navigation data-account-url="'.dyws_escape($account).'" data-signin-url="'.dyws_escape($signin).'" data-orders-url="'.dyws_escape($orders).'" data-demo-locked="'.($locked?'true':'false').'" data-customer-state="'.$state.'">';
- if($signedIn||$preview)$html.='<details class="dyws-account-menu"><summary data-dyws-customer-link aria-label="My account">My account<span aria-hidden="true">▾</span></summary><div class="dyws-account-menu-panel"><a data-dyws-account-details href="'.dyws_escape($account).'">Account details</a><a data-dyws-account-orders href="'.dyws_escape($orders).'">My orders</a><button type="button" data-dyws-account-logout disabled'.($locked?' title="Locked by the installation owner"':'').'>Sign out</button><p class="dyws-account-menu-status" role="status" aria-live="polite">'.($locked?'Demo account actions are locked.':'').'</p></div></details>';
+ if($signedIn||$preview)$html.='<details class="dyws-account-menu"><summary data-dyws-customer-link aria-label="My account">My account<span aria-hidden="true">▾</span></summary><div class="dyws-account-menu-panel"><a data-dyws-account-details href="'.dyws_escape($account).'">Account details</a><a data-dyws-account-orders href="'.dyws_escape($orders).'">My orders</a><a data-dyws-account-deals href="'.dyws_escape($prefix.'account/deals/').'">My deals</a><button type="button" data-dyws-account-logout disabled'.($locked?' title="Locked by the installation owner"':'').'>Sign out</button><p class="dyws-account-menu-status" role="status" aria-live="polite">'.($locked?'Demo account actions are locked.':'').'</p></div></details>';
  else $html.='<a class="account-link" data-dyws-customer-link href="'.dyws_escape($signin).'">Sign in</a>';
  return $html.'</div>';
 }

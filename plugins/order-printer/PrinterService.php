@@ -80,7 +80,7 @@ final class PrinterService {
     }
     private function eligible(array $order):bool {
         return in_array($order['status'],['accepted','preparing','ready'],true)
-            && ($order['payment_status']==='paid'||($order['payment_provider']==='demo'&&$order['payment_status']==='unpaid'));
+            && ($order['payment_status']==='paid'||(\dyws\Store::manualPayment($order['payment_provider'])&&$order['payment_status']==='unpaid'));
     }
     private function matches(array $device,array $order):bool {
         $location=json_decode($order['order_location_json']??'{}',true);
@@ -108,7 +108,8 @@ final class PrinterService {
         }
         if($order['notes']!==''){$lines[]='NOTES';$lines[]=self::clean($order['notes']);}
         // Kitchen tickets deliberately omit phone, address and tracking credentials.
-        $lines[]='Payment: '.($order['payment_provider']==='demo'?'TEST LEDGER ':'').strtoupper($order['payment_status']);
+        $lines[]='Payment: '.($order['payment_provider']==='pay-at-door'?'PAY AT THE DOOR ':($order['payment_provider']==='pay-at-restaurant'?'PAY AT RESTAURANT ':'')).($order['payment_provider']==='demo'?'TEST LEDGER ':'').strtoupper($order['payment_status']);
+        if(($order['discount']??0)>0){$deal=json_decode($order['deal_json']??'{}',true);$lines[]='DEAL: '.self::clean($deal['name']??'Deal savings');$lines[]='Savings: '.$order['currency'].' '.number_format($order['discount']/100,2,'.','');}
         $lines[]='Tip: '.$order['currency'].' '.number_format(($order['tip']??0)/100,2,'.','');
         $lines[]='Total: '.$order['currency'].' '.number_format($order['total']/100,2,'.','');
         $text=implode("\n",array_map(fn($line)=>wordwrap($line,$width,"\n",true),$lines))."\n";
@@ -130,7 +131,7 @@ final class PrinterService {
             if(!$valid)$this->store->execute("UPDATE printer_jobs SET state='cancelled',updated_at=? WHERE tenant=? AND id=?",[$now,$tenant,$job['id']]);
         }
         // Only accepted orders created after pairing configuration are automatically printed.
-        $orders=$this->store->query("SELECT * FROM orders WHERE tenant=? AND EXISTS (SELECT 1 FROM events e WHERE e.tenant=orders.tenant AND e.order_id=orders.id AND e.status='placed' AND e.id>?) AND status IN ('accepted','preparing','ready') AND (payment_status='paid' OR (payment_provider='demo' AND payment_status='unpaid')) AND COALESCE(json_extract(order_location_json,'$.id'),'')=? AND NOT EXISTS (SELECT 1 FROM printer_jobs j WHERE j.tenant=orders.tenant AND j.order_id=orders.id AND j.printer_id=? AND j.dedupe_key='order:'||orders.id) ORDER BY created_at,id LIMIT 200",[$tenant,$device['order_cursor'],$device['location_id'],$id]);
+        $orders=$this->store->query("SELECT * FROM orders WHERE tenant=? AND EXISTS (SELECT 1 FROM events e WHERE e.tenant=orders.tenant AND e.order_id=orders.id AND e.status='placed' AND e.id>?) AND status IN ('accepted','preparing','ready') AND (payment_status='paid' OR (payment_provider IN ('demo','pay-at-door','pay-at-restaurant') AND payment_status='unpaid')) AND COALESCE(json_extract(order_location_json,'$.id'),'')=? AND NOT EXISTS (SELECT 1 FROM printer_jobs j WHERE j.tenant=orders.tenant AND j.order_id=orders.id AND j.printer_id=? AND j.dedupe_key='order:'||orders.id) ORDER BY created_at,id LIMIT 200",[$tenant,$device['order_cursor'],$device['location_id'],$id]);
         foreach($orders as $order)if($this->eligible($order)&&$this->matches($device,$order))$this->enqueue($device,$order,'order','order:'.$order['id'],$this->ticket($order,$device,'order'));
     }
     public function reconcileAll():void {

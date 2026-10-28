@@ -36,7 +36,7 @@ export async function mountBusinessSettings({root,page}){
   catalog=createCatalogDraft(data.catalog);revision=data.revision;
   for(const key of ['businessName','platformName','pickupAddress','businessPhone','businessEmail','currency'])form.elements[key].value=catalog[key]??'';
   for(const key of ['taxBasisPoints','deliveryFee','deliveryFeeBasisPoints'])form.elements[key].value=((catalog[key]??0)/100).toFixed(2);
-  form.elements.itemOrderCap.value=catalog.itemOrderCap??10;
+  form.elements.itemOrderCap.value=catalog.itemOrderCap??10;form.elements.allowPayAtDoor.checked=catalog.allowPayAtDoor===true;form.elements.allowPayAtPickup.checked=catalog.allowPayAtPickup===true;
   readLocationHours=mountHoursEditor(form.querySelector('#business-location-hours'),{label:'Location hours',schedule:catalog.locationHours});
   readOrderingHours=mountHoursEditor(form.querySelector('#business-ordering-hours'),{label:'Ordering hours',schedule:catalog.orderingHours});
   readCancellation=cancellationEditor(form.querySelector('#business-cancellation-editor'),catalog.customerCancellation);
@@ -50,7 +50,7 @@ export async function mountBusinessSettings({root,page}){
   const updated=createCatalogDraft(catalog);
   for(const key of ['businessName','platformName','pickupAddress','businessPhone','businessEmail'])updated[key]=form.elements[key].value;
   for(const key of ['taxBasisPoints','deliveryFee','deliveryFeeBasisPoints'])updated[key]=decimalToMinor(form.elements[key].value);
-  updated.customerCancellation=readCancellation();updated.itemOrderCap=Number(form.elements.itemOrderCap.value);updated.locationHours=readLocationHours();updated.orderingHours=readOrderingHours();
+  updated.allowPayAtDoor=form.elements.allowPayAtDoor.checked;updated.allowPayAtPickup=form.elements.allowPayAtPickup.checked;updated.customerCancellation=readCancellation();updated.itemOrderCap=Number(form.elements.itemOrderCap.value);updated.locationHours=readLocationHours();updated.orderingHours=readOrderingHours();
   updated.locations=[...locationRows.children].map(row=>({id:row.dataset.locationId,...locationEditors.get(row)(),...Object.fromEntries([...row.querySelectorAll('[data-location-field]')].map(input=>[input.dataset.locationField,input.type==='checkbox'?input.checked:input.value.trim()]))}));
   fields.disabled=true;
   try{display(await page.request('/manager/catalog',{method:'POST',body:{catalog:updated,revision}}));message.textContent='Saved.';}

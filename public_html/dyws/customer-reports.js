@@ -1,5 +1,5 @@
 import {escapeHTML as esc} from './api.js';
-import {driverReportReasons} from './customer-account.js';
+import {driverReportReasons} from './customer-account.js?v=benefits-20261028';
 import {formatDateTime} from './date-time.js';
 export function mountCustomerReports({root,api,getToken}){
  root.innerHTML='<details><summary>Customer driver reports</summary><button type="button" data-refresh>Refresh reports</button><div data-reports></div><button type="button" data-more hidden>More reports</button><p role="status"></p></details>';

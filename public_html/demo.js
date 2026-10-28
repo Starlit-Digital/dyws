@@ -1,6 +1,6 @@
 import {markReady} from './dyws/diagnostics.js';
 import {plugins} from './platform/plugins.js?v=39';
-import {mountStorefront} from './dyws/storefront.js?v=options-20261028';
+import {mountStorefront} from './dyws/storefront.js?v=benefits-20261028';
 import {api} from './platform/api.js';
 import {loadRole,applyRoleLabels} from './dyws/role-labels.js';
 const role=await loadRole(api);

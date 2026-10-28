@@ -41,7 +41,9 @@
     "./customer-account.js": "./customer-account.js",
     "./customer-account.css": "./customer-account.css",
     "./customer-order.js": "./customer-order.js",
-    "./customer-reports.js": "./customer-reports.js"
+    "./customer-reports.js": "./customer-reports.js",
+    "./deals.js": "./deals.js",
+    "./payment-choice.js": "./payment-choice.js"
   },
   "files": [
     "*.js",

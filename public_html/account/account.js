@@ -1,5 +1,5 @@
 import {createAPIClient} from '../dyws/api.js';
-import {mountCustomerAccount} from '../dyws/customer-account.js';
+import {mountCustomerAccount} from '../dyws/customer-account.js?v=benefits-20261028';
 const api=createAPIClient(new URL('../api/',import.meta.url).href);
 function takeToken(){
  const token=new URLSearchParams(location.hash.slice(1)).get('login');

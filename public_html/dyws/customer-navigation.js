@@ -2,7 +2,7 @@ import {escapeHTML as esc} from './api.js';
 
 const controlHTML=(state,account,orders,signin,locked)=>state==='signed-out'
  ?`<a class="account-link" data-dyws-customer-link href="${esc(signin)}">Sign in</a>`
- :`<details class="dyws-account-menu"><summary data-dyws-customer-link aria-label="My account">My account<span aria-hidden="true">▾</span></summary><div class="dyws-account-menu-panel"><a data-dyws-account-details href="${esc(account)}">Account details</a><a data-dyws-account-orders href="${esc(orders)}">My orders</a><button type="button" data-dyws-account-logout ${locked?'disabled title="Locked by the installation owner"':''}>Sign out</button><p class="dyws-account-menu-status" role="status" aria-live="polite">${locked?'Demo account actions are locked.':''}</p></div></details>`;
+ :`<details class="dyws-account-menu"><summary data-dyws-customer-link aria-label="My account">My account<span aria-hidden="true">▾</span></summary><div class="dyws-account-menu-panel"><a data-dyws-account-details href="${esc(account)}">Account details</a><a data-dyws-account-orders href="${esc(orders)}">My orders</a><a data-dyws-account-deals href="${esc(new URL('deals/',new URL(account,globalThis.document?.baseURI||'http://localhost/')).href)}">My deals</a><button type="button" data-dyws-account-logout ${locked?'disabled title="Locked by the installation owner"':''}>Sign out</button><p class="dyws-account-menu-status" role="status" aria-live="polite">${locked?'Demo account actions are locked.':''}</p></div></details>`;
 
 export function customerNavigationHTML({accountURL,signedIn=false,locked=false}){
  const signin=new URL('sign-in/',accountURL).href,orders=new URL('orders/',accountURL).href,state=signedIn?'signed-in':locked?'preview':'signed-out';

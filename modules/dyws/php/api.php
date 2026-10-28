@@ -15,7 +15,7 @@ try {
  $method=$_SERVER['REQUEST_METHOD'];$route=$_GET['route']??'/health';if(!is_string($route)||strlen($route)>180)throw new \dyws\ApiError('Invalid route.',400);
  $pluginRoute=$plugins->match($method,$route);$raw='';
  if($method==='POST'){
-  $maxBody=$route==='/manager/catalog'?262144:($pluginRoute['maxBody']??32768);
+  $maxBody=in_array($route,['/manager/catalog','/manager/deals'],true)?262144:($pluginRoute['maxBody']??32768);
   if(stripos($_SERVER['CONTENT_TYPE']??'','application/json')!==0)throw new \dyws\ApiError('JSON requests are required.',415);
   if((int)($_SERVER['CONTENT_LENGTH']??0)>$maxBody)throw new \dyws\ApiError('Request is too large.',413);
   $raw=file_get_contents('php://input',false,null,0,$maxBody+1);if(strlen($raw)>$maxBody)throw new \dyws\ApiError('Request is too large.',413);
@@ -27,6 +27,13 @@ try {
  elseif(str_starts_with($route,'/customer/')){
   $customers->guard();dyws_limit_requests($store,$config,'customer-api',120,60);
   if($method==='GET'&&$route==='/customer/session')$result=$customers->state();
+  elseif(in_array($route,['/customer/deals','/customer/deals/claim','/customer/deals/activate','/customer/deals/quote'],true)){
+   $owner=\dyws\Deals::owner($config,$customers,$method==='POST');if($method==='GET'&&$route==='/customer/deals')$result=$store->deals()->listing($owner)+['demo'=>!empty($config['demo_lockdown'])];
+   elseif($method==='POST'&&$route==='/customer/deals/quote')$result=$store->quoteCheckout($body,$owner);
+   elseif($method==='POST'&&$owner&&$route==='/customer/deals/claim')$result=$store->deals()->claim($owner,\dyws\Store::text($body['dealId']??null,80));
+   elseif($method==='POST'&&$owner&&$route==='/customer/deals/activate')$result=$store->deals()->activate($owner,\dyws\Store::text($body['claimId']??'',80,false));
+   else throw new \dyws\ApiError('Sign in to claim a deal.',401);
+  }
   elseif($method==='POST'&&$route==='/customer/auth/request'){
    dyws_limit_requests($store,$config,'customer-links',10,900);$result=$customers->requestLink($body);
   }elseif($method==='POST'&&in_array($route,['/customer/auth/inspect','/customer/auth/verify'],true)){
@@ -44,6 +51,11 @@ try {
    }else throw new \dyws\ApiError('Endpoint not found.',404);
   }
  }
+ elseif($route==='/manager/deals'&&in_array($method,['GET','POST'],true)){
+  dyws_authorize($store,['manager']);$catalog=\dyws\Catalog::load($config['catalog']);if($method==='POST'){$catalog['deals']=$body['deals']??null;$catalog=\dyws\Catalog::save($config['catalog'],$catalog,\dyws\Store::text($body['revision']??null,64));}
+  $result=['deals'=>$catalog['deals'],'revision'=>\dyws\Catalog::revision($catalog),'items'=>array_map(fn($i)=>['id'=>$i['id'],'name'=>$i['name']],array_merge(...array_column($catalog['categories'],'items'))),'currency'=>$catalog['currency']];
+ }
+ elseif($method==='GET'&&$route==='/deals')$result=['deals'=>\dyws\Deals::publicList(\dyws\Catalog::load($config['catalog']),(new \dyws\Settings($config))->read()['timeZone'])];
  elseif($method==='GET'&&$route==='/manager/customer-reports'){dyws_authorize($store,['manager']);$result=$customerDrivers->reports(dyws_customer_offset());}
  elseif($route==='/guest-details'&&in_array($method,['GET','POST'],true)){
   $guest=new \dyws\GuestDetails($store,$config);$guest->guard();
@@ -100,10 +112,10 @@ try {
   $guestRequest=isset($body['rememberDetails'])||isset($_SERVER['HTTP_X_DYWS_GUEST']);
   if($guestRequest)$guest->guard();
   $preference=$guest->validatePreference($body['rememberDetails']??null);
-  $result=$store->transaction(function()use($store,$body,$plugins,$guest,$guestRequest,$preference,$customer,&$renewal){
+  $result=$store->transaction(function()use($store,$body,$plugins,$guest,$guestRequest,$preference,$customer,&$renewal,$config,$customers){
    $key=is_string($body['idempotencyKey']??null)?$body['idempotencyKey']:'';
    $existing=$store->query('SELECT id FROM orders WHERE tenant=? AND request_key=?',[$store->tenant,$key]);
-   $receipt=$store->create($body,$plugins->paymentProvider(),$customer['id']??null);
+   $receipt=$store->create($body,match($body['paymentMethod']??'pay_now'){'pay_at_door'=>'pay-at-door','pay_at_restaurant'=>'pay-at-restaurant',default=>$plugins->paymentProvider()},$customer['id']??null,\dyws\Deals::owner($config,$customers));
    if($guestRequest&&!$existing)$renewal=$guest->ordered($store->get($receipt['id']),$preference);
    return $receipt;
   });
@@ -147,6 +159,7 @@ try {
   elseif($m[2]==='assign'){$driver=$body['driverId']??'';if(!is_string($driver))throw new \dyws\ApiError('Unknown driver.');$accounts->assign($store,$m[1],$driver);$result=['ok'=>true];}
   else{$store->payment($m[1],\dyws\Store::text($body['kind']??null,20));$result=['ok'=>true];}
  }
+ elseif($method==='POST'&&preg_match('~^/driver/orders/([A-Z]{2,7}-[A-F0-9]{12})/payment$~',$route,$m)){$s=dyws_authorize($store,['driver']);if(($body['kind']??'capture')!=='capture')throw new \dyws\ApiError('Drivers can only record door collection.',403);$store->collectDoorPayment($m[1],$s['subject']);$result=['ok'=>true];}
  elseif($method==='POST'&&preg_match('~^/driver/orders/([A-Z]{2,7}-[A-F0-9]{12})/location/(start|stop|heartbeat)$~',$route,$m)){
   $s=dyws_authorize($store,['driver']);dyws_limit_requests($store,$config,'gps-control',60,60);
   if((new \dyws\DeliveryRuns($store))->membership($m[1]))throw new \dyws\ApiError('Use the delivery run GPS connection.',409);

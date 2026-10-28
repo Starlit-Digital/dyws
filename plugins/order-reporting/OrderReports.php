@@ -60,7 +60,7 @@ final class OrderReports {
    if($o['fulfillment']==='delivery'){$deliveryOrders++;$deliveryFees+=(int)$o['delivery_fee'];}
    $summary['orderedTips']+=(int)$o['tip'];$daily[$key]['orderedTips']+=(int)$o['tip'];$summary['orderedValue']+=(int)$o['total'];$daily[$key]['orderedValue']+=(int)$o['total'];
    if($o['payment_status']==='unpaid'){$summary['unpaidOrders']++;$summary['unpaidValue']+=(int)$o['total'];}
-   foreach(json_decode($o['lines_json'],true,64,JSON_THROW_ON_ERROR) as $line){$itemKey=json_encode([$line['id'],$line['variant']]);if(!isset($items[$itemKey]))$items[$itemKey]=['id'=>$line['id'],'variant'=>$line['variant'],'name'=>$line['name'],'option'=>$line['option'],'quantity'=>0,'orderedSubtotal'=>0];$summary['units']+=(int)$line['quantity'];$items[$itemKey]['quantity']+=(int)$line['quantity'];$items[$itemKey]['orderedSubtotal']+=(int)$line['quantity']*(int)$line['price'];}
+   foreach(json_decode($o['lines_json'],true,64,JSON_THROW_ON_ERROR) as $line){$itemKey=json_encode([$line['id'],$line['variant']]);if(!isset($items[$itemKey]))$items[$itemKey]=['id'=>$line['id'],'variant'=>$line['variant'],'name'=>$line['name'],'option'=>$line['option'],'quantity'=>0,'orderedSubtotal'=>0];$summary['units']+=(int)$line['quantity'];$items[$itemKey]['quantity']+=(int)$line['quantity'];$items[$itemKey]['orderedSubtotal']+=(int)$line['quantity']*(int)$line['price']-(int)($line['discount']??0);}
   }
   $nonCancelled=$summary['orders']-$summary['cancelled'];$summary['averageOrder']=$nonCancelled?(int)round($summary['orderedValue']/$nonCancelled):0;
   if($summary['orders']){$summary['completionRate']=round(100*$summary['completed']/$summary['orders'],1);$summary['cancellationRate']=round(100*$summary['cancelled']/$summary['orders'],1);}
