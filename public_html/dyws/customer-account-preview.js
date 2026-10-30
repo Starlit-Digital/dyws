@@ -3,10 +3,10 @@ import {formatPhoneInput} from './phone-input.js';
 
 /** Fictional presentation only. These records are never stored or sent to an API. */
 export function customerPreviewOrders(storeName){
- const common={status:'delivered',paymentStatus:'paid',fulfillment:'delivery',fulfillmentMeta:{label:'Delivery'},orderLocation:{name:storeName},currency:'CAD',deliveryAddress:'123 Example Avenue NW, Edmonton, AB T5A 1A1',subtotal:1495,deliveryFee:395,tax:95,tip:200,total:2185,lines:[{quantity:1,name:'Example meal',option:'',price:1495}],canReport:true};
+ const common={status:'delivered',paymentStatus:'paid',fulfillment:'delivery',fulfillmentMeta:{label:'Delivery'},orderLocation:{name:storeName},currency:'CAD',deliveryAddress:'123 Example Avenue NW, Edmonton, AB T5A 1A1',subtotal:1495,deliveryFee:395,tax:95,tip:200,total:2185,lines:[{quantity:1,name:'Example item',option:'',price:1495}],canReport:true};
  return [
   {...common,id:'DEMO-000000000001',createdAt:1793116800,driver:{id:'demo-driver-one',name:'Demo Driver One',vehicleColor:'Blue',vehicleType:'Sedan'},report:null,driverBlocked:false},
-  {...common,id:'DEMO-000000000002',createdAt:1793113200,status:'out_for_delivery',subtotal:2390,tax:139,tip:300,total:3224,lines:[{quantity:1,name:'Example meal',option:'',price:1495},{quantity:1,name:'Example side',option:'',price:895}],driver:{id:'demo-driver-three',name:'Demo Driver Three',vehicleColor:'Silver',vehicleType:'Hatchback'},canReport:false,report:null,driverBlocked:false},
+  {...common,id:'DEMO-000000000002',createdAt:1793113200,status:'out_for_delivery',subtotal:2390,tax:139,tip:300,total:3224,lines:[{quantity:1,name:'Example item',option:'',price:1495},{quantity:1,name:'Additional item',option:'',price:895}],driver:{id:'demo-driver-three',name:'Demo Driver Three',vehicleColor:'Silver',vehicleType:'Hatchback'},canReport:false,report:null,driverBlocked:false},
   {...common,id:'DEMO-000000000003',createdAt:1793030400,driver:{id:'demo-driver-two',name:'Demo Driver Two',vehicleColor:'White',vehicleType:'SUV'},report:{reason:'handling',details:'Example report: the order arrived damaged.'},driverBlocked:true}
  ];
 }

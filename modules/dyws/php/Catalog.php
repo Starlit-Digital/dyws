@@ -10,7 +10,7 @@ final class Catalog {
  public static function load(string $path):array { return self::validate(json_decode(file_get_contents($path),true,64,JSON_THROW_ON_ERROR)); }
  public static function validate(array $data):array {
   $out=['schemaVersion'=>2,'businessName'=>Store::text($data['businessName']??$data['restaurant']??null,120),'platformName'=>Store::text($data['platformName']??'dyws',100),'currency'=>$data['currency']??'CAD','taxBasisPoints'=>$data['taxBasisPoints']??0,'deliveryFee'=>$data['deliveryFee']??395,'deliveryFeeBasisPoints'=>$data['deliveryFeeBasisPoints']??0,'locationHours'=>BusinessHours::validate($data['locationHours']??null),'orderingHours'=>BusinessHours::validate($data['orderingHours']??null),'pickupAddress'=>Store::text($data['pickupAddress']??'',240,false),'businessPhone'=>Store::text($data['businessPhone']??'',30,false),'businessEmail'=>Store::text($data['businessEmail']??'',254,false),'itemOrderCap'=>$data['itemOrderCap']??10,'allowPayAtDoor'=>$data['allowPayAtDoor']??false,'allowPayAtPickup'=>$data['allowPayAtPickup']??false,'customerCancellation'=>Cancellation::policy($data['customerCancellation']??null),'categories'=>[]];
-  if(array_key_exists('allowPayAtPickup',$data)&&!is_bool($data['allowPayAtPickup']))throw new ApiError('Choose whether to allow pay at restaurant.');
+  if(array_key_exists('allowPayAtPickup',$data)&&!is_bool($data['allowPayAtPickup']))throw new ApiError('Choose whether to allow pay at pickup.');
   if(array_key_exists('allowPayAtDoor',$data)&&!is_bool($data['allowPayAtDoor']))throw new ApiError('Choose whether to allow pay at the door.');
   if(!is_int($out['itemOrderCap'])||$out['itemOrderCap']<1||$out['itemOrderCap']>99)throw new ApiError('Item Order Cap must be a whole number from 1 to 99.');
   if($out['businessPhone']!==''&&!preg_match('/^[0-9+() .-]{7,30}$/D',$out['businessPhone']))throw new ApiError('Enter a valid business phone number.');
@@ -114,6 +114,7 @@ final class Catalog {
   return ['src'=>$src,'alt'=>$alt];
  }
  public static function publicData(array $catalog,string $timeZone='America/Edmonton',bool $acceptingOrders=true):array {
+  $catalog['fulfillmentModes']=[];
   $catalog['deals']=Deals::publicList($catalog,$timeZone);$catalog['timeZone']=$timeZone;$catalog['acceptingOrders']=$acceptingOrders;
   foreach($catalog['categories'] as &$c)$c['items']=array_values(array_filter($c['items'],fn($i)=>$i['active']));unset($c);
   return $catalog;

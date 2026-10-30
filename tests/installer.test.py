@@ -89,7 +89,7 @@ with tempfile.TemporaryDirectory(prefix='dyws-install-') as tmp:
    req=urllib.request.Request(url+'/api/?route='+route,headers={'Authorization':'Bearer '+token})
    with client.open(req) as r:return json.load(r)
   plugin_manifest=get_api('/plugins')
-  check(sorted(p['id'] for p in plugin_manifest['plugins'])==['datatables','google-maps','order-reporting'],'All bundled plugins discovered after fresh install')
+  check(sorted(p['id'] for p in plugin_manifest['plugins'])==['catalog','datatables','delivery','google-maps','order-reporting','pickup'],'All bundled plugins discovered after fresh install')
   check(len(plugin_manifest['hooks'])==40,'Installed hook catalog available')
   draft=get_api('/manager/catalog');draft['catalog']['categories']=[{'id':'goods','name':'Goods','items':[{'id':'sample','name':'Example item','price':500,'description':'','active':True,'unit':'each'}]}]
   api('/manager/catalog',draft,token)

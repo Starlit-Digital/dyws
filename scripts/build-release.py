@@ -33,6 +33,8 @@ for part in ['plugins/nominatim/plugin.json','plugins/nominatim/plugin.php','plu
  if part not in files:raise SystemExit('Stage release source before building: '+part)
 for part in ['plugins/order-printer/plugin.json','plugins/order-printer/plugin.php','plugins/order-printer/PrinterService.php','plugins/order-printer/schema.sql','public_html/plugins/order-printer/index.js','public_html/plugins/order-printer/printer.css','docs/order-printer.md','firmware/order-printer/README.md','firmware/order-printer/DywsPrinter/DywsPrinter.ino']:
  if part not in files:raise SystemExit('Stage release source before building: '+part)
+for part in ['modules/dyws/php/LocalTime.php','plugins/catalog/plugin.php','plugins/catalog/Pricing.php','plugins/pickup/Pickup.php','plugins/delivery/Runs.php','plugins/booking/Booking.php','public_html/plugins/booking/storefront.js','public_html/plugins/booking/page.js','public_html/plugins/booking/index.js','public_html/plugins/pickup/index.js','public_html/plugins/pickup/pickup.js','docs/business-capability-plugins.md']:
+ if part not in files:raise SystemExit('Stage release source before building: '+part)
 files['var/.gitkeep']=b''
 manifest={'version':version,'files':{name:hashlib.sha256(data).hexdigest() for name,data in sorted(files.items())}}
 files['MANIFEST.json']=(json.dumps(manifest,indent=2)+'\n').encode()

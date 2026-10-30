@@ -12,10 +12,10 @@ class Node {
  remove(){if(this.parent)this.parent.children=this.parent.children.filter(n=>n!==this);}
  addEventListener(name,fn){this.listeners[name]=fn;}
 }
-function fixture(page,orderId=null){
+function fixture(page,orderId=null,modes=null){
  const body=new Node('body'),main=page==='tracking'?null:new Node('main'),footer=page==='storefront'?new Node('footer'):null;
  if(main)body.append(main);if(footer)body.append(footer);
- const doc={body,createElement:tag=>new Node(tag),querySelector:selector=>selector==='main'?main:selector==='footer'?footer:selector==='dyws-ordering'&&page==='storefront'?{}:null};
+ const doc={body,createElement:tag=>new Node(tag),querySelector:selector=>selector==='meta[id=dyws-initial-catalog]'&&modes?{content:JSON.stringify({fulfillmentModes:modes})}:selector==='main'?main:selector==='footer'?footer:selector==='dyws-ordering'&&page==='storefront'?{}:null};
  if(orderId)doc.defaultView={location:{href:'https://example.test/driver/#order='+orderId},addEventListener(){},removeEventListener(){}};
  const cleanup=[],actions={},driverActions=page==='driver'?new Node('div'):null;
  if(driverActions)main.append(driverActions);
@@ -67,7 +67,7 @@ test('Failed, unexpected or missing CSRF forms never submit demo credentials',as
 
 test('Demo navigation lives inside the selected order and the signed in driver toolbar',()=>{
  const admin=fixture('orders'),orderPanel=new Node('div');
- const id='DYWS-000000000002';admin.actions['admin:order']({root:orderPanel,order:{id}});
+ const id='DYWS-000000000002';admin.actions['admin:order']({root:orderPanel,order:{id,fulfillment:'delivery'}});
  const [driverAccess,tracking]=orderPanel.children[0].children;
  assert.equal(driverAccess.children[0].textContent,'Open Driver demo');
  assert.equal(new URL(driverAccess.children[0].href).searchParams.get('demo'),'driver');
@@ -81,7 +81,7 @@ test('Demo navigation lives inside the selected order and the signed in driver t
 });
 test('Customer tracking offers compact links back to the same Admin and Driver order',()=>{
  const page=fixture('tracking'),root=new Node('div'),id='DYWS-000000000003';
- page.actions['tracking:updated']({root,order:{id}});
+ page.actions['tracking:updated']({root,order:{id,fulfillment:'delivery'}});
  const links=root.children[0].children.map(access=>access.children[0]);
  assert.deepEqual(links.map(link=>link.textContent),['Admin orders','Open Driver demo']);
  assert.deepEqual(links.map(link=>new URL(link.href).hash),['#order='+id,'#order='+id]);
@@ -136,4 +136,10 @@ test('Unrecognized demo roles never start a login or change browser history',asy
   await access.enterFromURL();assert.throws(()=>access.link(role,'Invalid'));
   await assert.rejects(signInDemo(role,{request:()=>assert.fail('No request')}));
  }
+});
+
+test('Pickup demos show their actual capabilities without driver handoffs',()=>{
+ const page=fixture('storefront',null,['pickup']);
+ const credentials=page.all().filter(n=>n.tag==='h3').map(n=>n.textContent);assert(!credentials.includes('Driver demo'));assert(credentials.includes('Admin demo'));page.destroy();
+ for(const [view,hook] of [['orders','admin:order'],['tracking','tracking:updated']]){const f=fixture(view),root=new Node('div');f.actions[hook]({root,order:{id:'DYWS-000000000003',fulfillment:'pickup'}});assert(!JSON.stringify(root.children[0].children.map(n=>n.textContent||n.children?.[0]?.textContent)).includes('Driver'));f.destroy();}
 });

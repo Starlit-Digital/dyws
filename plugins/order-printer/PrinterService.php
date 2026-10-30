@@ -107,8 +107,8 @@ final class PrinterService {
             if(!empty($line['option']))$lines[]='  '.self::clean($line['option']);
         }
         if($order['notes']!==''){$lines[]='NOTES';$lines[]=self::clean($order['notes']);}
-        // Kitchen tickets deliberately omit phone, address and tracking credentials.
-        $lines[]='Payment: '.($order['payment_provider']==='pay-at-door'?'PAY AT THE DOOR ':($order['payment_provider']==='pay-at-restaurant'?'PAY AT RESTAURANT ':'')).($order['payment_provider']==='demo'?'TEST LEDGER ':'').strtoupper($order['payment_status']);
+        // Order tickets deliberately omit phone, address and tracking credentials.
+        $lines[]='Payment: '.($order['payment_provider']==='pay-at-door'?'PAY AT THE DOOR ':($order['payment_provider']==='pay-at-restaurant'?'PAY AT PICKUP ':'')).($order['payment_provider']==='demo'?'TEST LEDGER ':'').strtoupper($order['payment_status']);
         if(($order['discount']??0)>0){$deal=json_decode($order['deal_json']??'{}',true);$lines[]='DEAL: '.self::clean($deal['name']??'Deal savings');$lines[]='Savings: '.$order['currency'].' '.number_format($order['discount']/100,2,'.','');}
         $lines[]='Tip: '.$order['currency'].' '.number_format(($order['tip']??0)/100,2,'.','');
         $lines[]='Total: '.$order['currency'].' '.number_format($order['total']/100,2,'.','');
@@ -214,7 +214,7 @@ final class PrinterService {
             }
             if($action==='reprint'&&in_array($job['state'],['sent','uncertain'],true)){
                 $key=Store::text($body['requestId']??null,80);$order=$job['order_id']?$this->store->get($job['order_id']):null;
-                if($order&&!$this->eligible($order))throw new ApiError('Order no longer eligible for a kitchen ticket.',409);
+                if($order&&!$this->eligible($order))throw new ApiError('Order no longer eligible for a order ticket.',409);
                 $new=$this->enqueue($device,$order,'copy','copy:'.$job['id'].':'.$key,$order?$this->ticket($order,$device,'copy'):"COPY / REPRINT\n".$job['payload']);
                 if($job['state']==='uncertain')$this->store->execute("UPDATE printer_jobs SET state='cancelled',updated_at=? WHERE tenant=? AND id=?",[time(),$this->store->tenant,$job['id']]);
                 $this->audit($device['id'],'manager_reprint',$job['id']);return ['jobId'=>$new];

@@ -48,7 +48,7 @@ with tempfile.TemporaryDirectory(prefix='dyws-lockdown-') as temp:
   request('/driver/profile',{'profileIcon':'car','revision':profile['revision']},manager,status=403)
   request('/driver/profile',{'profileIcon':'bad','revision':profile['revision']},driver,status=422)
   check(len(request('/driver/orders',token=driver)['orders'])==2)
-  manifest=request('/plugins');check([p['id'] for p in manifest['plugins']]==['demo-lockdown','order-reporting','datatables','nominatim'])
+  manifest=request('/plugins');check([p['id'] for p in manifest['plugins']]==['demo-lockdown','order-reporting','datatables','nominatim','catalog','pickup','delivery'])
   check(request('/plugins/nominatim/config')['demo'] is True)
   check(request('/plugins/nominatim/search',{'query':'DO NOT FORWARD THIS'})['results'][0]['line1']=='123 Example Avenue NW')
   request('/manager/plugins/nominatim/settings',{'enabled':False,'revision':'demo'},manager,status=403)

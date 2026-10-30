@@ -1,0 +1,9 @@
+{
+  "id": "delivery",
+  "name": "Delivery",
+  "version": "1.0.0",
+  "apiVersion": 1,
+  "description": "Delivery ordering and fulfillment capabilities.",
+  "entry": "plugin.php",
+  "type": "fulfillment"
+}

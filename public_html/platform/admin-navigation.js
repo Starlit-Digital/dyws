@@ -1,3 +1,4 @@
+import {bootstrap} from './api.js';
 import {plugins} from './plugins.js?v=39';
 import {mountAdminNavigation} from '../dyws/admin-navigation.js?v=39';
 import {defaultRole} from '../dyws/role-labels.js';
@@ -5,7 +6,7 @@ const pages=[['orders','Orders',new URL('../orders/',import.meta.url).href],['re
 let revision=0;
 export async function mountNavigation(current,role=defaultRole){
  const request=++revision;
- const links=await plugins.applyFilters('admin:navigation',pages.map(page=>page[0]==='drivers'?['drivers',role.plural,page[2]]:[...page]),{current,role});
+ const links=await plugins.applyFilters('admin:navigation',pages.filter(page=>!bootstrap?.businessPlugins||!['catalog','drivers'].includes(page[0])||bootstrap.businessPlugins.includes(page[0]==='drivers'?'delivery':'catalog')).map(page=>page[0]==='drivers'?['drivers',role.plural,page[2]]:[...page]),{current,role});
  if(request!==revision)return;
  const valid=Array.isArray(links)?links.filter(link=>{
   if(!Array.isArray(link)||link.length!==3||!link.every(x=>typeof x==='string'))return false;

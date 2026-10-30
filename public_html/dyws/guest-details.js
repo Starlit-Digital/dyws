@@ -55,7 +55,7 @@ export async function mountGuestDetails({form,api,termsURL,hasDraft=false,onForg
  };
  field('savedAddressId').addEventListener('change',()=>{
   const address=state.addresses.find(a=>a.id===field('savedAddressId').value);
-  if(address){applySavedAddress(form,address);labelAddress(address);field('fulfillment').value='delivery';form.querySelector('.dyws-fulfillment').onchange();}
+  if(address){applySavedAddress(form,address);labelAddress(address);if(!form.querySelector('[name=fulfillment][value=delivery]')?.disabled)field('fulfillment').value='delivery';form.querySelector('.dyws-fulfillment').onchange();}
   else clearAddress();sync();
  });
  form.addEventListener('change',sync);

@@ -18,7 +18,7 @@
       "dyws/status-badge.js",
       "dyws/vehicle-colors.js",
       "platform/api.js",
-      "platform/driver.js?v=benefits-20261028",
+      "platform/driver.js?v=40",
       "platform/plugins.js?v=39"
     ],
     "tracking": [
@@ -30,6 +30,7 @@
       "dyws/diagnostics.js",
       "dyws/driver-icons.js",
       "dyws/fulfillment.js",
+      "dyws/payment-choice.js?v=benefits-20261028",
       "dyws/plugin-ui.js?v=39",
       "dyws/plugins.js?v=39",
       "dyws/realtime.js",
@@ -39,7 +40,7 @@
       "dyws/tracking.js?v=benefits-20261028",
       "platform/api.js",
       "platform/plugins.js?v=39",
-      "platform/tracking.js?v=benefits-20261028"
+      "platform/tracking.js?v=40"
     ],
     "orders": [
       "dyws/admin-navigation.js?v=39",
@@ -51,6 +52,7 @@
       "dyws/customer-orders.js",
       "dyws/customer-reports.js",
       "dyws/date-time.js",
+      "dyws/deals.js?v=benefits-20261028",
       "dyws/delivery-runs.js",
       "dyws/diagnostics.js",
       "dyws/fulfillment.js",
@@ -67,7 +69,7 @@
       "dyws/status-badge.js",
       "platform/admin-navigation.js?v=39",
       "platform/api.js",
-      "platform/orders.js?v=benefits-20261028",
+      "platform/orders.js?v=40",
       "platform/plugins.js?v=39"
     ],
     "reports": [
@@ -92,14 +94,14 @@
       "dyws/admin-refresh.js",
       "dyws/admin-session.js?v=39",
       "dyws/api.js",
-      "dyws/catalog-editor.js?v=options-20261028",
+      "dyws/catalog-editor.js?v=39",
       "dyws/date-time.js",
       "dyws/diagnostics.js",
       "dyws/plugins.js?v=39",
       "dyws/realtime.js",
       "dyws/role-labels.js",
       "platform/admin-navigation.js?v=39",
-      "platform/admin.js?v=benefits-20261028",
+      "platform/admin.js?v=39",
       "platform/api.js",
       "platform/plugins.js?v=39"
     ],
@@ -117,7 +119,7 @@
       "dyws/role-labels.js",
       "dyws/status-badge.js",
       "platform/admin-navigation.js?v=39",
-      "platform/admin.js?v=benefits-20261028",
+      "platform/admin.js?v=39",
       "platform/api.js",
       "platform/plugins.js?v=39"
     ],
@@ -131,13 +133,14 @@
       "dyws/business-settings.js?v=benefits-20261028",
       "dyws/catalog-editor.js?v=options-20261028",
       "dyws/date-time.js",
+      "dyws/deal-editor.js?v=benefits-20261028",
       "dyws/diagnostics.js",
-      "dyws/general-settings.js?v=benefits-20261028",
+      "dyws/general-settings.js?v=39",
       "dyws/plugins.js?v=39",
       "dyws/realtime.js",
       "dyws/role-labels.js",
       "platform/admin-navigation.js?v=39",
-      "platform/admin.js?v=benefits-20261028",
+      "platform/admin.js?v=39",
       "platform/api.js",
       "platform/plugins.js?v=39"
     ],
@@ -155,7 +158,7 @@
       "dyws/role-labels.js",
       "dyws/status-badge.js",
       "platform/admin-navigation.js?v=39",
-      "platform/admin.js?v=benefits-20261028",
+      "platform/admin.js?v=39",
       "platform/api.js",
       "platform/plugins.js?v=39"
     ],
@@ -173,21 +176,23 @@
       "dyws/role-labels.js",
       "dyws/status-badge.js",
       "platform/admin-navigation.js?v=39",
-      "platform/admin.js?v=benefits-20261028",
+      "platform/admin.js?v=39",
       "platform/api.js",
       "platform/plugins.js?v=39"
     ],
     "storefront": [
-      "demo.js?v=cart-deals-final-20261028",
+      "demo.js?v=40",
       "dyws/address-lines.js",
       "dyws/admin-session.js?v=39",
       "dyws/api.js",
       "dyws/business-policy.js",
       "dyws/canadian-cities.js",
+      "dyws/cart-deals.js?v=cart-deals-final-20261028",
       "dyws/cart.js?v=options-20261028",
       "dyws/catalog-data.js",
       "dyws/catalog.js?v=benefits-20261028",
       "dyws/checkout-account.js",
+      "dyws/checkout-deals.js?v=benefits-20261028",
       "dyws/checkout-draft.js?v=benefits-20261028",
       "dyws/checkout-fields.js",
       "dyws/checkout.js?v=benefits-20261028",
@@ -195,6 +200,7 @@
       "dyws/confirmation-countdown.js",
       "dyws/customer-order.js",
       "dyws/date-time.js",
+      "dyws/deals.js?v=benefits-20261028",
       "dyws/delivery-status.js?v=benefits-20261028",
       "dyws/diagnostics.js",
       "dyws/driver-icons.js",
@@ -202,8 +208,8 @@
       "dyws/guest-details.js",
       "dyws/order-layout.js",
       "dyws/order-review.js?v=benefits-20261028",
+      "dyws/payment-choice.js?v=benefits-20261028",
       "dyws/phone-input.js",
-      "dyws/pickup.js",
       "dyws/plugin-ui.js?v=39",
       "dyws/plugins.js?v=39",
       "dyws/realtime.js",
@@ -254,6 +260,9 @@
       "plugins/order-reporting/index.js?v=1.2.0",
       "plugins/order-reporting/insights.js"
     ],
+    "booking": [
+      "plugins/booking/index.js?v=1.0.0"
+    ],
     "datatables": [
       "plugins/datatables/index.js?v=1.1.1",
       "plugins/datatables/vendor/dataTables.min.js"
@@ -285,6 +294,14 @@
       "plugins/google-maps/maps.js",
       "plugins/google-maps/pickup.js",
       "plugins/google-maps/settings.js"
+    ],
+    "pickup": [
+      "dyws/api.js",
+      "dyws/checkout-fields.js",
+      "dyws/date-time.js",
+      "dyws/fulfillment.js",
+      "plugins/pickup/index.js?v=1.0.0",
+      "plugins/pickup/pickup.js"
     ],
     "paypal": [
       "dyws/admin-navigation.js?v=39",

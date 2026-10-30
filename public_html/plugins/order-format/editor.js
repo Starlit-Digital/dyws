@@ -39,7 +39,7 @@ function renderPalette(){
 }
 const sample={name:'Demo Customer',phone:'(780) 555-0142',email:'demo.customer@example.test',address:'123 Example Avenue NW',postal:'T5A 1A1',notes:'Please include napkins.',pickup:'15321 Starlit Lane NW'};
 function fieldPreview(f){
- const info=definition(f.id);if(info.kind==='items')return '<div class="dyws-preview-items"><div><span>1 × Diner Omelette</span><b>$13.95</b></div><div><span>1 × Buttermilk Pancakes</span><b>$11.95</b></div></div>';
+ const info=definition(f.id);if(info.kind==='items')return '<div class="dyws-preview-items"><div><span>1 × Example item</span><b>$13.95</b></div><div><span>1 × Additional item</span><b>$11.95</b></div></div>';
  if(info.kind==='total')return '<strong class="dyws-preview-total">Total '+(draft.stage==='cart'?'$27.20':'$31.34')+'</strong>';
  if(info.kind==='amount')return `<div class="dyws-preview-amount"><span>${esc(info.label)}</span><b>${({subtotal:'$25.90',tax:draft.stage==='cart'?'$1.30':'$1.49',delivery:'$3.95'})[f.id]||'$0.00'}</b></div>`;
  if(info.kind==='input'||info.kind==='textarea')return `<div class="dyws-preview-label">${esc(info.label)}${info.required?'':' <small>optional</small>'}<div class="dyws-preview-input ${info.kind==='textarea'?'dyws-preview-textarea':''}">${esc(({name:'Demo Customer',phone:'(780) 555-0142',email:'demo.customer@example.test',street:'123 Example Avenue NW',unit:'Unit 4',postal:'T5A 1A1',city:'Edmonton',region:'AB',country:'Canada',notes:''})[f.id]||'')}</div></div>`;
@@ -50,7 +50,7 @@ function fieldPreview(f){
 }
 function renderCanvas(){
  const canvas=root.querySelector('[data-layout-canvas]');canvas.className='dyws-format-canvas'+(preview?' dyws-format-preview':'')+(phonePreview?' dyws-format-phone':'');
- let content='<div class="dyws-format-preview-brand"><span>✦ Starlit Diner</span><span>Close</span></div>';
+ let content='<div class="dyws-format-preview-brand"><span>✦ Example Business</span><span>Close</span></div>';
  for(let row=1;row<=draft.layout.rows;row++){
   content+=`<div class="dyws-format-row" data-layout-row="${row}">${preview?'':`<div class="dyws-format-row-label"><span>Row ${row}</span><button type="button" data-insert-row="${row}" aria-label="Insert above row ${row}">+</button><button type="button" data-remove-row="${row}" aria-label="Remove empty row ${row}" ${draft.layout.fields.some(f=>f.row===row)||draft.layout.rows===1?'disabled':''}>−</button></div>`}<div class="dyws-format-cells">`;
   for(let column=1;column<=2;column++){

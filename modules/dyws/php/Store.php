@@ -13,9 +13,9 @@ use RuntimeException;
 final class ApiError extends RuntimeException {public function __construct(string $message,public int $http=422,public ?string $errorCode=null,public array $context=[]){parent::__construct($message);}}
 final class Store {
  private int $transactionDepth=0;
- public PDO $db; private array $catalog; public string $tenant; public ?Plugins $plugins=null;
+ public PDO $db; private array $catalog; public string $tenant; public ?Plugins $plugins=null;private ?Plugins $businessRuntime=null;private string $databasePath;
  public function __construct(string $path,array $catalog,string $tenant='dyws-diner',private string $timeZone='America/Edmonton',private bool $acceptingOrders=true) {
-  if(strlen($GLOBALS['dyws_config']['tracking_secret']??'')<32)throw new RuntimeException('Tracking secret must be configured.');$this->catalog=$catalog;$this->tenant=$tenant;
+  if(strlen($GLOBALS['dyws_config']['tracking_secret']??'')<32)throw new RuntimeException('Tracking secret must be configured.');$this->catalog=$catalog;$this->tenant=$tenant;$this->databasePath=$path;
   $this->db=new PDO('sqlite:'.$path,null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
   $this->db->exec('PRAGMA foreign_keys=ON; PRAGMA busy_timeout=5000; PRAGMA journal_mode=WAL;');
   // Rename the old provider tables atomically before creating the neutral ledger schema.
@@ -37,6 +37,13 @@ final class Store {
   if(!in_array('tip',$refundColumns,true))$this->db->exec('ALTER TABLE payment_refund_deltas ADD COLUMN tip INTEGER NOT NULL DEFAULT 0 CHECK(tip>=0)');
   });
  }
+ public function businessPlugins():Plugins {
+  if($this->plugins)return $this->plugins;
+  require_once __DIR__.'/Plugins.php';
+  $config=array_replace($GLOBALS['dyws_config']??[],['database'=>$this->databasePath,'tenant'=>$this->tenant]);
+  return $this->businessRuntime??=new Plugins($config,$config['plugins_path']??null,$this);
+ }
+ public function businessContext():array{return ['catalog'=>$this->catalog,'timeZone'=>$this->timeZone];}
  public function transaction(callable $fn){
   $depth=$this->transactionDepth;$savepoint='dyws_tx_'.$depth;
   $this->db->exec($depth?'SAVEPOINT '.$savepoint:'BEGIN IMMEDIATE');$this->transactionDepth++;
@@ -52,36 +59,10 @@ final class Store {
   if(($email!==''||$required)&&(!filter_var($email,FILTER_VALIDATE_EMAIL)||preg_match('/[\r\n]/',$email)))throw new ApiError('Enter a valid email address.');
   return $email;
  }
- public function pickupPreview(array $body):array {
-  $locations=array_values(array_filter($this->catalog['locations']??[],fn($location)=>$location['active']));
-  $id=self::text($body['locationId']??(count($locations)===1?$locations[0]['id']:''),80,false);
-  $location=Catalog::orderLocation($this->catalog,$id);
-  $schedule=Fulfillment::schedule($body['pickupSchedule']??null,'pickup');
-  if(!$schedule)throw new ApiError('Choose a pickup date and time.');
-  return Fulfillment::create('pickup',$schedule,$this->timeZone,$location['id'],Catalog::locationPolicy($this->catalog,$location['id']));
- }
- public function pickupAvailability(array $body):array {
-  $locations=array_values(array_filter($this->catalog['locations']??[],fn($location)=>$location['active']));
-  $id=self::text($body['locationId']??(count($locations)===1?$locations[0]['id']:''),80,false);
-  $location=Catalog::orderLocation($this->catalog,$id);
-  $date=array_key_exists('date',$body)?self::text($body['date'],10):null;
-  return Fulfillment::availability($date,$this->timeZone,$location['id'],Catalog::locationPolicy($this->catalog,$location['id']));
- }
+
+
  public function deals():Deals{return new Deals($this,$this->catalog,$this->timeZone);}
- public function priceCart(mixed $input):array {
-  if(!is_array($input)||count($input)<1||count($input)>50)throw new ApiError('Choose between 1 and 50 items.');
-  $menu=[];foreach($this->catalog['categories'] as $c)foreach($c['items'] as $i)$menu[$i['id']]=$i;
-  $lines=[];$subtotal=0;$seen=[];$itemCounts=[];$itemOrderCap=$this->catalog['itemOrderCap']??10;
-  foreach($input as $row){$id=$row['id']??'';$variant=$row['variant']??'';$qty=$row['quantity']??null;if(!is_string($id)||!is_string($variant)||!is_int($qty)||$qty<1||$qty>99||!isset($menu[$id]))throw new ApiError('Invalid product selection.');
-   $itemCounts[$id]=($itemCounts[$id]??0)+$qty;if($itemCounts[$id]>$itemOrderCap)throw new ApiError('Online orders are limited to '.$itemOrderCap.' of each item. Please call the store for a larger order.');
-   $item=$menu[$id];if(($item['active']??true)!==true)throw new ApiError('This product is unavailable.');$price=$item['price'];$option='';if(!empty($item['variants'])){$found=false;foreach($item['variants'] as $v)if($v['id']===$variant){$price=$v['price'];$option=$v['name'];$found=true;}if(!$found)throw new ApiError('Choose a valid item option.');}elseif($variant!=='')throw new ApiError('Invalid item option.');
-   $choices=Catalog::selections($item,$row['selections']??[]);$price+=$choices['price'];$option=implode(' · ',array_filter(array_merge([$option],$choices['labels'])));
-   $lineKey=$id.':'.$variant.':'.json_encode($choices['selections']);if(isset($seen[$lineKey]))throw new ApiError('Combine duplicate item quantities.');$seen[$lineKey]=true;
-   $lines[]=['id'=>$id,'variant'=>$variant,'name'=>$item['name'],'sku'=>$item['sku']??'','unit'=>$item['unit']??'each','description'=>$item['description']??'','image'=>$item['image']??null,'option'=>$option,'price'=>$price,'quantity'=>$qty];if(!empty($item['optionGroups']))$lines[array_key_last($lines)]['selections']=$choices['selections'];$subtotal+=$price*$qty;
-  }
-  if($subtotal>100000)throw new ApiError('Orders are limited to $1,000.');
-  return ['lines'=>$lines,'subtotal'=>$subtotal];
- }
+ public function priceCart(mixed $input):array {return $this->businessPlugins()->invoke('catalog','cart.price',$this->catalog,$input);}
  public function quoteCheckout(array $body,?string $owner):array {
   $cart=$this->priceCart($body['lines']??null);$claim=self::text($body['dealClaimId']??'',80,false);$quote=$this->deals()->quote($cart['lines'],$owner,$claim);
   $fulfillment=$body['fulfillment']??'pickup';if(!in_array($fulfillment,['pickup','delivery'],true))throw new ApiError('Choose pickup or delivery.');
@@ -95,9 +76,11 @@ final class Store {
   $dealOwner??=$customerId;$claimId=self::text($body['dealClaimId']??'',80,false);
   $paymentMethod=$body['paymentMethod']??'pay_now';if(!is_string($paymentMethod)||!in_array($paymentMethod,['pay_now','pay_at_door','pay_at_restaurant'],true))throw new ApiError('Choose Pay now or Pay at the door.');
   if($paymentMethod==='pay_at_door'){if(($this->catalog['allowPayAtDoor']??false)!==true||($body['fulfillment']??'pickup')!=='delivery')throw new ApiError('Pay at the door is not available for this order.');$paymentProvider='pay-at-door';}
-  elseif($paymentMethod==='pay_at_restaurant'){if(($this->catalog['allowPayAtPickup']??false)!==true||($body['fulfillment']??'pickup')!=='pickup')throw new ApiError('Pay at restaurant is not available for this order.');$paymentProvider='pay-at-restaurant';}
+  elseif($paymentMethod==='pay_at_restaurant'){if(($this->catalog['allowPayAtPickup']??false)!==true||($body['fulfillment']??'pickup')!=='pickup')throw new ApiError('Pay at pickup is not available for this order.');$paymentProvider='pay-at-restaurant';}
   elseif(in_array($paymentProvider,['pay-at-door','pay-at-restaurant'],true))throw new ApiError('Invalid payment choice.');
   $body=$this->plugins?->applyFilters('order.input',$body)??$body;
+  $this->plugins?->requirePlugin('catalog');
+  $this->plugins?->requirePlugin(($body['fulfillment']??'pickup')==='delivery'?'delivery':'pickup');
   $key=self::text($body['idempotencyKey']??null,80);if(!preg_match('/^[A-Za-z0-9-]{16,80}$/',$key))throw new ApiError('Invalid request key.');
   $customer=$body['customer']??[];$name=self::text($customer['name']??null,100);$phone=self::text($customer['phone']??null,30);if(!preg_match('/^[0-9+() .-]{7,30}$/',$phone))throw new ApiError('Enter a phone number.');
   $email=self::email($customer['email']??'');$contactEmail=$email;
@@ -108,7 +91,7 @@ final class Store {
    $contactEmail=$account['email'];
   }
   $notes=self::text($body['notes']??'',500,false);$fulfillment=$body['fulfillment']??'pickup';if(!in_array($fulfillment,['pickup','delivery'],true))throw new ApiError('Choose pickup or delivery.');
-  $pickupSchedule=Fulfillment::schedule($body['pickupSchedule']??null,$fulfillment);
+  $pickupSchedule=$this->businessPlugins()->invoke($fulfillment,'schedule.normalize',$body['pickupSchedule']??null);
   $addressDetails=null;if($fulfillment==='delivery'&&array_key_exists('addressDetails',$body)){if(!is_array($body['addressDetails']))throw new ApiError('Provide a delivery street address.');$addressDetails=[];foreach(['line1'=>120,'line2'=>60,'city'=>80,'region'=>60,'postalCode'=>20,'country'=>60] as $field=>$max)$addressDetails[$field]=self::text($body['addressDetails'][$field]??'', $max,$field==='line1');if($addressDetails['postalCode']!==''&&in_array(strtolower($addressDetails['country']),['ca','canada'],true)&&!preg_match('/^[A-Z]\d[A-Z] ?\d[A-Z]\d$/i',$addressDetails['postalCode']))throw new ApiError('Enter a valid Canadian postal code.');$body['address']=implode(', ',array_filter($addressDetails,fn($v)=>$v!==''));}
   $address=$fulfillment==='delivery'?self::text($body['address']??null,240):'';
   $availableLocations=array_values(array_filter($this->catalog['locations']??[],fn($location)=>$location['active']));
@@ -126,7 +109,7 @@ final class Store {
    $orderLocation=Catalog::orderLocation($this->catalog,$canonical['locationId']??'');
    $policy=Catalog::locationPolicy($this->catalog,$orderLocation['id']);
    if(!BusinessHours::isOpen($policy['orderingHours']??null,new \DateTimeImmutable('now',new \DateTimeZone($this->timeZone))))throw new ApiError('Online ordering is closed for this location. Please check its ordering hours ('.$this->timeZone.').',409);
-   $fulfillmentMeta=Fulfillment::create($canonical['fulfillment'],$canonical['pickupSchedule']??null,$this->timeZone,$orderLocation['id'],$policy);
+   $fulfillmentMeta=$this->businessPlugins()->invoke($canonical['fulfillment'],'fulfillment.create',$canonical['pickupSchedule']??null,$this->timeZone,$orderLocation['id'],$policy);
    $this->plugins?->validate('order.validating',$canonical,['subtotal'=>$subtotal,'tax'=>$tax,'deliveryFee'=>$fee,'tip'=>$tip,'total'=>$total,'currency'=>$this->catalog['currency']]);
    $id='DYWS-'.strtoupper(bin2hex(random_bytes(6)));$token=hash_hmac('sha256',$id.'|'.$key,$GLOBALS['dyws_config']['tracking_secret']);
    $now=time();$this->execute('INSERT INTO orders(id,tenant,request_key,fingerprint,tracking_hash,tracking_expires,status,payment_status,fulfillment,customer_name,customer_phone,address,notes,lines_json,subtotal,tax,delivery_fee,total,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',[$id,$this->tenant,$key,$fingerprint,hash('sha256',$token),max($now,$fulfillmentMeta['scheduledAt']??0)+86400,'placed','unpaid',$canonical['fulfillment'],$canonical['customer']['name'],$canonical['customer']['phone'],$canonical['address'],$canonical['notes'],json_encode($canonical['lines']),$subtotal,$tax,$fee,$total,$now,$now]);

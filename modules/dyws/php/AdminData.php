@@ -24,9 +24,9 @@ function dyws_admin_report(array $config,\dyws\Store $store,\dyws\Plugins $plugi
 function dyws_admin_data(array $config,\dyws\Store $store,string $page):array {
  $started=microtime(true);$plugins=new \dyws\Plugins($config,$config['plugins_path']??null,$store);$store->plugins=$plugins;
  $settings=(new \dyws\Settings($config))->read();
- $boot=['page'=>$page,'responses'=>['/settings'=>$settings,'/plugins'=>$plugins->publicManifest($page)],'realtime'=>(new \dyws\Realtime($config,$store))->publicConfig()];
+ $boot=['page'=>$page,'businessPlugins'=>$plugins->activeIds(),'responses'=>['/settings'=>$settings,'/plugins'=>$plugins->publicManifest($page)],'realtime'=>(new \dyws\Realtime($config,$store))->publicConfig()];
  if($page==='orders')$boot['responses']['/manager/orders']=dyws_admin_orders($config,$store);
- if(in_array($page,['catalog','settings'],true)){$catalog=\dyws\Catalog::load($config['catalog']);$boot['responses']['/manager/catalog']=['catalog'=>$catalog,'revision'=>\dyws\Catalog::revision($catalog)];}
+ if(in_array($page,['catalog','settings'],true)&&in_array('catalog',$plugins->activeIds(),true)){$catalog=\dyws\Catalog::load($config['catalog']);$boot['responses']['/manager/catalog']=['catalog'=>$catalog,'revision'=>\dyws\Catalog::revision($catalog)];}
  if($page==='settings')$boot['responses']['/manager/settings']=(new \dyws\Settings($config))->summary();
  if($page==='drivers'){
   $boot['responses']['/manager/drivers']=(new \dyws\AdminAccounts($config))->summary($store);
@@ -63,6 +63,7 @@ function dyws_admin_initial_head(array $boot,string $publicRoot,string $prefix='
 }
 function dyws_admin_navigation(array $config,array $boot):string {
  $pages=['orders'=>'Orders','reports'=>'Reports','catalog'=>'Catalog','drivers'=>$boot['responses']['/settings']['driverRole']['plural'],'password'=>'Password','settings'=>'Settings','plugins'=>'Plugins'];$html='';
+ if(isset($boot['businessPlugins'])){if(!in_array('catalog',$boot['businessPlugins'],true))unset($pages['catalog']);if(!in_array('delivery',$boot['businessPlugins'],true))unset($pages['drivers']);if(in_array('booking',$boot['businessPlugins'],true))$html.='<a href="'.htmlspecialchars(dyws_admin_base($config).'/plugins/edit.php?plugin=booking',ENT_QUOTES,'UTF-8').'">Appointments</a>';}
  foreach($pages as $id=>$label){$href=dyws_admin_base($config).'/'.$id.'/'.(($_GET['diagnostics']??'')==='1'?'?diagnostics=1':'');$html.='<a href="'.htmlspecialchars($href,ENT_QUOTES,'UTF-8').'"'.($id===$boot['page']?' aria-current="page"':'').'>'.htmlspecialchars($label,ENT_QUOTES,'UTF-8').'</a>';}
  return $html;
 }

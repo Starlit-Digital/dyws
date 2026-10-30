@@ -89,9 +89,6 @@ try {
  elseif($method==='GET'&&$route==='/settings')$result=(new \dyws\Settings($config))->read();
  elseif($method==='GET'&&$route==='/manager/settings'){dyws_authorize($store,['manager']);$result=(new \dyws\Settings($config))->summary();}
  elseif($method==='POST'&&$route==='/manager/settings'){dyws_authorize($store,['manager']);$result=(new \dyws\Settings($config))->save($body);}
- elseif($method==='GET'&&$route==='/catalog')$result=$plugins->applyFilters('catalog.public',\dyws\Catalog::publicData(\dyws\Catalog::load($config['catalog']),(new \dyws\Settings($config))->read()['timeZone'],(new \dyws\Settings($config))->read()['acceptingOrders']));
- elseif($method==='GET'&&$route==='/manager/catalog'){dyws_authorize($store,['manager']);$catalog=\dyws\Catalog::load($config['catalog']);$result=['catalog'=>$catalog,'revision'=>\dyws\Catalog::revision($catalog)];}
- elseif($method==='POST'&&$route==='/manager/catalog'){dyws_authorize($store,['manager']);if(!is_array($body['catalog']??null))throw new \dyws\ApiError('Provide a catalog object.');$plugins->validate('catalog.validating',\dyws\Catalog::validate($body['catalog']));$catalog=\dyws\Catalog::save($config['catalog'],$body['catalog'],\dyws\Store::text($body['revision']??null,64));$result=['catalog'=>$catalog,'revision'=>\dyws\Catalog::revision($catalog)];}
  elseif($method==='GET'&&$route==='/manager/driver-locations'){dyws_authorize($store,['manager']);$result=dyws_driver_locations($store);}
  elseif($method==='GET'&&$route==='/driver/profile'){$session=dyws_authorize($store,['driver']);$result=$accounts->profile($store,$session['subject']);}
  elseif($method==='POST'&&$route==='/driver/profile'){
@@ -107,8 +104,6 @@ try {
   $result=$accounts->login($store,$body);
  }
  elseif($method==='POST'&&$route==='/logout'){$s=dyws_authorize($store,['manager','driver']);dyws_admin_cookie($config,$s['role']==='manager'?'dyws_admin_session':'dyws_driver_session','',time()-3600);$store->execute('DELETE FROM sessions WHERE token_hash=?',[$s['token_hash']]);$expired=$store->pruneLocations();if($expired)$realtime->changed(array_map(fn($id)=>$store->tenant.':order:'.$id,$expired));$result=['ok'=>true];}
- elseif($method==='POST'&&$route==='/pickup/preview'){dyws_limit_requests($store,$config,'pickup-preview',60,60);$result=$store->pickupPreview($body);}
- elseif($method==='POST'&&$route==='/pickup/availability'){dyws_limit_requests($store,$config,'pickup-availability',60,60);$result=$store->pickupAvailability($body);}
  elseif($method==='POST'&&$route==='/orders'){
   dyws_limit_requests($store,$config,'orders',20,3600);
   if(($body['demoAcknowledged']??false)!==true)throw new \dyws\ApiError('Confirm the order details.');
@@ -146,20 +141,6 @@ try {
  }
  elseif($method==='GET'&&$route==='/manager/reports'){
   dyws_authorize($store,['manager']);$result=dyws_admin_report($config,$store,$plugins,$_GET);
- }
- elseif($method==='POST'&&$route==='/manager/runs'){
-  dyws_authorize($store,['manager']);$result=$accounts->createRun($store,$body);
- }
- elseif($method==='POST'&&preg_match('~^/manager/runs/(RUN-[A-F0-9]{12})$~',$route,$m)){
-  dyws_authorize($store,['manager']);$result=(new \dyws\DeliveryRuns($store))->edit($m[1],$body);
- }
- elseif($method==='POST'&&preg_match('~^/driver/runs/(RUN-[A-F0-9]{12})/start$~',$route,$m)){
-  $session=dyws_authorize($store,['driver']);$result=(new \dyws\DeliveryRuns($store))->start($m[1],$session['subject']);
- }
- elseif($method==='POST'&&preg_match('~^/driver/runs/(RUN-[A-F0-9]{12})/location(?:/(start|stop|heartbeat))?$~',$route,$m)){
-  $session=dyws_authorize($store,['driver']);dyws_limit_requests($store,$config,'gps-run',120,60);$action=$m[2]??'update';
-  if(isset($config['driver_test_location'])){$body['source']='simulated';$body=array_replace($body,array_intersect_key($config['driver_test_location'],array_flip(['latitude','longitude','accuracy'])));}
-  $result=(new \dyws\DeliveryRuns($store))->location($m[1],$session,$action,$body);
  }
  elseif($method==='POST'&&preg_match('~^/manager/orders/([A-Z]{2,7}-[A-F0-9]{12})/(status|assign|payment)$~',$route,$m)){
   dyws_authorize($store,['manager']);if($m[2]==='status')$result=$store->change($m[1],\dyws\Store::text($body['status']??null,30),'manager');

@@ -2,7 +2,7 @@
 declare(strict_types=1);
 namespace dyws;
 
-/** Restaurant offers, account claims and atomic single use redemption. All money is integer cents. */
+/** Business offers, account claims and atomic single use redemption. All money is integer cents. */
 final class Deals {
  public function __construct(private Store $store,private array $catalog,private string $timeZone='America/Edmonton'){}
  public static function validate(mixed $input,array $itemIds):array {
@@ -13,7 +13,7 @@ final class Deals {
    $id=$d['id']??null;if(!is_string($id)||!preg_match('/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,79}$/D',$id)||isset($seen[$id]))throw new ApiError('Deals need unique stable IDs.');$seen[$id]=true;
    $v=['id'=>$id,'name'=>Store::text($d['name']??null,120),'description'=>Store::text($d['description']??'',1000,false),'enabled'=>$d['enabled']??true,'type'=>$d['type']??null,'itemIds'=>$d['itemIds']??[],'days'=>$d['days']??range(0,6),'startsOn'=>$d['startsOn']??'1970-01-01','endsOn'=>$d['endsOn']??null,'claimDays'=>$d['claimDays']??30,'buyQuantity'=>$d['buyQuantity']??1,'getQuantity'=>$d['getQuantity']??1,'amountOff'=>$d['amountOff']??0,'percentBasisPoints'=>$d['percentBasisPoints']??0,'minSpend'=>$d['minSpend']??0,'maxApplications'=>$d['maxApplications']??1];
    if(!is_bool($v['enabled'])||!in_array($v['type'],['quantity','buy_amount_off','spend_amount_off','spend_percent'],true))throw new ApiError('Choose a supported deal type.');
-   if(!is_array($v['itemIds'])||!array_is_list($v['itemIds'])||count($v['itemIds'])>100||count(array_unique($v['itemIds'],SORT_REGULAR))!==count($v['itemIds']))throw new ApiError('Choose the eligible menu items.');
+   if(!is_array($v['itemIds'])||!array_is_list($v['itemIds'])||count($v['itemIds'])>100||count(array_unique($v['itemIds'],SORT_REGULAR))!==count($v['itemIds']))throw new ApiError('Choose the eligible catalog items.');
    foreach($v['itemIds'] as $item)if(!is_string($item)||!in_array($item,$itemIds,true))throw new ApiError('A deal references an unknown item.');
    if(in_array($v['type'],['quantity','buy_amount_off'],true)&&!$v['itemIds'])throw new ApiError('Choose at least one eligible item for a quantity deal.');
    if(!is_array($v['days'])||!array_is_list($v['days'])||!$v['days']||count($v['days'])>7||count(array_unique($v['days'],SORT_REGULAR))!==count($v['days']))throw new ApiError('Choose the days when the deal can be used.');

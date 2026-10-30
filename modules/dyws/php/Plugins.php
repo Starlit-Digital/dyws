@@ -7,7 +7,7 @@ require_once __DIR__.'/Payments/register.php';
 
 /** Plugins are trusted installed PHP code, not sandboxed or uploaded through HTTP. */
 final class PluginContext {
- public array $routes=[],$actions=[],$filters=[],$activation=[],$deactivation=[],$paymentProviders=[],$paymentCancellations=[],$validators=[];
+ public array $routes=[],$actions=[],$filters=[],$activation=[],$deactivation=[],$paymentProviders=[],$paymentCancellations=[],$validators=[],$operations=[];
  public function __construct(public readonly string $id,public readonly array $config,private array $aliases=[],public readonly ?Store $store=null){}
  public function route(string $method,string $path,string $access,callable $handler,array $options=[]):void {
   if(!in_array($method,['GET','POST'],true)||!in_array($access,['public','manager','driver'],true))throw new \InvalidArgumentException('Invalid plugin route.');
@@ -17,6 +17,7 @@ final class PluginContext {
   $maxBody=$options['maxBody']??32768;if(!is_int($maxBody)||$maxBody<1||$maxBody>262144)throw new \InvalidArgumentException('Invalid body limit.');
   $this->routes[$key]=['access'=>$access,'handler'=>$handler,'maxBody'=>$maxBody,'rateLimit'=>$options['rateLimit']??null];
  }
+ public function provideOperation(string $name,callable $handler):void {if(isset($this->operations[$name]))throw new \InvalidArgumentException('Duplicate business operation.');$this->operations[$name]=$handler;}
  public function providePaymentCancellation(callable $handler):void{$this->paymentCancellations[$this->id]=$handler;}
  public function providePayment(callable $provider):void{$this->paymentProviders[]=$provider;}
  public function addValidator(string $hook,callable $callback,int $priority=10):void{$this->validators[$hook][]=[$priority,$callback];}
@@ -61,6 +62,18 @@ final class Plugins {
   return $state;
  }
  public function activeIds():array{return $this->state()['active'];}
+ /** Require an installed, active and successfully loaded business capability. */
+ public function requirePlugin(string $id):void {
+  $this->boot();
+  if(!in_array($id,$this->state()['active'],true))throw new ApiError('This business capability is unavailable.',409);
+  if(!isset($this->loaded[$id])||isset($this->errors[$id]))throw new ApiError('This business capability needs attention.',503);
+ }
+
+ public function invoke(string $id,string $operation,...$args):mixed {
+  $this->requirePlugin($id);$handler=$this->loaded[$id]->operations[$operation]??null;
+  if(!$handler)throw new ApiError('This business operation is unavailable.',503);
+  return $handler(...$args);
+ }
  private function savedState():array {
   if(!is_file($this->path))return ['active'=>array_values(array_intersect($this->defaults,array_unique(array_merge(array_keys($this->installed),$this->paymentPlugins))))];
   $state=$this->readJSON($this->path);

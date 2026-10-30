@@ -10,7 +10,7 @@ final class DemoPolicy {
  public static function accountFingerprint(array $config):string{$drivers=$config['drivers']??[];foreach($drivers as &$driver){unset($driver['vehicleType'],$driver['vehicleColor'],$driver['profileIcon']);}unset($driver);return hash('sha256',json_encode([$config['manager_password_hash']??'', $drivers],JSON_THROW_ON_ERROR));}
  public function installation():void {
   if(!$this->store||($this->config['driver_test_location']??null)!==self::LOCATION||!empty($this->config['realtime']))throw new ApiError('The installation configuration needs attention.',503);
-  if(array_diff($this->store->plugins->activeIds(),['demo-lockdown','order-reporting','datatables','order-format','nominatim']))throw new ApiError('Only approved plugins may run here.',503);
+  if(array_diff($this->store->plugins->activeIds(),['demo-lockdown','order-reporting','datatables','order-format','nominatim','catalog','pickup','delivery','booking']))throw new ApiError('Only approved plugins may run here.',503);
   if(!hash_equals($this->config['demo_account_fingerprint']??'',self::accountFingerprint($this->config)))throw new ApiError('Account settings need attention.',503);
   header('Permissions-Policy: geolocation=()');
   // This database is dedicated to disposable examples. Never enable this on merchant data.
@@ -45,6 +45,8 @@ final class DemoPolicy {
   $reportPilot=($this->config['demo_integration_reports']??false)===true;
   $summaryRoute='/integrations/v1/commands/reports.summary/execute';
   if($reportPilot&&(($method==='GET'&&in_array($route,['/integrations/v1/commands','/integrations/v1/commands/reports.summary'],true))||(in_array($method,['POST','QUERY'],true)&&$route===$summaryRoute)))$allowed=true;
+  if($method==='GET'&&in_array($route,['/plugins/booking/services','/manager/plugins/booking/appointments','/manager/plugins/booking/settings'],true))$allowed=true;
+  if($method==='POST'&&in_array($route,['/plugins/booking/availability','/plugins/booking/reserve','/plugins/booking/cancel','/manager/plugins/booking/appointments'],true))$allowed=true;
   if(!$allowed)throw new ApiError('This setting is locked by the installation owner.',403);
   if($method==='POST'&&$route==='/manager/runs'&&$this->store->query('SELECT count(*) AS n FROM delivery_runs WHERE tenant=?',[$this->store->tenant])[0]['n']>=500&&!$this->store->query('SELECT id FROM delivery_runs WHERE tenant=? AND request_key=?',[$this->store->tenant,is_string($body['idempotencyKey']??null)?$body['idempotencyKey']:'']))throw new ApiError('The order limit has been reached. Please try again later.',429);
   if($method==='POST'&&!in_array($route,['/login','/realtime/access'],true)&&!($reportPilot&&$route===$summaryRoute))\dyws_limit_requests($this->store,$this->config,'demo-writes',60,60);

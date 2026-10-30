@@ -1,0 +1,9 @@
+{
+  "id": "catalog",
+  "name": "Catalog",
+  "version": "1.0.0",
+  "apiVersion": 1,
+  "description": "Product and service catalog browsing and management.",
+  "entry": "plugin.php",
+  "type": "catalog"
+}

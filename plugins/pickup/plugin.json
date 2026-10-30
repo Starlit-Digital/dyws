@@ -1,0 +1,10 @@
+{
+  "id": "pickup",
+  "name": "Pickup",
+  "version": "1.0.0",
+  "apiVersion": 1,
+  "description": "Pickup ordering, scheduled collection and availability.",
+  "entry": "plugin.php",
+  "type": "fulfillment",
+  "browserModule": "index.js"
+}

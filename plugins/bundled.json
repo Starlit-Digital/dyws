@@ -2,7 +2,10 @@
   "active": [
     "google-maps",
     "order-reporting",
-    "datatables"
+    "datatables",
+    "catalog",
+    "pickup",
+    "delivery"
   ],
   "aliases": {
     "google-maps": [
@@ -17,6 +20,23 @@
     ],
     "helcim": [
       "/payments/hc/events"
+    ],
+    "catalog": [
+      "/catalog",
+      "/manager/catalog"
+    ],
+    "pickup": [
+      "/pickup/preview",
+      "/pickup/availability"
+    ],
+    "delivery": [
+      "/manager/runs",
+      "/manager/runs/{runId}",
+      "/driver/runs/{runId}/start",
+      "/driver/runs/{runId}/location",
+      "/driver/runs/{runId}/location/start",
+      "/driver/runs/{runId}/location/stop",
+      "/driver/runs/{runId}/location/heartbeat"
     ]
   },
   "retainedRoutes": {
@@ -45,6 +65,9 @@
   ],
   "upgradeDefaults": [
     "order-reporting",
-    "datatables"
+    "datatables",
+    "catalog",
+    "pickup",
+    "delivery"
   ]
 }

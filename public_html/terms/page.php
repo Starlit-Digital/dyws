@@ -22,7 +22,7 @@ header('X-Content-Type-Options: nosniff');
  <h2>Deals and payment choices</h2>
  <p>Claimed deals are saved to your verified account for this store. Each claim has an expiration and can be used on one eligible order. Scheduled days use the restaurant’s timezone on the day the order is placed. One deal applies per order. Claims are consumed when an order is placed and are not automatically restored after cancellation.</p>
  <p>In the public demo, deal claims use a separate random browser cookie and a fictional wallet lasting up to 24 hours. This does not create an email account or enable real discounts or payments. Clearing that cookie removes access to that demo wallet.</p>
- <p>When the restaurant enables them, delivery can offer Pay at the door and pickup can offer Pay at restaurant. These choices leave payment due until staff record collection. Online payment is a separate choice. If a collected in person payment needs a refund, contact the restaurant to arrange its return.</p>
+ <p>When the restaurant enables them, delivery can offer Pay at the door and pickup can offer Pay at pickup. These choices leave payment due until staff record collection. Online payment is a separate choice. If a collected in person payment needs a refund, contact the restaurant to arrange its return.</p>
  <h2>What we remember</h2>
  <p>Choose “Remember my details on this device” to save your name, phone number, email if supplied, and selected delivery address when you order. Label addresses Home, Work or a custom name, and choose a default. Always check your details before ordering.</p>
  <h2>How long we remember</h2>
