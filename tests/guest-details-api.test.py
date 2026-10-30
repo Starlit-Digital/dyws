@@ -49,7 +49,7 @@ with tempfile.TemporaryDirectory(prefix='dyws-guest-test-') as work:
   assert abs(cookie().expires-(int(time.time())+180*86400))<=2
   assert sql('SELECT token_hash FROM guest_details')[0][0]==hashlib.sha256(token.encode()).hexdigest()
   state=request('/guest-details');pid=state['profileId'];home=state['addresses'][0]['id']
-  assert state['customer']==body['customer'] and state['addresses'][0]['addressDetails']==body['addressDetails']
+  assert state['customer']=={**body['customer'],'phone':'(780) 555-0142'} and state['addresses'][0]['addressDetails']==body['addressDetails']
   assert state['defaultAddressId']==home
   assert 'token' not in json.dumps(state) and last_headers['Cache-Control']=='no-store'
   assert request('/guest-details',client=stranger)['addresses']==[]
@@ -67,7 +67,7 @@ with tempfile.TemporaryDirectory(prefix='dyws-guest-test-') as work:
   # A new pickup order renews both database and cookie without changing addresses.
   request('/orders',order(fulfillment='pickup',customer={'name':'Another Example','phone':'7805550143'},rememberDetails={'enabled':False,'label':''}),status=201)
   state=request('/guest-details');assert state['expiresAt']>short_expiry and state['expiresAt']==cookie().expires
-  assert state['addresses'][0]['id']==home and state['customer']==body['customer']
+  assert state['addresses'][0]['id']==home and state['customer']=={**body['customer'],'phone':'(780) 555-0142'}
   # Repeated address selections deduplicate; a custom label is rendered as plain text.
   request('/orders',order(rememberDetails={**consent,'profileId':pid,'label':'<b>Example</b>'}),status=201)
   assert len(request('/guest-details')['addresses'])==1

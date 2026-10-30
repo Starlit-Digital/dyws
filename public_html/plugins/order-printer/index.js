@@ -11,7 +11,7 @@ export function register(plugin){
   const status=node(doc,'p');status.setAttribute('role','status');status.setAttribute('aria-live','polite');
   const form=node(doc,'form');form.className='dyws-printer-form';
   const field=(title,control)=>{const label=node(doc,'label',title);label.append(control);form.append(label);return control;};
-  const name=field('Printer name',node(doc,'input'));name.required=true;name.maxLength=80;name.placeholder='Kitchen';
+  const name=field('Printer name',node(doc,'input'));name.required=true;name.maxLength=80;name.placeholder='Order desk';
   const location=field('Business location',node(doc,'select')),profile=field('Printer model',node(doc,'select'));
   const add=node(doc,'button','Create pairing code');add.type='submit';form.append(add);
   const pairing=node(doc,'div');pairing.className='dyws-printer-pairing';pairing.hidden=true;

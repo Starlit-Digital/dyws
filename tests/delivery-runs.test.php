@@ -1,8 +1,10 @@
 <?php
 declare(strict_types=1);
+require_once __DIR__.'/../server/bootstrap.php';
+require_once __DIR__.'/../plugins/delivery/Runs.php';
 require __DIR__.'/../server/Store.php';
-require __DIR__.'/../modules/dyws/php/Realtime.php';
-use dyws\Store;use dyws\ApiError;use dyws\DeliveryRuns;
+require_once __DIR__.'/../modules/dyws/php/Realtime.php';
+use dyws\Store;use dyws\ApiError;use dyws\Plugins\Delivery\Runs as DeliveryRuns;
 $path=tempnam(sys_get_temp_dir(),'dyws-runs-');$catalog=json_decode(file_get_contents(__DIR__.'/../examples/starlit-diner/catalog.json'),true);$GLOBALS['dyws_config']=['tracking_secret'=>str_repeat('a',64)];$s=new Store($path,$catalog);$runs=new DeliveryRuns($s);$checks=0;
 function ok($condition,$message){global $checks;if(!$condition)throw new RuntimeException($message);$checks++;}
 function rejects(callable $fn,int $status){try{$fn();throw new RuntimeException('Expected rejection');}catch(ApiError $e){ok($e->http===$status,'Unexpected error '.$e->getMessage());}}

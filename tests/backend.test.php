@@ -5,6 +5,8 @@ use dyws\Store;use dyws\ApiError;
 $path=tempnam(sys_get_temp_dir(),'dyws-test-');$catalog=json_decode(file_get_contents(__DIR__.'/../examples/starlit-diner/catalog.json'),true);$GLOBALS['dyws_config']=['tracking_secret'=>str_repeat('a',64)];$store=new Store($path,$catalog);$checks=0;
 function check($condition,$message){global $checks;if(!$condition)throw new RuntimeException($message);$checks++;}
 function rejects(callable $f,int $code){try{$f();throw new RuntimeException('Expected rejection');}catch(ApiError $e){check($e->http===$code,'Wrong error '.$e->getMessage());}}
+check(Store::formatPhone('7805550142')==='(780) 555-0142','North American phone numbers use the display format');
+check(Store::formatPhone('+44 2071234567')==='+44 2071234567','International numbers are preserved');
 function order(array $changes=[]):array{return array_replace_recursive(['idempotencyKey'=>bin2hex(random_bytes(16)),'customer'=>['name'=>'Test Guest','phone'=>'7805550142'],'lines'=>[['id'=>'breakfast0','variant'=>'','quantity'=>2,'price'=>1]],'fulfillment'=>'delivery','address'=>'15320 Fictional Lane, Edmonton','notes'=>'Test only'],$changes);}
 try {
  $body=order();$receipt=$store->create($body);$id=$receipt['id'];$token=$receipt['trackingToken'];

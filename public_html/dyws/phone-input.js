@@ -8,7 +8,7 @@ export function formatPhoneInput(value){
  return prefix+'('+local.slice(0,3)+') '+local.slice(3,6)+'-'+local.slice(6);
 }
 export function formatPhoneField(event){
- const input=event.target;if(input?.name!=='phone'||event.isComposing)return;
+ const input=event.target;if(!(input?.name==='phone'||input?.type==='tel'||input?.dataset?.locationField==='phone')||event.isComposing)return;
  const original=input.value,start=input.selectionStart,end=input.selectionEnd;
  const formatted=formatPhoneInput(original);if(formatted===original)return;
  const position=offset=>{

@@ -1,16 +1,22 @@
 # dyws
 
-**Do You Want Something?** A reusable ordering and delivery system for a business’s own website.
+**Do You Want Something?** A reusable business service platform for ordering and appointments on a business’s own website.
 
 **Release: [0.11.1](VERSION)** · [Historical release downloads](https://github.com/Starlit-Digital/dyws/releases) · [Release notes](CHANGELOG.md) · [Installation guide](INSTALL.md) · [Hosted diner example](https://dyws.ca/)
 
-The customer orders on your website, the business manages the order, and an assigned driver handles the delivery. Starlit Diner is the fictional restaurant example. The catalog also supports general products and services sold in whole units.
+Customers can order products or services for pickup or delivery, or book an appointment directly on a business website. Businesses choose the Catalog, Pickup, Delivery and Appointment Booking plugins they need. Starlit Diner is the fictional restaurant example; the catalog supports general products and services sold in whole units.
 
-DYWS belongs in Starlit Digital's **Business Related**. [Starlit SiteCraft](https://sltd.ca/sitecraft/) uses its ordering and delivery capabilities when a client website needs them, alongside the shared template library, Starlit assets and accessibility preferences. A static template or contact form alone is not a DYWS integration. See [the product direction](docs/product-notes.md).
+DYWS belongs in Starlit Digital's **Business Related**. [Starlit SiteCraft](https://sltd.ca/pricing/) uses its ordering, fulfillment and appointment capabilities when a client website needs them, alongside the shared template library, Starlit assets and accessibility preferences. A static template or contact form alone is not a DYWS integration. See [the product direction](docs/product-notes.md).
 
 This is a development preview. Orders and delivery workflows work against persistent storage, but the included payment ledger is a demonstration. DYWS supports payment plugins; Stripe is available through a separately installed plugin and is not included in the public framework or install kit. Native mobile apps and production dispatch operations are not shipped. The repository contains the complete public framework source; deployment credentials and business records stay outside Git.
 
 ![Starlit Diner example storefront](docs/screenshots/customer-storefront.jpg)
+
+## Business service plugins
+
+Catalog, Pickup and Delivery are independent bundled plugins. Appointment Booking is a separate bundled plugin that begins inactive. Businesses can enable the capabilities they need and keep their customer experience on their own website. Booking includes service durations, shared staff or room resources, availability, appointment management and token based customer cancellation. See [business plugin contracts and booking setup](docs/business-capability-plugins.md).
+
+The [demo gallery](https://dyws.ca/demos/) includes twenty fictional businesses. Five newer examples demonstrate pickup ordering and five demonstrate appointments. Demo payments, deliveries and appointments are fictional. Booking notifications and calendar synchronization are not included.
 
 ## Current checkout
 
@@ -354,3 +360,7 @@ The tracking page confirms cancellation and the full refund, including tip.
 See [API behavior](docs/api.md#customer-cancellation),
 [provider fees](docs/payment-connectors.md#refund-fees-checked-october-27-2026)
 and [deployment requirements](docs/deployment.md#customer-cancellation-october-27-2026).
+
+## Phone numbers
+
+North American phone fields show an example such as `(780) 555-0142` and format digits as they are entered. New order and appointment records and saved business and location details use that display format. Existing records are presented in the same format without rewriting stored history. A leading North American country code is retained; numbers outside that format are preserved. The server continues to use the original request payload for idempotency checks.

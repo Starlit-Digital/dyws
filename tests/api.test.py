@@ -66,7 +66,7 @@ with tempfile.TemporaryDirectory(prefix='dyws-api-') as work:
   maps=request('/manager/plugins/google-maps/settings',token=manager_token)
   maps_saved=request('/manager/plugins/google-maps/settings',{**maps,'browserKey':'a'*39,'enabled':True},token=manager_token)
   disabled=request('/manager/plugins',{'id':'google-maps','active':False,'revision':plugins['revision']},token=manager_token)
-  assert sorted(p['id'] for p in request('/plugins')['plugins'])==['datatables','order-reporting']
+  assert sorted(p['id'] for p in request('/plugins')['plugins'])==['catalog','datatables','delivery','order-reporting','pickup']
   request('/maps/config',status=404)
   request('/plugins/google-maps/config',status=404)
   request('/manager/maps',token=manager_token,status=404)
@@ -112,7 +112,7 @@ with tempfile.TemporaryDirectory(prefix='dyws-api-') as work:
   updated['catalog'].update(itemOrderCap=2,businessPhone='7805550142',businessEmail='orders@example.test')
   updated=request('/manager/catalog',updated,token=manager_token)
   public_catalog=request('/catalog')
-  assert public_catalog['itemOrderCap']==2 and public_catalog['businessPhone']=='7805550142' and public_catalog['businessEmail']=='orders@example.test'
+  assert public_catalog['itemOrderCap']==2 and public_catalog['businessPhone']=='(780) 555-0142' and public_catalog['businessEmail']=='orders@example.test'
   oversized={**order,'idempotencyKey':str(uuid.uuid4()),'lines':[{'id':'breakfast0','variant':'','quantity':3}]}
   assert 'call the store' in request('/orders',oversized,status=422)['error']
   updated['catalog']['itemOrderCap']=10

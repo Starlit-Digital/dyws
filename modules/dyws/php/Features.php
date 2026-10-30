@@ -21,7 +21,7 @@ final class Requires {
 }
 /** Explicit page consumers. Unknown page names never select code from the filesystem. */
 final class PageManifest {
- #[Requires('catalog:item','cart:updated','checkout:fields','checkout:validating','order.layout','pickup.map')]
+ #[Requires('catalog:item','cart:updated','checkout:fields','checkout:validating','order.layout','pickup.map','checkout.pickup')]
  public static function storefront():void {}
  #[Requires('admin:navigation','admin:tables','admin:order','location.renderer')]
  public static function orders():void {}

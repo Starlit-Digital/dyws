@@ -50,7 +50,7 @@ function dyws_page_data(array $config,\dyws\Store $store,string $page,array $acc
  }elseif($page==='tracking'){
   $boot['tracking']=['id'=>$access['id'],'token'=>$access['token']];$boot['responses']['/tracking/'.$access['id']]=$plugins->applyFilters('tracking.public',$access['data']);
  }
- if($page==='storefront')$boot['responses']['/catalog']=$plugins->applyFilters('catalog.public',\dyws\Catalog::publicData(\dyws\Catalog::load($config['catalog']),(new \dyws\Settings($config))->read()['timeZone'],(new \dyws\Settings($config))->read()['acceptingOrders']));
+ if($page==='storefront'){$plugins->requirePlugin('catalog');$boot['responses']['/catalog']=$plugins->applyFilters('catalog.public',\dyws\Catalog::publicData(\dyws\Catalog::load($config['catalog']),(new \dyws\Settings($config))->read()['timeZone'],(new \dyws\Settings($config))->read()['acceptingOrders']));}
  $route='/plugins/google-maps/config';$matched=$plugins->match('GET',$route);
  if(in_array('location.renderer',\dyws\PageManifest::forPage($page)['requires'],true)&&$matched&&$matched['access']==='public')try{$boot['responses'][$route]=($matched['handler'])([],null,['raw'=>'','params'=>$matched['params'],'server'=>$_SERVER]);}catch(\Throwable $e){/* The map provides its own fallback. */}
  foreach($boot['responses'] as $route=>$data)$boot['responses'][$route]=$plugins->applyFilters('api.response',$data,$route,'GET');
@@ -64,7 +64,7 @@ function dyws_loading_skeleton(string $label='Loading controls'):string {
 }
 function dyws_driver_preview(array $boot):string {
  $escape=static fn($v)=>htmlspecialchars((string)$v,ENT_QUOTES,'UTF-8');$html='';
- foreach($boot['responses']['/driver/orders']['orders'] as $order)$html.='<article><h2>'.$escape($order['id']).'</h2><p>'.$escape(ucfirst(str_replace('_',' ',$order['status']))).' · '.$escape($order['currency']).' '.number_format($order['total']/100,2).'</p><p>'.$escape($order['customer_name']).' · '.$escape($order['customer_phone']).'<br>'.$escape($order['address']).'</p><p>'.$escape($order['notes']).'</p><p>Pickup: '.$escape(($order['orderLocation']['name']??'').' · '.($order['orderLocation']['address']??'')).'</p></article>';
+ foreach($boot['responses']['/driver/orders']['orders'] as $order)$html.='<article><h2>'.$escape($order['id']).'</h2><p>'.$escape(ucfirst(str_replace('_',' ',$order['status']))).' · '.$escape($order['currency']).' '.number_format($order['total']/100,2).'</p><p>'.$escape($order['customer_name']).' · '.$escape(\dyws\Store::formatPhone($order['customer_phone'])).'<br>'.$escape($order['address']).'</p><p>'.$escape($order['notes']).'</p><p>Pickup: '.$escape(($order['orderLocation']['name']??'').' · '.($order['orderLocation']['address']??'')).'</p></article>';
  return $html?:'<p>No active deliveries. You’re all caught up.</p>';
 }
 function dyws_tracking_preview(array $boot):string {

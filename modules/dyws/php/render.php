@@ -109,7 +109,7 @@ function dyws_render_customer_account_link(array $config,\dyws\Store $store,stri
  else $html.='<a class="account-link" data-dyws-customer-link href="'.dyws_escape($signin).'">Sign in</a>';
  return $html.'</div>';
 }
-function dyws_render_customer_preferences():string {return '<starlit-preferences-center data-dyws-preferences target="body"></starlit-preferences-center>';}
+function dyws_render_customer_preferences():string {return '<sdou-preferences-center data-dyws-preferences target="body"></sdou-preferences-center>';}
 
 /** Shared first paint scaffold; inactive when scripting is unavailable. */
 function dyws_render_customer_startup_head(string $prefix=''):string {

@@ -17,6 +17,10 @@ function dyws_admin_session(\dyws\Store $store):?string {
  return $found?$token:null;
 }
 function dyws_admin_redirect(array $config,string $page,int $status=302):never {
+ if($page==='orders'){
+  $ids=(new \dyws\Plugins($config,$config['plugins_path']??null))->activeIds();
+  if(in_array('booking',$ids,true)&&!in_array('catalog',$ids,true)){header('Location: '.dyws_admin_base($config).'/plugins/edit.php?plugin=booking',true,$status);exit;}
+ }
  header('Location: '.dyws_admin_base($config).'/'.$page.'/'.(($_GET['diagnostics']??'')==='1'?'?diagnostics=1':''),true,$status);exit;
 }
 function dyws_require_admin(array $config,\dyws\Store $store):string {

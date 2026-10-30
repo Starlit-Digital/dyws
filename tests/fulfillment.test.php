@@ -1,7 +1,9 @@
 <?php
 declare(strict_types=1);
 require __DIR__.'/../server/Store.php';
-use dyws\{Store,Fulfillment,ApiError};
+use dyws\{Store,ApiError};
+use dyws\Plugins\Pickup\Pickup as Fulfillment;
+require_once __DIR__.'/../plugins/pickup/Pickup.php';
 $checks=0;
 function check($ok,$message){global $checks;if(!$ok)throw new RuntimeException($message);$checks++;}
 function rejects($fn,$code=422){try{$fn();throw new RuntimeException('Expected rejection');}catch(ApiError $e){check($e->http===$code,$e->getMessage());}}
@@ -10,7 +12,7 @@ $schedule=['date'=>'2030-01-07','time'=>'12:30'];$now=$at('2030-01-07 12:00');
 $meta=Fulfillment::create('pickup',$schedule,$zone,'north',[],$now);
 check($meta['type']==='scheduled_pickup'&&$meta['scheduledAt']===$now+1800&&$meta['scheduledAtUtc']==='2030-01-07T17:30:00Z','Thirty minute boundary and UTC metadata');
 rejects(fn()=>Fulfillment::create('pickup',$schedule,$zone,'north',[],$now+1));
-foreach([['date'=>'2030-02-30','time'=>'12:00'],['date'=>'2027-03-14','time'=>'02:15'],['date'=>'2026-11-01','time'=>'01:15']] as $bad)rejects(fn()=>Fulfillment::instant($bad,$zone));
+foreach([['date'=>'2030-02-30','time'=>'12:00'],['date'=>'2027-03-14','time'=>'02:15'],['date'=>'2026-11-01','time'=>'01:15']] as $bad)rejects(fn()=>\dyws\LocalTime::instant($bad,$zone));
 foreach([[],true,['date'=>'2030-01-07','time'=>'12:50'],['date'=>'2030-01-07','time'=>'24:00'],['date'=>'2030-01-07','time'=>'12:15','zone'=>'UTC']] as $bad)rejects(fn()=>Fulfillment::schedule($bad,'pickup'));
 rejects(fn()=>Fulfillment::schedule($schedule,'delivery'));
 $hours=['enabled'=>true,'days'=>array_fill(0,7,['mode'=>'hours','open'=>'09:00','close'=>'12:30'])];

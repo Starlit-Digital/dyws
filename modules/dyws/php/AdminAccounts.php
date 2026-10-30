@@ -124,7 +124,7 @@ final class AdminAccounts {
   },true);
  }
  public function createRun(Store $store,array $body):array {
-  return $this->locked($store,function()use($store,$body){$id=Store::text($body['driverId']??null,80);$driver=$this->effective()['drivers'][$id]??null;if(!$driver||!($driver['active']??true))throw new ApiError('Choose an active driver.');if(!is_array($body['orderIds']??null))throw new ApiError('Choose the delivery orders.');return (new DeliveryRuns($store))->create($id,$body['orderIds'],Store::text($body['idempotencyKey']??null,80));});
+  return $this->locked($store,function()use($store,$body){$id=Store::text($body['driverId']??null,80);$driver=$this->effective()['drivers'][$id]??null;if(!$driver||!($driver['active']??true))throw new ApiError('Choose an active driver.');if(!is_array($body['orderIds']??null))throw new ApiError('Choose the delivery orders.');return $store->businessPlugins()->invoke('delivery','run.create',$id,$body['orderIds'],Store::text($body['idempotencyKey']??null,80));});
  }
  public function assign(Store $store,string $orderId,string $driverId):void {
   $this->locked($store,function()use($store,$orderId,$driverId){$driver=$this->effective()['drivers'][$driverId]??null;if(!$driver||!($driver['active']??true))throw new ApiError('Choose an active driver.');$store->assign($orderId,$driverId);});

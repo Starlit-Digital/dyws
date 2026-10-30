@@ -30,6 +30,9 @@ with zipfile.ZipFile(archive) as z:
   assert source.is_file() and source.read_bytes()==data,'Archive differs from checkout: '+name
  for name in ['VERSION','CHANGELOG.md','modules/dyws/realtime/server.js','modules/dyws/realtime/package-lock.json','public_html/dyws/admin-refresh.js','vendor/autoload.php']:
   assert 'dyws/'+name in names,'Missing release component: '+name
+ for plugin in ['catalog','pickup','delivery','booking']:
+  assert 'dyws/plugins/'+plugin+'/plugin.json' in names and 'dyws/plugins/'+plugin+'/plugin.php' in names,'Missing business plugin: '+plugin
+ assert 'dyws/public_html/dyws/pickup.js' not in names,'Pickup controller must ship with its plugin'
  assert z.read('dyws/VERSION').decode().strip()==version
  for name in ['package.json','public_html/dyws/package.json']:
   assert json.loads(z.read('dyws/'+name))['version']==version

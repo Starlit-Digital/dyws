@@ -13,3 +13,7 @@ test('delegated phone input retains position when editing in the middle',()=>{
  formatPhoneField({target:input});assert.equal(input.value,'(780) 555-014');assert.deepEqual(input.selection,[7,7]);
  const other={name:'customer',value:'7805550142'};formatPhoneField({target:other});assert.equal(other.value,'7805550142');
 });
+
+test('business and location telephone fields format as they are edited',()=>{
+ for(const input of [{name:'businessPhone',type:'tel',value:'7805550142',selectionStart:10,selectionEnd:10,setSelectionRange(){}},{dataset:{locationField:'phone'},value:'7805550142',selectionStart:10,selectionEnd:10,setSelectionRange(){}}]){formatPhoneField({target:input});assert.equal(input.value,'(780) 555-0142');}
+});

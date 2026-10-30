@@ -1,6 +1,6 @@
-import {escapeHTML as esc} from './api.js';
-import {localParts} from './fulfillment.js';
-import {fieldError,clearFieldError} from './checkout-fields.js';
+import {escapeHTML as esc} from '../../dyws/api.js';
+import {localParts} from '../../dyws/fulfillment.js';
+import {fieldError,clearFieldError} from '../../dyws/checkout-fields.js';
 
 /** Starting addresses stay in page memory. Availability and final validation use the server clock. */
 export function mountPickup({form,catalog,selectedLocation,plugins,api}){

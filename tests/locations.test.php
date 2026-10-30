@@ -23,7 +23,7 @@ try{
  $other=$body;$other['locationId']='north';rejects(fn()=>$store->create($other),409);
  $edited=$catalog;$edited['locations']=[$catalog['locations'][0]];$updated=new Store($dir.'/orders.sqlite',$edited,'locations');
  check($updated->create($body)['id']===$receipt['id']);
- $tracking=$updated->tracking($receipt['id'],$receipt['trackingToken']);check($tracking['orderLocation']['name']==='West');check($tracking['business']['pickupAddress']==='200 Example Road');check($tracking['business']['phone']==='7805550143');
+ $tracking=$updated->tracking($receipt['id'],$receipt['trackingToken']);check($tracking['orderLocation']['name']==='West');check($tracking['business']['pickupAddress']==='200 Example Road');check($tracking['business']['phone']==='(780) 555-0143');
  $otherTenant=new Store($dir.'/orders.sqlite',$catalog,'other');rejects(fn()=>$otherTenant->get($receipt['id']),404);
  $delivery=$body;$delivery['idempotencyKey']='locations-delivery-key';$delivery['fulfillment']='delivery';$delivery['address']='123 Fictional Street';$r=$store->create($delivery);check($store->safeOrder($store->get($r['id']))['orderLocation']['id']==='west');
  $single=$catalog;$single['locations']=[$catalog['locations'][0]];$singleStore=new Store($dir.'/single.sqlite',$single,'single');unset($body['locationId']);$r=$singleStore->create($body);check($singleStore->safeOrder($singleStore->get($r['id']))['orderLocation']['id']==='north');

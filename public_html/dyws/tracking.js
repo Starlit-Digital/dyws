@@ -108,7 +108,7 @@ export function createTracking({api,container,role=defaultRole,trackingPage,acco
   const nextPaymentState=JSON.stringify([data.paymentProvider,data.paymentStatus,data.status]);
   if(paymentState!==nextPaymentState&&!payment.querySelector('button:disabled')){
    paymentState=nextPaymentState;
-   payment.replaceChildren();const label=doc.createElement('p');label.className='dyws-status-row';label.innerHTML=(data.paymentProvider==='pay-at-door'?'Pay at the door · ':data.paymentProvider==='pay-at-restaurant'?'Pay at restaurant · ':'Payment ')+statusBadge(data.paymentStatus);payment.append(label);
+   payment.replaceChildren();const label=doc.createElement('p');label.className='dyws-status-row';label.innerHTML=(data.paymentProvider==='pay-at-door'?'Pay at the door · ':data.paymentProvider==='pay-at-restaurant'?'Pay at pickup · ':'Payment ')+statusBadge(data.paymentStatus);payment.append(label);
    if(isOnlinePayment(data.paymentProvider)&&data.paymentStatus==='unpaid'&&data.status==='placed'){
     if(renderPayment)renderPayment({order:data,container:payment,trackingToken:current.token,onError:message=>write('.dyws-tracking-error',message)});
     else{const note=doc.createElement('p');note.textContent='Online payment is unavailable. Contact the business for help with this order.';payment.append(note);}

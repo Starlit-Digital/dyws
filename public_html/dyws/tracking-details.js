@@ -1,3 +1,4 @@
+import {formatPhoneInput} from './phone-input.js';
 import {fulfillmentHTML} from './fulfillment.js';
 import {escapeHTML,money} from './api.js';
 import {formatDateTime} from './date-time.js';
@@ -11,6 +12,6 @@ export function trackingDetails(order) {
  const address=pickup?(order.orderLocation?.address||business.pickupAddress):order.deliveryAddress;
  const fulfillment=`${fulfillmentHTML(order)}${address?`<p class="dyws-tracking-address">${pickup&&(order.orderLocation?.name||business.name)?`<strong>${escapeHTML(order.orderLocation?.name||business.name)}</strong><br>`:''}${escapeHTML(address)}${pickup?`<br><a class="dyws-tracking-directions" href="https://www.google.com/maps/dir/?api=1&amp;destination=${encodeURIComponent(address)}" target="_blank" rel="noopener noreferrer">Directions ↗</a>`:''}</p>`:''}${Number.isFinite(order.createdAt)?`<p class="dyws-note">Ordered ${escapeHTML(formatDateTime(order.createdAt))}</p>`:''}`;
  const phone=String(business.phone||''),dial=phone.replace(/[^0-9+]/g,'');
- const help=`${dial?`<a class="dyws-tracking-contact" href="tel:${escapeHTML(dial)}">Call ${escapeHTML(business.name||'the business')}<small>${escapeHTML(phone)}</small></a>`:''}`;
+ const help=`${dial?`<a class="dyws-tracking-contact" href="tel:${escapeHTML(dial)}">Call ${escapeHTML(business.name||'the business')}<small>${escapeHTML(formatPhoneInput(phone))}</small></a>`:''}`;
  return {receipt,fulfillment,help};
 }

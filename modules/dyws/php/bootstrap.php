@@ -19,8 +19,14 @@ function dyws_bootstrap(?string $configPath=null):array {
  $config=json_decode(file_get_contents($configPath),true,512,JSON_THROW_ON_ERROR);
  if(strlen($config['tracking_secret']??'')<32)throw new ApiError('The order service has not been configured.',503);
  $config=(new \dyws\AdminAccounts($config))->effective();
+ $config['_dyws_catalogless']=!array_key_exists('catalog',$config);
  $GLOBALS['dyws_config']=$config;
- $catalog=\dyws\Catalog::load($config['catalog']);
+ // Installations that do not use Catalog need no catalog file. A configured
+ // catalog must still be loaded and validated; do not hide missing or corrupt data.
+ if(array_key_exists('catalog',$config)){
+  if(!is_string($config['catalog'])||$config['catalog']===''||!is_file($config['catalog']))throw new ApiError('The catalog configuration needs attention.',503);
+  $catalog=\dyws\Catalog::load($config['catalog']);
+ }else $catalog=\dyws\Catalog::validate(['businessName'=>$config['business_name']??'Business','platformName'=>'dyws','currency'=>'CAD','taxBasisPoints'=>0,'deliveryFee'=>0,'categories'=>[]]);
  $settings=(new \dyws\Settings($config))->read();
  $store=new Store($config['database'],$catalog,$config['tenant'],$settings['timeZone'],$settings['acceptingOrders']);
  (new \dyws\GuestDetails($store,$config))->prune();

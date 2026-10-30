@@ -1,7 +1,10 @@
 <?php
 declare(strict_types=1);
-require __DIR__.'/../server/bootstrap.php';
-use dyws\{Store,Catalog,Cancellation,DeliveryRuns,ApiError};
+require_once __DIR__.'/../server/bootstrap.php';
+require_once __DIR__.'/../plugins/delivery/Runs.php';
+require_once __DIR__.'/../server/bootstrap.php';
+use dyws\{Store,Catalog,Cancellation,ApiError};
+use dyws\Plugins\Delivery\Runs as DeliveryRuns;
 $dir=sys_get_temp_dir().'/dyws-cancel-'.bin2hex(random_bytes(6));mkdir($dir,0700);$checks=0;
 $GLOBALS['dyws_config']=['tracking_secret'=>str_repeat('x',64)];
 function check($ok,string $message){global $checks;if(!$ok)throw new RuntimeException($message);$checks++;}

@@ -1,0 +1,11 @@
+{
+  "id": "booking",
+  "name": "Appointment Booking",
+  "version": "1.0.0",
+  "apiVersion": 1,
+  "description": "Book service appointments on your website with conflict protection, business hours and customer cancellation.",
+  "entry": "plugin.php",
+  "type": "booking",
+  "browserModule": "index.js",
+  "settingsAnchor": "plugin-booking"
+}

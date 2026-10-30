@@ -1,3 +1,4 @@
+import {formatPhoneField,formatPhoneInput} from './phone-input.js';
 import {mountHoursEditor} from './business-hours-editor.js';
 import {escapeHTML as esc} from './api.js';
 import {decimalToMinor,createCatalogDraft} from './catalog-editor.js?v=options-20261028';
@@ -20,7 +21,7 @@ export async function mountBusinessSettings({root,page}){
  function syncDefaultCancellation(){form.querySelector('#business-cancellation').hidden=locationRows.children.length>0;}
  function addLocation(location){
   const row=document.createElement('div');row.className='dyws-business-location-row';row.dataset.locationId=location.id;
-  row.innerHTML=`<label>Location name<input data-location-field="name" required maxlength="120" value="${esc(location.name)}"></label><label>Address<input data-location-field="address" required maxlength="240" value="${esc(location.address)}"></label><label>Phone, optional<input data-location-field="phone" type="tel" maxlength="30" pattern="[0-9+() .-]{7,30}" value="${esc(location.phone||'')}"></label><label class="dyws-checkbox"><input data-location-field="active" type="checkbox" ${location.active!==false?'checked':''}> Available</label><button type="button" class="dyws-secondary" aria-label="Remove ${esc(location.name||'location')}">Remove</button>`;
+  row.innerHTML=`<label>Location name<input data-location-field="name" required maxlength="120" value="${esc(location.name)}"></label><label>Address<input data-location-field="address" required maxlength="240" value="${esc(location.address)}"></label><label>Phone, optional<input data-location-field="phone" type="tel" placeholder="(780) 555-0142" maxlength="30" pattern="[0-9+() .-]{7,30}" value="${esc(formatPhoneInput(location.phone||''))}"></label><label class="dyws-checkbox"><input data-location-field="active" type="checkbox" ${location.active!==false?'checked':''}> Available</label><button type="button" class="dyws-secondary" aria-label="Remove ${esc(location.name||'location')}">Remove</button>`;
   row.querySelector('button').onclick=()=>{row.remove();syncDefaultCancellation();mark();form.querySelector('#add-business-location').focus();};locationRows.append(row);
   const extras=document.createElement('div');extras.className='dyws-location-policy';extras.innerHTML='<div data-location-hours></div><div data-ordering-hours></div><details><summary>Delivery pricing</summary><label class="dyws-checkbox"><input type="checkbox" data-pricing-override> Set delivery pricing for this location</label><div class="dyws-field-grid" data-pricing-fields><label>Flat delivery fee<input type="number" data-flat-fee min="0" max="1000" step="0.01" required></label><label>Delivery percentage (%)<input type="number" data-fee-percent min="0" max="100" step="0.01" required></label></div><p class="dyws-note">The percentage applies to the item subtotal before tax. Set either amount to zero to use only the other. Both zero means free delivery.</p></details><section data-cancellation><h4>Customer cancellation</h4><div data-cancellation-editor></div></section>';row.append(extras);
   const readLocationHours=mountHoursEditor(extras.querySelector('[data-location-hours]'),{label:'Location hours',schedule:location.locationHours,inherit:true});
@@ -35,6 +36,7 @@ export async function mountBusinessSettings({root,page}){
  function display(data){latest=data;
   catalog=createCatalogDraft(data.catalog);revision=data.revision;
   for(const key of ['businessName','platformName','pickupAddress','businessPhone','businessEmail','currency'])form.elements[key].value=catalog[key]??'';
+  form.elements.businessPhone.value=formatPhoneInput(form.elements.businessPhone.value);
   for(const key of ['taxBasisPoints','deliveryFee','deliveryFeeBasisPoints'])form.elements[key].value=((catalog[key]??0)/100).toFixed(2);
   form.elements.itemOrderCap.value=catalog.itemOrderCap??10;form.elements.allowPayAtDoor.checked=catalog.allowPayAtDoor===true;form.elements.allowPayAtPickup.checked=catalog.allowPayAtPickup===true;
   readLocationHours=mountHoursEditor(form.querySelector('#business-location-hours'),{label:'Location hours',schedule:catalog.locationHours});
@@ -45,7 +47,7 @@ export async function mountBusinessSettings({root,page}){
  }
  async function reload(){display(await page.request('/manager/catalog'));message.textContent='';}
  form.addEventListener('invalid',event=>{const detail=event.target.closest('details');if(detail)detail.open=true;},true);
- form.oninput=()=>{dirty=true;message.textContent='Unsaved changes';};
+ form.oninput=event=>{formatPhoneField(event);dirty=true;message.textContent='Unsaved changes';};
  form.onsubmit=event=>{event.preventDefault();page.action(event.submitter,async()=>{
   const updated=createCatalogDraft(catalog);
   for(const key of ['businessName','platformName','pickupAddress','businessPhone','businessEmail'])updated[key]=form.elements[key].value;

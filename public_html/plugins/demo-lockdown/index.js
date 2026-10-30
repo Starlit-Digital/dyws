@@ -4,12 +4,14 @@ import {readOrderSelection} from '../../dyws/order-selection.js';
 import {formatPhoneInput} from '../../dyws/phone-input.js';
 export function register(plugin){
  const doc=plugin.document,access=createDemoAccess({document:doc});
+ const initialCatalog=JSON.parse(doc.querySelector('meta[id=dyws-initial-catalog]')?.content||'null');
+ const deliveryEnabled=!Array.isArray(initialCatalog?.fulfillmentModes)||initialCatalog.fulfillmentModes.includes('delivery');
  const callout=position=>{
   const box=doc.createElement('section');box.className='dyws-demo-callout';box.dataset.dywsDemo=position;box.setAttribute('aria-labelledby','dyws-demo-title-'+position);
   const title=doc.createElement('h2');title.id='dyws-demo-title-'+position;title.textContent=position==='top'?'This is a public demo':'Explore the public demo';
-  const intro=doc.createElement('p');intro.textContent='Try an order, explore the dashboard and take a delivery for a spin. Everything here is fictional. No real payments or deliveries.';
+  const intro=doc.createElement('p');intro.textContent=deliveryEnabled?'Try an order, explore the dashboard and take a delivery for a spin. Everything here is fictional. No real payments or deliveries.':'Try a pickup order and explore the business dashboard. Everything here is fictional. No real payments or store collection.';
   const accounts=doc.createElement('div');accounts.className='dyws-demo-accounts';
-  for(const [role,user]of [['Admin','admin'],['Driver','driver']]){
+  for(const [role,user]of (deliveryEnabled?[['Admin','admin'],['Driver','driver']]:[['Admin','admin']])){
    const card=doc.createElement('div'),heading=doc.createElement('h3'),credentials=doc.createElement('p');
    heading.textContent=role+' demo';
    for(const [label,value]of [['Username',user],['Password',user]]){const row=doc.createElement('span'),code=doc.createElement('code');row.append(label+' ');code.textContent=value;row.append(code);credentials.append(row);}
@@ -31,10 +33,10 @@ export function register(plugin){
  plugin.addAction('admin:order',({root,order})=>{
   const nav=orderNavigation(),tracking=doc.createElement('a'),url=new URL('./tracking.php',import.meta.url);
   url.searchParams.set('order',order.id);tracking.href=url.href;tracking.className='dyws-demo-shortcut';tracking.textContent='View customer tracking';
-  nav.append(access.link('driver','Open Driver demo',order.id),tracking);root.append(nav);
+  if(order.fulfillment==='delivery')nav.append(access.link('driver','Open Driver demo',order.id));nav.append(tracking);root.append(nav);
  });
  plugin.addAction('tracking:updated',({root,order})=>{
-  const nav=orderNavigation();nav.append(access.link('admin','Admin orders',order.id),access.link('driver','Open Driver demo',order.id));root.append(nav);
+  const nav=orderNavigation();nav.append(access.link('admin','Admin orders',order.id));if(order.fulfillment==='delivery')nav.append(access.link('driver','Open Driver demo',order.id));root.append(nav);
  });
  const driverActions=doc.querySelector('#driver-board:not([hidden]) > .dyws-actions');
  if(driverActions){
@@ -45,7 +47,7 @@ export function register(plugin){
  }
  const locked=['catalog','drivers','password','settings','plugins'].includes(doc.body.dataset.adminPage);
  const lock=()=>{if(!locked)return;for(const el of doc.querySelectorAll('main input,main select,main textarea,main button')){
-  if(/reload|refresh|cancel/.test(el.id)||el.hasAttribute('data-dyws-reload-plugins')||el.closest('#category-list'))continue;
+  if(el.closest('[data-dyws-booking-appointments]')||/reload|refresh|cancel/.test(el.id)||el.hasAttribute('data-dyws-reload-plugins')||el.closest('#category-list'))continue;
   if(!el.disabled)el.disabled=true;
   el.title='Locked by the installation owner';
  }};
