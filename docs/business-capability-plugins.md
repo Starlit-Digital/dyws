@@ -6,7 +6,7 @@ Catalog owns catalog browsing and authoring routes, cart item selection and opti
 
 Core retains authentication, tenant scope, the neutral catalog data contract, integer cent totals, order persistence, payment ledgers, transition integrity, historical fulfillment snapshots and dispatch projections. Removing optional plugin code must not prevent health checks or reading existing order receipts. Plugin deactivation retains settings and records.
 
-The standard bundle activates Catalog, Pickup and Delivery for new ordering installations. Existing installations adopt these three once through `upgradeDefaults`. Later deliberate deactivations persist. Booking starts inactive. A booking installation can activate Booking without Catalog, Pickup or Delivery.
+The standard bundle activates Catalog, Pickup and Delivery for new ordering installations. Existing installations adopt these three once through `upgradeDefaults`. Later deliberate deactivations persist. Booking starts inactive. A booking installation can activate Booking without Catalog, Pickup or Delivery. A booking only installation may omit `catalog` from its private configuration entirely. If a catalog path is configured, the file must exist and validate even when the Catalog plugin is inactive; existing catalogs are never replaced by a fallback.
 
 ## Required business operations
 
