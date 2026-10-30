@@ -1,5 +1,7 @@
 # DYWS enclosure for a 180 × 180 × 180 mm printer
 
+The lighter [open ring and rabbet mounted sidecar](../sidecar-180/README.md) is now the current build. It calculates to 188.1 g PLA, with a 250 g allowance including fit pieces and waste. This file retains the earlier full cradle design for reference.
+
 Prototype revision 1, October 28, 2026. This package contains actual CAD geometry, STL files and arranged 3MF plates. The parts fit a 180 mm build volume, including a 5 mm brim allowance. Hardware fit, slicing, strength, temperature and radio performance still require a physical prototype.
 
 The intact Epson TM-T20IV sits in two bolted tray halves. A separate side box houses the FireBeetle controller and MAX3232. The lid opens independently, and both power supplies remain outside. The assembled footprint is **214 × 220 mm**, excluding rear cables. Allow approximately **280 mm total installation depth** and **300 mm overhead clearance**. The 180 mm limit applies to each print, not the assembled unit.
@@ -31,6 +33,8 @@ Start with PETG, a 0.4 mm nozzle, 0.20 mm layers, four perimeters, five top and 
 The large parts have flat bases. Small horizontal button and ventilation holes, nut pocket roofs and converter retaining lips need short bridges. Check these on the coupon before deciding whether local support or minor hole cleanup is required. Do not fill the rail channels or nut entries with inaccessible support material.
 
 The final geometry contains about **302.72 cm³** of plastic if fully solid, or **384.5 g** at the assumed PETG density of 1.27 g/cm³. This is a geometry calculation, not a slicer result. Reserve about **0.5 kg** including the coupon and normal waste. Actual infill, extrusion width, supports and retries change consumption. Print time must come from your slicer.
+
+For **standard PLA at 1.24 g/cm³**, the complete enclosure is approximately **375.4 g**, plus **31.8 g** for the fit coupon. Including a 20 percent allowance gives **488.7 g**, so reserve **500 g**. Some matte formulations are denser and need closer to 550 g. See the [PLA material estimate](PLA-MATERIAL-ESTIMATE.txt) for the part breakdown, common PLA types, manufacturer density examples and calculation limits. These are geometry based estimates; use the actual PLA profile when slicing.
 
 ## Hardware changes from the earlier parts list
 

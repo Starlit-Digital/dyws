@@ -1,0 +1,145 @@
+{
+  "savedDate": "2026-10-28",
+  "folder": {
+    "success": true,
+    "id": "15FzqUZ0QwDOD__Ys9hIi2d_lUw48xHGz",
+    "url": "https://drive.google.com/drive/folders/15FzqUZ0QwDOD__Ys9hIi2d_lUw48xHGz",
+    "title": "DYWS",
+    "parent_id": "13J4iHEVYNuJI-M1ur0cDheq562TTIjiG"
+  },
+  "documents": [
+    {
+      "key": "Master",
+      "id": "1hZZAChdHSPZWoCt0P-sLiSaQwEuy-ulNBwgxmUeDutw",
+      "url": "https://docs.google.com/document/d/1hZZAChdHSPZWoCt0P-sLiSaQwEuy-ulNBwgxmUeDutw/edit?usp=drivesdk",
+      "paragraphs": 104,
+      "tables": 5,
+      "cells": 112,
+      "headings": 20,
+      "hyperlinkRuns": 16,
+      "verified": true
+    },
+    {
+      "key": "Parts",
+      "id": "1xb1d_LbxKUVYSjbNpNkr9k-rbagfGGqSjGdXe51FwUA",
+      "url": "https://docs.google.com/document/d/1xb1d_LbxKUVYSjbNpNkr9k-rbagfGGqSjGdXe51FwUA/edit?usp=drivesdk",
+      "paragraphs": 41,
+      "tables": 4,
+      "cells": 111,
+      "headings": 10,
+      "hyperlinkRuns": 53,
+      "verified": true
+    },
+    {
+      "key": "Tech",
+      "id": "14FY5fs_tHI3BlFNR-Pm3txi-rVc8ZXELGtZCYz6ozl0",
+      "url": "https://docs.google.com/document/d/14FY5fs_tHI3BlFNR-Pm3txi-rVc8ZXELGtZCYz6ozl0/edit?usp=drivesdk",
+      "paragraphs": 74,
+      "tables": 2,
+      "cells": 26,
+      "headings": 15,
+      "hyperlinkRuns": 11,
+      "verified": true
+    }
+  ],
+  "attachments": [
+    {
+      "accepted_input": "file_uri",
+      "success": true,
+      "id": "1iTOBq_hw-vCpY84MI-MB59TTvxK6-MdD",
+      "title": "DYWS printer sidecar and open ring | current printable files.zip",
+      "file_name": "DYWS printer sidecar and open ring | current printable files.zip",
+      "mime_type": "application/zip",
+      "url": "https://drive.google.com/file/d/1iTOBq_hw-vCpY84MI-MB59TTvxK6-MdD/view?usp=drivesdk",
+      "parent_id": "15FzqUZ0QwDOD__Ys9hIi2d_lUw48xHGz",
+      "structuredContent": {
+        "accepted_input": "file_uri",
+        "success": true,
+        "id": "1iTOBq_hw-vCpY84MI-MB59TTvxK6-MdD",
+        "title": "DYWS printer sidecar and open ring | current printable files.zip",
+        "file_name": "DYWS printer sidecar and open ring | current printable files.zip",
+        "mime_type": "application/zip",
+        "url": "https://drive.google.com/file/d/1iTOBq_hw-vCpY84MI-MB59TTvxK6-MdD/view?usp=drivesdk",
+        "parent_id": "15FzqUZ0QwDOD__Ys9hIi2d_lUw48xHGz"
+      }
+    },
+    {
+      "accepted_input": "file_uri",
+      "success": true,
+      "id": "1NwtZMDy153uAgIVjWeGphfp_Pr504bcG",
+      "title": "DYWS printer sidecar and open ring | current CAD preview.png",
+      "file_name": "DYWS printer sidecar and open ring | current CAD preview.png",
+      "mime_type": "image/png",
+      "url": "https://drive.google.com/file/d/1NwtZMDy153uAgIVjWeGphfp_Pr504bcG/view?usp=drivesdk",
+      "parent_id": "15FzqUZ0QwDOD__Ys9hIi2d_lUw48xHGz",
+      "structuredContent": {
+        "accepted_input": "file_uri",
+        "success": true,
+        "id": "1NwtZMDy153uAgIVjWeGphfp_Pr504bcG",
+        "title": "DYWS printer sidecar and open ring | current CAD preview.png",
+        "file_name": "DYWS printer sidecar and open ring | current CAD preview.png",
+        "mime_type": "image/png",
+        "url": "https://drive.google.com/file/d/1NwtZMDy153uAgIVjWeGphfp_Pr504bcG/view?usp=drivesdk",
+        "parent_id": "15FzqUZ0QwDOD__Ys9hIi2d_lUw48xHGz"
+      }
+    },
+    {
+      "accepted_input": "file_uri",
+      "success": true,
+      "id": "1a7LNnNC3C0PfvT8ax4Tlms_NjrlkmJoq",
+      "title": "DYWS printer | software source, research and previous designs.zip",
+      "file_name": "DYWS printer | software source, research and previous designs.zip",
+      "mime_type": "application/zip",
+      "url": "https://drive.google.com/file/d/1a7LNnNC3C0PfvT8ax4Tlms_NjrlkmJoq/view?usp=drivesdk",
+      "parent_id": "15FzqUZ0QwDOD__Ys9hIi2d_lUw48xHGz",
+      "structuredContent": {
+        "accepted_input": "file_uri",
+        "success": true,
+        "id": "1a7LNnNC3C0PfvT8ax4Tlms_NjrlkmJoq",
+        "title": "DYWS printer | software source, research and previous designs.zip",
+        "file_name": "DYWS printer | software source, research and previous designs.zip",
+        "mime_type": "application/zip",
+        "url": "https://drive.google.com/file/d/1a7LNnNC3C0PfvT8ax4Tlms_NjrlkmJoq/view?usp=drivesdk",
+        "parent_id": "15FzqUZ0QwDOD__Ys9hIi2d_lUw48xHGz"
+      }
+    }
+  ],
+  "verifiedFolderItems": [
+    {
+      "id": "14FY5fs_tHI3BlFNR-Pm3txi-rVc8ZXELGtZCYz6ozl0",
+      "title": "DYWS Order Printer | Software and Technical Reference",
+      "mimeType": "application/vnd.google-apps.document",
+      "url": "https://docs.google.com/document/d/14FY5fs_tHI3BlFNR-Pm3txi-rVc8ZXELGtZCYz6ozl0/edit?usp=drivesdk"
+    },
+    {
+      "id": "1xb1d_LbxKUVYSjbNpNkr9k-rbagfGGqSjGdXe51FwUA",
+      "title": "DYWS Order Printer | Canadian Parts Research | 24 October 2026",
+      "mimeType": "application/vnd.google-apps.document",
+      "url": "https://docs.google.com/document/d/1xb1d_LbxKUVYSjbNpNkr9k-rbagfGGqSjGdXe51FwUA/edit?usp=drivesdk"
+    },
+    {
+      "id": "1hZZAChdHSPZWoCt0P-sLiSaQwEuy-ulNBwgxmUeDutw",
+      "title": "DYWS Order Printer | Current Design and Build Handoff",
+      "mimeType": "application/vnd.google-apps.document",
+      "url": "https://docs.google.com/document/d/1hZZAChdHSPZWoCt0P-sLiSaQwEuy-ulNBwgxmUeDutw/edit?usp=drivesdk"
+    },
+    {
+      "id": "1a7LNnNC3C0PfvT8ax4Tlms_NjrlkmJoq",
+      "title": "DYWS printer | software source, research and previous designs.zip",
+      "mimeType": "application/zip",
+      "url": "https://drive.google.com/file/d/1a7LNnNC3C0PfvT8ax4Tlms_NjrlkmJoq/view?usp=drivesdk"
+    },
+    {
+      "id": "1NwtZMDy153uAgIVjWeGphfp_Pr504bcG",
+      "title": "DYWS printer sidecar and open ring | current CAD preview.png",
+      "mimeType": "image/png",
+      "url": "https://drive.google.com/file/d/1NwtZMDy153uAgIVjWeGphfp_Pr504bcG/view?usp=drivesdk"
+    },
+    {
+      "id": "1iTOBq_hw-vCpY84MI-MB59TTvxK6-MdD",
+      "title": "DYWS printer sidecar and open ring | current printable files.zip",
+      "mimeType": "application/zip",
+      "url": "https://drive.google.com/file/d/1iTOBq_hw-vCpY84MI-MB59TTvxK6-MdD/view?usp=drivesdk"
+    }
+  ]
+}

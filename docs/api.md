@@ -571,3 +571,7 @@ The store saves contact email in `orders.customer_email`. Only authenticated man
 With the existing remember details consent, `guest_details.customer_email` is saved privately and returned as `customer.email`. Forget and expiry remove that saved value along with the profile. Checkout drafts stay in page memory. Old orders and saved profiles migrate with an empty email, without changes to identities, receipts or fingerprints. Demo lockdown replaces supplied email with `demo.customer@example.test` and keeps real account email delivery disabled.
 
 Customer navigation is rendered from the verified customer session: signed out links read Sign in and target `account/sign-in/`; signed in links read My account and target `account/`. Storefront and tracking links refresh on page resume or focus to reflect sign in or sign out in another tab. Staff sessions and fictional demo previews do not count as customer authentication. No customer contact data is stored by navigation.
+
+## Machine integrations
+
+Tenant managers can issue provisioning keys for AI services. Versioned command discovery, delegated service keys and aggregate JSON/CSV exports are documented in [Integration API v1](integration-api.md). Machine keys remain separate from manager sessions and diner customer accounts.

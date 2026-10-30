@@ -1,0 +1,141 @@
+{
+  "units": "mm",
+  "build_volume_mm": [
+    180,
+    180,
+    180
+  ],
+  "parts": {
+    "frame_front": {
+      "quantity": 1,
+      "dimensions_mm": [
+        160.0,
+        107.0,
+        12.0
+      ],
+      "volume_cm3": 32.12,
+      "pla_g": 39.8,
+      "watertight": true,
+      "one_connected_solid": true,
+      "sha256": "a3dddc28e864cb530a8058dbfa1915c30ace88ae08708128bfb625eddca9ddfb"
+    },
+    "frame_rear": {
+      "quantity": 1,
+      "dimensions_mm": [
+        160.0,
+        107.0,
+        12.0
+      ],
+      "volume_cm3": 32.147,
+      "pla_g": 39.9,
+      "watertight": true,
+      "one_connected_solid": true,
+      "sha256": "1a4f52512bf6f896bacf395a285186759a8cb2295844e90fc4cbc978aa567fce"
+    },
+    "rail_splice": {
+      "quantity": 2,
+      "dimensions_mm": [
+        40.0,
+        12.0,
+        3.0
+      ],
+      "volume_cm3": 1.386,
+      "pla_g": 1.7,
+      "watertight": true,
+      "one_connected_solid": true,
+      "sha256": "2253142237e5ad22fc774110a089cfcb4c1463b479c674cb705277d8583031ca"
+    },
+    "sidecar_body": {
+      "quantity": 1,
+      "dimensions_mm": [
+        75.0,
+        128.0,
+        32.0
+      ],
+      "volume_cm3": 65.695,
+      "pla_g": 81.5,
+      "watertight": true,
+      "one_connected_solid": true,
+      "sha256": "c47c25f4eb3791ca95341f457acc63972c0aba20c0be9091de593596ed00f876"
+    },
+    "sidecar_lid": {
+      "quantity": 1,
+      "dimensions_mm": [
+        62.0,
+        128.0,
+        2.4
+      ],
+      "volume_cm3": 18.959,
+      "pla_g": 23.5,
+      "watertight": true,
+      "one_connected_solid": true,
+      "sha256": "0240e712e2ba27862de3209de35ec74a88f62f55701cc205040cf81dcd3ebe06"
+    },
+    "fit_coupon": {
+      "quantity": 1,
+      "dimensions_mm": [
+        70.0,
+        50.0,
+        20.0
+      ],
+      "volume_cm3": 9.792,
+      "pla_g": 12.1,
+      "watertight": true,
+      "one_connected_solid": true,
+      "sha256": "0b43e5b553c78d429484791710081014bf06a0e164a917fa913ce2cd71b14aa5"
+    },
+    "rabbet_rail_coupon": {
+      "quantity": 1,
+      "dimensions_mm": [
+        12.0,
+        32.0,
+        12.0
+      ],
+      "volume_cm3": 1.989,
+      "pla_g": 2.5,
+      "watertight": true,
+      "one_connected_solid": true,
+      "sha256": "e71273037c0c76905b3271300136268888d546db193ff200b395ce8b6b9c04ab"
+    },
+    "rabbet_hook_coupon": {
+      "quantity": 1,
+      "dimensions_mm": [
+        15.4,
+        28.0,
+        12.4
+      ],
+      "volume_cm3": 4.242,
+      "pla_g": 5.3,
+      "watertight": true,
+      "one_connected_solid": true,
+      "sha256": "d456f9362871b6eff689d8ec824dc683f81bb0b1a3c183404cfad857d2afb975"
+    }
+  },
+  "checks": {
+    "closed_meshes": true,
+    "stl_round_trip": true,
+    "single_solid_per_stl": true,
+    "parts_and_plates_fit_with_5mm_brims": true,
+    "assembly_interference_free": true,
+    "nominal_component_envelopes_clear": true,
+    "splice_and_retaining_hole_alignment": true,
+    "printer_envelope_clear": true,
+    "rabbet_coupon_nominal_fit": true,
+    "physical_hardware_fit_tested": false,
+    "slicer_validated": false,
+    "structural_load_and_radio_performance_tested": false,
+    "independent_3mf_mesh_and_quantity_round_trip": true
+  },
+  "total_final_parts": 6,
+  "solid_volume_cm3": 151.692,
+  "pla_density_g_cm3": 1.24,
+  "fully_solid_pla_mass_g": 188.1,
+  "with_coupon_and_20_percent_allowance_g": 249.6,
+  "assembled_dimensions_mm": [
+    229,
+    214,
+    37.4
+  ],
+  "all_fit_coupons_pla_g": 19.9,
+  "note": "Geometry based mass for solid modelled features. Not a slicer result. Excludes electronics, hardware and adhesive."
+}

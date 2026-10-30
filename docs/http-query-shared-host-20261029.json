@@ -1,0 +1,185 @@
+{
+  "checkedAtUtc": "2026-10-30",
+  "nativeQueryEnabled": false,
+  "applicationPilotDeployed": true,
+  "probe": [
+    {
+      "protocol": "h2",
+      "method": "GET",
+      "directOrigin": false,
+      "status": "HTTP/2 200 ",
+      "reachedPhp": true,
+      "body": "{\"method\":\"GET\",\"bytes\":0}"
+    },
+    {
+      "protocol": "h2",
+      "method": "POST",
+      "directOrigin": false,
+      "status": "HTTP/2 200 ",
+      "reachedPhp": true,
+      "body": "{\"method\":\"POST\",\"bytes\":2}"
+    },
+    {
+      "protocol": "h2",
+      "method": "QUERY",
+      "directOrigin": false,
+      "status": "HTTP/2 400 ",
+      "reachedPhp": false,
+      "body": "<!DOCTYPE html>\n<html style=\"height:100%\">\n<head>\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1, shrink-to-fit=no\" />\n<title> 400 Bad Request\n</title><style>@media (prefers-color-scheme:dark){body{ba"
+    },
+    {
+      "protocol": "h1",
+      "method": "QUERY",
+      "directOrigin": false,
+      "status": "HTTP/1.1 400 Bad Request",
+      "reachedPhp": false,
+      "body": "<!DOCTYPE html>\n<html style=\"height:100%\">\n<head>\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1, shrink-to-fit=no\" />\n<title> 400 Bad Request\n</title><style>@media (prefers-color-scheme:dark){body{ba"
+    },
+    {
+      "protocol": "h1",
+      "method": "QUERY",
+      "directOrigin": true,
+      "status": "HTTP/1.1 400 Bad Request",
+      "reachedPhp": false,
+      "body": "<!DOCTYPE html>\n<html style=\"height:100%\">\n<head>\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1, shrink-to-fit=no\" />\n<title> 400 Bad Request\n</title><style>@media (prefers-color-scheme:dark){body{ba"
+    }
+  ],
+  "verification": {
+    "endpoint": "https://dyws.ca/demos/diner/api/",
+    "checks": [
+      {
+        "route": "/integrations/v1/commands/reports.summary",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "route": "/integrations/v1/commands/reports.summary/execute",
+        "method": "POST",
+        "status": 200
+      },
+      {
+        "route": "/integrations/v1/commands/reports.summary/execute",
+        "method": "POST",
+        "status": 422
+      },
+      {
+        "route": "/integrations/v1/commands/reports.summary/execute",
+        "method": "POST",
+        "status": 422
+      },
+      {
+        "route": "/integrations/v1/commands/reports.summary/execute",
+        "method": "POST",
+        "status": 415
+      },
+      {
+        "route": "/integrations/v1/commands",
+        "method": "GET",
+        "status": 401
+      },
+      {
+        "route": "/manager/api-keys",
+        "method": "POST",
+        "status": 403
+      },
+      {
+        "route": "/integrations/v1/commands/keys.create/execute",
+        "method": "POST",
+        "status": 403
+      },
+      {
+        "route": "/integrations/v1/commands/reports.export/execute",
+        "method": "POST",
+        "status": 403
+      },
+      {
+        "route": "/integrations/v1/commands/reports.summary",
+        "method": "GET",
+        "status": 401
+      }
+    ],
+    "preferredMethod": "POST",
+    "clientAttemptMethods": [
+      "POST"
+    ],
+    "clientReportParity": true,
+    "publicClientDigestMatches": true,
+    "temporaryKeyRevoked": true
+  },
+  "integrity": {
+    "sourceDigestsMatch": true,
+    "databaseIntegrity": "ok",
+    "businessRowCountsUnchanged": true,
+    "otherConfigPreserved": true,
+    "activeVerificationKeys": 0,
+    "release": "/home/u394197407/domains/dyws.ca/private/releases/query-report-pilot-20261030T005826Z",
+    "backup": "/home/u394197407/domains/dyws.ca/private/deploy-backups/query-report-pilot-20261030T005826Z",
+    "publicSmokeChecks": [
+      {
+        "url": "https://dyws.ca/",
+        "status": 200
+      },
+      {
+        "url": "https://dyws.ca/demos/diner/",
+        "status": 200
+      },
+      {
+        "url": "https://dyws.ca/demos/diner/admin/",
+        "status": 200
+      },
+      {
+        "url": "https://dyws.ca/demos/barbecue/api/?route=/health",
+        "status": 200
+      },
+      {
+        "url": "https://dyws.ca/demos/burger-house/api/?route=/health",
+        "status": 200
+      },
+      {
+        "url": "https://dyws.ca/demos/cafe-bakery/api/?route=/health",
+        "status": 200
+      },
+      {
+        "url": "https://dyws.ca/demos/chinese-family/api/?route=/health",
+        "status": 200
+      },
+      {
+        "url": "https://dyws.ca/demos/diner/api/?route=/health",
+        "status": 200
+      },
+      {
+        "url": "https://dyws.ca/demos/donair-wraps/api/?route=/health",
+        "status": 200
+      },
+      {
+        "url": "https://dyws.ca/demos/express/api/?route=/health",
+        "status": 200
+      },
+      {
+        "url": "https://dyws.ca/demos/family-kitchen/api/?route=/health",
+        "status": 200
+      },
+      {
+        "url": "https://dyws.ca/demos/hot-dogs/api/?route=/health",
+        "status": 200
+      },
+      {
+        "url": "https://dyws.ca/demos/pizza-pub/api/?route=/health",
+        "status": 200
+      },
+      {
+        "url": "https://dyws.ca/demos/sushi/api/?route=/health",
+        "status": 200
+      }
+    ]
+  },
+  "sourceHashes": {
+    "modules/dyws/php/api.php": "5348cbeced5bf8a2803a39d5055fad32863c8050af34035e7edfeae0eeac2aee",
+    "modules/dyws/php/IntegrationApi.php": "fc1307fc099f1517f09403f946b3f86e70667b79e4a23e2bf7b42890dcd7d5db",
+    "modules/dyws/php/schema.sql": "e39568f962a0ecbfb450f4e828dac631a0d19949fe3f53c459f762f51890c9bf",
+    "plugins/demo-lockdown/DemoPolicy.php": "6f360522000c3a267899b6097d0f23ed055a59f82f972e8cd6b8946518519158",
+    "scripts/report-summary.mjs": "23202e4504befae65f3945b369bdd59a8908b75db8dd3e3687cc0d9729b797e7",
+    "docs/integration-api.md": "16ab978b13eb361298bdb621d6214f2a496b98b122edfe8bf3c2549a7f183d3c",
+    "public_html/dyws/integration-reports.js": "eb13c2e19ec864ee90c79e5ba3aeec9e8e47632ee31739b56852d5870f5c4b61"
+  }
+}

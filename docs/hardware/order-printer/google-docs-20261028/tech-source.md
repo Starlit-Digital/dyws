@@ -1,0 +1,165 @@
+# DYWS printer software and technical reference
+Local pilot implementation, consolidated 28 October 2026
+
+This reference preserves the plugin queue and API contract, firmware wiring, setup, build commands, Bluetooth service and remaining validation. Current orders and payments remain demonstrations. Compilation and automated checks do not establish physical integration or production readiness.
+
+[Current design and build handoff](https://docs.google.com/document/d/1hZZAChdHSPZWoCt0P-sLiSaQwEuy-ulNBwgxmUeDutw/edit?usp=drivesdk)
+[Software source and research archive](https://drive.google.com/file/d/1a7LNnNC3C0PfvT8ax4Tlms_NjrlkmJoq/view?usp=drivesdk)
+[Canadian purchasing research](https://docs.google.com/document/d/1xb1d_LbxKUVYSjbNpNkr9k-rbagfGGqSjGdXe51FwUA/edit?usp=drivesdk)
+
+## Plugin and queue overview
+
+Implementation and research recorded October 24, 2026. The plugin remains inactive by default. Nothing in this change deploys it to a live venue, purchases hardware, or changes demonstration payments into real charges.
+
+## Executive decision
+
+Use the Arduino compatible **DFRobot FireBeetle 2 ESP32-E N16R2**, with the **Epson TM-T20IV C31CL47001** USB and RS232 printer for the venue pilot. Connect the phone to the ESP32's own protected WiFi for setup, then let the ESP32 communicate directly with the DYWS backend over HTTPS. Retain BLE for device diagnostics. The phone can leave after setup.
+
+The Epson is the practical upgrade from the DFRobot embedded printer: 80 mm paper, automatic partial cutting, a much larger roll and a complete serviceable housing. Its stated maximum print speed is 250 mm/s; the pilot firmware deliberately sends text more slowly while checking status. Use the original printer housing in a printed cradle with a separate accessible electronics compartment. Manufacturer dimensions are **146 × 199 × 146 mm**, not the 140 mm width of the older TM-T20III. Allow the lid to open completely and keep the paper exit clear. [Epson technical reference](https://files.support.epson.com/pdf/pos/bulk/tm-t20iv_trg_en_rev_c.pdf)
+
+The original DFRobot DFR0503-EN remains useful for a compact prototype. Its 58 mm paper and manual tear require more staff handling. Its 30 mm maximum roll diameter means frequent roll changes compared with the Epson. [DFRobot product and datasheet](https://www.dfrobot.com/product-1799.html)
+
+## Costs and purchasing
+
+The [complete Canadian parts basket](order-printer-canadian-parts-research-20261024.md) totals **C$380.06 before tax and delivery**, including the C$259 printer, C$21.75 controller, C$10.95 MAX3232, serial connector and cable, C$11.95 official USB-C supply, programming cable, setup button, wiring, hardware packs and a full 1 kg PETG spool. Prices were checked on October 24, 2026. The budget assumes the regional printer bundle includes its Epson power adapter, AC cord, USB cable and starter paper; confirm the selected seller's carton contents before paying.
+
+The basket buys more filament, wire and hardware than one unit consumes. It uses nine storefronts, so delivery can be substantial. An optional six supplier basket costs about C$385.60 before tax and delivery, with button and foot substitutions that need mechanical verification. Both options and their purchase links are in the research file. The October 28 enclosure revision changes the fasteners and rubber pad count, so reconcile its hardware schedule before ordering. No order has been placed.
+
+Shared tools, CAD work, assembly labour, printing services and site infrastructure are excluded. The [plain text handoff](hardware/order-printer/prototype-handoff-20261024.txt) gathers the complete specifications, parts, wiring, enclosure requirements and remaining fit checks for the designer and assembler.
+
+## Printed enclosure
+
+The current [open ring and sidecar package](hardware/order-printer/sidecar-180/README.md), updated October 28, follows the owner's simplified design. Two long rails and two end crosspieces support the printer without a floor plate. Corner gussets provide padded support. The electronics box hooks over one rail using two integral rabbets, secured with one retaining screw.
+
+The ring measures **160 × 214 mm** assembled. It prints as two **160 × 107 × 12 mm** halves, joined with two small vertical straps. The case prints at **75 × 128 × 32 mm**, including its hooks; its lid is **62 × 128 × 2.4 mm**. Every part and arranged 3MF plate fits a **180 × 180 × 180 mm** machine with a 5 mm brim allowance. The full assembly footprint is about **229 × 214 mm**, excluding rear cables.
+
+The six final printed pieces calculate to **188.1 g of standard PLA at 1.24 g/cm³**. All three fit pieces add about **19.9 g**. With a 20 percent printing allowance, reserve **250 g**. This is a geometry based calculation, not a slicer result. Physical fit, load capacity, heat and RF performance still require a prototype. Keep both mains adapters external and check actual printer support points before use.
+
+The package contains STLs, three arranged final print plates, a separate fit test plate, editable source and a CAD preview. Use the new guide's fastener schedule. The earlier full cradle and its 375.4 g PLA calculation remain as historical alternatives.
+
+Additional paper is quoted at C$87.99 for twelve 68.58 m rolls in the dated parts research. A 250 mm order consumes about C$0.027 of paper before feed and waste. No ink or toner is required. At five second polling, one continuously powered device makes up to 17,280 polls per day; check hosting capacity as the fleet grows.
+
+## Delivered software
+
+The optional `order-printer` plugin adds a manager settings panel, expiring pairing codes, revocable device credentials, location assignment, two printer profiles, status, test tickets, a durable SQLite queue and explicit recovery actions. It does not add a new core dependency. Browser code lives in `public_html/plugins/order-printer`; server code and schema live in `plugins/order-printer`.
+
+The firmware in `firmware/order-printer` implements a protected setup access point, local phone setup page, verified HTTPS enrollment and polling, persistent configuration, BLE status, serial status queries, text printing and Epson cutting. Credentials stay on the device and as hashes on the server. Pairing codes expire after 30 minutes. Payloads are ordinary text; neither arbitrary printer commands nor remote scripts are accepted.
+
+```mermaid
+flowchart LR
+ Phone[Phone setup browser] -->|Device WiFi, first setup| ESP[ESP32 controller]
+ ESP -->|Venue WiFi and HTTPS| API[DYWS printer API]
+ Orders[Accepted DYWS orders] --> Queue[Private durable print queue]
+ Queue --> API
+ ESP -->|UART through MAX3232| Printer[Epson TM T20IV]
+ BLE[Bluetooth diagnostic app] -->|Read status| ESP
+```
+
+No email adapter is used. Direct backend integration preserves authoritative order IDs, payment state, location and cancellation status. The queue catches missed optional status hooks during later polling, so a failed observer does not lose accepted orders.
+
+## API and queue contract
+
+All paths below use the normal DYWS `/api/?route=...` adapter. POST bodies are JSON. Manager endpoints require the existing manager session. Device endpoints use their separate `X-DYWS-Printer-Token` header. A manager token alone does not authenticate a printer.
+
+| Method and route | Contract |
+| --- | --- |
+| GET `/manager/plugins/order-printer/settings` | Safe device and job summaries, locations, profiles and configured API base. No credentials or ticket contents. |
+| POST `/manager/plugins/order-printer/devices` | `{name, locationId, profile}`. Returns `{id, enrollmentCode, expiresIn, apiBase}`. Profiles are `dfrobot58` and `epson80`. |
+| POST `/manager/plugins/order-printer/manage` | `{printerId, action, jobId?, requestId?}`. Actions: `test`, `revoke`, `resolve`, `dismiss`, `reprint`. Test and reprint require a stable caller generated request ID. |
+| POST `/plugins/order-printer/enroll` | `{code, token, deviceId}`. Device generates a 64 character random hex token. Same code, device ID and token can retry until expiry. Returns profile and printer ID. |
+| POST `/plugins/order-printer/poll` | `{status}` where status is `ready`, `paper_out`, `printer_unavailable` or `uncertain`. Returns `job:null` or `{id, lease, text, profile, cut}`, plus profile, attention and polling interval. |
+| POST `/plugins/order-printer/ack` | `{jobId, lease, action}` with `start`, `sent`, `uncertain` or `release`. Returns `{ok,state}`. |
+
+Errors use the core error response: invalid data 422, missing or revoked device auth 401, a foreign tenant or printer job 404, invalid lease or state 409, oversized request 413. All public device routes use custom authentication or the enrollment capability. Enrollment and device requests have core rate limits. The rate limit buckets are IP based, so assess shared NAT traffic before larger deployments.
+
+Only new orders placed after the printer configuration was created become automatic tickets. A persisted event cursor avoids replaying earlier orders even within the same timestamp second. Orders must match the assigned location, be accepted, preparing or ready, and have confirmed payment. The existing demonstration provider also permits its explicitly unpaid test ledger state. Placed, cancelled, completed and non-demo unpaid orders do not print. Do not reset or renumber the core event log while retaining printer configurations.
+
+A unique printer and order key prevents duplicate automatic jobs. Polling grants one 90 second reservation. `start` must succeed before physical output; it grants a 180 second printing window. An expired unstarted reservation can return to the queue. A started job whose outcome is unknown becomes `uncertain`, blocks further jobs for that printer and requires review. The manager can confirm the paper, dismiss it or request a marked copy. `sent` and uncertain recovery acknowledgements can safely repeat. The service does not promise exactly once physical printing.
+
+Tickets are kitchen slips with the order identifier, creation time in UTC, fulfillment type, customer name, line items, options, notes and test payment summary. They exclude phone, delivery address and tracking credentials. All current tickets explicitly say `DEMONSTRATION ORDER`. The first version uses ASCII transliteration and fixed profile widths. Custom layouts, delivery labels, receipt tax formatting and full Unicode need separate work.
+
+Cancellation stops queued work, but does not recall paper already printed. This version does not print followup cancellation or amendment slips. Staff must continue to check the DYWS order screen. Orders still active after a long outage can print on reconnection, so a stale order review threshold is a production requirement.
+
+## Deployment and next steps
+
+Activate only in a private pilot installation. The public demo lockdown policy intentionally does not allow this plugin. Back up the private SQLite database; the plugin creates its own tables on first use. Deactivation removes its routes but retains configuration and jobs. Revoking a device invalidates its token. No active default plugin list was changed.
+
+Set `public_base_url` to the externally reachable HTTPS origin and any deployment subpath. The device accepts the resulting address ending in `/api/`. Include plugin server files, browser assets and generated preload entries. The release builder includes firmware source when it is tracked; no install archive was published by this change.
+
+Follow the [firmware build and wiring instructions](../firmware/order-printer/README.md). Next, bench test the actual printer and controller, validate recovery under injected failures, produce measured enclosure CAD, then run a supervised venue pilot. Production readiness also needs signed updates, secure device provisioning, fleet alerts, payload retention, stale order policy and a support workflow. Existing hosting can run a small pilot; dedicated infrastructure, support labour, spares and backup power are additional operating costs.
+
+
+## Firmware source reference
+
+This is a compiling hardware pilot for DFRobot FireBeetle 2 ESP32-E N16R2, SKU DFR1139. It uses the Arduino framework on the original ESP32. No device has been flashed or physically tested yet. Current DYWS orders and payments remain demonstrations.
+
+## Setup and operation
+
+1. Enable **Order Printer** in DYWS Plugins, open its editor, choose the business location and printer profile, then create a pairing code. Keep the code and backend API address available before switching networks. The backend must have a valid HTTPS certificate.
+2. Flash the firmware over USB. Read the unique `DYWS-xxxxxx` network name and password from the serial monitor at 115200 baud. Put these setup credentials on the device label. The serial monitor does not print the venue password, device token or customer orders.
+3. Connect the phone to that network. Keep the connection if the phone warns that it has no internet. Open `http://192.168.4.1` if the setup page does not open automatically.
+4. Enter the venue's 2.4 GHz WiFi name and password, the HTTPS backend API address ending in `/api/`, the pairing code and the printer's serial speed. Choose 19200 only if it matches the DFRobot self test, or configure the Epson to 38400 as described below.
+5. The device joins the venue WiFi while retaining its setup access point. It obtains network time, verifies the backend TLS certificate and enrolls. It saves the working configuration only after verification succeeds. The phone may briefly reconnect when the ESP32 changes radio channel.
+6. After success the setup network closes after 15 seconds. Reconnect the phone to venue WiFi and use the ordinary DYWS login to manage printers. Select **Print test ticket**. The phone is not needed for subsequent printing.
+
+The setup password protects the local setup page. Manager login stays on DYWS. The device uses its own revocable credential, not a manager password. No router port forwarding is required. Hold the GPIO14 setup button for three seconds to reopen setup. An unattended setup window closes after 15 minutes. A failed boot connection opens setup; a later WiFi outage uses automatic reconnection.
+
+For a WiFi change, leave the pairing code blank and retain the existing backend address. A pending ticket prevents changing backend or identity, but still permits changing WiFi to restore acknowledgement. Resolve uncertain output in DYWS before any factory erase. Erasing flash creates a new device identity and must be followed by revoking the old device and pairing again.
+
+## Connections
+
+| ESP32 connection | Purpose |
+| --- | --- |
+| GPIO25 | Printer UART TX |
+| GPIO26 | Printer UART RX, required for status and flow control |
+| GPIO14 to GND | Normally open setup button, internal pullup |
+| USB-C | Regulated 5 V controller power and programming |
+| GND | Common signal ground with the serial interface |
+
+Avoid GPIO16 and GPIO17 on this PSRAM board. Verify the actual FireBeetle pin labels before assembly.
+
+**Epson TM-T20IV:** use a MAX3232 interface powered at 3.3 V. Never connect the Epson RS232 pins directly to ESP32 GPIO. Wire ESP32 TX to converter T1IN, T1OUT to printer RX; printer TX to converter R1IN, R1OUT to ESP32 RX. Connect signal ground. Configure the printer for 38400 baud, 8 data bits, no parity, one stop bit, XON/XOFF, and BUSY on buffer full or offline. Disable serial reset functions and automatic status back if previously enabled. Match the firmware's speed to the printer self test. The firmware handles XON/XOFF and queries real time status explicitly.
+
+For **C31CL47001**, the USB and serial model, Epson specifies a DB25 female connector: printer RX pin 3, TX pin 2, signal ground pin 7. The USB, Ethernet and serial variant uses DB9 male: RX pin 2, TX pin 3, signal ground pin 5. Confirm the purchased model and cable continuity; generic converter DB9 adapters are not necessarily wired for this printer. See [Epson's reference guide, pages 97 to 100](https://files.support.epson.com/pdf/pos/bulk/tm-t20iv_trg_en_rev_c.pdf).
+
+Use the Epson's specified external power supply and a separate regulated USB supply for the ESP32. Do not power a printer from the controller board. Leave both mains adapters outside the printed enclosure.
+
+**DFRobot DFR0503-EN:** use its documented 3.3 V TTL serial connector, crossed TX/RX and common ground. Use a separate printer supply meeting its 9 to 24 V specification and peak current. The firmware uses the model's three byte paper status response and does not issue a cutter command. Consult the [DFRobot datasheet](https://dfimg.dfrobot.com/wiki/19355/DFR0503-EN_embedded-thermal-printer_datasheet_V1.0.pdf) before selecting the power supply and cable.
+
+## Build
+
+Verified toolchain: Arduino CLI 1.5.1, `esp32:esp32@3.3.12`, ArduinoJson 7.4.2. Install from the official Arduino and Espressif package sources. This build does not install or flash anything automatically.
+
+```sh
+arduino-cli core update-index --additional-urls https://espressif.github.io/arduino-esp32/package_esp32_index.json
+arduino-cli core install esp32:esp32@3.3.12 --additional-urls https://espressif.github.io/arduino-esp32/package_esp32_index.json
+arduino-cli lib install ArduinoJson@7.4.2
+bash firmware/order-printer/build.sh
+```
+
+`ARDUINO_CLI`, `ARDUINO_CLI_CONFIG` and `DYWS_PRINTER_BUILD_DIR` can override the binary, configuration file and output directory. Default build output is outside the repository. The FQBN is `esp32:esp32:esp32:FlashSize=16M,PartitionScheme=app3M_fat9M_16MB,PSRAM=enabled`. The generic ESP32 target is intentional because the older FireBeetle board entry describes a 4 MB device. Confirm PSRAM and flash on the physical DFR1139 during bringup. The selected partition map reserves two application slots; OTA updating itself is not implemented.
+
+`TrustedRoots.h` contains the public ISRG Root X1 certificate. Check the deployment's actual certificate chain before flashing. Add its appropriate public CA trust anchor if it is different. The code rejects HTTP backends, redirects and invalid certificates; do not substitute `setInsecure()`. Internet time is required after boot for TLS validity checks.
+
+Native protocol checks, which exercise the same status decoder and ticket validator used by the sketch:
+
+```sh
+c++ -std=c++17 -Wall -Wextra -Werror tests/printer-protocol.test.cpp -o /tmp/dyws-printer-protocol-test
+/tmp/dyws-printer-protocol-test
+```
+
+## Bluetooth
+
+BLE is enabled alongside WiFi. Service `698c1c40-4352-4af3-a786-357ab1ef1000` contains a read only diagnostic characteristic `698c1c40-4352-4af3-a786-357ab1ef1001`. A generic BLE diagnostic app can read states such as `ready`, `paper_out`, `wifi_offline` or `review_in_dyws`. It exposes no order content or credentials and resumes advertising after disconnection.
+
+Bluetooth provisioning, a dedicated mobile app and Bluetooth printer transport are not implemented. The original ESP32 hardware supports Classic and BLE, but this firmware enables BLE diagnostics only. Setup is through the device's WiFi and works without browser Bluetooth support.
+
+## Reliability and remaining validation
+
+The persistent journal stores only a job ID, lease and phase. The device must receive server permission to start before writing ticket bytes. It validates text to reject embedded printer control codes. On a reset, it acknowledges a previously transmitted ticket or reports uncertain output. It never resumes UART output from a saved job. An expired reservation that never started may be safely claimed again by the backend. A started job is never automatically retried.
+
+`Sent to printer` records transmission and a final status response. It is not proof that a complete, legible physical ticket exists. Paper loss, cutter trouble, disconnects and power loss can require operator review. Recovery copies are marked `COPY / REPRINT`. Until a physical pilot passes, use this only with demonstration orders.
+
+Before venue use, verify phone setup on iPhone and Android, wrong password recovery, changed venue credentials, TLS renewal, BLE reconnection, serial status and XON/XOFF at the selected baud, long tickets, paper removal halfway through output, cover opening, cable removal, printer and controller resets, lost acknowledgement responses and a sustained order burst. Confirm that recovered tickets are never silently duplicated. Verify a receipt's accented names and required kitchen notes; this pilot transliterates text to ASCII.
+
+Remaining product work includes signed OTA and recovery, secure boot and flash encryption provisioning, protected production key handling, a device label or QR manufacturing flow, a physical status LED or buzzer, retention policy, stale ticket handling, fleet monitoring and enclosure CAD with thermal and RF tests. The concept image's external status LED is not wired by this pilot firmware. Captive venue login pages, enterprise WiFi and 5 GHz only networks are not supported by the setup form.

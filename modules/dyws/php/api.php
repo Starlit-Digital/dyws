@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__.'/Plugins.php';
+require_once __DIR__.'/IntegrationApi.php';
 function dyws_serve_api(?string $configPath=null,?callable $bootstrap=null):void {
 ini_set('display_errors','0');
 header('Content-Type: application/json; charset=utf-8');header('Cache-Control: no-store');header('X-Content-Type-Options: nosniff');header('Referrer-Policy: no-referrer');
@@ -14,8 +15,10 @@ try {
  $customerDrivers=new \dyws\CustomerDrivers($store);
  $method=$_SERVER['REQUEST_METHOD'];$route=$_GET['route']??'/health';if(!is_string($route)||strlen($route)>180)throw new \dyws\ApiError('Invalid route.',400);
  $pluginRoute=$plugins->match($method,$route);$raw='';
- if($method==='POST'){
-  $maxBody=in_array($route,['/manager/catalog','/manager/deals'],true)?262144:($pluginRoute['maxBody']??32768);
+ // QUERY is admitted only for the explicitly safe report pilot, never plugin or write routes.
+ if($method==='QUERY'&&$route!=='/integrations/v1/commands/reports.summary/execute')throw new \dyws\ApiError('Endpoint not found.',404);
+ if($method==='POST'||$method==='QUERY'){
+  $maxBody=$method==='QUERY'?32768:(in_array($route,['/manager/catalog','/manager/deals'],true)?262144:($pluginRoute['maxBody']??32768));
   if(stripos($_SERVER['CONTENT_TYPE']??'','application/json')!==0)throw new \dyws\ApiError('JSON requests are required.',415);
   if((int)($_SERVER['CONTENT_LENGTH']??0)>$maxBody)throw new \dyws\ApiError('Request is too large.',413);
   $raw=file_get_contents('php://input',false,null,0,$maxBody+1);if(strlen($raw)>$maxBody)throw new \dyws\ApiError('Request is too large.',413);
@@ -23,7 +26,11 @@ try {
  }else $body=[];
  if(!empty($config['required_plugins']))$plugins->validate('request.validating',$method,$route,$body);
  $result=null;
- if($method==='GET'&&$route==='/health')$result=['service'=>'dyws','demo'=>true];
+ if(str_starts_with($route,'/manager/api-keys')||str_starts_with($route,'/integrations/v1/')){
+  $integration=new \dyws\IntegrationApi($store,$config);
+  $result=$integration->serve($method,$route,$body);
+ }
+ elseif($method==='GET'&&$route==='/health')$result=['service'=>'dyws','demo'=>true];
  elseif(str_starts_with($route,'/customer/')){
   $customers->guard();dyws_limit_requests($store,$config,'customer-api',120,60);
   if($method==='GET'&&$route==='/customer/session')$result=$customers->state();

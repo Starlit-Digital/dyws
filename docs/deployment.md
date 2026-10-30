@@ -1,5 +1,9 @@
 # Run and deploy dyws
 
+The October 29 [shared host QUERY investigation](http-query-shared-host-20261029.md)
+records the deployed diner reporting pilot, verified POST operation, backup and
+rollback details, and the LiteSpeed admission change still needed for native QUERY.
+
 Current distribution, October 25, 2026: DYWS does not include Stripe or its SDK. The Stripe notes below describe existing installations with a separately installed plugin and historical upgrades. Keep that plugin, its dependencies, credentials and pending callbacks in place when updating such a deployment. Starlit managed additions are maintained separately from the public framework and example diner.
 
 Use [VERSION](../VERSION) for the application release, [INSTALL.md](../INSTALL.md) for fresh installation and [CHANGELOG.md](../CHANGELOG.md) for release history. This guide describes the current checkout.

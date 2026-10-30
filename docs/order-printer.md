@@ -20,15 +20,15 @@ Shared tools, CAD work, assembly labour, printing services and site infrastructu
 
 ## Printed enclosure
 
-The [180 mm enclosure package](hardware/order-printer/enclosure-180/README.md), created October 28, preserves the Epson housing inside a PETG cradle with a low electronics compartment and an open rear. Its assembled footprint is **214 × 220 mm**, with separate installation space behind the printer for the DB25 hood and cables. It uses two 156 × 110 mm tray halves, a 58 × 166 mm electronics box and lid, four joining plates and six feet. All parts fit a **180 × 180 × 180 mm** build volume with a 5 mm brim allowance. Keep both mains adapters external.
+The current [open ring and sidecar package](hardware/order-printer/sidecar-180/README.md), updated October 28, follows the owner's simplified design. Two long rails and two end crosspieces support the printer without a floor plate. Corner gussets provide padded support. The electronics box hooks over one rail using two integral rabbets, secured with one retaining screw.
 
-The verified printer body is **146 × 199 × 146 mm**. Its open lid reaches **268 mm above the printer base**; reserve about **300 mm above the counter** after allowing for the cradle and feet. The controller PCB is only **60 × 25.4 mm**, and the converter is **25.4 × 13.97 mm**. Use M2 nylon controller mounts and a printed clip for the converter, which has no mounting holes. See the manufacturer references in the parts research and handoff.
+The ring measures **160 × 214 mm** assembled. It prints as two **160 × 107 × 12 mm** halves, joined with two small vertical straps. The case prints at **75 × 128 × 32 mm**, including its hooks; its lid is **62 × 128 × 2.4 mm**. Every part and arranged 3MF plate fits a **180 × 180 × 180 mm** machine with a 5 mm brim allowance. The full assembly footprint is about **229 × 214 mm**, excluding rear cables.
 
-The new CAD has approximately **302.72 cm³** of solid geometry, equivalent to **384.5 g PETG** at the assumed density of 1.27 g/cm³. Reserve about **0.5 kg** including a fit coupon and waste. Actual mass and print time require slicing for the user's printer. The full spool is already included in the original purchasing total.
+The six final printed pieces calculate to **188.1 g of standard PLA at 1.24 g/cm³**. All three fit pieces add about **19.9 g**. With a 20 percent printing allowance, reserve **250 g**. This is a geometry based calculation, not a slicer result. Physical fit, load capacity, heat and RF performance still require a prototype. Keep both mains adapters external and check actual printer support points before use.
 
-The [earlier render](hardware/order-printer/prototype-v2.png) remains a visual concept. The new package includes editable Python CSG source, an OpenSCAD model, individual STLs, four arranged 3MF print plates, a separate fit coupon and a [CAD preview](hardware/order-printer/enclosure-180/cad-preview.png). Geometry checks pass; slicing, physical fit and load testing remain outstanding. Print and check the coupon before making the complete enclosure. Use its current hardware schedule in place of the older concept's fastener assumptions.
+The package contains STLs, three arranged final print plates, a separate fit test plate, editable source and a CAD preview. Use the new guide's fastener schedule. The earlier full cradle and its 375.4 g PLA calculation remain as historical alternatives.
 
-Additional paper is quoted at C$87.99 for twelve 68.58 m rolls in the linked parts research. A 250 mm order consumes about C$0.027 of paper before feed and waste. No ink or toner is required. At five second polling, one continuously powered device makes up to 17,280 polls per day; check hosting capacity as the fleet grows.
+Additional paper is quoted at C$87.99 for twelve 68.58 m rolls in the dated parts research. A 250 mm order consumes about C$0.027 of paper before feed and waste. No ink or toner is required. At five second polling, one continuously powered device makes up to 17,280 polls per day; check hosting capacity as the fleet grows.
 
 ## Delivered software
 

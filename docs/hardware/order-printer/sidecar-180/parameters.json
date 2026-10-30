@@ -1,0 +1,17 @@
+{
+  "build_volume_mm": [
+    180,
+    180,
+    180
+  ],
+  "brim_allowance_mm": 5,
+  "m3_clearance_diameter_mm": 3.4,
+  "m2_clearance_diameter_mm": 2.3,
+  "nut_across_flats_mm": 6.1,
+  "nut_pocket_height_mm": 2.8,
+  "button_hole_diameter_mm": 7.1,
+  "converter_side_clearance_mm": 0.4,
+  "converter_pcb_slot_height_mm": 2.2,
+  "pla_density_g_cm3": 1.24,
+  "rabbet_clearance_mm": 0.4
+}

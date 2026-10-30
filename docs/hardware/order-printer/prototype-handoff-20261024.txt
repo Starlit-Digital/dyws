@@ -2,14 +2,21 @@ DYWS ORDER PRINTER PROTOTYPE
 Enclosure design, purchasing and assembly handoff
 24 October 2026
 
-MECHANICAL REVISION, 28 OCTOBER 2026
+CURRENT MECHANICAL REVISION, 28 OCTOBER 2026
 
-A new modular enclosure now has editable CAD source, STL files and arranged 3MF plates for a 180 x 180 x 180 mm printer. Its assembled footprint is 214 x 220 mm. The longest printed piece is 166 mm and all pieces allow a 5 mm brim. This supersedes the enclosure dimensions, print split, fasteners and CAD status in the original handoff below. The electrical architecture remains the same.
+The current design is an open rectangular support ring with a small rabbet mounted sidecar. It replaces the full tray described below. The ring has two long rails joined across both ends, with corner gussets and an open centre. Two hooks built into the electronics box fit over the right rail, with one retaining screw. The electrical architecture remains the same.
 
-Use the new assembly guide and fit coupon before printing the full set. The new design uses 18 M3 x 12 mm button head screws, 18 M3 nuts, six printed feet and ten rubber pads, with no heat set inserts. The converter uses direct soldered pigtails rather than the earlier right angle header. Geometry has been checked; hardware fit and slicing remain unverified.
+The ring is 160 x 214 mm assembled and prints as two 160 x 107 x 12 mm halves. The case prints at 75 x 128 x 32 mm including its hooks. All parts fit a 180 x 180 x 180 mm printer with a 5 mm brim. Total assembled footprint including the sidecar is approximately 229 x 214 mm.
 
-/private/var/www/starlit-digital/dyws/docs/hardware/order-printer/enclosure-180/README.md
-/private/var/www/starlit-digital/dyws/docs/hardware/order-printer/dyws-enclosure-180-prototype.zip
+The six final pieces calculate to 188.1 g of standard PLA. The fit coupons add 19.9 g. Including those and 20 percent allowance, reserve approximately 250 g. These are CAD volume calculations, not sliced or measured prints.
+
+Use four M3 x 18 mm screws for the two joining straps, one M3 x 20 mm retaining screw and four M3 x 12 mm lid screws, with nine nuts. Use four M2 nylon standoffs and eight rubber pads. The converter uses insulated soldered pigtails. No heat set inserts or adhesive mounting to the printer are needed. Print the fit pieces first and verify the actual printer support points before loading the ring. Physical fit, load and RF tests remain outstanding.
+
+Current guide:
+/private/var/www/starlit-digital/dyws/docs/hardware/order-printer/sidecar-180/README.md
+
+Current print package:
+/private/var/www/starlit-digital/dyws/docs/hardware/order-printer/dyws-sidecar-ring-180-prototype.zip
 
 ORIGINAL OCTOBER 24 HANDOFF FOLLOWS
 

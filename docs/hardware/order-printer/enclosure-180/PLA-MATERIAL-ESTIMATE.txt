@@ -1,0 +1,64 @@
+PLA MATERIAL ESTIMATE FOR THE COMPLETE DYWS ENCLOSURE
+Based on enclosure revision 1 CAD geometry
+
+QUICK ANSWER
+
+Use approximately 375 g as the conservative reference weight for the complete enclosure in ordinary PLA. Reserve approximately 500 g of filament for the enclosure, the fit coupon and normal printing waste. A full 1 kg spool provides comfortable room for adjustment or reprinting.
+
+CALCULATION BASIS
+
+The fourteen final printed pieces contain 302.72 cubic centimetres of modelled plastic. At 1.24 g/cm3, the density published for Prusament PLA, that equals 375.4 g.
+
+This fills the modelled walls, floors, posts and other printed features completely. The empty electronics compartment and space occupied by the printer are already excluded. It is not the weight of a completely filled rectangular box.
+
+This is calculated geometry, not a slicer output or measured print. Normal sparse infill can reduce the final weight. Brims, supports, purging and retries add filament. The exact extrusion amount requires slicing with the actual printer, filament and settings. Hardware and electronics are excluded.
+
+PART BREAKDOWN AT 1.24 g/cm3
+
+Front tray, one:                   95.3 g
+Rear tray, one:                    93.1 g
+Electronics box, one:             123.5 g
+Electronics lid, one:              35.7 g
+Joining plates, all four:          13.6 g
+Printed feet, all six:             14.2 g
+Complete printed enclosure:      375.4 g
+
+The fit coupon is separate:        31.8 g
+Enclosure plus coupon:            407.2 g
+Including 20 percent allowance:   488.7 g
+Rounded ordinary PLA budget:      500 g
+
+PLA TYPES
+
+Standard PLA, sometimes labelled Basic PLA:
+The straightforward choice for the first fit prototype. Use 375 g as the reference enclosure weight at 1.24 g/cm3. Published densities differ by formulation; for example, PolyLite PLA at 1.17 g/cm3 gives about 354 g for the same geometry.
+
+PLA+, PLA Pro or tough PLA:
+Consider a formulation with documented improved impact resistance for repeated handling. These names do not define one standard recipe. Polymaker PLA Pro lists density 1.237 g/cm3, giving about 374 g for this enclosure. For ordinary PLA+ budgeting, the same 375 g enclosure and 500 g total allowance are reasonable until the spool's actual density is known. Improved toughness does not automatically imply better heat resistance.
+
+Matte PLA:
+A subdued surface finish. Density can differ materially from standard PLA. As one specific example, Panchroma Matte lists 1.37 g/cm3, giving about 415 g for the enclosure and about 540 g including the coupon and a 20 percent allowance. Reserve about 550 g for that example. Do not assume every matte PLA has this density.
+
+Silk PLA:
+A decorative glossy finish. Panchroma Silk lists 1.24 g/cm3, giving about 375 g for the enclosure. Plain PLA or a documented tough PLA formulation is the preferred starting point for this functional prototype. Use the chosen brand's data rather than assuming the finish establishes its strength.
+
+RECOMMENDATION
+
+For an initial indoor prototype, start with ordinary PLA or a documented PLA+ formulation in a single colour. The geometry does not need to be scaled when changing material. Print the fit coupon first and use the clearance parameters if hole or rail fits need adjustment.
+
+The earlier instructions specify PETG as the original material choice. PLA can be used to check and prototype the assembly, but heat performance needs separate consideration for venue use. Prusament PLA lists heat deflection at 55 degrees C under its specified test conditions. This is a test property, not an enclosure operating temperature rating.
+
+SOURCES
+
+Prusament PLA technical data, density 1.24 g/cm3:
+https://prusament.com/wp-content/uploads/2022/10/PLA_Prusament_TDS_2021_10_EN.pdf
+
+Polymaker technical data, PLA families, formulation densities and impact/heat data:
+https://wiki.polymaker.com/polymaker-products/polymaker-filaments/technical-data-at-a-glance
+
+Local CAD volume and part quantities:
+validation.json
+
+Formula for another PLA density:
+Enclosure grams = 302.72 x density in g/cm3
+Enclosure, coupon and 20 percent allowance = (302.72 + 25.679) x density x 1.20

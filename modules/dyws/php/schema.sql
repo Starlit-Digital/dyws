@@ -73,3 +73,17 @@ CREATE TABLE IF NOT EXISTS cancellation_jobs (
  lease TEXT NOT NULL DEFAULT '',lease_until INTEGER NOT NULL DEFAULT 0,attempts INTEGER NOT NULL DEFAULT 0,
  PRIMARY KEY(tenant,order_id),FOREIGN KEY(tenant,order_id) REFERENCES orders(tenant,id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS integration_keys (
+ id TEXT NOT NULL, tenant TEXT NOT NULL, token_hash TEXT NOT NULL UNIQUE,
+ name TEXT NOT NULL, scopes_json TEXT NOT NULL, parent_id TEXT,
+ created_at INTEGER NOT NULL, expires_at INTEGER NOT NULL, revoked_at INTEGER,
+ last_used_at INTEGER, PRIMARY KEY(tenant,id),
+ FOREIGN KEY(tenant,parent_id) REFERENCES integration_keys(tenant,id)
+);
+CREATE INDEX IF NOT EXISTS integration_keys_parent ON integration_keys(tenant,parent_id);
+CREATE TABLE IF NOT EXISTS integration_audit (
+ id INTEGER PRIMARY KEY, tenant TEXT NOT NULL, key_id TEXT,
+ actor TEXT NOT NULL, action TEXT NOT NULL, outcome TEXT NOT NULL, created_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS integration_audit_tenant ON integration_audit(tenant,created_at);
