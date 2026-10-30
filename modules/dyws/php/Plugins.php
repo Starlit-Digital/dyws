@@ -75,12 +75,16 @@ final class Plugins {
   return $handler(...$args);
  }
  private function savedState():array {
-  if(!is_file($this->path))return ['active'=>array_values(array_intersect($this->defaults,array_unique(array_merge(array_keys($this->installed),$this->paymentPlugins))))];
+  if(!is_file($this->path)){
+   $defaults=$this->defaults;if(!empty($this->config['_dyws_catalogless']))$defaults=array_diff($defaults,['catalog','pickup','delivery']);
+   return ['active'=>array_values(array_intersect($defaults,array_unique(array_merge(array_keys($this->installed),$this->paymentPlugins))))];
+  }
   $state=$this->readJSON($this->path);
   if(!is_array($state['active']??null)||array_filter($state['active'],fn($id)=>!is_string($id)))return ['active'=>[],'invalid'=>true];
   // Adopt only explicitly listed upgrade defaults once, without undoing saved deactivations.
   $known=$state['known']??[];if(!is_array($known)||array_filter($known,fn($id)=>!is_string($id)))return ['active'=>[],'invalid'=>true];
   $introduced=array_intersect(array_diff($this->upgradeDefaults,$known),array_keys($this->installed));
+  if(!empty($this->config['_dyws_catalogless']))$introduced=array_diff($introduced,['catalog','pickup','delivery']);
   return ['active'=>array_values(array_unique(array_merge($state['active'],$introduced)))];
  }
  private function revision():string{return hash('sha256',is_file($this->path)?file_get_contents($this->path):json_encode($this->state()));}

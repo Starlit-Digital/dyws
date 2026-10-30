@@ -72,6 +72,12 @@ with tempfile.TemporaryDirectory(prefix='dyws-business-plugins-') as temp:
   second=subprocess.Popen(['php',str(helper),str(work/'config.json'),json.dumps({**concurrent,'idempotencyKey':str(uuid.uuid4())})],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
   results=[p.communicate(timeout=10) for p in [first,second]]
   check(sorted(out.decode() for out,err in results)==['200','409'])
+  # Booking only hosts can browse historical orders without a catalog file.
+  activate('catalog',False);catalog_path=config.pop('catalog');(work/'config.json').write_text(json.dumps(config))
+  req('/deals',status=409);req('/manager/deals',token=admin,status=409)
+  req('/manager/lookup&q=Fictional',token=admin)
+  state=req('/manager/plugins',token=admin);req('/manager/plugins',{'id':'catalog','active':True,'revision':state['revision']},admin,status=409)
+  config['catalog']=catalog_path;(work/'config.json').write_text(json.dumps(config));activate('catalog',True)
   # A host with no optional plugin files can still boot and read historical receipts.
   shutil.rmtree(work/'plugins');(work/'plugins').mkdir();(work/'plugins/bundled.json').write_text('{"active":[]}')
   req('/health');check(req('/plugins')['plugins']==[])

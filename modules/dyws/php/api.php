@@ -59,10 +59,10 @@ try {
   }
  }
  elseif($route==='/manager/deals'&&in_array($method,['GET','POST'],true)){
-  dyws_authorize($store,['manager']);$catalog=\dyws\Catalog::load($config['catalog']);if($method==='POST'){$catalog['deals']=$body['deals']??null;$catalog=\dyws\Catalog::save($config['catalog'],$catalog,\dyws\Store::text($body['revision']??null,64));}
+  dyws_authorize($store,['manager']);$plugins->requirePlugin('catalog');$catalog=\dyws\Catalog::load($config['catalog']);if($method==='POST'){$catalog['deals']=$body['deals']??null;$catalog=\dyws\Catalog::save($config['catalog'],$catalog,\dyws\Store::text($body['revision']??null,64));}
   $result=['deals'=>$catalog['deals'],'revision'=>\dyws\Catalog::revision($catalog),'items'=>array_map(fn($i)=>['id'=>$i['id'],'name'=>$i['name']],array_merge(...array_column($catalog['categories'],'items'))),'currency'=>$catalog['currency']];
  }
- elseif($method==='GET'&&$route==='/deals')$result=['deals'=>\dyws\Deals::publicList(\dyws\Catalog::load($config['catalog']),(new \dyws\Settings($config))->read()['timeZone'])];
+ elseif($method==='GET'&&$route==='/deals'){$plugins->requirePlugin('catalog');$result=['deals'=>\dyws\Deals::publicList(\dyws\Catalog::load($config['catalog']),(new \dyws\Settings($config))->read()['timeZone'])];}
  elseif($method==='GET'&&$route==='/manager/customer-reports'){dyws_authorize($store,['manager']);$result=$customerDrivers->reports(dyws_customer_offset());}
  elseif($route==='/guest-details'&&in_array($method,['GET','POST'],true)){
   $guest=new \dyws\GuestDetails($store,$config);$guest->guard();
@@ -137,7 +137,7 @@ try {
  elseif($method==='GET'&&$route==='/manager/lookup'){
   dyws_authorize($store,['manager']);dyws_limit_requests($store,$config,'lookup',120,60);
   $query=\dyws\Store::text($_GET['q']??'',100);$kind=\dyws\Store::text($_GET['kind']??'all',60);
-  $result=$plugins->applyFilters('lookup.results',\dyws\Lookup::search($store,\dyws\Catalog::load($config['catalog']),$config['drivers'],$query,$kind),['query'=>$query,'kind'=>$kind]);
+  $result=$plugins->applyFilters('lookup.results',\dyws\Lookup::search($store,$store->businessContext()['catalog'],$config['drivers'],$query,$kind),['query'=>$query,'kind'=>$kind]);
  }
  elseif($method==='GET'&&$route==='/manager/reports'){
   dyws_authorize($store,['manager']);$result=dyws_admin_report($config,$store,$plugins,$_GET);
