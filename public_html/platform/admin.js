@@ -3,7 +3,7 @@ import {markReady} from '../dyws/diagnostics.js';
 import {redirectToAuth} from '../dyws/admin-session.js?v=39';
 import {plugins} from './plugins.js?v=39';
 import {mountNavigation} from './admin-navigation.js?v=39';
-import {api} from './api.js';
+import {api,bootstrap} from './api.js';
 import {loadRole,applyRoleLabels} from '../dyws/role-labels.js';
 const role=await loadRole(api);
 applyRoleLabels(document.body,role);
@@ -13,7 +13,7 @@ mountNavigation(current,role);
 const loaders={catalog:()=>import('../dyws/catalog-editor.js?v=options-20261028'),drivers:()=>import('../dyws/account-editor.js?v=39'),password:()=>import('../dyws/account-editor.js?v=39'),settings:()=>import('../dyws/general-settings.js?v=benefits-20261028'),plugins:()=>import('../dyws/plugin-admin.js?v=39')};
 const names={catalog:'mountCatalogEditor',drivers:'mountDriverAdmin',password:'mountPasswordAdmin',settings:'mountGeneralSettings',plugins:'mountPluginAdmin'};
 const page=await loaders[current]?.();
-await page?.[names[current]]?.({root:document.body,api,role,createLocationRenderer:()=>plugins.createLocationRenderer({api,defaultCenter:{lat:53.61665,lng:-113.39804}}),onSave:settings=>mountNavigation(current,settings.driverRole)});
+await page?.[names[current]]?.({root:document.body,api,role,businessPlugins:bootstrap?.businessPlugins,createLocationRenderer:()=>plugins.createLocationRenderer({api,defaultCenter:{lat:53.61665,lng:-113.39804}}),onSave:settings=>mountNavigation(current,settings.driverRole)});
 
 if(current==='settings'&&sessionStorage.getItem('dyws-manager'))await plugins.runAction('admin:settings',{root:document.body,api});
 markReady();
