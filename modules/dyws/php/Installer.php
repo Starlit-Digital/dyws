@@ -49,7 +49,7 @@ final class Installer {
    $stage=$private.'/.install-'.bin2hex(random_bytes(8));mkdir($stage,0700);
    $catalog=$kind==='diner'?Catalog::load($this->root.'/examples/starlit-diner/catalog.json'):['schemaVersion'=>2,'businessName'=>$name,'platformName'=>'dyws','currency'=>'CAD','taxBasisPoints'=>0,'deliveryFee'=>0,'pickupAddress'=>'','categories'=>[]];
    $catalog['businessName']=$name;$catalog['platformName']='dyws';Catalog::write($stage.'/catalog.json',Catalog::validate($catalog));
-   $config=['site_template'=>$kind==='diner'?'diner':'shop','public_base_url'=>$url,'tenant'=>'business-'.bin2hex(random_bytes(8)),'catalog'=>$private.'/catalog.json','database'=>$private.'/orders.sqlite','tracking_secret'=>bin2hex(random_bytes(32))];
+   $config=['pricing_tier'=>'free','site_template'=>$kind==='diner'?'diner':'shop','public_base_url'=>$url,'tenant'=>'business-'.bin2hex(random_bytes(8)),'catalog'=>$private.'/catalog.json','database'=>$private.'/orders.sqlite','tracking_secret'=>bin2hex(random_bytes(32))];
    // Seed the administrator in SQLite; the configuration contains no account passwords.
    $seed=$config;$seed['database']=$stage.'/orders.sqlite';$seed['manager_password_hash']=password_hash($password,PASSWORD_DEFAULT);
    $GLOBALS['dyws_config']=$seed;

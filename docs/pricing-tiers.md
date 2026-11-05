@@ -2,13 +2,17 @@
 
 November 4, 2026. This is a host configured entitlement boundary, with no billing or subscription provider attached. It is independent of Starlit's managed service offer names and prices.
 
-Set `"pricing_tier": "free"` or `"pricing_tier": "pro"` in the installation's existing private config file. The config belongs to one tenant. Catalog, settings forms, browser flags and payment return URLs cannot grant Pro. Unknown tier values fail closed as Free. Existing installations with no tier retain Pro reporting for compatibility. Set the tier explicitly when assigning an installation to Free or Pro; absence is not evidence of a paid subscription.
+Set `"pricing_tier": "free"` or `"pricing_tier": "pro"` in the installation's existing private config file. The config belongs to one tenant. Catalog, settings forms, browser flags and payment return URLs cannot grant Pro. Unknown tier values fail closed as Free. New installer setups explicitly start on Free. Existing installations with no tier retain Pro reporting for compatibility. Set the tier explicitly when assigning an installation to Free or Pro; absence is not evidence of a paid subscription.
 
 `dyws\Entitlements::summary($config)` returns the tier and the `reports` capability. `requireReports($config)` rejects Free with HTTP 403, code `pro_required`. A future billing adapter can replace this trusted lookup with verified tenant entitlements. It must preserve the checks below. No upgrade button or checkout is wired to the seam.
 
+## Distribution
+
+Free includes the public kit and basic plugins for catalog, pickup, delivery and appointment booking. Pro covers advanced reporting and the private growth bundle, including analytics, order geography, add ons, loyalty and reorder reminders. Each private plugin also needs its own trusted tenant capability. Starlit can grant Pro separately or include it in managed hosting. The entitlement check is independent of how the installation is paid for.
+
 ## Covered surfaces
 
-Pro owns aggregate business reports, charts and insights, CSV/text/PDF exports, report email and machine integration report commands. Free cannot call the core reports API or Order Reporting plugin APIs. Integration discovery omits report commands and their execution is rejected even for an existing report key. Driver profile responses omit computed tip summaries on Free. The underlying order and payment records remain intact, including individual receipts and assigned delivery summaries.
+Pro owns aggregate business reports, charts and insights, CSV/text/PDF exports, report email and machine integration report commands. Free cannot call the core reports API or Order Reporting plugin APIs. Integration discovery omits report commands and their execution is rejected even for an existing report key. The private analytics and maps plugins use the same Pro guard and also require their own tenant capabilities. Driver profile responses omit computed tip summaries on Free. The underlying order and payment records remain intact, including individual receipts and assigned delivery summaries.
 
 Customer complaints, driver blocks and dispatch warnings remain operational protections on both tiers. They are not sales analytics and cannot be bypassed by a downgrade. Customers can still view receipts and their own order records. Archiving has no entitlement requirement.
 

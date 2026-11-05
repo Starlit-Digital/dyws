@@ -97,3 +97,5 @@ After setup, use `/admin/` under your installation URL. The sign in page is `/au
 The root [VERSION](VERSION) file identifies the application release and matches both application package manifests. Component plugins and the optional relay have independent versions. Official release assets are `dyws.zip` and `SHA256SUMS`; verify the downloaded archive with `shasum -a 256 -c SHA256SUMS` before uploading.
 
 Maintainers run `npm run verify:release` after building. It checks archive checksums, every manifest entry against the checkout, version consistency, private file exclusions and screenshot links. The ZIP also contains the optional relay source and lockfile under `modules/dyws/realtime`; hosting it requires a separate Node.js 22 or newer service and `npm ci` in that directory. Ordinary PHP installations continue using HTTPS polling.
+
+New installations start on Free. A host can explicitly enable Pro reporting in the private installation configuration. See [Free and Pro entitlements](docs/pricing-tiers.md).

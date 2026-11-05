@@ -18,6 +18,8 @@ try{
  file_put_contents($base.'/public/setup/install.php','placeholder');file_put_contents($base.'/public/setup/user-note.txt','keep');
  $result=$installer->install($form,$key);check(!$result['removed'],'Unexpected setup content prevents directory deletion');check(is_file($base.'/public/setup/user-note.txt'),'Unknown user file preserved');
  check($installer->installed(),'Partial cleanup still locks installation');check(!is_file($base.'/public/setup/install.php'),'Executable installer removed');
+ $config=json_decode(file_get_contents($base.'/var/config.json'),true);
+ check(\dyws\Entitlements::summary($config)===['tier'=>'free','capabilities'=>['reports'=>false]],'New installations start on Free');
  $catalog=json_decode(file_get_contents($base.'/var/catalog.json'),true);check(count($catalog['categories'])===5,'Diner example installed');
  check(array_sum(array_map(fn($c)=>count($c['items']),$catalog['categories']))===35,'Diner example contains 35 items');
  denied(fn()=>$installer->install($form,$key),409);
