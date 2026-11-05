@@ -12,7 +12,7 @@ tracked=subprocess.check_output(['git','ls-files','-z'],cwd=root).decode().split
 files={}
 for name in tracked:
  if not name:continue
- if name.startswith(('public_html/','modules/dyws/php/','modules/dyws/realtime/','server/','plugins/','examples/','docs/','services/nominatim/','firmware/order-printer/')) or name in ['README.md','INSTALL.md','VERSION','CHANGELOG.md','composer.json','composer.lock','package.json']:
+ if name.startswith(('public_html/','modules/dyws/php/','modules/dyws/realtime/','server/','plugins/','examples/','docs/','services/nominatim/','firmware/order-printer/')) or name in ['README.md','INSTALL.md','LICENSE','VERSION','CHANGELOG.md','composer.json','composer.lock','package.json']:
   if name=='public_html/api/bootstrap-path.php' or pathlib.Path(name).suffix in ['.sqlite','.db'] or '/node_modules/' in name:raise SystemExit('Refusing private/runtime file: '+name)
   if name.startswith(('plugins/stripe/','public_html/plugins/stripe/')) or name in ['server/StripeSettings.php','server/StripePayments.php','modules/dyws/php/StripeSettings.php','modules/dyws/php/StripePayments.php','public_html/dyws/stripe-editor.js','public_html/dyws/settings.js','public_html/platform/settings.js']:raise SystemExit('Private Stripe plugin must not be tracked in the kit: '+name)
   path=root/name
@@ -35,6 +35,7 @@ for part in ['plugins/order-printer/plugin.json','plugins/order-printer/plugin.p
  if part not in files:raise SystemExit('Stage release source before building: '+part)
 for part in ['modules/dyws/php/LocalTime.php','plugins/catalog/plugin.php','plugins/catalog/Pricing.php','plugins/pickup/Pickup.php','plugins/delivery/Runs.php','plugins/booking/Booking.php','public_html/plugins/booking/storefront.js','public_html/plugins/booking/page.js','public_html/plugins/booking/index.js','public_html/plugins/pickup/index.js','public_html/plugins/pickup/pickup.js','docs/business-capability-plugins.md']:
  if part not in files:raise SystemExit('Stage release source before building: '+part)
+files['LICENSE']=(root/'LICENSE').read_bytes()
 files['var/.gitkeep']=b''
 manifest={'version':version,'files':{name:hashlib.sha256(data).hexdigest() for name,data in sorted(files.items())}}
 files['MANIFEST.json']=(json.dumps(manifest,indent=2)+'\n').encode()

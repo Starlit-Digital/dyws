@@ -4,6 +4,13 @@
 
 **Release: [1.0.0](VERSION)** · [Historical release downloads](https://github.com/Starlit-Digital/dyws/releases) · [Release notes](CHANGELOG.md) · [Installation guide](INSTALL.md) · [Hosted diner example](https://dyws.ca/)
 
+## DYWS Free and Pro
+
+**DYWS Free** is the base framework in this repository. Starlit’s original framework code is free and open source under the [MIT License](LICENSE). Bundled third party components keep their own terms and notices. The MIT license does not grant rights to Starlit trademarks or separately distributed proprietary plugins.
+
+Free includes the catalog, cart, pickup, delivery, booking, manager dashboard and driver tools. **DYWS Pro** is the separate commercial plugin package for cart recommendations, loyalty rewards, reorder reminders, sales analytics and order maps. It costs $25,000 CAD once, plus applicable GST/HST and other taxes. All future Pro releases are included for the life of the product. See the [DYWS Pro purchase page and license](https://sltd.ca/dyws/purchase/). Hosting, setup and third party accounts are separate.
+
+
 Customers can order products or services for pickup or delivery, or book an appointment directly on a business website. Businesses choose the Catalog, Pickup, Delivery and Appointment Booking plugins they need. Starlit Diner is the fictional restaurant example; the catalog supports general products and services sold in whole units.
 
 DYWS belongs in Starlit Digital's **Business Related**. [Starlit SiteCraft](https://sltd.ca/pricing/) uses its ordering, fulfillment and appointment capabilities when a client website needs them, alongside the shared template library, Starlit assets and accessibility preferences. A static template or contact form alone is not a DYWS integration. See [the product direction](docs/product-notes.md).

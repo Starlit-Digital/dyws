@@ -1,7 +1,7 @@
 {
   "name": "starlit-digital/dyws",
   "description": "Generic ordering and delivery demo platform",
-  "license": "proprietary",
+  "license": "MIT",
   "config": {
     "platform": {
       "php": "8.1.0"
