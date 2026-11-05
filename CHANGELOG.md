@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.12.0 · 2026-11-05
+## 1.0.0 · 2026-11-05
 
 - Add appointment booking with configurable business hours and slot increments, a calendar that disables unavailable dates, and service and time selection.
 - Add booking receipts with cancellation, Google Calendar and iCalendar export, and optional confirmation email for configured installations.

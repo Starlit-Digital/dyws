@@ -2,7 +2,7 @@
 
 **Do You Want Something?** A reusable business service platform for ordering and appointments on a business’s own website.
 
-**Release: [0.12.0](VERSION)** · [Historical release downloads](https://github.com/Starlit-Digital/dyws/releases) · [Release notes](CHANGELOG.md) · [Installation guide](INSTALL.md) · [Hosted diner example](https://dyws.ca/)
+**Release: [1.0.0](VERSION)** · [Historical release downloads](https://github.com/Starlit-Digital/dyws/releases) · [Release notes](CHANGELOG.md) · [Installation guide](INSTALL.md) · [Hosted diner example](https://dyws.ca/)
 
 Customers can order products or services for pickup or delivery, or book an appointment directly on a business website. Businesses choose the Catalog, Pickup, Delivery and Appointment Booking plugins they need. Starlit Diner is the fictional restaurant example; the catalog supports general products and services sold in whole units.
 
