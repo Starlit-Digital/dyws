@@ -144,7 +144,8 @@ export async function mountBooking(root,{endpoint='api/'}={}){
    actions.append(google,calendarButton,cancel);footer.append(reference,actions);
    const feedback=node('p');feedback.setAttribute('role','status');
    card.append(mark,title,summary);
-   if(receipt.demo)card.append(node('p','Confirmation email preview: this receipt shows the details included in the email.'));
+   const emailPreview=receipt.demo?node('p','Confirmation email preview: this receipt shows the details included in the email.'):null;
+   if(emailPreview)card.append(emailPreview);
    else if(receipt.confirmationEmail==='accepted')card.append(node('p','Confirmation email submitted for delivery.'));
    else if(receipt.confirmationEmail==='failed')card.append(node('p','The appointment is confirmed. The confirmation email could not be sent.'));
    card.append(footer,feedback);root.append(card);title.focus();
@@ -157,6 +158,7 @@ export async function mountBooking(root,{endpoint='api/'}={}){
      const dismiss=node('button','Dismiss');dismiss.type='button';dismiss.className='dyws-booking-receipt-dismiss';
      close.onclick=dismiss.onclick=()=>{card.remove();form.querySelector('input[name=service]:checked')?.focus();};
      mark.replaceWith(close);card.append(dismiss);
+     emailPreview?.remove();
      actions.remove();title.focus();
      form.hidden=false;root.append(form);
      acknowledge.checked=false;requestFingerprint=null;
