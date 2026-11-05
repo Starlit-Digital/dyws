@@ -1,5 +1,5 @@
 import {offerDemoKiosk} from '../../dyws/demo-kiosk-link.js';
-import {mountBooking} from './storefront.js';
+import {mountBooking} from './storefront.js?v=dismiss-centered';
 for(const root of document.querySelectorAll('[data-dyws-booking]')){
  const section=root.closest('section');
  if(section) void offerDemoKiosk(section,{booking:true});

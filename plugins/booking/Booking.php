@@ -33,6 +33,13 @@ final class Booking {
  public function settings():array {
   $path=$this->settingsPath();$s=is_file($path)?json_decode(file_get_contents($path),true,32,JSON_THROW_ON_ERROR):($this->config['booking']??[]);return $this->validateSettings($s);
  }
+ private function confirmationSender():?string {
+  $from=$this->config['booking_confirmation_from']??null;
+  return empty($this->config['demo_lockdown'])&&is_string($from)&&!preg_match('/[\r\n]/',$from)&&filter_var($from,FILTER_VALIDATE_EMAIL)?$from:null;
+ }
+ public function publicSettings():array {
+  return $this->settings()+['confirmationEmailEnabled'=>$this->confirmationSender()!==null];
+ }
  private function validateSettings(array $s):array {
   $zone=$s['timeZone']??'America/Edmonton';
   try{new \DateTimeZone($zone);}catch(\Throwable){throw new ApiError('Booking timezone needs attention.',503);}
@@ -43,22 +50,38 @@ final class Booking {
   }unset($v);
   $open=$s['openMinute']??540;$close=$s['closeMinute']??1020;$days=$s['days']??[1,2,3,4,5,6];
   if(!is_int($open)||!is_int($close)||$open<0||$close>1440||$close<=$open||$open%15||$close%15||!is_array($days)||!array_is_list($days)||array_filter($days,fn($d)=>!is_int($d)||$d<1||$d>7))throw new ApiError('Booking hours need attention.',503);
-  return ['timeZone'=>$zone,'services'=>$services,'openMinute'=>$open,'closeMinute'=>$close,'days'=>$days,'demo'=>!empty($this->config['demo_lockdown'])];
+  $increment=$s['slotIncrementMinutes']??60;
+  if(!is_int($increment)||$increment<15||$increment>240||$increment%15)throw new ApiError('Booking increments must be 15 to 240 minutes in multiples of 15.',503);
+  return ['slotIncrementMinutes'=>$increment,'timeZone'=>$zone,'services'=>$services,'openMinute'=>$open,'closeMinute'=>$close,'days'=>$days,'demo'=>!empty($this->config['demo_lockdown'])];
  }
  private function service(string $id):array {foreach($this->settings()['services'] as $s)if($s['id']===$id)return $s;throw new ApiError('Choose an available service.');}
  private function occupied(string $resource,int $start,int $end):bool{return (bool)$this->store->query("SELECT id FROM appointments WHERE tenant=? AND resource=? AND status='confirmed' AND starts_at<? AND ends_at>? LIMIT 1",[$this->store->tenant,$resource,$end,$start]);}
  public function availability(array $body):array {
-  $id=Store::text($body['serviceId']??null,60);$service=$this->service($id);$s=$this->settings();$date=Store::text($body['date']??null,10);$tz=new \DateTimeZone($s['timeZone']);
-  $day=\DateTimeImmutable::createFromFormat('!Y-m-d',$date,$tz);$today=new \DateTimeImmutable('today',$tz);
-  if(!$day||$day->format('Y-m-d')!==$date||$day<$today||$day>$today->modify('+90 days'))throw new ApiError('Choose a date within the next 90 days.');
-  $slots=[];if(in_array((int)$day->format('N'),$s['days'],true))for($m=$s['openMinute'];$m+$service['duration']<=$s['closeMinute'];$m+=15){
+  $id=Store::text($body['serviceId']??null,60);$service=$this->service($id);$s=$this->settings();$tz=new \DateTimeZone($s['timeZone']);
+  $today=new \DateTimeImmutable('today',$tz);$last=$today->modify('+90 days');
+  if(($body['listDates']??false)===true){
+   $dates=[];
+   for($day=$today;$day<=$last;$day=$day->modify('+1 day')){
+    if($this->slotsForDay($day,$service,$s,true))$dates[]=$day->format('Y-m-d');
+   }
+   return ['today'=>$today->format('Y-m-d'),'dates'=>$dates];
+  }
+  $date=Store::text($body['date']??null,10);
+  $day=\DateTimeImmutable::createFromFormat('!Y-m-d',$date,$tz);
+  if(!$day||$day->format('Y-m-d')!==$date||$day<$today||$day>$last)throw new ApiError('Choose a date within the next 90 days.');
+  return ['date'=>$date,'serviceId'=>$id,'timeZone'=>$s['timeZone'],'slots'=>$this->slotsForDay($day,$service,$s)];
+ }
+ private function slotsForDay(\DateTimeImmutable $day,array $service,array $s,bool $firstOnly=false):array {
+  $date=$day->format('Y-m-d');
+  $slots=[];if(in_array((int)$day->format('N'),$s['days'],true))for($m=intdiv($s['openMinute']+$s['slotIncrementMinutes']-1,$s['slotIncrementMinutes'])*$s['slotIncrementMinutes'];$m+$service['duration']<=$s['closeMinute'];$m+=$s['slotIncrementMinutes']){
    $clock=sprintf('%02d:%02d',intdiv($m,60),$m%60);
    try{$at=\dyws\LocalTime::instant(['date'=>$date,'time'=>$clock],$s['timeZone']);}catch(ApiError){continue;}
    $start=$at->getTimestamp();$end=$start+$service['duration']*60;
    if($start<time()+1800||$this->occupied($service['resource'],$start,$end))continue;
    $slots[]=['startsAt'=>$start,'endsAt'=>$end,'label'=>$clock];
+   if($firstOnly)break;
   }
-  return ['date'=>$date,'serviceId'=>$id,'timeZone'=>$s['timeZone'],'slots'=>$slots];
+  return $slots;
  }
  public function reserve(array $body):array {
   if(($body['acknowledged']??false)!==true)throw new ApiError('Review and confirm your appointment.');
@@ -67,8 +90,12 @@ final class Booking {
   $customer=!empty($this->config['demo_lockdown'])?['name'=>'Demo Customer','phone'=>'7805550142']:($body['customer']??[]);
   if(!is_array($customer))throw new ApiError('Provide customer contact details.');
   $customer=['name'=>Store::text($customer['name']??null,100),'phone'=>Store::text($customer['phone']??null,30)];if(!preg_match('/^[0-9+() .-]{7,30}$/D',$customer['phone']))throw new ApiError('Enter a phone number.');
+  $sender=$this->confirmationSender();
+  $email=$sender!==null?Store::email($body['customer']['email']??''):'';
+  if($email!=='')$customer['email']=$email;
+  $created=false;
   $fingerprint=hash('sha256',json_encode([$id,$start,$customer],JSON_THROW_ON_ERROR));
-  return $this->store->transaction(function()use($key,$fingerprint,$id,$start,$customer){
+  $receipt=$this->store->transaction(function()use($key,$fingerprint,$id,$start,$customer,&$created){
    $old=$this->store->query('SELECT * FROM appointments WHERE tenant=? AND request_key=?',[$this->store->tenant,$key])[0]??null;
    if($old){if(!hash_equals($old['fingerprint'],$fingerprint))throw new ApiError('Request key was already used.',409);return $this->receipt($old,$key);}
    if(!empty($this->config['demo_lockdown'])&&$this->store->query('SELECT count(*) AS n FROM appointments WHERE tenant=?',[$this->store->tenant])[0]['n']>=500)throw new ApiError('Demo appointment limit reached.',429);
@@ -77,8 +104,18 @@ final class Booking {
    if(!in_array($start,array_column($this->availability(['serviceId'=>$id,'date'=>$date])['slots'],'startsAt'),true))throw new ApiError('This time is no longer available. Choose another time.',409);
    $appointment='APT-'.strtoupper(bin2hex(random_bytes(6)));$token=$this->token($appointment,$key);
    $this->store->execute("INSERT INTO appointments(tenant,id,request_key,fingerprint,service,starts_at,ends_at,customer_json,token_hash,status,created_at,resource,service_name,time_zone) VALUES(?,?,?,?,?,?,?,?,?,'confirmed',?,?,?,?)",[$this->store->tenant,$appointment,$key,$fingerprint,$id,$start,$start+$service['duration']*60,json_encode(array_merge($customer,['phone'=>Store::formatPhone($customer['phone'])]),JSON_THROW_ON_ERROR),hash('sha256',$token),time(),$service['resource'],$service['name'],$this->settings()['timeZone']]);
+   $created=true;
    return $this->receipt($this->store->query('SELECT * FROM appointments WHERE tenant=? AND id=?',[$this->store->tenant,$appointment])[0],$key);
   });
+  if($created&&$email!==''){
+   $zone=new \DateTimeZone($receipt['timeZone']);
+   $format=static fn(int $at)=> (new \DateTimeImmutable('@'.$at))->setTimezone($zone)->format('l, F j, Y g:i a T');
+   $message="Appointment confirmed\n\nService: ".$receipt['serviceName']."\nStarts: ".$format($receipt['startsAt'])."\nEnds: ".$format($receipt['endsAt'])."\nBooking reference: ".$receipt['id']."\n";
+   try{$accepted=mail($email,'Appointment confirmed',$message,['From'=>$sender,'Content-Type'=>'text/plain; charset=UTF-8']);}
+   catch(\Throwable){$accepted=false;}
+   $receipt['confirmationEmail']=$accepted?'accepted':'failed';
+  }
+  return $receipt;
  }
  private function token(string $id,string $key):string{return hash_hmac('sha256','booking|'.$this->store->tenant.'|'.$id.'|'.$key,$this->config['tracking_secret']);}
  private function receipt(array $r,string $key):array{return ['id'=>$r['id'],'serviceId'=>$r['service'],'startsAt'=>(int)$r['starts_at'],'endsAt'=>(int)$r['ends_at'],'status'=>$r['status'],'serviceName'=>$r['service_name']?:$r['service'],'timeZone'=>$r['time_zone']?:$this->settings()['timeZone'],'cancellationToken'=>$this->token($r['id'],$key),'demo'=>!empty($this->config['demo_lockdown'])];}

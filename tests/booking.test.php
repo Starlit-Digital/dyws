@@ -12,6 +12,7 @@ try{
  $catalog=Catalog::load(__DIR__.'/../examples/starlit-diner/catalog.json');$store=new Store($dir.'/test.sqlite',$catalog,'booking-a');$a=new Booking($config,$store);
  $date=(new DateTimeImmutable('tomorrow',new DateTimeZone('America/Edmonton')))->format('Y-m-d');
  $slots=$a->availability(['serviceId'=>'haircut','date'=>$date]);check(count($slots['slots'])>0);
+ check(array_column($slots['slots'],'label')===['09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00']);
  $start=$slots['slots'][0]['startsAt'];$body=['serviceId'=>'haircut','startsAt'=>$start,'customer'=>['name'=>'Fictional Guest','phone'=>'7805550142'],'acknowledged'=>true,'idempotencyKey'=>bin2hex(random_bytes(16))];
  $receipt=$a->reserve($body);check($receipt['status']==='confirmed');check($receipt===$a->reserve($body));
  rejects(fn()=>$a->reserve(array_replace($body,['startsAt'=>$start+900])),409);
@@ -28,10 +29,12 @@ try{
  rejects(fn()=>$a->availability(['serviceId'=>'haircut','date'=>'2026-02-31']),422);
  $demo=new Booking(array_replace($config,['demo_lockdown'=>true]),new Store($dir.'/test.sqlite',$catalog,'demo'));
  $demo->reserve(array_replace($body,['customer'=>['name'=>'Never retained','phone'=>'7805551234']]));check(!str_contains(json_encode($demo->listing()),'Never retained'));
- $configuration=$a->configuration();$changed=$a->configure(['revision'=>$configuration['revision'],'settings'=>array_replace($configuration,['openMinute'=>600])]);check($changed['openMinute']===600);
+ $configuration=$a->configuration();$changed=$a->configure(['revision'=>$configuration['revision'],'settings'=>array_replace($configuration,['openMinute'=>615,'closeMinute'=>720,'slotIncrementMinutes'=>30])]);check($changed['openMinute']===615);
+ check(array_column($a->availability(['serviceId'=>'haircut','date'=>$date])['slots'],'label')===['10:30','11:00']);
+ rejects(fn()=>$a->configure(['revision'=>$changed['revision'],'settings'=>array_replace($changed,['slotIncrementMinutes'=>17])]),422);
  rejects(fn()=>$a->configure(['revision'=>$configuration['revision'],'settings'=>$configuration]),409);
  rejects(fn()=>$a->configure(['revision'=>$changed['revision'],'settings'=>array_replace($configuration,['services'=>[['id'=>'bad','name'=>'Bad','duration'=>0]]])]),422);
- check($a->configuration()['openMinute']===600);
+ check($a->configuration()['openMinute']===615);
  $store->execute('UPDATE appointments SET created_at=? WHERE tenant=?',[time()-90000,'demo']);new Booking(array_replace($config,['demo_lockdown'=>true]),new Store($dir.'/test.sqlite',$catalog,'demo'));check($store->query('SELECT id FROM appointments WHERE tenant=?',['demo'])===[]);
  echo "Booking: $checks checks passed\n";
 }finally{foreach(glob($dir.'/*') as $f)unlink($f);rmdir($dir);}

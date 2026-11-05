@@ -1,0 +1,161 @@
+.dyws-booking-pills {
+  min-width: 0;
+  margin: 0 0 1rem;
+  padding: .5rem 0;
+  border: 0;
+}
+.dyws-booking-pills legend { font-weight: 700; }
+.dyws-booking-pills > div { display: flex; flex-wrap: wrap; gap: .5rem; }
+.dyws-booking-pills label { position: relative; display: inline-flex; margin: 0; cursor: pointer; }
+.dyws-booking-pills input[type=radio] {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  opacity: 0;
+}
+.dyws-booking-pills span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: .4rem .85rem;
+  border: 2px solid currentColor;
+  border-radius: 999px;
+}
+.dyws-booking-pills input:checked + span { background: CanvasText; color: Canvas; border-color: CanvasText; }
+.dyws-booking-pills input:focus-visible + span { outline: 2px solid currentColor; outline-offset: 3px; }
+@media (forced-colors: active) {
+  .dyws-booking-pills input:checked + span { forced-color-adjust: none; background: Highlight; color: HighlightText; border-color: Highlight; }
+}
+[data-booking][data-service-images] { max-width: none; }
+[data-booking][data-service-images] form > :not(.dyws-booking-cards) { max-width: 42rem; }
+.dyws-booking-cards > div {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  gap: 1rem;
+}
+.dyws-booking-cards .dyws-booking-card {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: stretch;
+  overflow: hidden;
+  padding: 0;
+  border-radius: 1rem;
+  border-color: var(--sda-line, currentColor);
+}
+.dyws-booking-card img { display: block; width: 100%; height: auto; aspect-ratio: 1; object-fit: cover; }
+.dyws-booking-cards .dyws-booking-card-info {
+  display: grid;
+  gap: .5rem;
+  border: 0;
+  border-radius: 0;
+  padding: 1rem;
+}
+.dyws-booking-card-info strong {
+  justify-self: start;
+  padding: .35rem .85rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+}
+.dyws-booking-cards input:checked + .dyws-booking-card { border-color: currentColor; }
+.dyws-booking-cards input:checked + .dyws-booking-card strong { font-size: 0; }
+.dyws-booking-cards input:checked + .dyws-booking-card strong::after { content: 'Selected'; font-size: 1rem; }
+.dyws-booking-days > div + div { margin-top: .5rem; }
+.dyws-booking-days input[type=checkbox] {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  opacity: 0;
+}
+.dyws-booking-days button {
+  min-height: 44px;
+  border-radius: 999px;
+}
+.dyws-booking-days button[aria-pressed=true] { outline: 2px solid currentColor; outline-offset: -3px; }
+.dyws-booking-days :disabled + span { cursor: default; }
+.dyws-booking-calendar { min-width: 0; }
+.dyws-booking-calendar > div:first-of-type {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .35rem;
+}
+.dyws-booking-calendar-grid {
+  display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: .2rem; text-align: center; margin-top: .5rem;
+}
+[data-booking] .dyws-booking-calendar-grid button { padding: .15rem; border-radius: .5rem; }
+.dyws-booking-calendar-grid button:disabled { opacity: .48; text-decoration: line-through; }
+[data-booking] .dyws-booking-calendar-grid button[aria-pressed=true] { color: Canvas; background: CanvasText; }
+[data-booking] form[hidden] { display: none; }
+.dyws-booking-receipt {
+  box-sizing: border-box;
+  max-width: 42rem;
+  padding: clamp(1rem, 5vw, 2.5rem);
+  border: 1px solid var(--sda-line, currentColor);
+  border-radius: 1.5rem;
+  background: var(--sda-panel, Canvas);
+  color: var(--sda-text, CanvasText);
+  font-family: system-ui, sans-serif;
+}
+.dyws-booking-receipt-mark {
+  display: grid; place-items: center;
+  width: 3rem; height: 3rem; border-radius: 50%;
+  background: #d7f1df; color: #165335; font-size: 1.55rem; font-weight: 750;
+}
+.dyws-booking-receipt[data-cancelled] .dyws-booking-receipt-mark { background: Canvas; color: CanvasText; }
+.dyws-booking-receipt h3 {
+  font: 700 clamp(1.65rem, 5vw, 2.5rem)/1.1 system-ui, sans-serif;
+  letter-spacing: -.035em; margin: .8rem 0 1.5rem;
+}
+.dyws-booking-receipt-summary {
+  display: flex; align-items: center; gap: 1rem;
+  padding: 1rem; border: 1px solid var(--sda-line, currentColor); border-radius: 1rem;
+}
+.dyws-booking-receipt-date {
+  display: grid; place-items: center; flex: 0 0 auto;
+  padding: .45rem .8rem; border-radius: .75rem;
+  background: Canvas; color: CanvasText; line-height: 1.2;
+}
+.dyws-booking-receipt-date strong { font-size: 1.85rem; font-variant-numeric: tabular-nums; }
+.dyws-booking-receipt-summary h4 { font: 700 1.1rem system-ui, sans-serif; margin: 0 0 .25rem; }
+.dyws-booking-receipt-summary p { margin: 0; }
+.dyws-booking-receipt-footer {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: .75rem; margin-top: 1.25rem;
+}
+.dyws-booking-receipt-footer strong { display: block; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.dyws-booking-receipt-footer span { font-size: .875rem; }
+[data-booking] .dyws-booking-receipt-footer button { border-radius: 999px; background: transparent; }
+.dyws-booking-receipt p[role=status]:empty { display: none; }
+[data-booking] label.dyws-booking-acknowledge {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: .75rem;
+  min-height: 44px;
+  cursor: pointer;
+}
+[data-booking] .dyws-booking-acknowledge input {
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+}
+.dyws-booking-receipt-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+[data-booking] .dyws-booking-receipt-actions button:first-child { background: CanvasText; color: Canvas; }
+.dyws-booking-google {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: .65rem .9rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-weight: 650;
+}
+.dyws-booking-receipt-close { display: block; margin-inline-start: auto; }
+[data-booking] .dyws-booking-receipt-dismiss {
+  display: block;
+  margin: 1rem auto 0;
+  border-color: var(--sda-accent, Highlight);
+  background: var(--sda-accent, Highlight);
+  color: var(--sda-page, HighlightText);
+  font-weight: 700;
+}
