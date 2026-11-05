@@ -2,7 +2,7 @@ import {formatPhoneField,formatPhoneInput} from '../../dyws/phone-input.js';
 /** Host supplies API endpoint and root. Contact fields never enter browser storage. */
 export async function mountBooking(root,{endpoint='api/'}={}){
  const doc=root.ownerDocument;
- const stylesheet=new URL('./pills.css?v=receipt-surface',import.meta.url).href;
+ const stylesheet=new URL('./pills.css?v=receipt-tab',import.meta.url).href;
  if(![...doc.querySelectorAll('link[rel=stylesheet]')].some(link=>link.href===stylesheet)){
   const link=doc.createElement('link');link.rel='stylesheet';link.href=stylesheet;doc.head.append(link);
  }let revision=0,requestKey=null,requestFingerprint=null;
