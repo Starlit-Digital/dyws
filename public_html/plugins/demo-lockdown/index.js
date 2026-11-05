@@ -1,4 +1,5 @@
 /** Locked installation presentation. The PHP policy independently enforces every restriction. */
+import {offerDemoKiosk} from '../../dyws/demo-kiosk-link.js';
 import {createDemoAccess} from './demo-login.js?v=3';
 import {readOrderSelection} from '../../dyws/order-selection.js';
 import {formatPhoneInput} from '../../dyws/phone-input.js';
@@ -26,6 +27,7 @@ export function register(plugin){
   const banner=callout('top'),footer=callout('bottom');banners.push(banner,footer);
   (doc.querySelector('main')||doc.body).prepend(banner);
   (doc.querySelector('footer')||doc.querySelector('main')||doc.body).append(footer);
+  void offerDemoKiosk(banner);
   void access.enterFromURL();
  }
  // Keep role switching beside the order controls, without credential boxes.

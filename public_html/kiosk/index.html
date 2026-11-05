@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DYWS Demo Kiosk</title>
+<meta name="description" content="Explore a fictional storefront in the DYWS demo kiosk.">
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="kiosk.css?v=2">
+<script type="module" src="kiosk.js?v=2"></script>
+</head>
+<body>
+<header>
+  <div class="demo-callout">
+    <p class="eyebrow">DYWS SHOWROOM / PICKUP DEMO</p>
+    <button id="enter-vr" type="button" hidden>Enter VR</button>
+  </div>
+  <p id="vr-status" role="status" hidden></p>
+  <h1 id="business-name">DYWS Demo Kiosk</h1>
+  <p>Try a fictional selection using the same menu on a virtual touchscreen or in regular HTML.</p>
+  <button id="switch" type="button" hidden>Try 3D kiosk</button>
+  <p id="mode" role="status">Regular HTML view</p>
+</header>
+<main id="stage">
+  <div id="flat">
+    <section id="screen" drawable aria-label="Ordering screen">
+      <nav id="categories" aria-label="Menu categories"></nav>
+      <div class="order">
+        <section aria-labelledby="menu-title">
+          <h2 id="menu-title" tabindex="-1">Menu</h2>
+          <div id="menu">Loading menu…</div>
+        </section>
+        <section aria-labelledby="cart-title">
+          <h2 id="cart-title" tabindex="-1">Your order</h2>
+          <div id="cart">Your order is empty.</div>
+          <button id="finish" type="button" disabled>Complete demo order</button>
+        </section>
+      </div>
+      <p id="feedback" role="status"></p>
+    </section>
+  </div>
+  <div id="cabinet" hidden><canvas id="canvas" content="drawable" aria-label="Kiosk touchscreen"></canvas></div>
+</main>
+<footer>Fictional pickup orders. No payment or order transmission.</footer>
+</body>
+</html>
