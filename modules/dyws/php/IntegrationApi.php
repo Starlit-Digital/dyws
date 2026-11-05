@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 namespace dyws;
+require_once __DIR__.'/Entitlements.php';
 
 /** Versioned, explicitly allowed machine commands, separate from browser sessions. */
 final class IntegrationApi {
@@ -30,6 +31,7 @@ final class IntegrationApi {
    }
    if(in_array($method,['POST','QUERY'],true)&&($m[2]??'')==='/execute'){
     try{
+     if(str_starts_with($id,'reports.'))Entitlements::requireReports($this->config);
      $this->validateInput($body,$commands[$id]['inputSchema']);
      $result=match($id){
       'reports.summary'=>$this->report($body),
@@ -119,6 +121,7 @@ final class IntegrationApi {
    $commands[$id]=['id'=>$id,'description'=>$description,'scope'=>$scope,'method'=>'POST','route'=>'/integrations/v1/commands/'.$id.'/execute','inputSchema'=>['type'=>'object','properties'=>(object)$properties,'required'=>$required,'additionalProperties'=>false],'output'=>str_ends_with($id,'export')?'Base64 content, filename, contentType, encoding.':'JSON object','readOnly'=>!in_array($id,['keys.create','keys.revoke'],true)];
    if($id==='reports.summary')$commands[$id]['transport']=['version'=>1,'preferredMethod'=>$this->queryEnabled()?'QUERY':'POST','supportedMethods'=>$this->queryEnabled()?['QUERY','POST']:['POST'],'fallbackMethod'=>'POST'];
   }
+  if(!Entitlements::summary($this->config)['capabilities']['reports'])foreach(array_keys($commands) as $id)if(str_starts_with($id,'reports.'))unset($commands[$id]);
   return $commands;
  }
  private function validateInput(array $body,array $schema):void {

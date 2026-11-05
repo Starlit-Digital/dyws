@@ -3,6 +3,8 @@ declare(strict_types=1);
 require_once __DIR__.'/Plugins.php';
 require_once __DIR__.'/IntegrationApi.php';
 require_once __DIR__.'/StatusHistory.php';
+require_once __DIR__.'/OrderArchive.php';
+require_once __DIR__.'/Entitlements.php';
 function dyws_serve_api(?string $configPath=null,?callable $bootstrap=null):void {
 ini_set('display_errors','0');
 header('Content-Type: application/json; charset=utf-8');header('Cache-Control: no-store');header('X-Content-Type-Options: nosniff');header('Referrer-Policy: no-referrer');
@@ -64,6 +66,7 @@ try {
   $result=['deals'=>$catalog['deals'],'revision'=>\dyws\Catalog::revision($catalog),'items'=>array_map(fn($i)=>['id'=>$i['id'],'name'=>$i['name']],array_merge(...array_column($catalog['categories'],'items'))),'currency'=>$catalog['currency']];
  }
  elseif($method==='GET'&&$route==='/deals'){$plugins->requirePlugin('catalog');$result=['deals'=>\dyws\Deals::publicList(\dyws\Catalog::load($config['catalog']),(new \dyws\Settings($config))->read()['timeZone'])];}
+ elseif($method==='GET'&&$route==='/manager/entitlements'){dyws_authorize($store,['manager']);$result=\dyws\Entitlements::summary($config);}
  elseif($method==='GET'&&$route==='/manager/customer-reports'){dyws_authorize($store,['manager']);$result=$customerDrivers->reports(dyws_customer_offset());}
  elseif($route==='/guest-details'&&in_array($method,['GET','POST'],true)){
   $guest=new \dyws\GuestDetails($store,$config);$guest->guard();
@@ -138,7 +141,10 @@ try {
   dyws_authorize($store,['manager']);$history=new \dyws\StatusHistory($store);
   if($method==='POST'){$result=$history->apply($m[1],$body);$plugins->doAction('order.status_changed',$result['order'],$store);}else $result=$history->summary($m[1]);
  }
- elseif($method==='GET'&&$route==='/manager/orders'){dyws_authorize($store,['manager']);$result=dyws_admin_orders($config,$store);}
+ elseif($method==='POST'&&preg_match('~^/(manager|driver)/orders/([A-Z]{2,7}-[A-F0-9]{12})/archive$~D',$route,$m)){
+  $session=dyws_authorize($store,[$m[1]]);$result=(new \dyws\OrderArchive($store))->apply($m[2],$session,$body);
+ }
+ elseif($method==='GET'&&$route==='/manager/orders'){dyws_authorize($store,['manager']);$result=dyws_admin_orders($config,$store,($_GET['archived']??'0')==='1');}
  elseif($method==='GET'&&$route==='/manager/lookup'){
   dyws_authorize($store,['manager']);dyws_limit_requests($store,$config,'lookup',120,60);
   $query=\dyws\Store::text($_GET['q']??'',100);$kind=\dyws\Store::text($_GET['kind']??'all',60);
@@ -166,6 +172,7 @@ try {
   $s=dyws_authorize($store,['driver']);if($m[2]==='status')$result=$store->change($m[1],\dyws\Store::text($body['status']??null,30),'driver:'.$s['subject'],$s['subject']);else{if((new \dyws\DeliveryRuns($store))->membership($m[1]))throw new \dyws\ApiError('Use the delivery run GPS connection.',409);dyws_limit_requests($store,$config,'gps',120,60);if(isset($config['driver_test_location'])){$body=array_replace($body,array_intersect_key($config['driver_test_location'],array_flip(['latitude','longitude','accuracy'])));}$store->locate($m[1],$s['subject'],$body,$s);$result=['ok'=>true,'recordedAt'=>$body['recordedAt'],'receivedAt'=>time()];}
  }elseif($pluginRoute){
   $session=$pluginRoute['access']==='public'?null:dyws_authorize($store,[$pluginRoute['access']]);
+  if(str_starts_with($route,'/manager/plugins/order-reporting/'))\dyws\Entitlements::requireReports($config);
   if($pluginRoute['rateLimit'])dyws_limit_requests($store,$config,...$pluginRoute['rateLimit']);
   $result=($pluginRoute['handler'])($body,$session,['raw'=>$raw,'params'=>$pluginRoute['params'],'server'=>$_SERVER]);
  }else throw new \dyws\ApiError('Endpoint not found.',404);

@@ -1,18 +1,21 @@
+import {reportsPreviewHTML} from './reports-preview.js';
 import {markReady} from './diagnostics.js';
 import {redirectToAuth} from './admin-session.js?v=39';
 import {dateKey} from './date-time.js';
 import {pluginSlot} from './plugin-ui.js?v=39';
 import {money as formatMoney,escapeHTML as esc} from './api.js';
 import {defaultRole} from './role-labels.js';
-export function mountManager({root=document,api,role=defaultRole,storageKey='dyws-manager',plugins}) {
+export function mountManager({root=document,api,role=defaultRole,storageKey='dyws-manager',plugins,entitlements}) {
  if(typeof api!=='function')throw new TypeError('A DYWS API client is required.');
+ if(entitlements?.capabilities?.reports===false){root.querySelector('#dashboard').hidden=false;root.querySelector('#dashboard').innerHTML=reportsPreviewHTML();root.querySelector('#logout').hidden=false;root.querySelector('#logout').onclick=async()=>{try{await api('/logout',{method:'POST',body:{},token:sessionStorage.getItem(storageKey)});}finally{sessionStorage.removeItem(storageKey);redirectToAuth(root);}};markReady();return {refresh(){},destroy(){}};}
+let restricted=false;
 let token=sessionStorage.getItem(storageKey),report,loading=false,loadAgain=false,unwatch=null,watchedToken=null;
 const money=n=>formatMoney(n,report?.currency||'CAD');
 const error=root.querySelector('#error');
 const day=dateKey();const first=new Date(day+'T12:00:00Z');first.setUTCDate(first.getUTCDate()-29);root.querySelector('#from').value=first.toISOString().slice(0,10);root.querySelector('#to').value=day;
 function display(){if(!token){redirectToAuth(root);return;}if(token!==watchedToken){unwatch?.();watchedToken=token;unwatch=token?api.watch?.({scope:'operator',token,interval:10000},load):null;}root.querySelector('#dashboard').hidden=!token;root.querySelector('#logout').hidden=!token;}
 root.querySelector('#logout').onclick=async()=>{try{await api('/logout',{method:'POST',body:{},token});}catch{}token=null;sessionStorage.removeItem(storageKey);display();};
-async function load(){if(!token)return;if(loading){loadAgain=true;return;}loading=true;try{
+async function load(){if(!token||restricted)return;if(loading){loadAgain=true;return;}loading=true;try{
  let query={from:root.querySelector('#from').value,to:root.querySelector('#to').value};if(plugins)query=await plugins.applyFilters('reports:query',query);const params=new URLSearchParams(query);
  const r=await api(`/manager/reports?${params}`,{token});report=r;error.textContent='';
  const stats=[['Orders',r.orderCount],['Active orders',r.activeOrders],['Cancelled',r.cancelledOrders],['Ordered value',money(r.orderedValue)],['Average order',money(r.averageOrderValue)],['Payments',money(r.captured)],['Refunds',money(r.refunded)],['Net payments',money(r.netCollected)],['Product sales before tax',money(r.netSales)],['Net delivery fees',money(r.netDeliveryFees)],['Net tax',money(r.netTax)],['Tips added',money(r.orderedTips)],['Tips collected',money(r.capturedTips)],['Tips refunded',money(r.refundedTips)],['Net tips',money(r.netTips)],['Average preparation',r.averagePreparationSeconds===null?'No data':Math.round(r.averagePreparationSeconds/60)+' min'],['Average delivery',r.averageDeliverySeconds===null?'No data':Math.round(r.averageDeliverySeconds/60)+' min']];
@@ -23,7 +26,7 @@ async function load(){if(!token)return;if(loading){loadAgain=true;return;}loadin
   void plugins.runAction('admin:dashboard',{root:pluginSlot(root.querySelector('#dashboard'),'dashboard'),report:r});
  }
  markReady();
- }catch(e){if(e.status===401){token=null;sessionStorage.removeItem(storageKey);display();}error.textContent=e.message;}finally{loading=false;if(loadAgain){loadAgain=false;queueMicrotask(load);}}}
+ }catch(e){if(e.status===401){token=null;sessionStorage.removeItem(storageKey);display();}if(e.code==='pro_required'){restricted=true;report=null;unwatch?.();root.querySelector('#dashboard').innerHTML=reportsPreviewHTML();}else error.textContent=e.message;}finally{loading=false;if(loadAgain){loadAgain=false;queueMicrotask(load);}}}
 root.querySelector('#refresh').onclick=load;
 root.querySelector('#export').onclick=async()=>{if(!report)return;const fields=['orderCount','activeOrders','cancelledOrders','orderedValue','captured','refunded','netCollected','netSales','netDeliveryFees','netTax','orderedTips','capturedTips','refundedTips','netTips','averageOrderValue'];const rows=['metric,value,currency,units',...fields.map(k=>`${k},${report[k]},${report.currency},${k.includes('Orders')||k==='orderCount'?'count':'cents'}`)];const exported=plugins?await plugins.applyFilters('reports:export',rows.map(row=>row.split(',')),{key:'summary',report}):rows.map(row=>row.split(','));const csv=exported.map(row=>row.map(value=>'\"'+(typeof value==='string'?value.replace(/^[\s]*[=+@\-]/,"'$&"):String(value??'')).replaceAll('\"','\"\"')+'\"').join(',')).join('\r\n');const url=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));const a=document.createElement('a');a.href=url;a.download='dyws-report.csv';a.click();URL.revokeObjectURL(url);};
 void plugins?.runAction('admin:report-controls',{root:root.querySelector('.dyws-toolbar'),refresh:load});

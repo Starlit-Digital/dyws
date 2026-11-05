@@ -1,3 +1,4 @@
+import {reportsPreviewHTML} from './reports-preview.js';
 import {renderDriverTips} from './driver-tips.js';
 import {driverIcons,driverIcon} from './driver-icons.js';
 import {vehicleColors} from './vehicle-colors.js';
@@ -14,6 +15,7 @@ export function mountDriverProfile({root,api,getToken,onSaved=()=>{}}){
   form.querySelector('[data-profile-clear-color]').disabled=!selectedColor;
  }
  function sync(data,force=false){
+  if(data?.entitlements?.capabilities?.reports===false){root.querySelector('[data-driver-tips]').innerHTML=reportsPreviewHTML();tipSignature='free';}
   if(data?.tips){const signature=JSON.stringify(data.tips);if(signature!==tipSignature){const section=root.querySelector('[data-driver-tips]'),open=[...section.querySelectorAll('details')].map(d=>d.open);section.innerHTML=renderDriverTips(data.tips);section.querySelectorAll('details').forEach((d,i)=>d.open=!!open[i]);tipSignature=signature;}}
   if(!data||(!force&&(dirty||saving)))return;
   profile=data;root.hidden=false;root.querySelector('[data-profile-name]').textContent=data.name;

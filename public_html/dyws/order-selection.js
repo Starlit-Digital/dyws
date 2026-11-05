@@ -22,7 +22,7 @@ export function mountDriverOrderSelection({root,view=root.ownerDocument?.default
   const id=readOrderSelection(view?.location.href),cards=[...root.querySelectorAll('#deliveries article[data-order]')];
   const selected=cards.find(card=>card.dataset.order===id);
   for(const card of cards){if(card===selected)card.setAttribute('data-dyws-selected-order','');else card.removeAttribute('data-dyws-selected-order');}
-  notice.hidden=!id;notice.textContent=!id?'':selected?'Selected order: '+id+'.':'Order '+id+' is not in your active deliveries. Only ready or active deliveries assigned to you appear here.';
+  notice.hidden=!id;notice.textContent=!id?'':selected?'Selected order: '+id+'.':'Order '+id+' is not in your available deliveries. Only your assigned active deliveries and recent completed or archived summaries appear here.';
   if(!id){focused=null;return;}
   if(selected&&focused!==id){focused=id;selected.tabIndex=-1;selected.focus({preventScroll:true});selected.scrollIntoView({block:'center',behavior:'instant'});}
  }

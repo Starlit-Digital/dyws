@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+require_once __DIR__.'/DriverOrders.php';
 
 /** Page credentials are checked before building any private initial state. */
 function dyws_driver_session(\dyws\Store $store):?array {
@@ -25,7 +26,7 @@ function dyws_driver_auth(array $config,\dyws\Store $store):array {
 }
 function dyws_driver_orders(array $config,\dyws\Store $store,array $session):array {
  if(isset($config['driver_test_location']))foreach($store->orders($session['subject']) as $order)if($order['status']==='out_for_delivery'&&!$order['deliveryRun'])$store->testLocation($order['id'],$session,$config['driver_test_location']);
- return ['profile'=>(new \dyws\AdminAccounts($config))->profile($store,$session['subject']),'orders'=>$store->orders($session['subject']),'runs'=>(new \dyws\DeliveryRuns($store))->listing($session['subject'])];
+ return ['profile'=>(new \dyws\AdminAccounts($config))->profile($store,$session['subject']),'orders'=>$store->orders($session['subject']),'history'=>\dyws\DriverOrders::history($store,$session['subject']),'archived'=>\dyws\DriverOrders::history($store,$session['subject'],200,true),'runs'=>(new \dyws\DeliveryRuns($store))->listing($session['subject'])];
 }
 function dyws_tracking_access(array $config,\dyws\Store $store):?array {
  $post=($_SERVER['REQUEST_METHOD']??'GET')==='POST';$id=$post?($_POST['orderId']??''):($_GET['order']??'');

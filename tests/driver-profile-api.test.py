@@ -31,7 +31,7 @@ with tempfile.TemporaryDirectory(prefix='dyws-profile-') as work:
   manager_token=request('/login',{'role':'manager','password':manager})['token'];token=request('/login',{'role':'driver','driverId':'demo-driver','password':password})['token']
   for body in [None,{}]:
    request('/driver/profile',body,status=401);request('/driver/profile',body,manager_token,status=403)
-  profile=request('/driver/profile',token=token);check(profile['profileIcon']=='car');check(set(profile)=={'id','name','vehicleType','vehicleColor','profileIcon','revision','tips'})
+  profile=request('/driver/profile',token=token);check(profile['profileIcon']=='car');check(set(profile)=={'id','name','vehicleType','vehicleColor','profileIcon','revision','tips','entitlements'})
   initial=db.execute('SELECT name,password_hash,active,vehicle_type,vehicle_color FROM drivers WHERE tenant=? AND id=?',(config['tenant'],'demo-driver')).fetchone()
   db.execute("INSERT INTO drivers(tenant,id,name,password_hash,active,profile_icon) VALUES('other','demo-driver','Other','private',1,'suv')");db.commit()
   for icon in ['suv','pickup','van','motorcycle','bicycle','car']:

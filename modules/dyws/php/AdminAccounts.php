@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 namespace dyws;
+require_once __DIR__.'/Entitlements.php';
 
 /** SQLite accounts, with a one-time import of legacy private JSON credentials. */
 final class AdminAccounts {
@@ -83,7 +84,7 @@ final class AdminAccounts {
   $drivers=$this->effective()['drivers'];$driver=$drivers[$id]??null;
   if(!$driver||!$driver['active'])throw new ApiError('Driver profile is unavailable.',403);
   $profile=['id'=>$id,'name'=>$driver['name'],'vehicleType'=>$driver['vehicleType'],'vehicleColor'=>$driver['vehicleColor'],'profileIcon'=>$driver['profileIcon']];
-  return $profile+['revision'=>hash('sha256',json_encode($profile,JSON_THROW_ON_ERROR)),'tips'=>$store->driverTips($id)];
+  return $profile+['revision'=>hash('sha256',json_encode($profile,JSON_THROW_ON_ERROR)),'entitlements'=>Entitlements::summary($this->config),'tips'=>Entitlements::summary($this->config)['capabilities']['reports']?$store->driverTips($id):null];
  }
  public function saveProfile(Store $store,string $id,array $body):array {
   return $this->locked($store,function()use($store,$id,$body){

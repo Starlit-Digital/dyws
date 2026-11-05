@@ -1,0 +1,5 @@
+import {escapeHTML as esc,money} from './api.js';
+import {formatDateTime} from './date-time.js';
+import {statusBadge} from './status-badge.js';
+/** Completed summaries intentionally omit contact, routing and GPS controls. */
+export function driverHistoryHTML(history=[],{archived=false}={}){return history.length?`<${archived?'details':'section'} class="dyws-driver-history" ${archived?'':'aria-label="Recent completed deliveries"'}>${archived?'<summary>Archived deliveries</summary>':'<h2>Recent completed deliveries</h2>'}${history.map(order=>`<article data-order="${esc(order.id)}"><h3>${esc(order.id)}</h3><p class="dyws-status-row">${statusBadge(order.status)}${statusBadge(order.payment_status)}<strong>${money(order.total,order.currency)}</strong></p><p>${esc(formatDateTime(order.updated_at))}</p><ul>${order.lines.map(line=>`<li>${line.quantity} × ${esc(line.name)}${line.option?` · ${esc(line.option)}`:''}</li>`).join('')}</ul><button type="button" class="dyws-secondary" data-archive="${!archived}">${archived?'Restore order':'Archive order'}</button></article>`).join('')}</${archived?'details':'section'}>`:'';}

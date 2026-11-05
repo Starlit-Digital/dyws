@@ -46,10 +46,10 @@ test('Order links reopen a completed order independently of filters and clear on
   list=mountOrderList({root:f.root,renderOrder:order=>rendered.push(order.id)});
   const data={orders:[{id,status:'delivered',created_at:1700000000,total:100,currency:'CAD',fulfillment:'delivery',payment_status:'paid',customer_name:'Test'}]};
   await list.update(data);assert.equal(f.root.querySelector('.dyws-order-detail').hidden,false);assert.deepEqual(rendered,[id]);
-  await list.update(data);assert.deepEqual(rendered,[id,id]);
+  await list.update(data);assert.deepEqual(rendered,[id]);
   f.root.querySelector('[data-close-order]').onclick();assert.equal(f.win.location.href,'https://example.test/orders/');assert.equal(f.root.querySelector('.dyws-order-detail').hidden,true);
   f.win.location.href='https://example.test/orders/#order=DYWS-000000000099';f.win.dispatchEvent(new Event('hashchange'));
-  assert.equal(f.root.querySelector('.dyws-order-detail').hidden,false);assert.deepEqual(rendered,[id,id]);
+  assert.equal(f.root.querySelector('.dyws-order-detail').hidden,false);assert.deepEqual(rendered,[id]);
  }finally{list?.destroy();f.restore();}
 });
 test('Orders refreshes a focused order button without discarding a driver selection being edited',async()=>{

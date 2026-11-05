@@ -1,3 +1,5 @@
+import {createOrderView,lockOrderControls} from './order-view.js';
+import {driverHistoryHTML} from './driver-history.js';
 import {formatPhoneInput} from './phone-input.js';
 import {mountDriverProfile} from './driver-profile.js';
 import {statusBadge} from './status-badge.js';
@@ -10,12 +12,14 @@ export function mountDriver({root=document,api,storageKey='dyws-driver',renderLo
  if(typeof api!=='function')throw new TypeError('A DYWS API client is required.');
  let token=sessionStorage.getItem(storageKey),loading=false,changing=false,unwatch=null,watchedToken=null,attemptedOrder=null,retryAfter=0,permission,currentDelivery=null,latestPosition=null,reloadPending=false,revision=0;
  let profile=null;
+ const deliveries=root.querySelector('#deliveries');
+ const deliveryView=createOrderView({root:deliveries,render:html=>{deliveries.innerHTML=html;}});
  const orderSelection=mountDriverOrderSelection({root});
  const profileView=mountDriverProfile({root:root.querySelector('#driver-profile'),api,getToken:()=>token,onSaved:data=>{profile=data;revision++;void load();}});
  const feedback=root.querySelector('#delivery-feedback');
  const error=root.querySelector('#error'),state=root.querySelector('#gps-state'),details=root.querySelector('#gps-details');
- function display(){if(token!==watchedToken){unwatch?.();watchedToken=token;unwatch=token?api.watch?.({scope:'operator',token,interval:10000},()=>load()):null;}root.querySelector('#login').hidden=!!token;root.querySelector('#driver-board').hidden=!token;}
- function signedOut(redirect=true){profile=null;profileView?.clear();if(feedback)feedback.textContent='';latestPosition=null;currentDelivery=null;renderLocation?.clear?.();attemptedOrder=null;token=null;sessionStorage.removeItem(storageKey);root.querySelector('#deliveries').replaceChildren();display();if(redirect)onSignedOut?.();}
+ function display(){if(token!==watchedToken){unwatch?.();watchedToken=token;unwatch=token?api.watch?.({scope:'operator',token,interval:10000},()=>{if(!changing)return load();reloadPending=true;}):null;}root.querySelector('#login').hidden=!!token;root.querySelector('#driver-board').hidden=!token;}
+ function signedOut(redirect=true){profile=null;profileView?.clear();if(feedback)feedback.textContent='';latestPosition=null;currentDelivery=null;renderLocation?.clear?.();attemptedOrder=null;token=null;sessionStorage.removeItem(storageKey);deliveryView.clear();root.querySelector('#deliveries').replaceChildren();display();if(redirect)onSignedOut?.();}
  const gps=createDriverGPS({api,getToken:()=>token,onUnauthorized:signedOut,onState:s=>{
   state.textContent=s.message;const mapRoot=root.querySelector('#driver-map');if(mapRoot&&renderLocation){if(s.position)latestPosition={...s.position,recorded_at:s.position.recordedAt};if(!s.active)latestPosition=null;const view=renderLocation(latestPosition,undefined,{destinationAddress:currentDelivery?.address,profileIcon:profile?.profileIcon});if(view&&!mapRoot.contains(view))mapRoot.replaceChildren(view);}
   if(details){if(!s.active)details.textContent='';else if(s.position)details.textContent=(s.source==='simulated'?'Simulated route · ':'Device GPS · ')+s.orderId+' · Last shared '+formatTime(s.sharedAt/1000)+' · '+s.position.latitude.toFixed(5)+', '+s.position.longitude.toFixed(5);else details.textContent=s.orderId+' · '+(s.source==='simulated'?'Simulated route':'Device GPS');}
@@ -25,7 +29,7 @@ export function mountDriver({root=document,api,storageKey='dyws-driver',renderLo
  if(!onSignedOut)root.querySelector('#login-form').onsubmit=async e=>{e.preventDefault();const button=e.submitter;button.disabled=true;try{const f=new FormData(e.target);const data=await api('/login',{method:'POST',body:{role:'driver',driverId:f.get('driverId'),password:f.get('password')}});token=data.token;sessionStorage.setItem(storageKey,token);try{const config=await api('/driver/gps-config',{token});simulatePosition=config.testLocation?()=>config.testLocation:undefined;testLocationName=config.testLocation?.name||'Configured origin';}catch{}e.target.elements.password.value='';display();await load();}catch(e){error.textContent=e.message;}finally{button.disabled=false;}};
  async function change(id,status){
   if(changing)return;changing=true;error.textContent='';if(feedback)feedback.textContent='';
-  root.querySelectorAll('[data-status]').forEach(button=>{button.disabled=true;});
+  const unlock=lockOrderControls(root,'[data-status],[data-start-run],[data-collect-payment],[data-archive]');
   try{
    await api('/driver/orders/'+id+'/status',{method:'POST',token,body:{status}});revision++;
    if(status==='delivered'){
@@ -35,14 +39,14 @@ export function mountDriver({root=document,api,storageKey='dyws-driver',renderLo
    }else if(feedback)feedback.textContent='Delivery started. The customer can follow your progress.';
    await load();
   }catch(e){error.textContent=e.message;if(e.status===401){gps.stop();signedOut();}}
-  finally{changing=false;root.querySelectorAll('[data-status]').forEach(button=>{button.disabled=false;});}
+  finally{changing=false;unlock();}
  }
  async function startRun(id){
   if(changing)return;changing=true;error.textContent='';
-  root.querySelectorAll('[data-start-run]').forEach(b=>b.disabled=true);
+  const unlock=lockOrderControls(root,'[data-start-run],[data-status],[data-collect-payment],[data-archive]');
   try{await api('/driver/runs/'+id+'/start',{method:'POST',token,body:{}});revision++;if(feedback)feedback.textContent='Run started. Every customer can follow their delivery.';await load();}
   catch(e){error.textContent=e.message;if(e.status===401){gps.stop();signedOut();}}
-  finally{changing=false;root.querySelectorAll('[data-start-run],[data-status]').forEach(b=>b.disabled=false);}
+  finally{changing=false;unlock();}
  }
  async function load(){if(!token)return;if(loading){reloadPending=true;return;}loading=true;const login=token,readRevision=revision;try{
   const data=await api('/driver/orders',{token:login});if(token!==login)return;if(readRevision!==revision){reloadPending=true;return;}error.textContent='';
@@ -52,17 +56,21 @@ export function mountDriver({root=document,api,storageKey='dyws-driver',renderLo
   if(gps.orderId&&!activeIds.has(gps.orderId))gps.stop('This delivery is no longer active. GPS is off.');
   const nextStandalone=data.orders.find(o=>o.id===gps.orderId&&o.status==='out_for_delivery')||data.orders.find(o=>o.status==='out_for_delivery')||data.orders.find(o=>!o.deliveryRun);
   const ordered=[...data.orders].sort((a,b)=>(a.deliveryRun?.position||999)-(b.deliveryRun?.position||999)||Number(b.id===nextStandalone?.id)-Number(a.id===nextStandalone?.id));
-  const runHeader=run?`<article><h2>Delivery run</h2><p>${run.stops.filter(s=>s.status==='delivered').length} of ${run.stops.length} stops complete</p><progress class="dyws-run-progress" value="${run.stops.filter(s=>s.status==='delivered').length}" max="${run.stops.length}" aria-label="Completed delivery stops"></progress></article>`:planned?`<article><h2>Delivery run</h2><p>${planned.stops.length} stops · Collect every order before leaving.</p><button data-start-run="${planned.id}" ${changing?'disabled':''}>Picked up all orders, start run</button></article>`:'';
-  root.querySelector('#deliveries').innerHTML=runHeader+(ordered.length?ordered.map(o=>{
+  const runHeader=run?`<article><h2>Delivery run</h2><p>${run.stops.filter(s=>s.status==='delivered').length} of ${run.stops.length} stops complete</p><progress class="dyws-run-progress" value="${run.stops.filter(s=>s.status==='delivered').length}" max="${run.stops.length}" aria-label="Completed delivery stops"></progress></article>`:planned?`<article><h2>Delivery run</h2><p>${planned.stops.length} stops · Collect every order before leaving.</p><button data-start-run="${planned.id}" >Picked up all orders, start run</button></article>`:'';
+  deliveryView.update(runHeader+(ordered.length?ordered.map(o=>{
    const member=o.deliveryRun,next=run?run.nextOrderId===o.id:o.id===(nextStandalone?.id||ordered[0]?.id);
    const dial=String(o.customer_phone||'').replace(/[^0-9+]/g,''),destination=o.status==='ready'?o.orderLocation?.address:o.address;
    const shortcuts=`<div class="dyws-driver-shortcuts">${dial?`<a class="dyws-secondary" href="tel:${esc(dial)}">Call</a>`:''}${destination?`<a class="dyws-secondary" href="https://www.google.com/maps/dir/?api=1&amp;destination=${encodeURIComponent(destination)}" target="_blank" rel="noopener noreferrer" aria-label="Directions to ${o.status==='ready'?'pickup':'delivery'}, opens Google Maps">Directions ↗</a>`:''}</div>`;
    const action=member?(run&&next?'<button data-status="delivered">Complete stop</button>':''):(o.status==='ready'?'<button data-status="out_for_delivery">Picked up, start delivery</button>':'<button data-status="delivered">Complete delivery</button>');
    return `<article data-order="${o.id}" class="${next?'dyws-next-stop':''}"><div class="dyws-stop-heading"><h2>${next?'Next stop':member?'Stop '+member.position:o.id}</h2></div>${member||next?`<p>${o.id}</p>`:''}<p class="dyws-status-row">${statusBadge(o.status)}${statusBadge(o.payment_status)}<strong class="dyws-stop-total">${money(o.total,o.currency)}</strong></p>${o.payment_provider==='pay-at-door'?`<p><strong>Pay at the door${o.payment_status==='unpaid'?' · Collect '+money(o.total,o.currency):' · Collected'}</strong></p>`:''}<p>Tip: <strong>${money(o.tip||0,o.currency)}</strong></p>${o.orderLocation?`<p><strong>Pickup: ${esc(o.orderLocation.name)}</strong><br>${esc(o.orderLocation.address)}</p>`:''}<div class="dyws-stop-contact"><p><strong>${esc(o.customer_name)}</strong></p><p>${esc(formatPhoneInput(o.customer_phone))}</p><p>${esc(o.address)}</p></div>${shortcuts}${o.notes?`<p class="dyws-note">${esc(o.notes)}</p>`:''}<div class="dyws-actions">${o.payment_provider==='pay-at-door'&&o.payment_status==='unpaid'&&o.status==='out_for_delivery'?'<button data-collect-payment>Record payment collected</button>':''}${o.payment_provider==='pay-at-door'&&o.payment_status==='unpaid'?action.replace('data-status="delivered"','data-status="delivered" disabled'):action}</div></article>`;
-  }).join(''):'<p>No active deliveries. You’re all caught up.</p>');
-  root.querySelectorAll('[data-order]').forEach(card=>{const id=card.dataset.order;card.querySelector('[data-collect-payment]')?.addEventListener('click',async event=>{const button=event.currentTarget;if(button.dataset.confirm!=='true'){button.dataset.confirm='true';button.textContent='Confirm payment collected';return;}button.disabled=true;try{await api('/driver/orders/'+id+'/payment',{method:'POST',token,body:{kind:'capture'}});revision++;await load();}catch(e){error.textContent=e.message;button.disabled=false;}});card.querySelector('[data-status]')?.addEventListener('click',e=>change(id,e.target.dataset.status));});
+  }).join(''):'<p>No active deliveries. You’re all caught up.</p>')+driverHistoryHTML(data.history)+driverHistoryHTML(data.archived,{archived:true}));
+  root.querySelectorAll('[data-order]').forEach(card=>{const id=card.dataset.order,collect=card.querySelector('[data-collect-payment]'),status=card.querySelector('[data-status]');
+   if(collect)collect.onclick=async event=>{const button=event.currentTarget;if(changing)return;if(button.dataset.confirm!=='true'){button.dataset.confirm='true';button.textContent='Confirm payment collected';return;}changing=true;const unlock=lockOrderControls(root,'[data-status],[data-start-run],[data-collect-payment],[data-archive]');try{await api('/driver/orders/'+id+'/payment',{method:'POST',token,body:{kind:'capture'}});revision++;await load();}catch(e){error.textContent=e.message;}finally{changing=false;unlock();}};
+   if(status)status.onclick=()=>change(id,status.dataset.status);
+  });
+  root.querySelectorAll('[data-archive]').forEach(button=>button.onclick=async()=>{if(changing)return;changing=true;const unlock=lockOrderControls(root,'[data-status],[data-start-run],[data-collect-payment],[data-archive]');try{await api('/driver/orders/'+button.closest('[data-order]').dataset.order+'/archive',{method:'POST',token,body:{archived:button.dataset.archive==='true'}});revision++;await load();}catch(e){error.textContent=e.message;}finally{changing=false;unlock();}});
   root.querySelectorAll('[data-start-run]').forEach(button=>button.onclick=()=>startRun(button.dataset.startRun));
-  root.querySelectorAll('[data-status]').forEach(button=>{button.disabled=changing||(button.dataset.status==='delivered'&&button.closest('[data-order]').querySelector('[data-collect-payment]')!==null);});
+  root.querySelectorAll('[data-status]').forEach(button=>{const order=data.orders.find(o=>o.id===button.closest('[data-order]').dataset.order);button.disabled=button.dataset.status==='delivered'&&!['paid','partially_refunded'].includes(order?.payment_status);});
   orderSelection.update();
   const current=run?data.orders.find(o=>o.id===run.nextOrderId):data.orders.find(o=>o.id===gps.orderId&&o.status==='out_for_delivery')||data.orders.find(o=>o.status==='out_for_delivery');
   const gpsId=run?.id||current?.id;
@@ -77,7 +85,7 @@ export function mountDriver({root=document,api,storageKey='dyws-driver',renderLo
  if(!simulatePosition)navigator.permissions?.query({name:'geolocation'}).then(p=>{permission=p;p.addEventListener('change',permissionChanged);if(p.state==='denied')permissionChanged();}).catch(()=>{});
  const initialMap=root.querySelector('#driver-map');if(initialMap&&renderLocation&&token)initialMap.replaceChildren(renderLocation(null));
  root.querySelector('#refresh').onclick=load;root.querySelector('#refresh').disabled=false;root.querySelector('#logout').disabled=false;display();if(token)void load();
- const refreshTimer=setInterval(()=>{if(!api.watch&&token&&!document.hidden)void load();},10000);
+ const refreshTimer=setInterval(()=>{if(!api.watch&&token&&!document.hidden&&!changing)void load();},10000);
  document.addEventListener('visibilitychange',hidden);window.addEventListener('focus',hidden);window.addEventListener('online',hidden);window.addEventListener('pagehide',pagehide);
  return {refresh:load,destroy(){orderSelection.destroy();clearInterval(refreshTimer);unwatch?.();gps.destroy();renderLocation?.destroy?.();permission?.removeEventListener('change',permissionChanged);document.removeEventListener('visibilitychange',hidden);window.removeEventListener('focus',hidden);window.removeEventListener('online',hidden);window.removeEventListener('pagehide',pagehide);}};
 }

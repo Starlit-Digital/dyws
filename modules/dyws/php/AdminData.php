@@ -2,11 +2,13 @@
 declare(strict_types=1);
 
 require_once __DIR__.'/StatusHistory.php';
+require_once __DIR__.'/OrderArchive.php';
+require_once __DIR__.'/Entitlements.php';
 
-function dyws_admin_orders(array $config,\dyws\Store $store):array {
+function dyws_admin_orders(array $config,\dyws\Store $store,bool $archived=false):array {
  $drivers=[];foreach($config['drivers'] as $id=>$driver)if($driver['active']??true)$drivers[]=['id'=>$id,'name'=>$driver['name'],'profileIcon'=>$driver['profileIcon']??'car'];
  $customerDrivers=new \dyws\CustomerDrivers($store);
- $orders=array_map(function($o)use($store,$customerDrivers){$private=$store->get($o['id']);return $customerDrivers->dispatch($o+['customer_id'=>$private['customer_id'],'customer_email'=>$private['customer_email']]);},$store->orders());
+ $orders=array_map(function($o)use($store,$customerDrivers){$private=$store->get($o['id']);return $customerDrivers->dispatch($o+['customer_id'=>$private['customer_id'],'customer_email'=>$private['customer_email']]);},(new \dyws\OrderArchive($store))->managerOrders($archived));
  $statusHistory=new \dyws\StatusHistory($store);
  foreach($orders as &$order){unset($order['customer_id']);$order['statusControls']=$statusHistory->summary($order['id']);}unset($order);
  return ['orders'=>$orders,'drivers'=>$drivers,'runs'=>(new \dyws\DeliveryRuns($store))->listing()];
@@ -16,6 +18,7 @@ function dyws_driver_locations(\dyws\Store $store):array {
  return ['locations'=>array_map(fn($o)=>['driverId'=>$o['driver_id'],'orderId'=>$o['id'],'deliveryAddress'=>$o['address'],'gps'=>$store->locationSummary($o['id'])],$orders)];
 }
 function dyws_admin_report(array $config,\dyws\Store $store,\dyws\Plugins $plugins,array $query):array {
+ \dyws\Entitlements::requireReports($config);
  $tz=new DateTimeZone((new \dyws\Settings($config))->read()['timeZone']);$start=$query['from']??(new DateTimeImmutable('today',$tz))->format('Y-m-d');$end=$query['to']??$start;
  if(!is_string($start)||!is_string($end))throw new \dyws\ApiError('Choose valid report dates.');
  $from=DateTimeImmutable::createFromFormat('!Y-m-d',$start,$tz);$to=DateTimeImmutable::createFromFormat('!Y-m-d',$end,$tz);
@@ -27,7 +30,7 @@ function dyws_admin_report(array $config,\dyws\Store $store,\dyws\Plugins $plugi
 function dyws_admin_data(array $config,\dyws\Store $store,string $page):array {
  $started=microtime(true);$plugins=new \dyws\Plugins($config,$config['plugins_path']??null,$store);$store->plugins=$plugins;
  $settings=(new \dyws\Settings($config))->read();
- $boot=['page'=>$page,'businessPlugins'=>$plugins->activeIds(),'responses'=>['/settings'=>$settings,'/plugins'=>$plugins->publicManifest($page)],'realtime'=>(new \dyws\Realtime($config,$store))->publicConfig()];
+ $boot=['page'=>$page,'businessPlugins'=>$plugins->activeIds(),'entitlements'=>\dyws\Entitlements::summary($config),'responses'=>['/settings'=>$settings,'/plugins'=>$plugins->publicManifest($page)],'realtime'=>(new \dyws\Realtime($config,$store))->publicConfig()];
  if($page==='orders')$boot['responses']['/manager/orders']=dyws_admin_orders($config,$store);
  if(in_array($page,['catalog','settings'],true)&&in_array('catalog',$plugins->activeIds(),true)){$catalog=\dyws\Catalog::load($config['catalog']);$boot['responses']['/manager/catalog']=['catalog'=>$catalog,'revision'=>\dyws\Catalog::revision($catalog)];}
  if($page==='settings')$boot['responses']['/manager/settings']=(new \dyws\Settings($config))->summary();
@@ -36,11 +39,12 @@ function dyws_admin_data(array $config,\dyws\Store $store,string $page):array {
   $boot['responses']['/manager/driver-locations']=dyws_driver_locations($store);
  }
  if($page==='plugins')$boot['responses']['/manager/plugins']=$plugins->summary();
- if($page==='reports'){
+ if($page==='reports'&&$boot['entitlements']['capabilities']['reports']){
   $today=new DateTimeImmutable('today',new DateTimeZone($settings['timeZone']));
   $boot['reportQuery']=['from'=>$today->modify('-29 days')->format('Y-m-d'),'to'=>$today->format('Y-m-d'),'fulfillment'=>'all'];
   $boot['responses']['/manager/reports']=dyws_admin_report($config,$store,$plugins,$boot['reportQuery']);
  }
+ if($page==='reports'&&!$boot['entitlements']['capabilities']['reports'])$boot['responses']['/plugins']['plugins']=[];
  $routes=[];
  if($page==='settings')foreach($boot['responses']['/plugins']['plugins'] as $plugin)$routes[]='/manager/plugins/'.$plugin['id'].'/settings';
  if(in_array($page,['orders','drivers'],true))$routes[]='/plugins/google-maps/config';
@@ -83,7 +87,7 @@ function dyws_admin_plugin_forms(array $boot,string $publicRoot):void {
 }
 function dyws_admin_preview(array $boot):string {
  $escape=static fn($value)=>htmlspecialchars((string)$value,ENT_QUOTES,'UTF-8');$page=$boot['page'];$html='';
- if($page==='reports'){$r=$boot['responses']['/manager/reports'];$html='<div class="dyws-stats">';foreach(['Orders'=>$r['orderCount'],'Active orders'=>$r['activeOrders'],'Cancelled'=>$r['cancelledOrders'],'Ordered value'=>$r['currency'].' '.number_format($r['orderedValue']/100,2)] as $label=>$value)$html.='<div class="dyws-stat">'.$escape($label).'<strong>'.$escape($value).'</strong></div>';$html.='</div>';}
+ if($page==='reports'&&$boot['entitlements']['capabilities']['reports']){$r=$boot['responses']['/manager/reports'];$html='<div class="dyws-stats">';foreach(['Orders'=>$r['orderCount'],'Active orders'=>$r['activeOrders'],'Cancelled'=>$r['cancelledOrders'],'Ordered value'=>$r['currency'].' '.number_format($r['orderedValue']/100,2)] as $label=>$value)$html.='<div class="dyws-stat">'.$escape($label).'<strong>'.$escape($value).'</strong></div>';$html.='</div>';}
  if($page==='catalog')foreach($boot['responses']['/manager/catalog']['catalog']['categories'] as $category){$html.='<h2>'.$escape($category['name']).'</h2><ul>';foreach($category['items'] as $item)$html.='<li>'.$escape($item['name']).' · '.number_format($item['price']/100,2).'</li>';$html.='</ul>';}
  if($page==='drivers')foreach($boot['responses']['/manager/drivers']['drivers'] as $driver)$html.='<article><h2>'.$escape($driver['name']).'</h2><p>'.($driver['active']?'Active':'Inactive').' · '.(int)$driver['activeOrders'].' active orders</p></article>';
  if($page==='plugins')foreach($boot['responses']['/manager/plugins']['plugins'] as $plugin)$html.='<p><strong>'.$escape($plugin['name']).'</strong> · '.($plugin['active']?'Enabled':'Disabled').'</p>';

@@ -18,7 +18,7 @@ test('Driver order focus selects the requested card once and explains unavailabl
  const controller=mountDriverOrderSelection({root});controller.update();
  assert.equal(focuses,1);assert.equal(scrolls,1);assert.equal(cards[0]['data-dyws-selected-order'],undefined);assert.equal(cards[1]['data-dyws-selected-order'],'');
  cards=[card(id)];controller.update();assert.equal(focuses,1);assert.equal(cards[0]['data-dyws-selected-order'],'');
- cards=[];controller.update();assert.match(notice.textContent,/not in your active deliveries/);assert.equal(view.location.href,'https://example.test/driver/#order='+id);
+ cards=[];controller.update();assert.match(notice.textContent,/not in your available deliveries/);assert.equal(view.location.href,'https://example.test/driver/#order='+id);
  view.location.href='https://example.test/driver/';view.dispatchEvent(new Event('hashchange'));assert.equal(notice.hidden,true);
  controller.destroy();
 });
