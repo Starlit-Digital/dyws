@@ -1,6 +1,14 @@
 # Changelog
 
-## Unreleased · 2026-10-27
+## 0.12.0 · 2026-11-05
+
+- Add appointment booking with configurable business hours and slot increments, a calendar that disables unavailable dates, and service and time selection.
+- Add booking receipts with cancellation, Google Calendar and iCalendar export, and optional confirmation email for configured installations.
+- Add a WebXR demo kiosk that shares the menu, options and cart with its regular HTML view. The immersive launcher appears only on supported browsers.
+- Add checkout benefit and business event hooks for separately installed plugins, plus storefront interaction and demo reporting updates.
+- Verify the live pickup workflows from checkout to collection, and verify confirmed and cancelled appointments in Demo Admin. Physical headset testing and real confirmation email delivery remain pending.
+
+### Customer accounts and public kit changes
 
 Customer email magic link accounts, private order history, and completed delivery
 reports and driver blocks. Staff receive explicit blocked driver assignment and

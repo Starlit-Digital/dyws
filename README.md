@@ -2,7 +2,7 @@
 
 **Do You Want Something?** A reusable business service platform for ordering and appointments on a business’s own website.
 
-**Release: [0.11.1](VERSION)** · [Historical release downloads](https://github.com/Starlit-Digital/dyws/releases) · [Release notes](CHANGELOG.md) · [Installation guide](INSTALL.md) · [Hosted diner example](https://dyws.ca/)
+**Release: [0.12.0](VERSION)** · [Historical release downloads](https://github.com/Starlit-Digital/dyws/releases) · [Release notes](CHANGELOG.md) · [Installation guide](INSTALL.md) · [Hosted diner example](https://dyws.ca/)
 
 Customers can order products or services for pickup or delivery, or book an appointment directly on a business website. Businesses choose the Catalog, Pickup, Delivery and Appointment Booking plugins they need. Starlit Diner is the fictional restaurant example; the catalog supports general products and services sold in whole units.
 
@@ -298,6 +298,12 @@ These browser screenshots were captured from isolated local fixtures on October 
 
 Use [the PHP module calls](docs/dyws-module.md) to render categories and item panels in your own host page. Supply the host endpoint and authenticated tenant configuration to the browser package. Use the current `dyws` identifiers and directory routes; obsolete HTML routes and earlier component names are not supported.
 
+## Appointment booking and demo kiosk
+
+The optional Booking plugin offers service selection, a calendar that disables unavailable dates, and time pills. Managers can set business hours, available days and start increments. Booking receipts offer Google Calendar and iCalendar export, and customers can cancel with their receipt. Installations with a configured sender can offer optional [confirmation email](docs/booking-confirmation-email.md). Public demos preview email details.
+
+The optional [demo kiosk](docs/demo-kiosk.md) uses the same catalog and cart in regular HTML and in WebXR where supported. Open the [demo gallery](https://dyws.ca/demos/) to try pickup, delivery or appointment booking.
+
 ## Verification and releases
 
 ```sh
@@ -322,7 +328,7 @@ Release work uses separate commits with detailed messages and annotated tags. Fo
 
 ## Current limits and next steps
 
-This preview does not include native iOS or Android apps, guaranteed background GPS, a hosted WebSocket service, automatic dispatch optimization, driver payouts, marketplace settlements, production payment processing, SMS or email notifications, stock management, or a managed backup service. Google Maps needs a configured key and billing account. Stripe is not included. A separately installed Stripe plugin requires its own dependencies, sandbox credentials and signed webhook delivery.
+This preview does not include native iOS or Android apps, guaranteed background GPS, a hosted WebSocket service, automatic dispatch optimization, driver payouts, marketplace settlements, production payment processing, SMS or order email notifications, stock management, or a managed backup service. Google Maps needs a configured key and billing account. Stripe is not included. A separately installed Stripe plugin requires its own dependencies, sandbox credentials and signed webhook delivery.
 
 The server enforces tenant boundaries, but the shipped installation is configured for one business; there is no platform owner interface for provisioning multiple businesses. Review operations, retention, privacy, monitoring, recovery, payment compliance and mobile delivery reliability before a production pilot. The hosted diner currently demonstrates HTTPS polling and a simulated origin, not real delivery operations.
 
