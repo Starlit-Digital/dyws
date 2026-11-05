@@ -575,3 +575,7 @@ Customer navigation is rendered from the verified customer session: signed out l
 ## Machine integrations
 
 Tenant managers can issue provisioning keys for AI services. Versioned command discovery, delegated service keys and aggregate JSON/CSV exports are documented in [Integration API v1](integration-api.md). Machine keys remain separate from manager sessions and diner customer accounts.
+
+### Manager status history
+
+Managers can read and correct eligible demo order stages through `GET|POST /manager/orders/{id}/status-history`. POST requires a revision and `action: set|undo|redo`; `set` also requires a status. The additive `statusControls` capability on manager order data drives the shared horizontal stepper. Status edits preserve payments, require assignment for delivery and confirmed payment for completion, and reject stale revisions, customer cancellations, active location shares and dispatch run membership. See [status-history.md](status-history.md) for the full contract and reusable browser adapter.

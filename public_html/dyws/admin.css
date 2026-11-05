@@ -1,3 +1,4 @@
+@import url('./order-status-stepper.css');
 .dyws-shell { max-width: 1100px; margin: auto; padding: 24px 20px 120px; background: var(--dyws-color-bg); min-height: 100vh; }
 .dyws-shell h1 { font: 700 2rem var(--dyws-heading-font, Georgia, serif); }
 .dyws-shell h2 { font: 700 1.4rem var(--dyws-heading-font, Georgia, serif); }

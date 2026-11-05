@@ -2,6 +2,7 @@
 declare(strict_types=1);
 require_once __DIR__.'/Plugins.php';
 require_once __DIR__.'/IntegrationApi.php';
+require_once __DIR__.'/StatusHistory.php';
 function dyws_serve_api(?string $configPath=null,?callable $bootstrap=null):void {
 ini_set('display_errors','0');
 header('Content-Type: application/json; charset=utf-8');header('Cache-Control: no-store');header('X-Content-Type-Options: nosniff');header('Referrer-Policy: no-referrer');
@@ -132,6 +133,10 @@ try {
   dyws_limit_requests($store,$config,'tracking',120,60);$token=$_SERVER['HTTP_X_TRACKING_TOKEN']??'';$store->tracking($m[1],$token);
   if(\dyws\Cancellation::settle($store,$m[1]))$realtime->changed([$store->tenant.':operators',$store->tenant.':order:'.$m[1]]);
   $result=$plugins->applyFilters('tracking.public',$store->tracking($m[1],$token));
+ }
+ elseif(in_array($method,['GET','POST'],true)&&preg_match('~^/manager/orders/([A-Z]{2,7}-[A-F0-9]{12})/status-history$~',$route,$m)){
+  dyws_authorize($store,['manager']);$history=new \dyws\StatusHistory($store);
+  if($method==='POST'){$result=$history->apply($m[1],$body);$plugins->doAction('order.status_changed',$result['order'],$store);}else $result=$history->summary($m[1]);
  }
  elseif($method==='GET'&&$route==='/manager/orders'){dyws_authorize($store,['manager']);$result=dyws_admin_orders($config,$store);}
  elseif($method==='GET'&&$route==='/manager/lookup'){
