@@ -1,7 +1,7 @@
 // Hosts opt in by publishing a public demo menu under kiosk/.
 export async function offerDemoKiosk(container, { booking = false } = {}) {
   const doc = container.ownerDocument
-  const win = doc.defaultView
+  const win = doc?.defaultView
   try {
     if (!win?.XRWebGLLayer || !await win.navigator.xr?.isSessionSupported('immersive-vr')) return
     const url = new URL('../kiosk/', import.meta.url)

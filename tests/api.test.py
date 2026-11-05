@@ -36,7 +36,8 @@ with tempfile.TemporaryDirectory(prefix='dyws-api-') as work:
     html=response.read().decode();assert response.status==200 and '<html' in html and '<?php' not in html
     assert '.html' not in html and 'index.php' not in html
     checks+=1
-  assert not list((root/'public_html').rglob('*.html'))
+  public=root/'public_html'
+  assert {p.relative_to(public).as_posix() for p in public.rglob('*.html')}=={'kiosk/index.html'}
   with urllib.request.urlopen(f'http://127.0.0.1:{port}/orders',timeout=4) as response:
    assert response.url.endswith('/auth/');checks+=1
   request('/manager/orders',status=401)
