@@ -238,5 +238,23 @@
     "runtime": "php",
     "type": "action",
     "description": "Observe a verified provider event once per identical signed payload. Does not authorize an order payment."
+  },
+  {
+    "name": "cart:suggestions",
+    "runtime": "browser",
+    "type": "action",
+    "description": "Render optional extra items in a dedicated cart root. Use addItem for current prices and normal cart validation."
+  },
+  {
+    "name": "customer:account",
+    "runtime": "browser",
+    "type": "action",
+    "description": "Append optional account sections after authenticated account content renders. Ownership must be checked by server routes."
+  },
+  {
+    "name": "storefront:ready",
+    "runtime": "browser",
+    "type": "action",
+    "description": "Mount optional storefront controls. replaceCartDraft validates against current catalog and must follow explicit customer confirmation."
   }
 ]

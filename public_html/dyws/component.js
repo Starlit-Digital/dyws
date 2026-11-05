@@ -1,3 +1,4 @@
+import {confirmInteraction} from './confirmed-interactions.js?v=20261031-subtle2';
 import {mountCartDeals} from './cart-deals.js?v=cart-deals-final-20261028';
 import {readCatalog} from './catalog-data.js';
 import {lineKey,resolveItem,restoreCart,totals,itemOrderCap,itemQuantity} from './cart.js?v=options-20261028';
@@ -25,7 +26,7 @@ export class DYWSOrdering extends HTMLElement {
   applyLayout(stage,root){return applyOrderLayout({stage,root,layout:this.plugins?.orderLayout?.(stage)});}
   amount(value){return this.money.format(value/100);}
   persist(){try{localStorage.setItem(this.key,JSON.stringify(this.lines));}catch{} this.updateButton();this.dispatchEvent(new CustomEvent('cart-change',{detail:{count:this.lines.reduce((n,l)=>n+l.quantity,0)},bubbles:true}));void this.plugins?.runAction('cart:updated',{lines:this.lines.map(line=>({...line})),totals:totals(this.lines,this.catalog.taxBasisPoints)});}
-  updateButton(){const count=this.lines.reduce((n,l)=>n+l.quantity,0);this.shadowRoot.querySelector('.dyws-cart-launch').textContent=`Your order (${count}) · ${this.amount(totals(this.lines,this.catalog.taxBasisPoints).total)}`;}
+  updateButton(){const count=this.lines.reduce((n,l)=>n+l.quantity,0);const button=this.shadowRoot.querySelector('.dyws-cart-launch');if(this.lastInteractionCount!==undefined&&count!==this.lastInteractionCount)confirmInteraction(button);this.lastInteractionCount=count;button.textContent=`Your order (${count}) · ${this.amount(totals(this.lines,this.catalog.taxBasisPoints).total)}`;}
   add(id,variant='',selections={}){
     if(!this.catalog || this.busy||this.reviewPanel)return;
     const item=resolveItem(this.catalog,id,variant,selections);const key=lineKey(id,variant,selections);
@@ -33,6 +34,17 @@ export class DYWSOrdering extends HTMLElement {
     if(itemQuantity(this.lines,id)>=itemOrderCap(this.catalog)){this.showItemLimit();return;}
     if(row)row.quantity++;else this.lines.push({...item,quantity:1});
     this.persist();this.announce(`${item.name} added to your order.`);
+  }
+  /** Explicitly replace a cart with a reviewed draft, using today's catalog. */
+  async replaceCartDraft(input){
+    if(this.busy||this.reviewPanel)throw new Error('Finish reviewing your current cart first.');
+    if(!Array.isArray(input)||!input.length||input.length>100)throw new Error('Choose items from the menu.');
+    const catalog=this.getAttribute('catalog')?await readCatalog(this,{fresh:true}):this.catalog;
+    const next=[];
+    for(const row of input){const item=resolveItem(catalog,row.id,row.variant||'',row.selections||{});if(!Number.isInteger(row.quantity)||row.quantity<1||itemQuantity(next,item.id)+row.quantity>itemOrderCap(catalog))throw new Error('This draft exceeds current item limits.');next.push({...item,quantity:row.quantity});}
+    if(totals(next,catalog.taxBasisPoints).subtotal>100000)throw new Error('This draft exceeds the order limit.');
+    if(this.busy||this.reviewPanel||!this.isConnected)throw new Error('Open your cart again.');
+    this.catalog=catalog;this.lines=restoreCart(catalog,next);this.checkoutDraft=null;this.pendingKey=null;this.pendingFingerprint=null;this.persist();if(this.dialog.open)this.showCart();else this.open();
   }
   remove(id,variant='',selections={}){
     if(!this.catalog || this.busy||this.reviewPanel)return;
@@ -44,7 +56,7 @@ export class DYWSOrdering extends HTMLElement {
   }
   announce(text){this.shadowRoot.querySelector('[role="status"]').textContent=text;}
   render(){
-    this.shadowRoot.innerHTML=`<link rel="stylesheet" href="${new URL('./ordering.css?v=benefits-20261028',import.meta.url).href}"><div class="dyws-ordering"><button class="dyws-cart-launch" type="button">Your order</button><p id="dyws-status" role="status" aria-live="polite"></p><dialog aria-label="Your order"><header role="presentation"><div class="dyws-store-brand"><slot name="site-logo"></slot><span>${escapeHTML(this.catalog.businessName || this.catalog.restaurant || '')}</span></div><button type="button" class="dyws-muted dyws-close" aria-label="Close order">Close</button></header><div class="dyws-content"></div></dialog></div>`;
+    this.shadowRoot.innerHTML=`<link rel="stylesheet" href="${new URL('./ordering.css?v=20261031-subtle2',import.meta.url).href}"><div class="dyws-ordering"><button class="dyws-cart-launch" type="button">Your order</button><p id="dyws-status" role="status" aria-live="polite"></p><dialog aria-label="Your order"><header role="presentation"><div class="dyws-store-brand"><slot name="site-logo"></slot><span>${escapeHTML(this.catalog.businessName || this.catalog.restaurant || '')}</span></div><button type="button" class="dyws-muted dyws-close" aria-label="Close order">Close</button></header><div class="dyws-content"></div></dialog></div>`;
     this.dialog=this.shadowRoot.querySelector('dialog');
     this.shadowRoot.querySelector('.dyws-cart-launch').onclick=()=>this.open();
     this.shadowRoot.querySelector('.dyws-close').onclick=()=>this.dialog.close();
@@ -72,6 +84,20 @@ export class DYWSOrdering extends HTMLElement {
     if(this.lines.length){this.applyLayout('cart',content);this.cartDeals=mountCartDeals({ordering:this,content});}
     content.querySelectorAll('[data-change]').forEach(b=>b.onclick=()=>{const n=Number(b.dataset.change);if(Number(b.dataset.delta)>0&&itemQuantity(this.lines,this.lines[n].id)>=itemOrderCap(this.catalog)){this.showItemLimit();return;}this.lines[n].quantity+=Number(b.dataset.delta);this.lines=this.lines.filter(l=>l.quantity>0);this.persist();this.showCart();});
     content.querySelector('.dyws-checkout')?.addEventListener('click',()=>this.checkout());
+    this.mountSuggestions(content);
+  }
+  mountSuggestions(content){
+    if(!this.lines.length||!this.plugins)return;
+    const root=document.createElement('section');root.className='dyws-cart-suggestions';root.setAttribute('aria-label','Optional extra items');root.hidden=true;
+    content.querySelector('.dyws-summary-panel')?.before(root);
+    const addItem=({id,variant='',selections={}})=>{
+      if(!root.isConnected||this.busy||this.reviewPanel||!this.dialog.open)return false;
+      const item=resolveItem(this.catalog,id,variant,selections);
+      if(itemQuantity(this.lines,id)>=itemOrderCap(this.catalog))return false;
+      if(totals(this.lines).subtotal+item.price>100000){this.announce('This order has reached the online order limit.');return false;}
+      this.add(id,variant,selections);this.showCart();this.shadowRoot.querySelector('.dyws-checkout')?.focus();return true;
+    };
+    void this.plugins.runAction('cart:suggestions',{root,lines:this.lines.map(line=>({...line})),addItem,currency:this.catalog.currency,locationId:this.checkoutDraft?.find(field=>field.name==='locationId')?.value||''});
   }
   checkout(){this.cartDeals?.destroy();return mountCheckout.call(this);}
   reviewOrder(args){return showOrderReview.call(this,args);}

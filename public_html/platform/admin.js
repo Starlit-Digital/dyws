@@ -15,7 +15,7 @@ const names={catalog:'mountCatalogEditor',drivers:'mountDriverAdmin',password:'m
 const page=await loaders[current]?.();
 await page?.[names[current]]?.({root:document.body,api,role,businessPlugins:bootstrap?.businessPlugins,createLocationRenderer:()=>plugins.createLocationRenderer({api,defaultCenter:{lat:53.61665,lng:-113.39804}}),onSave:settings=>mountNavigation(current,settings.driverRole)});
 
-if(current==='settings'&&sessionStorage.getItem('dyws-manager'))await plugins.runAction('admin:settings',{root:document.body,api});
+if(current==='settings'&&sessionStorage.getItem('dyws-manager'))await plugins.runAction('admin:settings',{root:document.body,api,token:sessionStorage.getItem('dyws-manager')});
 markReady();
 if(plugins.errors.length)document.querySelector('[data-admin-error]').textContent=plugins.errors.join(' ');
 const operator=sessionStorage.getItem('dyws-manager');

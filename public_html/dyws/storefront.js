@@ -1,5 +1,5 @@
-import './component.js?v=cart-deals-final-20261028';
-import {mountCatalog} from './catalog.js?v=benefits-20261028';
+import './component.js?v=20261031-subtle2';
+import {mountCatalog} from './catalog.js?v=20261031-subtle2';
 import {createTracking} from './tracking.js?v=benefits-20261028';
 export function mountStorefront({ordering,container,navigation,loading,api,tracking,submitOrder,onOrderComplete,hydrate=false,plugins,termsURL,accountURL}) {
  ordering.plugins=plugins;
@@ -17,5 +17,6 @@ export function mountStorefront({ordering,container,navigation,loading,api,track
  const closed=()=>tracker?.scrollIntoView();
  ordering.addEventListener('order-complete',complete);ordering.addEventListener('order-confirmation-closed',closed);
  tracker?.restore();
+ void plugins?.runAction('storefront:ready',{root:(Array.isArray(container)?container:[container])[0],replaceCartDraft:lines=>ordering.replaceCartDraft(lines)});
  return {catalogs,tracking:tracker,destroy(){catalogs.forEach(c=>c.destroy());tracker?.destroy();ordering.removeEventListener('order-complete',complete);ordering.removeEventListener('order-confirmation-closed',closed);ordering.pickupAPI=previousPickupAPI;ordering.submitOrder=previousSubmit;ordering.guestAPI=previousGuestAPI;ordering.termsURL=previousTermsURL;ordering.customerAPI=previousAccountAPI;ordering.accountURL=previousAccountURL;}};
 }

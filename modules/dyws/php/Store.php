@@ -35,6 +35,7 @@ final class Store {
   (new DeliveryAddresses($this))->backfill();
   $refundColumns=array_column($this->query('PRAGMA table_info(payment_refund_deltas)'),'name');
   if(!in_array('tip',$refundColumns,true))$this->db->exec('ALTER TABLE payment_refund_deltas ADD COLUMN tip INTEGER NOT NULL DEFAULT 0 CHECK(tip>=0)');
+  $this->db->exec(file_get_contents(__DIR__.'/business-events.sql'));
   });
  }
  public function businessPlugins():Plugins {
@@ -72,10 +73,21 @@ final class Store {
  public function priceCart(mixed $input):array {return $this->businessPlugins()->invoke('catalog','cart.price',$this->catalog,$input);}
  public function quoteCheckout(array $body,?string $owner):array {
   $cart=$this->priceCart($body['lines']??null);$claim=self::text($body['dealClaimId']??'',80,false);$quote=$this->deals()->quote($cart['lines'],$owner,$claim);
+  $quote=$this->checkoutBenefit($body,$owner,$quote);
   $fulfillment=$body['fulfillment']??'pickup';if(!in_array($fulfillment,['pickup','delivery'],true))throw new ApiError('Choose pickup or delivery.');
   $locations=array_values(array_filter($this->catalog['locations']??[],fn($l)=>$l['active']));$location=self::text($body['locationId']??(count($locations)===1?$locations[0]['id']:''),80,false);Catalog::orderLocation($this->catalog,$location);
   $fee=Catalog::deliveryCharge($this->catalog,$quote['subtotal'],$fulfillment,$location);$tax=(int)round(($quote['subtotal']+$fee)*$this->catalog['taxBasisPoints']/10000);$tip=Tips::validate($body['tip']??0);
   return ['grossSubtotal'=>$cart['subtotal'],'subtotal'=>$quote['subtotal'],'discount'=>$quote['discount'],'deal'=>$quote['deal'],'deliveryFee'=>$fee,'tax'=>$tax,'tip'=>$tip,'total'=>$quote['subtotal']+$fee+$tax+$tip];
+ }
+ /** Selected checkout benefits are required operations, never optional price filters. */
+ public function checkoutBenefit(array $body,?string $customer,array $quote):array {
+  $benefit=$body['checkoutBenefit']??null;if($benefit===null)return $quote;
+  if(!is_array($benefit)||!is_string($benefit['plugin']??null)||!preg_match('/^[a-z][a-z0-9-]{0,59}$/D',$benefit['plugin']))throw new ApiError('Choose a valid checkout benefit.');
+  if(!$customer)throw new ApiError('Sign in to use your reward.',401);
+  if(($body['dealClaimId']??'')!=='')throw new ApiError('Choose a deal or a reward, not both.');
+  $result=$this->businessPlugins()->invoke($benefit['plugin'],'checkout.quote',$body,$customer,$quote);
+  if(!is_array($result)||!is_int($result['discount']??null)||$result['discount']<1||$result['discount']>$quote['subtotal']||!is_array($result['deal']??null))throw new ApiError('The checkout benefit is unavailable.',503);
+  return array_replace($quote,['discount'=>$result['discount'],'subtotal'=>$quote['subtotal']-$result['discount'],'deal'=>$result['deal']]);
  }
  public static function manualPayment(string $provider):bool{return in_array($provider,['demo','pay-at-door','pay-at-restaurant'],true);}
  public static function paymentMethod(string $provider):string{return match($provider){'pay-at-door'=>'pay_at_door','pay-at-restaurant'=>'pay_at_restaurant',default=>'pay_now'};}
@@ -107,12 +119,12 @@ final class Store {
   $fee=Catalog::deliveryCharge($this->catalog,$subtotal,$fulfillment,$locationId);$tax=(int)round(($subtotal+$fee)*$this->catalog['taxBasisPoints']/10000);$tip=Tips::validate(array_key_exists('tip',$body)?$body['tip']:0);$total=$subtotal+$fee+$tax+$tip;
   $pluginData=$body['pluginData']??[];if(!is_array($pluginData)||count($pluginData)>20||strlen(json_encode($pluginData,JSON_THROW_ON_ERROR))>8192)throw new ApiError('Additional order fields are too large.');
   foreach($pluginData as $plugin=>$value)if(!is_string($plugin)||!preg_match('/^[a-z][a-z0-9-]{0,59}$/D',$plugin)||!is_array($value))throw new ApiError('Invalid additional order fields.');
-  $canonical=['lines'=>$lines,'customer'=>['name'=>$name,'phone'=>$phone],'notes'=>$notes,'fulfillment'=>$fulfillment,'address'=>$address];if($addressDetails!==null)$canonical['addressDetails']=$addressDetails;if($pluginData)$canonical['pluginData']=$pluginData;if($locationId!=='')$canonical['locationId']=$locationId;if($tip)$canonical['tip']=$tip;if($pickupSchedule)$canonical['pickupSchedule']=$pickupSchedule;if($customerId!==null)$canonical['customerId']=$customerId;if($email!=='')$canonical['customer']['email']=$email;if($paymentMethod!=='pay_now')$canonical['paymentMethod']=$paymentMethod;if($claimId!==''){$canonical['dealClaimId']=$claimId;$canonical['dealOwner']=$dealOwner;}$fingerprint=hash('sha256',json_encode($canonical));
+  $canonical=['lines'=>$lines,'customer'=>['name'=>$name,'phone'=>$phone],'notes'=>$notes,'fulfillment'=>$fulfillment,'address'=>$address];if($addressDetails!==null)$canonical['addressDetails']=$addressDetails;if($pluginData)$canonical['pluginData']=$pluginData;if(array_key_exists('checkoutBenefit',$body))$canonical['checkoutBenefit']=$body['checkoutBenefit'];if($locationId!=='')$canonical['locationId']=$locationId;if($tip)$canonical['tip']=$tip;if($pickupSchedule)$canonical['pickupSchedule']=$pickupSchedule;if($customerId!==null)$canonical['customerId']=$customerId;if($email!=='')$canonical['customer']['email']=$email;if($paymentMethod!=='pay_now')$canonical['paymentMethod']=$paymentMethod;if($claimId!==''){$canonical['dealClaimId']=$claimId;$canonical['dealOwner']=$dealOwner;}$fingerprint=hash('sha256',json_encode($canonical));
   return $this->transaction(function()use($key,$fingerprint,$canonical,$subtotal,$fee,$tax,$tip,$total,$paymentProvider,$contactEmail,$claimId,$dealOwner){
    $existing=$this->query('SELECT * FROM orders WHERE tenant=? AND request_key=?',[$this->tenant,$key]);
    if($existing){if(!hash_equals($existing[0]['fingerprint'],$fingerprint))throw new ApiError('Request key was already used for a different order.',409);return $this->receipt($existing[0],$key);}
    if(!$this->acceptingOrders)throw new ApiError('Online ordering is temporarily paused. Please contact the business or try again later.',409);
-   $quote=$this->deals()->quote($canonical['lines'],$dealOwner,$claimId);$canonical['lines']=$quote['lines'];$subtotal=$quote['subtotal'];$discount=$quote['discount'];$fee=Catalog::deliveryCharge($this->catalog,$subtotal,$canonical['fulfillment'],$canonical['locationId']??'');$tax=(int)round(($subtotal+$fee)*$this->catalog['taxBasisPoints']/10000);$total=$subtotal+$fee+$tax+$tip;
+   $quote=$this->deals()->quote($canonical['lines'],$dealOwner,$claimId);$quote=$this->checkoutBenefit($canonical,$canonical['customerId']??null,$quote);$canonical['lines']=$quote['lines'];$subtotal=$quote['subtotal'];$discount=$quote['discount'];$fee=Catalog::deliveryCharge($this->catalog,$subtotal,$canonical['fulfillment'],$canonical['locationId']??'');$tax=(int)round(($subtotal+$fee)*$this->catalog['taxBasisPoints']/10000);$total=$subtotal+$fee+$tax+$tip;
    $orderLocation=Catalog::orderLocation($this->catalog,$canonical['locationId']??'');
    $policy=Catalog::locationPolicy($this->catalog,$orderLocation['id']);
    if(!BusinessHours::isOpen($policy['orderingHours']??null,new \DateTimeImmutable('now',new \DateTimeZone($this->timeZone))))throw new ApiError('Online ordering is closed for this location. Please check its ordering hours ('.$this->timeZone.').',409);
@@ -120,7 +132,7 @@ final class Store {
    $this->plugins?->validate('order.validating',$canonical,['subtotal'=>$subtotal,'tax'=>$tax,'deliveryFee'=>$fee,'tip'=>$tip,'total'=>$total,'currency'=>$this->catalog['currency']]);
    $id='DYWS-'.strtoupper(bin2hex(random_bytes(6)));$token=hash_hmac('sha256',$id.'|'.$key,$GLOBALS['dyws_config']['tracking_secret']);
    $now=time();$this->execute('INSERT INTO orders(id,tenant,request_key,fingerprint,tracking_hash,tracking_expires,status,payment_status,fulfillment,customer_name,customer_phone,address,notes,lines_json,subtotal,tax,delivery_fee,total,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',[$id,$this->tenant,$key,$fingerprint,hash('sha256',$token),max($now,$fulfillmentMeta['scheduledAt']??0)+86400,'placed','unpaid',$canonical['fulfillment'],$canonical['customer']['name'],self::formatPhone($canonical['customer']['phone']),$canonical['address'],$canonical['notes'],json_encode($canonical['lines']),$subtotal,$tax,$fee,$total,$now,$now]);
-   if($discount){$this->execute('UPDATE orders SET discount=?,deal_json=? WHERE tenant=? AND id=?',[$discount,json_encode($quote['deal'],JSON_THROW_ON_ERROR),$this->tenant,$id]);$this->deals()->redeem($dealOwner,$claimId,$id);}
+   if($discount){$this->execute('UPDATE orders SET discount=?,deal_json=? WHERE tenant=? AND id=?',[$discount,json_encode($quote['deal'],JSON_THROW_ON_ERROR),$this->tenant,$id]);if($claimId!=='')$this->deals()->redeem($dealOwner,$claimId,$id);}
    $cancellation=Cancellation::policy($policy['customerCancellation']??null);
    if($cancellation['enabled']&&!self::manualPayment($paymentProvider)&&!$this->plugins?->supportsPaymentCancellation($paymentProvider))throw new ApiError('This location needs a payment plugin with automatic cancellation support.',503);
    $this->execute('UPDATE orders SET fulfillment_meta_json=?,cancellation_window_minutes=? WHERE tenant=? AND id=?',[json_encode($fulfillmentMeta,JSON_THROW_ON_ERROR),$cancellation['enabled']?$cancellation['minutes']:0,$this->tenant,$id]);
@@ -131,6 +143,7 @@ final class Store {
     if(!$this->query('SELECT 1 FROM customers WHERE tenant=? AND id=?',[$this->tenant,$canonical['customerId']]))throw new ApiError('Customer account not found.',401);
     $this->execute('UPDATE orders SET customer_id=? WHERE tenant=? AND id=?',[$canonical['customerId'],$this->tenant,$id]);
    }
+   if(isset($canonical['checkoutBenefit']))$this->businessPlugins()->invoke($canonical['checkoutBenefit']['plugin'],'checkout.reserve',$canonical,$canonical['customerId'],$id,$discount);
    (new DeliveryAddresses($this))->ordered($this->get($id));
    if($total===0){$this->execute("UPDATE orders SET payment_status='paid' WHERE tenant=? AND id=?",[$this->tenant,$id]);$this->event($id,'no_payment_due','system');}
    $this->event($id,'placed','customer');return $this->receipt($this->get($id),$key);

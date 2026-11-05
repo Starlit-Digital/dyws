@@ -21,7 +21,7 @@ export function customerSignInHTML({locked=false}={}){
  return `<section aria-labelledby="customer-signin-heading"><h2 id="customer-signin-heading">Sign in with your email</h2><p>Already have an account? Enter its email address and we will send you a secure sign in link.</p><form data-login><fieldset class="dyws-account-preview" ${locked?'disabled':''}><label>Email<input name="email" type="email" maxlength="254" autocomplete="email" autocapitalize="none" spellcheck="false" required ${locked?'value="demo.customer@example.test" disabled':''}></label><button type="submit" ${locked?'disabled':''}>Email me a sign in link</button></fieldset><p>No password needed. Your first sign in creates your account automatically. The link expires in 15 minutes.</p></form></section>`;
 }
 
-export function mountCustomerAccount({root,message,error,api,loginToken=null,demoLocked=false,storeName='',view='account',ordersURL='orders/',signinLocked=false}){
+export function mountCustomerAccount({root,message,error,api,loginToken=null,demoLocked=false,storeName='',view='account',ordersURL='orders/',signinLocked=false,plugins=null}){
  if(view==='deals')return mountCustomerDeals({root,message,error,api,demoLocked});
  if(view==='signin'&&signinLocked){
   message.textContent='This is a public demo. Email sign in is locked by the installation owner. No email will be sent.';
@@ -70,7 +70,7 @@ export function mountCustomerAccount({root,message,error,api,loginToken=null,dem
   if(!state.customer){signin(state);return;}
   say('Signed in as '+state.customer.email);
   root.innerHTML='<div class="dyws-actions"><button type="button" data-refresh>Refresh orders</button></div><section><h2>Order history</h2><div data-history></div><button type="button" data-more hidden>More orders</button></section><section><h2>Blocked drivers</h2><p>Blocks apply to every delivery address when you order with this account at this store. A delivery already on the way may still arrive. Contact the store if you need help with it.</p><ul data-blocks role="list"></ul></section>';
-  await historyPage();await blocks();
+  await historyPage();await blocks();await plugins?.runAction('customer:account',{root,customer:state.customer});
  }
  root.addEventListener('submit',e=>{
   if(!e.target.matches('[data-report]'))return;e.preventDefault();const form=e.target,id=form.closest('[data-order]').dataset.order;

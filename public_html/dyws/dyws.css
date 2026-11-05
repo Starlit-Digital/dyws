@@ -4,6 +4,7 @@
 @import url('./catalog.css?v=benefits-20261028');
 @import url('./admin.css?v=30');
 @import url('./tracking.css?v=53');
+@import url('./quiet-interactions.css?v=20261031-subtle2');
 .dyws-plugin-area:empty { display: none; }
 .dyws-catalog .dyws-product > .dyws-plugin-area { grid-column: 1 / -1; }
 

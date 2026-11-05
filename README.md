@@ -190,7 +190,7 @@ The console refreshes on tab return, window focus and reconnection. Reliable GPS
 | Nominatim Address Lookup | Optional suggestions from an owned address service, including Alberta civic address matching. Manual entry remains available. The public demo uses fictional local suggestions. |
 | Square, PayPal, Helcim, Clover, Moneris and Authorize.net | Six independent sandbox connector foundations with encrypted settings, connection checks and verified event hooks. They do not enable customer checkout. |
 
-The [plugin system](docs/plugins.md) provides lifecycle, discovery, settings, authenticated routes, validators, filters, actions, UI slots and providers. The [40 hook contracts](docs/plugin-hooks.md) cover catalog validation and display, checkout fields and validation, order creation and transitions, assignment, tracking, lookup, API responses, driver tools, reporting datasets, controls, cards, exports, tables and payment connectors. The [gift note example](examples/plugins/gift-note) demonstrates a custom plugin.
+The [plugin system](docs/plugins.md) provides lifecycle, discovery, settings, authenticated routes, validators, filters, actions, UI slots and providers. The [43 hook contracts](docs/plugin-hooks.md) cover catalog validation and display, checkout fields and validation, order creation and transitions, assignment, tracking, lookup, API responses, driver tools, reporting datasets, controls, cards, exports, tables and payment connectors. The [gift note example](examples/plugins/gift-note) demonstrates a custom plugin.
 
 Native PHP `#[Provides(...)]` attributes describe plugin features. Page `#[Requires(...)]` attributes declare what each page consumes. The resolver loads matching browser assets while keeping required backend validation and authorization active. A new page does not need every plugin’s browser code.
 
@@ -364,3 +364,5 @@ and [deployment requirements](docs/deployment.md#customer-cancellation-october-2
 ## Phone numbers
 
 North American phone fields show an example such as `(780) 555-0142` and format digits as they are entered. New order and appointment records and saved business and location details use that display format. Existing records are presented in the same format without rewriting stored history. A leading North American country code is retained; numbers outside that format are preserved. The server continues to use the original request payload for idempotency checks.
+
+The [checkout benefit and business event contracts](docs/checkout-benefits.md) support separately installed incentive plugins with authoritative pricing and atomic reservations. Private loyalty rules are excluded from the framework.

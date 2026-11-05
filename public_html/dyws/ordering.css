@@ -1,4 +1,5 @@
 @import url('./tokens.css?v=23');
+@import url('./quiet-interactions.css?v=20261031-subtle2');
 /* Loaded inside the ordering element's shadow root. No host page selectors. */
 .dyws-ordering button, .dyws-ordering input, .dyws-ordering textarea, .dyws-ordering select { font: inherit; touch-action: manipulation; }
 .dyws-ordering button { cursor: pointer; min-height: 48px; border: 0; border-radius: 12px; padding: 10px 18px; background: var(--dyws-color-accent); color: var(--dyws-color-button-text); font-weight: 700; }
@@ -260,3 +261,5 @@
 @media(max-width:600px){.dyws-ordering .dyws-checkout-grid{grid-template-columns:minmax(0,1fr)}}
 
 .dyws-ordering .dyws-payment-choice{min-width:0;border:0;padding:0;margin:12px 0 20px}.dyws-ordering .dyws-payment-choice legend{font-weight:700}.dyws-ordering .dyws-payment-choice label{display:flex;align-items:center;gap:12px;min-height:44px}.dyws-ordering .dyws-payment-choice input{width:22px;height:22px;flex-shrink:0}
+.dyws-cart-suggestions{margin-block:var(--dyws-space-3);padding-block:var(--dyws-space-3);border-block:1px solid var(--dyws-line-soft)}
+.dyws-cart-suggestions h3{margin-top:0}.dyws-suggestion{padding-block:var(--dyws-space-2);min-width:0}.dyws-suggestion label{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap}.dyws-suggestion fieldset{min-width:0}.dyws-suggestion button{min-height:44px;max-width:100%;white-space:normal}.dyws-suggestion input[type=checkbox]{width:1.25rem;height:1.25rem;flex-shrink:0}.dyws-suggestion-error:empty{display:none}

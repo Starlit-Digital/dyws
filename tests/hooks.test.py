@@ -74,7 +74,7 @@ return function($plugin){
   check(request('/manager/lookup',query='&q=%25&kind=orders',token=admin)['results']==[])
   with urllib.request.urlopen(f'http://127.0.0.1:{port}/auth/') as response:check(response.status==200)
   # Installation hooks are exercised by demo-lockdown.test.py; payment connector hooks by payment-connectors-api.test.py.
-  hooks=request('/plugins')['hooks'];check(len(hooks)==40 and len({h['name'] for h in hooks})==40)
+  hooks=request('/plugins')['hooks'];check(len(hooks)==43 and len({h['name'] for h in hooks})==43)
   check({h['name'] for h in hooks if h['runtime']=='php' and h['name'] not in ['installation.validating','request.validating','auth.validating','payments.connector','payments.connector_verified','payments.connector_event']}<=set(log()))
   # Removed required validation code fails closed, while managers can still inspect settings.
   shutil.rmtree(fixture)

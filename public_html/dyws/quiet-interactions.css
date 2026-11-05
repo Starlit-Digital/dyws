@@ -1,0 +1,31 @@
+/* Quiet feedback for interactive catalog, order rows and controls only. */
+:root { --starlit-interaction-time: 140ms; --starlit-confirm-time: 260ms; }
+:is(.dyws-catalog button, .dyws-catalog summary, .dyws-ordering button, .dyws-order-table button, .dyws-order-filters button, [data-booking] button) {
+  transition: background-color var(--starlit-interaction-time, 140ms) ease, border-color var(--starlit-interaction-time, 140ms) ease, box-shadow var(--starlit-interaction-time, 140ms) ease;
+}
+:is(.dyws-product, .dyws-line, .dyws-order-table tbody tr:has(button)) {
+  transition: background-color var(--starlit-interaction-time, 140ms) ease;
+}
+:is(.dyws-product, .dyws-line, .dyws-order-table tbody tr:has(button)):focus-within {
+  background-color: color-mix(in srgb, var(--dyws-color-text) 4%, var(--dyws-color-surface));
+}
+@media (hover: hover) and (pointer: fine) {
+  :is(.dyws-product, .dyws-line, .dyws-order-table tbody tr:has(button)):hover {
+    background-color: color-mix(in srgb, var(--dyws-color-text) 4%, var(--dyws-color-surface));
+  }
+}
+:is(.dyws-catalog, .dyws-ordering, .dyws-order-table, [data-booking]) button:not(:disabled):not([aria-disabled="true"]):active {
+  box-shadow: inset 0 0 0 2px currentColor;
+}
+[data-ui-confirmed="a"] { animation: dyws-confirm-a var(--starlit-confirm-time, 260ms) ease-out; }
+[data-ui-confirmed="b"] { animation: dyws-confirm-b var(--starlit-confirm-time, 260ms) ease-out; }
+@keyframes dyws-confirm-a { 50% { box-shadow: inset 0 0 0 2px var(--dyws-color-emphasis, currentColor); } }
+@keyframes dyws-confirm-b { 50% { box-shadow: inset 0 0 0 2px var(--dyws-color-emphasis, currentColor); } }
+:is([data-sdou-a11y-motion="reduce"], [data-sda-motion="reduce"]) { --starlit-interaction-time: 0s; --starlit-confirm-time: 0s; }
+@media (prefers-reduced-motion: reduce), print {
+  :root, .dyws-ordering { --starlit-interaction-time: 0s; --starlit-confirm-time: 0s; }
+}
+@media (forced-colors: active) {
+  [data-ui-confirmed] { animation: none; }
+  :is(.dyws-product, .dyws-line):focus-within { outline: 1px solid Highlight; outline-offset: -1px; }
+}

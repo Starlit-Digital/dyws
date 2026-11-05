@@ -10,7 +10,8 @@ final class DemoPolicy {
  public static function accountFingerprint(array $config):string{$drivers=$config['drivers']??[];foreach($drivers as &$driver){unset($driver['vehicleType'],$driver['vehicleColor'],$driver['profileIcon']);}unset($driver);return hash('sha256',json_encode([$config['manager_password_hash']??'', $drivers],JSON_THROW_ON_ERROR));}
  public function installation():void {
   if(!$this->store||($this->config['driver_test_location']??null)!==self::LOCATION||!empty($this->config['realtime']))throw new ApiError('The installation configuration needs attention.',503);
-  if(array_diff($this->store->plugins->activeIds(),['demo-lockdown','order-reporting','datatables','order-format','nominatim','catalog','pickup','delivery','booking']))throw new ApiError('Only approved plugins may run here.',503);
+  $insights=($this->config['demo_growth_insights']??false)===true?['growth-analytics','growth-maps']:[];
+  if(array_diff($this->store->plugins->activeIds(),array_merge($insights,['demo-lockdown','order-reporting','datatables','order-format','nominatim','catalog','pickup','delivery','booking'])))throw new ApiError('Only approved plugins may run here.',503);
   if(!hash_equals($this->config['demo_account_fingerprint']??'',self::accountFingerprint($this->config)))throw new ApiError('Account settings need attention.',503);
   header('Permissions-Policy: geolocation=()');
   // This database is dedicated to disposable examples. Never enable this on merchant data.
@@ -36,6 +37,7 @@ final class DemoPolicy {
  public function request(string $method,string $route,array $body):void {
   // Unknown endpoints, new plugins and future mutations are blocked by default.
   $reads=['/manager/entitlements','/deals','/customer/deals','/manager/deals','/customer/session','/manager/customer-reports','/guest-details','/plugins/nominatim/config','/manager/plugins/nominatim/settings','/health','/plugins','/catalog','/settings','/realtime/config','/manager/orders','/manager/reports','/manager/lookup','/manager/catalog','/manager/settings','/manager/drivers','/manager/driver-locations','/manager/plugins','/manager/plugins/order-reporting/dashboard','/manager/plugins/order-reporting/export-options','/plugins/order-format/layouts','/manager/plugins/order-format/templates','/driver/orders','/driver/gps-config','/driver/profile'];
+  if(($this->config['demo_growth_insights']??false)===true)$reads=array_merge($reads,['/manager/plugins/growth-analytics/dashboard','/manager/plugins/growth-analytics/profiles','/manager/plugins/growth-maps/dataset']);
   $allowed=$method==='GET'&&(in_array($route,$reads,true)||preg_match('~^/tracking/[A-Z]{2,7}-[A-F0-9]{12}$~D',$route));
   if($method==='POST')$allowed=in_array($route,['/customer/deals/claim','/customer/deals/activate','/customer/deals/quote','/manager/plugins/order-reporting/export','/guest-details','/plugins/nominatim/search','/login','/logout','/orders','/pickup/preview','/pickup/availability','/realtime/access','/driver/profile'],true)||preg_match('~^/manager/orders/[A-Z]{2,7}-[A-F0-9]{12}/(status|status-history|assign|payment|archive)$~D',$route)||preg_match('~^/driver/orders/[A-Z]{2,7}-[A-F0-9]{12}/(status|archive|payment|location(?:/(?:start|stop|heartbeat))?)$~D',$route);
   if($method==='POST'&&preg_match('~^/tracking/[A-Z]{2,7}-[A-F0-9]{12}/cancel$~D',$route))$allowed=true;

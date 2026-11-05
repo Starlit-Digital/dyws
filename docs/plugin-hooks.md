@@ -1,6 +1,6 @@
 # dyws hook reference
 
-dyws includes 40 built in hook features. The current application release is recorded in [VERSION](../VERSION). The names below are live integration points. The machine readable catalog is modules/dyws/php/hooks.json and is also returned by GET /plugins. Actions, filters and validators use priorities, default 10, with lower values first.
+dyws includes 43 built in hook features. The current application release is recorded in [VERSION](../VERSION). The names below are live integration points. The machine readable catalog is modules/dyws/php/hooks.json and is also returned by GET /plugins. Actions, filters and validators use priorities, default 10, with lower values first.
 
 ## Server hooks
 
@@ -36,7 +36,7 @@ The plugin entry exports register(plugin). Browser actions and filters may be as
 
 | # | Hook | Kind | Callback arguments and purpose |
 |---|---|---|---|
-| 16 | admin:settings | Action | `({root, api})` on the signed in Settings screen. Mount the plugin's own form in `[data-dyws-plugin-settings]`. Its API must independently authorize managers. |
+| 16 | admin:settings | Action | `({root, api, token})` on the signed in Settings screen. Pass the provided operator token with manager API writes. Mount the plugin's own form in `[data-dyws-plugin-settings]`. Its API must independently authorize managers. |
 | 17 | admin:navigation | Filter | `(pages, {current, role})`. Return `[id, label, relativeURL]` entries to add admin pages. The host accepts same origin HTTP links only. A link does not grant access to its destination. |
 | 18 | admin:dashboard | Action | `({root, report})` after an authenticated dashboard refresh. Add compact report widgets. Root is a dedicated plugin area. |
 | 19 | admin:order | Action | `({root, order})` for each authorised manager order card. Display plugin data or controls using your authenticated endpoints. |
@@ -151,3 +151,19 @@ a labelled fictional reference. Core retains a directions link without a provide
 Like `order.layout`, this is a provider capability, not an action in the hook
 catalog. Pickup controls and fulfillment summaries live inside the required total
 field so saved custom layouts cannot remove them.
+
+## Optional cart suggestions
+
+`cart:suggestions` is browser action 41. It receives `{root, lines, addItem, currency, locationId}` after the nonempty cart renders. Root starts hidden and sits before the totals. Plugins own only that root and should leave it hidden when no suggestions apply. Optional failures do not block checkout. An asynchronous response must check `root.isConnected` before mounting.
+
+`addItem({id, variant, selections})` adds one item using the current catalog and normal choice, quantity and order value limits. It returns false if its root is stale, the cart is busy or the item cannot be added. Invalid selections throw a useful Error. A successful add refreshes the cart and focuses Checkout. This is not an order submission or price override.
+
+`mountCartSuggestions` in `public_html/dyws/cart-suggestions.js` renders up to three escaped optional suggestions with explicit variant and option selection. No choice is preselected. Private recommendation policies and service plan access do not belong in this public presentation helper.
+
+## Customer account sections
+
+`customer:account` is browser action 42. It receives `{root, customer}` after authenticated account content renders. Append optional sections to this root using escaped text and native controls. The current customer is display context only. Private routes must check the actual customer session and same origin guard. Do not persist contacts in browser storage. Optional display failures must not block account history.
+
+## Reviewed cart drafts
+
+`storefront:ready` is browser action 43. It receives `{root, replaceCartDraft}` after mounting the storefront. Root is the first catalog container. A plugin may place optional controls beside it. `replaceCartDraft(lines)` is asynchronous and must follow an explicit customer confirmation. It loads the current catalog, validates stable item/variant/choice IDs and whole quantities, enforces item and order value limits, clears previous checkout extras and opens the normal cart. Invalid drafts preserve the current cart. It does not copy contacts, fees, tip or discounts, submit orders or grant account access. Private routes must check ownership before supplying a historical draft.

@@ -1,3 +1,4 @@
+import {confirmInteraction} from './confirmed-interactions.js?v=20261031-subtle2';
 import {mountMenuDeals} from './deals.js?v=benefits-20261028';
 import {lineKey,resolveItem} from './cart.js?v=options-20261028';
 import {pluginSlot} from './plugin-ui.js?v=39';
@@ -103,7 +104,7 @@ function render(){
   row.querySelector('.dyws-product-action > span').textContent=money(item.variants?.find(v=>v.id===select?.value)?.price??item.price);
  }
  }
- const click=event=>{const button=event.target.closest('[data-dyws-action]');if(!button||!container.contains(button)||button.disabled)return;const controls=button.closest('[data-order-item]');const variant=controls.closest('.dyws-product').querySelector('select')?.value||'';const selections=selectionsFor(controls.closest('.dyws-product'));if(button.dataset.dywsAction==='remove')ordering.remove(controls.dataset.orderItem,variant,selections);else ordering.add(controls.dataset.orderItem,variant,selections);};
+ const click=event=>{const button=event.target.closest('[data-dyws-action]');if(!button||!container.contains(button)||button.disabled)return;const controls=button.closest('[data-order-item]');const variant=controls.closest('.dyws-product').querySelector('select')?.value||'';const selections=selectionsFor(controls.closest('.dyws-product'));const before=ordering.lines.reduce((n,line)=>n+line.quantity,0);if(button.dataset.dywsAction==='remove')ordering.remove(controls.dataset.orderItem,variant,selections);else ordering.add(controls.dataset.orderItem,variant,selections);if(before!==ordering.lines.reduce((n,line)=>n+line.quantity,0))confirmInteraction(controls.closest('.dyws-product'));};
  const change=event=>{if(event.target.matches('select,[data-choice-group],input[type=radio]')){updatePrices();updateItemCounts();}};
  container.addEventListener('click',click);container.addEventListener('change',change);
  ordering.addEventListener('ordering-ready',render);

@@ -87,3 +87,13 @@ CREATE TABLE IF NOT EXISTS integration_audit (
  actor TEXT NOT NULL, action TEXT NOT NULL, outcome TEXT NOT NULL, created_at INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS integration_audit_tenant ON integration_audit(tenant,created_at);
+
+-- Durable, versioned source journal. Triggers share the writer's transaction,
+-- including separately installed provider payment and refund updates.
+CREATE TABLE IF NOT EXISTS business_events (
+ id INTEGER PRIMARY KEY AUTOINCREMENT, tenant TEXT NOT NULL, order_id TEXT NOT NULL,
+ version INTEGER NOT NULL DEFAULT 1, kind TEXT NOT NULL, source_id TEXT NOT NULL,
+ payload_json TEXT NOT NULL, created_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS business_events_tenant ON business_events(tenant,id);
+CREATE INDEX IF NOT EXISTS business_events_order ON business_events(tenant,order_id,kind,id);

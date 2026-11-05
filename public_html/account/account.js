@@ -1,3 +1,4 @@
+import {createPluginHost} from '../dyws/plugins.js';
 import {createAPIClient} from '../dyws/api.js';
 import {mountCustomerAccount} from '../dyws/customer-account.js?v=benefits-20261028';
 const api=createAPIClient(new URL('../api/',import.meta.url).href);
@@ -7,7 +8,9 @@ function takeToken(){
  if(location.hash)history.replaceState(null,'',location.pathname);
  return token;
 }
-const account=mountCustomerAccount({root:document.querySelector('[data-account-root]'),message:document.querySelector('[data-account-message]'),error:document.querySelector('[data-account-error]'),api,loginToken:takeToken(),demoLocked:document.body.dataset.demoLocked==='true',storeName:document.body.dataset.storeName,view:document.body.dataset.accountView,signinLocked:document.body.dataset.signinLocked==='true',ordersURL:new URL('./orders/',import.meta.url).href});
+const loginToken=takeToken();
+const plugins=await createPluginHost({api});
+const account=mountCustomerAccount({plugins,root:document.querySelector('[data-account-root]'),message:document.querySelector('[data-account-message]'),error:document.querySelector('[data-account-error]'),api,loginToken,demoLocked:document.body.dataset.demoLocked==='true',storeName:document.body.dataset.storeName,view:document.body.dataset.accountView,signinLocked:document.body.dataset.signinLocked==='true',ordersURL:new URL('./orders/',import.meta.url).href});
 account.ready.then(()=>window.dywsCustomerStartup?.ready('content'));
 window.addEventListener('hashchange',()=>{const token=takeToken();if(token)void account.openLink(token);});
 window.addEventListener('pagehide',()=>{document.body.hidden=true;});
