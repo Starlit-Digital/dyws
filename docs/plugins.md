@@ -219,3 +219,5 @@ public connector foundations do not yet own customer checkout or automatic
 refunds. They must implement the complete reconciliation contract before selecting
 themselves for checkout. The separate private Stripe plugin implements sandbox
 cancellation. Core includes no Stripe code.
+
+Reporting control context: `admin:report-controls` now receives a `getToken()` callback alongside `root` and `refresh`. Report UI modules must use this callback for authorized export/archive requests instead of assuming a host's session storage key. The reporting dataset includes host configured business details, working hours, store currency and a conditional demonstration flag. It must remain manager scoped.

@@ -98,7 +98,7 @@ Plugins can also register namespaced HTTP routes with public, manager or driver 
 |---|---|---|---|
 | 26 | reports.dataset | PHP filter | `(dataset, context)` after the Order Reporting plugin reads a consistent tenant, date, currency and fulfilment scoped snapshot. Add namespaced aggregates without contacts, GPS or credentials. |
 | 27 | reports.generated | PHP action | `(dataset, context)` after dataset filters. Observe completion, do not modify orders or charge. Runs only with Order Reporting active. |
-| 28 | admin:report-controls | Browser action | `({root, refresh})` once during manager mounting. Root is the report toolbar. Add labelled controls and call refresh after selection. No token is passed. |
+| 28 | admin:report-controls | Browser action | `({root, refresh, getToken})` once during manager mounting. Root is the report toolbar. Add labelled controls and call refresh after selection. Use getToken() at request time for manager scoped exports and archive reads. Never persist or expose the token. |
 | 29 | reports:query | Browser filter | `(query)` with initial `{from,to}` before the authenticated report request. Return query parameters. Server authorization remains mandatory. |
 | 30 | reports:cards | Browser filter | `(cards,{report})` inside Order Reporting. Cards use plain `{label,value,detail}` text, escaped by the renderer. |
 | 31 | reports:export | Browser filter | `(rows,{key,report})` before CSV escaping. Return an array of row arrays. Keys include summary, items and daily. Summary receives the core report; other exports receive its orderReporting dataset. Numeric money is integer cents. Strings are quoted and spreadsheet formula prefixes neutralised after filters. |

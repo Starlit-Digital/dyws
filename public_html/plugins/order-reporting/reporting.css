@@ -23,3 +23,153 @@
 @media(forced-colors:active){.dyws-heatmap td{background:Canvas!important;color:CanvasText!important;border:1px solid CanvasText}}
 
 .dyws-report .dyws-insights-title{margin-top:24px}
+
+/* Sequential OKLCH demand scale. Zero remains visually quiet on dark reports. */
+.dyws-heatmap .dyws-heat-0,.dyws-heat-legend .dyws-heat-0{background:#292c2b;background:oklch(29% .006 155);color:#c8ceca;color:oklch(84% .01 155)}
+.dyws-heatmap .dyws-heat-1,.dyws-heat-legend .dyws-heat-1{background:#155c36;background:oklch(42% .10 155);color:#fff}
+.dyws-heatmap .dyws-heat-2,.dyws-heat-legend .dyws-heat-2{background:#218b50;background:oklch(52% .13 155);color:#fff}
+.dyws-heatmap .dyws-heat-3,.dyws-heat-legend .dyws-heat-3{background:#53b97a;background:oklch(69% .14 155);color:#101a13}
+.dyws-heatmap .dyws-heat-4,.dyws-heat-legend .dyws-heat-4{background:#a2e7b8;background:oklch(84% .10 155);color:#101a13}
+.dyws-heat-legend{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:14px 0}
+.dyws-heat-legend span{display:inline-flex;align-items:center;gap:6px;font-size:.8rem}
+.dyws-heat-legend i{display:inline-block;width:24px;height:18px;border-radius:3px}
+.dyws-heatmap .dyws-day-total{font-weight:750;border-inline-end:6px solid var(--dyws-color-surface);min-width:54px}
+@media(forced-colors:active){.dyws-heatmap td{background:Canvas!important;color:CanvasText!important;border:1px solid CanvasText}.dyws-heat-legend i{border:1px solid CanvasText}}
+
+/* Continuous intensity: numeric counts determine OKLCH lightness without bands. */
+.dyws-heatmap .dyws-heat-value{background:#218b50;background:oklch(var(--dyws-demand-l) .10 155);color:var(--dyws-demand-ink)}
+
+.dyws-heat-legend .dyws-demand-ramp{width:160px;background:linear-gradient(90deg,#155c36,#a2e7b8);background:linear-gradient(90deg in oklch,oklch(42% .10 155),oklch(84% .10 155))}
+.dyws-heatmap .dyws-demand-closed{background:transparent;color:var(--dyws-color-muted);font-size:.65rem}
+.dyws-report .dyws-heatmap{min-width:620px;width:100%}
+
+.dyws-demand-key{display:flex;align-items:center;flex-wrap:wrap;gap:12px 24px;margin:8px 0 16px}.dyws-demand-key .dyws-heat-legend{margin:0}.dyws-report .dyws-demand-info{position:relative;padding:0;margin:0;border:0;background:transparent;border-radius:0}.dyws-demand-info summary{cursor:pointer;font-size:.8rem;color:var(--dyws-color-muted)}.dyws-report .dyws-demand-info p{max-width:42em;font-size:.8rem;margin:10px 0 0}.dyws-demand-info[open]{flex-basis:100%}
+
+.dyws-top-items-pie{display:grid;grid-template-columns:minmax(220px,360px) minmax(0,1fr);gap:32px;align-items:center;margin-block:20px}.dyws-top-items-pie svg{width:100%;height:auto;display:block}.dyws-top-items-pie svg text{font:700 15px system-ui;stroke:none}.dyws-top-items-pie ol{list-style:none;margin:0;padding:0}.dyws-top-items-pie li{display:grid;grid-template-columns:28px minmax(0,1fr) auto;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--dyws-line-soft);font-size:.85rem}.dyws-pie-rank{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;color:#101512;font-weight:750}.dyws-pie-value{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}.dyws-pie-value strong{display:block}.dyws-pie-value small{display:block;color:var(--dyws-color-muted)}
+.dyws-pie-rank[data-pie-color="0"]{background:#8cd7a3}.dyws-pie-rank[data-pie-color="1"]{background:#dfbc66}.dyws-pie-rank[data-pie-color="2"]{background:#68c4b3}.dyws-pie-rank[data-pie-color="3"]{background:#ec967c}.dyws-pie-rank[data-pie-color="4"]{background:#90b5db}.dyws-pie-rank[data-pie-color="5"]{background:#bad17c}.dyws-pie-rank[data-pie-color="6"]{background:#e6a3b3}.dyws-pie-rank[data-pie-color="7"]{background:#c7b89a}.dyws-pie-rank[data-pie-color="8"]{background:#6dba87}.dyws-pie-rank[data-pie-color="9"]{background:#e3ca96}
+@media(max-width:700px){.dyws-top-items-pie{grid-template-columns:minmax(0,1fr);gap:12px}.dyws-top-items-pie svg{max-width:340px;margin-inline:auto}}
+
+.dyws-report-chart{position:relative}.dyws-chart-tooltip{position:absolute;z-index:4;pointer-events:none;background:#f7faf8;color:#101512;padding:8px 12px;border-radius:8px;font:600 .8rem/1.4 system-ui,sans-serif;white-space:nowrap;max-width:calc(100% - 16px)}.dyws-chart-tooltip[hidden]{display:none}.dyws-chart-hit{cursor:crosshair}.dyws-chart-hit:focus-visible{outline:2px solid var(--dyws-color-warm);outline-offset:-2px}
+
+.dyws-report-chart svg .dyws-chart-bar[data-active]{fill:#ffe1e4;stroke:#fff;stroke-width:1}.dyws-report-chart svg .dyws-chart-dot[data-active]{fill:#fff;stroke:var(--dyws-color-warm);stroke-width:3}.dyws-chart-hit:focus:not(:focus-visible){outline:none}
+
+.dyws-chart-downloads{display:flex;align-items:center;flex-wrap:wrap;gap:8px}.dyws-pdf-status{font-size:.85rem;color:var(--dyws-color-emphasis)}.dyws-pdf-status:empty{display:none}
+
+.dyws-archive-entry{padding:16px 0;border-bottom:1px solid #36423a}.dyws-archive-entry h3{margin:0}.dyws-archive-entry pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:.8rem}.dyws-archive-entry code,.dyws-archive-entry small{overflow-wrap:anywhere}
+
+/* The archive is a document workspace, with all controls in the top strip. */
+.dyws-pdf-dialog{box-sizing:border-box;inset:0;width:100vw;max-width:100vw;height:100dvh;max-height:100dvh;margin:0;padding:0;border:0;border-radius:0;background:var(--dyws-color-bg);color:var(--dyws-color-text);overflow:hidden}
+.dyws-pdf-dialog::backdrop{background:#000}
+.dyws-pdf-dialog[open]{display:flex;flex-direction:column}
+.dyws-pdf-dialog-header{display:flex;align-items:center;flex-wrap:wrap;gap:5px;padding:5px;max-width:none;margin:0;border-bottom:1px solid var(--dyws-line-soft);flex:none;position:relative;z-index:3}
+.dyws-pdf-dialog-header h2{font:600 .9rem/1.2 system-ui;margin:0 5px;white-space:nowrap}
+.dyws-pdf-dialog-header form,.dyws-pdf-page-tools,.dyws-pdf-dialog-header .dyws-actions{display:flex;align-items:center;gap:5px;margin:0}
+.dyws-pdf-dialog-header [data-preview-heading]{font-size:.8rem;max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dyws-pdf-dialog-header [data-archive-status],.dyws-pdf-dialog-header [role=status]{font-size:.7rem;color:var(--dyws-color-muted)}
+.dyws-pdf-dialog-header [role=status]:empty{display:none}
+.dyws-pdf-dialog-header [data-close-archive]{margin-left:auto}
+.dyws-shell .dyws-pdf-dialog :is(button,a,summary){font:500 .8rem/1.2 system-ui;min-height:34px;min-width:0;width:auto;flex:none;padding:6px 9px;border:1px solid var(--dyws-color-border);border-radius:5px;background:var(--dyws-color-surface);color:var(--dyws-color-text);text-decoration:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+.dyws-shell .dyws-pdf-dialog :is(input,select){box-sizing:border-box;font:inherit;min-height:34px;min-width:0;width:auto;padding:5px 7px;border:1px solid var(--dyws-color-border);border-radius:5px;background:var(--dyws-color-surface);color:var(--dyws-color-text);color-scheme:inherit}
+.dyws-pdf-dialog-header input[type=search]{width:170px}
+.dyws-shell .dyws-pdf-dialog [data-page]{width:3.5rem;max-width:3.5rem}
+.dyws-pdf-page-tools{font-size:.8rem;flex-wrap:wrap}
+.dyws-pdf-page-tools label{display:flex;align-items:center;gap:4px;margin:0;min-width:0}
+.dyws-pdf-dialog :is(button,a,input,select,summary):focus-visible{outline:3px solid var(--dyws-color-warm);outline-offset:1px}
+.dyws-pdf-filters,.dyws-pdf-page-text{margin:0;position:relative}
+.dyws-pdf-filter-popover,.dyws-pdf-page-text p{position:absolute;top:100%;left:0;z-index:4;width:260px;max-width:calc(100vw - 20px);max-height:70dvh;overflow:auto;padding:12px;border:1px solid var(--dyws-color-border);border-radius:5px;background:var(--dyws-color-surface);color:var(--dyws-color-text)}
+.dyws-pdf-filter-popover label{display:grid;gap:4px;margin-bottom:9px;font-size:.8rem}
+.dyws-shell .dyws-pdf-dialog .dyws-pdf-filter-popover :is(input,select){width:100%}
+.dyws-pdf-page-text p{left:auto;right:0;width:450px;white-space:pre-wrap;font-size:.85rem;line-height:1.5}
+.dyws-pdf-workspace{position:relative;display:grid;grid-template-columns:220px minmax(0,1fr);min-height:0;flex:1}
+.dyws-pdf-dialog[data-rail-open=false] .dyws-pdf-workspace{grid-template-columns:minmax(0,1fr)}
+.dyws-pdf-dialog[data-rail-open=false] .dyws-pdf-rail{display:none}
+.dyws-pdf-rail{padding:4px;overflow:auto;border-right:1px solid var(--dyws-line-soft);min-width:0;scrollbar-color:#66756a var(--dyws-color-bg)}
+.dyws-pdf-rail nav{display:block;padding:0}
+.dyws-shell .dyws-pdf-dialog section{background:transparent;border:0;border-radius:0;box-shadow:none;margin:0;padding:0}
+.dyws-pdf-year h3{font-size:1rem;margin:8px 5px 5px}.dyws-pdf-year h4{font-size:.75rem;color:var(--dyws-color-muted);margin:7px 5px}
+.dyws-pdf-year ul{list-style:none;margin:0;padding:0}.dyws-pdf-year li{margin:0 0 3px}
+.dyws-shell .dyws-pdf-dialog .dyws-pdf-file{box-sizing:border-box;width:100%;display:grid;justify-content:stretch;gap:3px;text-align:left;padding:7px;border:1px solid transparent;background:transparent;white-space:normal}
+.dyws-pdf-file span,.dyws-pdf-file small{font-size:.65rem;line-height:1.4;overflow-wrap:anywhere;color:var(--dyws-color-muted)}
+.dyws-shell .dyws-pdf-dialog .dyws-pdf-file:hover{background:var(--dyws-color-raised)}.dyws-shell .dyws-pdf-dialog .dyws-pdf-file[aria-current]{background:var(--dyws-color-raised);border-color:var(--dyws-color-warm)}
+.dyws-pdf-preview{display:flex;min-height:0;min-width:0;overflow:hidden}
+.dyws-pdf-frame{display:flex;flex:1;min-height:0;min-width:0;background:var(--dyws-color-raised)}
+.dyws-pdf-canvas-scroll{flex:1;min-height:0;min-width:0;overflow:auto;padding:4px;text-align:center;scrollbar-color:#66756a var(--dyws-color-raised)}
+.dyws-pdf-canvas-scroll canvas{display:block;margin:auto;background:#fff;max-width:none}
+@media(max-width:700px){.dyws-pdf-dialog-header{gap:4px}.dyws-pdf-dialog-header h2{display:none}.dyws-pdf-dialog-header input[type=search]{width:125px}.dyws-pdf-workspace{grid-template-columns:minmax(0,1fr)}.dyws-pdf-rail{position:absolute;inset:0 auto 0 0;width:min(260px,80vw);z-index:2;background:var(--dyws-color-bg)}.dyws-pdf-dialog-header [data-preview-heading]{display:none}.dyws-pdf-filter-popover{position:fixed;top:80px;left:10px}.dyws-pdf-page-text p{position:fixed;top:110px;left:10px;right:10px;width:auto}}
+
+.dyws-pdf-dialog [hidden]{display:none!important}
+.dyws-shell .dyws-pdf-dialog .dyws-pdf-dialog-header{padding:4px;gap:5px;margin:0;max-width:none;width:100%}
+.dyws-shell .dyws-pdf-dialog .dyws-pdf-dialog-header h2{font:600 13px/1.2 system-ui;margin:0 4px}
+.dyws-shell .dyws-pdf-dialog .dyws-pdf-dialog-header :is(details,.dyws-actions,.dyws-pdf-page-tools){margin:0;padding:0;border:0;background:transparent}
+.dyws-shell .dyws-pdf-dialog .dyws-pdf-page-tools label{margin:0;display:flex;align-items:center;gap:4px}
+.dyws-shell .dyws-pdf-dialog .dyws-pdf-dialog-header :is(input,select){height:34px;font:400 13px/1.2 system-ui}
+
+/* Reports: one clear scope, one export command, secondary choices on demand. */
+.dyws-shell[data-admin-page=reports] .admin-preview-notice{margin:12px 0 24px;padding:0;background:none;border:0;color:var(--dyws-color-muted);border-radius:0;font-size:.75rem}
+.dyws-admin .dyws-toolbar.dyws-report-workbench{display:block;padding:0;margin:0 0 10px;background:none;border:0;box-shadow:none;border-radius:0}
+.dyws-report-title-row{display:flex;align-items:center;justify-content:space-between;gap:24px;margin-bottom:24px}
+.dyws-shell .dyws-report-title-row h2{font:650 32px/1.2 system-ui;letter-spacing:-.025em;margin:0 0 8px;color:var(--dyws-color-text)}
+.dyws-report-title-row p{font-size:.85rem;color:var(--dyws-color-muted);margin:0;font-variant-numeric:tabular-nums}
+.dyws-report-selection{display:flex;align-items:center;flex-wrap:wrap;gap:10px;border-bottom:1px solid var(--dyws-line-soft);padding-bottom:20px}
+.dyws-shell .dyws-report-workbench label{margin:0;font:500 .75rem/1.4 system-ui;min-width:0;color:var(--dyws-color-muted)}
+.dyws-shell .dyws-report-workbench .dyws-report-period{font-size:0}
+.dyws-shell .dyws-report-workbench :is(select,input){font:500 .85rem/1.4 system-ui;color:var(--dyws-color-text);background:var(--dyws-color-bg);border:1px solid var(--dyws-line-soft);border-radius:9px;padding:10px 12px;min-height:44px;margin:4px 0 0;width:100%}
+.dyws-shell .dyws-report-workbench .dyws-report-period select{min-width:190px;margin:0}
+.dyws-admin .dyws-report-workbench button,.dyws-report-command-menu>summary{font:600 .85rem/1.3 system-ui;min-height:44px;border-radius:9px;padding:10px 15px;cursor:pointer}
+.dyws-shell .dyws-report-workbench .dyws-report-refresh{background:none;color:var(--dyws-color-muted);border:0;padding:10px}
+.dyws-report-command-menu{position:relative}
+.dyws-admin .dyws-report-workbench .dyws-report-command-menu{padding:0;margin:0;background:none;border:0;border-radius:0}
+.dyws-report-command-menu>summary{display:inline-flex;gap:8px;align-items:center;list-style:none;color:var(--dyws-color-text);background:var(--dyws-color-surface);border:1px solid var(--dyws-line-soft);white-space:nowrap}
+.dyws-report-command-menu>summary::-webkit-details-marker{display:none}
+.dyws-report-title-row [data-export-menu]>summary{background:var(--dyws-color-text);color:var(--dyws-color-bg);border-color:var(--dyws-color-text);min-width:105px;justify-content:center}
+.dyws-report-command-panel{position:absolute;z-index:15;top:calc(100% + 8px);right:0;width:280px;max-width:calc(100vw - 32px);padding:8px;background:var(--dyws-color-surface);border:1px solid var(--dyws-color-border);border-radius:12px;box-shadow:0 12px 35px rgb(0 0 0 / .3)}
+[data-filter-menu] .dyws-report-command-panel{left:0;right:auto;width:240px;padding:16px}
+.dyws-report-command-panel>label{display:block;margin-bottom:12px!important}
+.dyws-admin .dyws-report-command-panel button,.dyws-admin .dyws-report-command-panel .dyws-secondary{display:block;width:100%;text-align:left;border:0;border-radius:7px;background:none;color:var(--dyws-color-text);padding:10px 12px;font-weight:500}
+.dyws-admin .dyws-report-command-panel button:hover{background:var(--dyws-color-raised)}
+.dyws-report-export-secondary{border-top:1px solid var(--dyws-line-soft);margin-top:6px;padding-top:6px}
+.dyws-admin .dyws-report-command-panel .dyws-report-export{border:0;margin:0;padding:0;background:none;border-radius:0}
+.dyws-report-command-panel .dyws-report-export>summary{padding:10px 12px;font-size:.85rem;font-weight:500;cursor:pointer}
+.dyws-report-command-panel .dyws-report-export[open]{max-height:65dvh;overflow:auto}
+.dyws-report-command-panel .dyws-report-export>fieldset{margin:8px;border:1px solid var(--dyws-line-soft);padding:10px;border-radius:8px}
+.dyws-report-command-panel .dyws-report-export>label{margin:8px;display:block}
+.dyws-report-command-panel .dyws-report-export .dyws-checkbox{display:flex;align-items:center;gap:8px;padding:5px 0}
+.dyws-report-command-panel .dyws-report-export input[type=checkbox]{width:18px;min-height:18px;margin:0;accent-color:var(--dyws-color-accent)}
+.dyws-report-command-panel .dyws-note,.dyws-report-command-panel [role=status]{font-size:.75rem;padding:0 10px;overflow-wrap:anywhere}
+.dyws-report-custom-dates{display:flex;gap:12px;align-items:center}
+.dyws-report-custom-dates label{display:grid;gap:2px}
+.dyws-report-workbench [hidden]{display:none!important}
+.dyws-shell[data-admin-page=reports] #dashboard>.dyws-help{padding:0;margin:8px 0 18px;border:0;background:none;border-radius:0;color:var(--dyws-color-muted);font-size:.75rem}
+.dyws-shell[data-admin-page=reports] #dashboard>.dyws-help summary{font-size:.75rem;font-weight:400;cursor:pointer}
+.dyws-shell[data-admin-page=reports] .dyws-report-caption{font-size:.75rem;margin:12px 0;color:var(--dyws-color-muted)}
+.dyws-report-workbench :is(button,summary,select,input):focus-visible{outline:3px solid var(--dyws-color-warm);outline-offset:3px}
+[data-filter-count]{background:var(--dyws-color-text);color:var(--dyws-color-bg);border-radius:50%;min-width:18px;text-align:center;font-size:.7rem}
+@media(max-width:650px){.dyws-report-title-row{align-items:flex-start;gap:12px;margin-bottom:20px}.dyws-shell .dyws-report-title-row h2{font-size:28px}.dyws-report-title-row p{font-size:.75rem;max-width:28ch}.dyws-report-custom-dates{width:100%}.dyws-report-custom-dates label{flex:1;min-width:0}.dyws-admin .dyws-report-workbench button{width:auto}.dyws-admin .dyws-report-command-panel button{width:100%}.dyws-report-selection{gap:8px}.dyws-shell .dyws-report-workbench .dyws-report-period select{min-width:165px}.dyws-report-command-panel{position:absolute}.dyws-report-title-row [data-export-menu] .dyws-report-command-panel{right:0}.dyws-report-selection [data-filter-menu] .dyws-report-command-panel{left:auto;right:0}}
+.dyws-admin .dyws-report-workbench .dyws-report-period{flex:none;width:210px}
+@media(min-width:1100px){.dyws-report>.dyws-report-cards:first-of-type{grid-template-columns:repeat(5,minmax(0,1fr))}}
+@media(max-width:650px){.dyws-admin .dyws-report-workbench .dyws-report-period{width:165px}}
+.dyws-report-command-panel{max-height:calc(100dvh - 190px);overflow:auto}
+
+.dyws-report .dyws-report-footer{max-width:none;padding:28px 0 0;margin:36px 0 0;border-top:1px solid var(--dyws-line-soft);color:var(--dyws-color-muted)}
+.dyws-shell .dyws-report-footer h2{font:600 17px/1.4 system-ui;margin:0 0 8px;color:var(--dyws-color-text)}
+.dyws-report-footer-intro p{max-width:70ch;font-size:.8rem;margin:0 0 18px;line-height:1.6}
+.dyws-report-footer-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
+.dyws-report .dyws-report-footer details{padding:0;margin:0;border:0;border-radius:0;background:none}
+.dyws-report-footer summary{cursor:pointer;font-size:.8rem;font-weight:600;color:var(--dyws-color-text)}
+.dyws-report-footer details p{font-size:.75rem;line-height:1.65}
+.dyws-report .dyws-report-heading .dyws-secondary,.dyws-report .dyws-actions .dyws-secondary{font-size:.75rem;min-height:36px;padding:7px 10px;background:transparent;color:var(--dyws-color-text);border:1px solid var(--dyws-line-soft);border-radius:8px}
+.dyws-report .dyws-actions{display:flex;flex-wrap:wrap;gap:8px}
+@media(max-width:700px){.dyws-report-footer-grid{grid-template-columns:1fr;gap:14px}.dyws-report .dyws-report-footer{margin-top:24px;padding-top:22px}}
+.dyws-report-disclaimer{font-size:.7rem;margin:22px 0 0;color:var(--dyws-color-muted)}
+
+.dyws-report-toolbar-actions{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:8px}
+.dyws-report-toolbar-actions [data-refresh-slot]{order:0}
+.dyws-admin .dyws-report-workbench .dyws-report-refresh{display:inline-flex;align-items:center;justify-content:center;min-width:40px;padding:10px}
+.dyws-report-title-row{margin-bottom:0}
+.dyws-admin .dyws-toolbar.dyws-report-workbench{padding-bottom:18px;margin-bottom:14px;border-bottom:1px solid var(--dyws-line-soft)}
+.dyws-report-custom-row{margin-top:14px}
+.dyws-report-custom-row .dyws-report-custom-dates{justify-content:flex-end}
+.dyws-report-toolbar-actions [data-filter-menu] .dyws-report-command-panel{left:auto;right:0}
+@media(max-width:850px){.dyws-report-title-row{flex-wrap:wrap;gap:16px}.dyws-report-toolbar-actions{justify-content:flex-start;width:100%}.dyws-report-title-row p{max-width:none}.dyws-report-toolbar-actions [data-export-menu]{margin-left:auto}.dyws-report-custom-row .dyws-report-custom-dates{justify-content:flex-start}}
+
+@media(max-width:650px){.dyws-report-toolbar-actions{gap:6px}.dyws-admin .dyws-report-workbench .dyws-report-period{width:140px}.dyws-shell .dyws-report-workbench .dyws-report-period select{min-width:140px}.dyws-report-toolbar-actions [data-filter-menu]>summary{padding:10px}.dyws-report-title-row [data-export-menu]>summary{min-width:88px;padding:10px}.dyws-admin .dyws-report-workbench .dyws-report-refresh{min-width:40px;padding:10px}}

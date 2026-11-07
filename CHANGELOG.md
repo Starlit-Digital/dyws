@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased · 2026-11-07
+
+- Backport the refined reporting workspace, continuous demand colours, working hours trimming, complete order flow, top ten pie, interactive trend labels and longer calendar periods.
+- Add consolidated and section PDFs, configured business identity and UTC reference footers, private automatic archives and a searchable full window PDF viewer.
+- Move counting definitions, chart rationale and limitations into the report footer. Preserve manager and Reports entitlement checks and generic merchant configuration.
+
 ## 1.0.0 · 2026-11-05
 
 - Add appointment booking with configurable business hours and slot increments, a calendar that disables unavailable dates, and service and time selection.

@@ -1,11 +1,11 @@
 import {escapeHTML as esc} from '../../dyws/api.js';
 import {download} from './charts.js';
 
-export function mountExportControls(root,api,getReport) {
+export function mountExportControls(root,api,getReport,{getToken=()=>null}={}) {
  const box=root.ownerDocument.createElement('details');box.className='dyws-report-export';
- box.innerHTML='<summary>Export or email a report</summary><fieldset><legend>Include sections</legend>'+[['overview','KPI overview'],['daily','Daily trend'],['items','Products'],['locations','Locations'],['operations','Order flow and busy hours']].map(([value,label])=>`<label class="dyws-checkbox"><input type="checkbox" value="${value}" checked> ${label}</label>`).join('')+'</fieldset><label>Format<select data-format><option value="pdf">PDF</option><option value="csv">CSV</option><option value="txt">Text</option></select></label><div class="dyws-actions"><button type="button" data-download>Download report</button><button type="button" class="dyws-secondary" data-email disabled>Email me</button></div><p data-email-state class="dyws-note">Checking email availability…</p><p role="status" data-export-status></p>';
+ box.innerHTML='<summary>Custom report</summary><fieldset><legend>Include sections</legend>'+[['overview','KPI overview'],['daily','Daily trend'],['items','Products'],['locations','Locations'],['operations','Order flow and busy hours']].map(([value,label])=>`<label class="dyws-checkbox"><input type="checkbox" value="${value}" checked> ${label}</label>`).join('')+'</fieldset><label>Format<select data-format><option value="pdf">PDF</option><option value="csv">CSV</option><option value="txt">Text</option></select></label><div class="dyws-actions"><button type="button" data-download>Download report</button><button type="button" class="dyws-secondary" data-email disabled>Email me</button></div><p data-email-state class="dyws-note">Checking email availability…</p><p role="status" data-export-status></p>';
  root.append(box);const status=box.querySelector('[data-export-status]'),email=box.querySelector('[data-email]');let busy=false,emailOptions=null,attempt=null;
- const request=(route,options={})=>api('/manager/plugins/order-reporting/'+route,{...options,token:sessionStorage.getItem('dyws-manager')});
+ const request=(route,options={})=>api('/manager/plugins/order-reporting/'+route,{...options,token:getToken()});
  const availability=async()=>{const result=await request('export-options');emailOptions=result.email;email.disabled=!emailOptions.enabled;box.querySelector('[data-email-state]').textContent=(emailOptions.recipient?'To: '+emailOptions.recipient+'. ':'')+emailOptions.reason;};
  void availability().catch(e=>{box.querySelector('[data-email-state]').textContent=e.message;});
  async function perform(send){

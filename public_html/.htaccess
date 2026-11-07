@@ -1,12 +1,15 @@
 DirectoryIndex page.php home.php
 Options -Indexes
+<IfModule mod_mime.c>
+AddType text/javascript .mjs
+</IfModule>
 
 <IfModule mod_headers.c>
 Header set Cache-Control "no-store"
 # Override the parent site's policy only within this demo. Google Maps needs its SDK, tiles and inline styles.
 Header unset Content-Security-Policy
 Header always unset Content-Security-Policy
-Header always set Content-Security-Policy "default-src 'self'; base-uri 'self'; connect-src 'self' https://*.googleapis.com https://*.gstatic.com https://*.google.com wss:; font-src 'self' https://fonts.gstatic.com; form-action 'self'; frame-ancestors 'none'; frame-src https://*.google.com; img-src 'self' https://*.googleapis.com https://*.gstatic.com https://*.google.com https://*.googleusercontent.com data: blob:; object-src 'none'; script-src 'self' https://maps.googleapis.com https://maps.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; worker-src blob:; upgrade-insecure-requests"
+Header always set Content-Security-Policy "default-src 'self'; base-uri 'self'; connect-src 'self' https://*.googleapis.com https://*.gstatic.com https://*.google.com wss:; font-src 'self' https://fonts.gstatic.com; form-action 'self'; frame-ancestors 'none'; frame-src https://*.google.com; img-src 'self' https://*.googleapis.com https://*.gstatic.com https://*.google.com https://*.googleusercontent.com data: blob:; object-src 'none'; script-src 'self' https://maps.googleapis.com https://maps.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; worker-src 'self' blob:; upgrade-insecure-requests"
 Header always set Permissions-Policy "geolocation=(self)"
 Header always set X-Frame-Options "DENY"
 Header always set X-Content-Type-Options "nosniff"
@@ -15,7 +18,7 @@ Header set X-Robots-Tag "noindex, nofollow, noarchive"
 
 # Keep authenticated HTML and API responses private. Static code can be revalidated.
 <IfModule mod_headers.c>
-<FilesMatch "\.(js|css|svg|png|jpg|jpeg|webp|woff2)$">
+<FilesMatch "\.(js|mjs|css|svg|png|jpg|jpeg|webp|woff2)$">
 Header set Cache-Control "public, max-age=0, must-revalidate"
 </FilesMatch>
 </IfModule>

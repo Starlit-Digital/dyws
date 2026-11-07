@@ -2,6 +2,7 @@
 declare(strict_types=1);
 namespace dyws\Plugins\OrderReporting;
 use dyws\ApiError;
+require_once __DIR__.'/PdfIdentity.php';
 
 /** The same scoped aggregate data powers downloads and email attachments. */
 final class ReportExport {
@@ -34,7 +35,7 @@ final class ReportExport {
   if(!in_array($format,['pdf','csv','txt'],true))throw new ApiError('Choose PDF, CSV or text.');
   $sections=self::sections($sections);$tables=self::tables($data,$sections);
   $scope=$business.' | '.$data['range']['from'].' to '.$data['range']['to'].' | '.$data['currency'].' | '.$data['fulfillment'].' | '.$data['timeZone'];
-  $notes='Demonstration data. Ordered value excludes cancelled orders. Payments use payment dates. Customer counts estimate people using normalized phone numbers, without exposing contact details. Repeat customers have an earlier order or multiple orders in this period. P90 is the time within which 90% of measured orders finished. Refund percentages may exceed 100% when refunds relate to earlier sales.';
+  $notes=(($data['demo']??false)?'Demonstration data. ':'').'Ordered value excludes cancelled orders. Payments use payment dates. Customer counts estimate people using normalized phone numbers, without exposing contact details. Repeat customers have an earlier order or multiple orders in this period. P90 is the time within which 90% of measured orders finished. Refund percentages may exceed 100% when refunds relate to earlier sales.';
   if($format==='csv'){
    $stream=fopen('php://temp','w+');$write=static function(array $row)use($stream):void {
     $row=array_map(static function($value){if(is_string($value)&&preg_match('/^[\s]*[=+@\-\t\r]/u',$value))return "'".$value;return $value??'';},$row);
@@ -63,7 +64,7 @@ final class ReportExport {
     }unset($row);
     if($title!=='Overview')foreach($rows[0] as &$header)$header=str_replace('(cents)','('.$data['currency'].')',(string)$header);unset($header);
    }unset($rows);
-   $html='<html><head><meta charset="utf-8"><style>@page{margin:36px 36px 44px}body{font:10px DejaVu Sans;color:#183240}h1{font-size:24px;margin:0 0 6px}h2{font-size:16px;margin:20px 0 8px}p{line-height:1.5}.note{font-size:8px;color:#52636d}table{width:100%;border-collapse:collapse;table-layout:fixed}thead{display:table-header-group}tr{page-break-inside:avoid}td,th{padding:6px;border-bottom:1px solid #dae2e6;word-wrap:break-word;text-align:left}th{background:#183240;color:white}img{width:100%;height:auto}.cards td{background:#eef5f4;padding:10px}.cards strong{font-size:19px}h2{page-break-after:avoid}</style></head><body><h1>Business performance</h1><p>'.$esc($scope).'<br>Compared with '.$esc($data['previousRange']['from']).' to '.$esc($data['previousRange']['to']).'</p><p class="note">'.$esc($notes).'</p>';
+   $html='<html><head><meta charset="utf-8"><style>@page{margin:36px 36px 44px}body{font:10px DejaVu Sans;color:#183240}h1{font-size:24px;margin:0 0 6px}h2{font-size:16px;margin:20px 0 8px}p{line-height:1.5}.note{font-size:8px;color:#52636d}table{width:100%;border-collapse:collapse;table-layout:fixed}thead{display:table-header-group}tr{page-break-inside:avoid}td,th{padding:6px;border-bottom:1px solid #dae2e6;word-wrap:break-word;text-align:left}th{background:#183240;color:white}img{width:100%;height:auto}.cards td{background:#eef5f4;padding:10px}.cards strong{font-size:19px}h2{page-break-after:avoid}</style></head><body><h1>Business performance</h1>'.PdfIdentity::header($data,$business).'<p>'.$esc($scope).'<br>Compared with '.$esc($data['previousRange']['from']).' to '.$esc($data['previousRange']['to']).'</p><p class="note">'.$esc($notes).'</p>';
    if(in_array('overview',$sections,true)){
     $s=$data['current']['summary'];$html.='<table class="cards"><tr>';
     foreach(['Orders'=>$s['orders'],'Average order'=>number_format($s['averageOrder']/100,2).' '.$data['currency'],'Repeat customers'=>($s['repeatCustomerRate']===null?'No data':$s['repeatCustomerRate'].'%')] as $label=>$value)$html.='<td>'.$esc($label).'<br><strong>'.$esc($value).'</strong></td>';
@@ -80,10 +81,10 @@ final class ReportExport {
    $html.='</body></html>';
    $pdf=new \Dompdf\Dompdf(['isRemoteEnabled'=>false,'isPhpEnabled'=>false,'isJavascriptEnabled'=>false,'chroot'=>__DIR__,'defaultFont'=>'DejaVu Sans']);
    $pdf->setPaper('letter');$pdf->loadHtml($html,'UTF-8');$pdf->render();
-   $pdf->getCanvas()->page_text(36,765,'DYWS | Page {PAGE_NUM} of {PAGE_COUNT}',null,8,[.3,.4,.45]);
+   $identity=PdfIdentity::footer($pdf,$data['timeZone']);
    $content=$pdf->output();$type='application/pdf';
   }
-  return ['name'=>'dyws-report-'.$data['range']['from'].'-'.$data['range']['to'].'.'.$format,'type'=>$type,'content'=>$content];
+  return ['name'=>'dyws-report-'.$data['range']['from'].'-'.$data['range']['to'].'.'.$format,'type'=>$type,'content'=>$content]+(isset($identity)?['identity'=>$identity]:[]);
  }
  private static function heatmap(array $matrix):string {
   $max=max(1,...array_merge(...$matrix));$svg='<svg xmlns="http://www.w3.org/2000/svg" width="560" height="190"><rect width="560" height="190" fill="#fff"/>';

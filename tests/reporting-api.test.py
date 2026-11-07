@@ -38,6 +38,20 @@ with tempfile.TemporaryDirectory(prefix='dyws-report-api-') as temp:
   zoned=request('/manager/reports',token=admin,query='&from=2026-03-08&to=2026-03-08')
   check(zoned['from']==1772895600 and zoned['to']-zoned['from']==86400 and zoned['orderReporting']['timeZone']=='Asia/Tokyo')
   direct=request(route,token=admin,query='&from=2026-03-08&to=2026-03-08');check(direct['timeZone']=='Asia/Tokyo')
+  export='/manager/plugins/order-reporting/export'
+  archive='/manager/plugins/order-reporting/archive'
+  request(archive,status=401);request(archive,token=driver,status=403)
+  references=[]
+  for target in ['overview','at-a-glance','all-items','daily','payments','hours','payment-trend','orders-by-day','demand','top-items','order-flow','locations','fulfillment']:
+   file=request(export,{'format':'pdf','target':target,'query':{'from':'2026-10-01','to':'2026-10-07','currency':'CAD','fulfillment':'pickup'}},token=admin)
+   check(file['type']=='application/pdf' and len(file['identity']['reference'])==16)
+   original=request(archive+'/download',{'id':file['archiveId']},token=admin);check(original['content']==file['content'])
+   selected=request(archive,token=admin,query='&'+urllib.parse.urlencode({'q':file['identity']['reference'],'target':target,'from':'2026-10-01','to':'2026-10-07','currency':'CAD','fulfillment':'pickup'}));check(selected['total']==1 and selected['items'][0]['settings']['timeZone']=='Asia/Tokyo')
+   references.append(file['identity']['reference'])
+  check(len(set(references))==13)
+  request(archive+'/download',{'id':'../etc/passwd'},token=admin,status=404)
+  request(export,{'format':'pdf','target':'not-a-report'},token=admin,status=422)
+  request(export,{'format':'csv','target':'overview'},token=admin,status=422)
   def toggle(id,active):
    state=request('/manager/plugins',token=admin);request('/manager/plugins',{'id':id,'active':active,'revision':state['revision']},token=admin)
   toggle('datatables',False);check('orderReporting' in request('/manager/reports',token=admin,query='&from=2026-10-01&to=2026-10-07'))

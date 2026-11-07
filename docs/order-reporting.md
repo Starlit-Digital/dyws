@@ -128,3 +128,29 @@ the business payment report, which records the refund on its event date. Driver
 profiles also show historical daily, weekly and monthly data and recent tipped
 deliveries. Pickup tips remain business order tips without driver attribution.
 These are earnings and refund records; no driver payout is created.
+
+## Reporting workspace and PDF archive, November 7, 2026
+
+The report header shows the active dates, currency and fulfillment scope. Period presets include rolling three months, six months and one year, with clamped calendar boundaries. Custom date fields appear only when selected. Filters and Export use disclosure controls. Export offers Download PDF, Save to archive, Open archive, CSV and custom sections. Downloaded PDFs are also archived. Save to archive creates the same overview without a browser download.
+
+Demand uses continuous OKLCH lightness for nonzero counts and dark grey for zero. Exact counts remain visible. Daily totals and hourly cells normalize independently. Hour columns are the union of current configured working hours; closed weekday cells remain marked. Daily totals include orders outside those hours. Partial hours and overnight carry are supported. This view includes cancellations. The top ten item pie uses quantity and a denominator limited to those ten items; the complete item table remains available. Trend hit regions expose dates and values by pointer and keyboard, with matching mark highlighting.
+
+The footer records definitions, rationale, privacy and limits. Orders, payments and refunds use different event dates. Item quantities are not paid sales, customer counts are estimates, and operational reports are not audited accounts or profit forecasts. Demonstration disclaimers are conditional on host demo_lockdown configuration.
+
+### Manager API
+
+All routes require manager bearer authorization and the existing Reports entitlement:
+
+* POST `/manager/plugins/order-reporting/export`, with `format: "pdf"`, optional `target`, and `query` containing `from`, `to`, `currency`, `fulfillment`. Without target, existing custom `sections` remain supported. Valid targets: overview, payment-trend, orders-by-day, demand, top-items, order-flow, locations, fulfillment, at-a-glance, all-items, daily, payments, hours.
+* GET `/manager/plugins/order-reporting/archive`, optionally combining `q`, `target`, exact report `from` and `to`, `currency`, `fulfillment`, and `offset`. Returns up to 25 items and total/offset/limit. Text matching treats SQL wildcard characters literally. Items include the reference, generation time, report scope, immutable generation settings, SHA256 and byte count. These are manager-only business aggregates.
+* POST `/manager/plugins/order-reporting/archive/download`, with `{ "id": "<archive id>" }`, returns the original PDF after verifying its SHA256. Missing or cross-tenant IDs return 404. A damaged file returns 503. A repeat download does not regenerate or archive another copy.
+
+Export responses retain base64 content, MIME type and filename, and add `identity` with `reference` and ISO UTC `generatedAt`, plus `archiveId` for PDFs. Invalid targets or non-PDF target requests return 422. Archive failures fail the export with 503 so no successful PDF export silently lacks its saved original. Existing export/email rate limits remain in effect. CSV and text are not archived.
+
+Every report PDF has the configured business name, address, phone and email when present. A host may set `reporting.businessWebsite` in private config.json to include its website. The centered footer on every page has a UTC timestamp, random 16 character uppercase alphanumeric reference and page numbering. No merchant contact data or credentials are hardcoded. The browser receives its manager token through the existing admin:report-controls hook's `getToken` callback, rather than assuming a browser storage key.
+
+Archive bytes live outside public_html in `report-archive/<tenant hash>/`, beside the configured SQLite database. Folders use 0700 and files 0600. The tenant-scoped `report_pdf_archive` SQLite table records generation scope, business information, working hours, renderer version and digest. Back up the database and this folder together. Archive retention is indefinite; include storage capacity and retention in the host's operations policy. Existing downloads made before the feature are not recovered retroactively.
+
+The full viewport archive dialog has a grouped year/month rail, search and combined filters, Fit width by default, page and zoom controls, PDF download and a native tab option. A locally bundled, licensed PDF.js renderer uses a same origin worker, with eval and WebAssembly disabled. Its page text is separately readable. Closing destroys the document and revokes URLs; stale selections cannot replace the current PDF. Hosts must serve .mjs as JavaScript and allow same origin workers. The bundled .htaccess does this without relaxing frame or object policies. See `public_html/plugins/order-reporting/vendor/pdfjs/README.md` for the dependency and licenses.
+
+The copied client preview's fixture orders, restaurant content, demo management exceptions and fixture retention flags are not part of this framework backport.

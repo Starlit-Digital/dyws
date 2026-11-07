@@ -165,7 +165,7 @@
     "name": "admin:report-controls",
     "runtime": "browser",
     "type": "action",
-    "description": "Mount report filter controls with a refresh callback."
+    "description": "Mount report controls with refresh and current manager getToken callbacks."
   },
   {
     "name": "reports:query",
