@@ -53,3 +53,9 @@ The map keeps date controls and layer switches visible. Currency, current status
 `AddressCache` provides one normalization and write path for geocoder results and trusted imports. Keys use the existing tenant secret, fulfillment layer, case normalization and collapsed whitespace. Cached successful and unmatched results persist in SQLite across requests and service restarts. Page loads never perform lookups. Existing atomic address leases prevent duplicate concurrent requests; unsuccessful transport requests remain retryable. Trusted imports can preload public address points without contacting a geocoder. Delivery coordinates retain the same approximate precision. No reverse geocoding runs when markers are viewed.
 
 Cache verification covers imported coordinates, normalized key reuse, a newly constructed service using existing rows, positive and negative hits making zero geocoder calls, and coordinate bounds.
+
+## Map interaction
+
+Configured business coordinates appear as restaurant pins, independently of order layer visibility. Each has a 3000 metre geodesic circle showing straight line radius, not route distance or checkout enforcement. The initial fit includes the full ring. Business pins show the business name, address and radius. Order bubbles and table actions open a compact popup with count, value excluding tips, cancelled count and status breakdown for the current filters. The map provides a native fullscreen toggle with a viewport fallback, Escape exit, focus return for the fallback, and resize cleanup. The same popups remain available in fullscreen.
+
+Mousewheel zoom is enabled only while the map is fullscreen, including the viewport fallback. Leaving fullscreen restores ordinary page scrolling.
