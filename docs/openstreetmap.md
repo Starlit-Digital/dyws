@@ -59,3 +59,13 @@ Cache verification covers imported coordinates, normalized key reuse, a newly co
 Configured business coordinates appear as restaurant pins, independently of order layer visibility. Each has a 3000 metre geodesic circle showing straight line radius, not route distance or checkout enforcement. The initial fit includes the full ring. Business pins show the business name, address and radius. Order bubbles and table actions open a compact popup with count, value excluding tips, cancelled count and status breakdown for the current filters. The map provides a native fullscreen toggle with a viewport fallback, Escape exit, focus return for the fallback, and resize cleanup. The same popups remain available in fullscreen.
 
 Mousewheel zoom is enabled only while the map is fullscreen, including the viewport fallback. Leaving fullscreen restores ordinary page scrolling.
+
+## Delivery density heatmap
+
+The map provides a local canvas heatmap, enabled by default. Only visible delivery groups contribute; pickup business coordinates never stand in for customer origins. Each group contributes its order count to a Gaussian field with a 550 metre standard deviation. Neighbouring fields add continuously. A continuous OKLCH green ramp uses the same lightness, chroma and hue endpoints as the hourly demand table. Empty geography is transparent so the basemap remains readable.
+
+The scale is normalized from the source areas for the selected report filters and remains fixed while panning. The legend is relative density, not an exact count for an arbitrary point. Approximate 0.01 degree source areas and smoothing may blend across the 3 km ring. No exact homes, new geocoding, external heatmap service, or additional customer data are used. The exact counts remain in the table and location popups. Switching the heatmap off restores numbered order bubbles.
+
+One control strip contains delivery and pickup layers, heatmap, fit, filters and refresh. Dates, currency, status and business location live in the Filters popover. The strip is included in native and fallback fullscreen. Wheel zoom remains fullscreen only. Canvas work is bounded to a reduced resolution raster, scheduled after map moves, zooms and resize, and disposed with its listeners on teardown. Numeric tests verify order weighting, neighbouring blending, empty areas, source normalization and colour continuity.
+
+Client host integration must reuse the established business logo, shared theme, header, navigation, typography and controls. Inspect existing host pages before adapting this plugin page. The bundled framework shell is not a finished client design. Keep client branding adaptations in the owning client repository and verify them alongside its existing pages.
