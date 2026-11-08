@@ -579,3 +579,5 @@ Tenant managers can issue provisioning keys for AI services. Versioned command d
 ### Manager status history
 
 Managers can read and correct eligible demo order stages through `GET|POST /manager/orders/{id}/status-history`. POST requires a revision and `action: set|undo|redo`; `set` also requires a status. The additive `statusControls` capability on manager order data drives the shared horizontal stepper. Status edits preserve payments, require assignment for delivery and confirmed payment for completion, and reject stale revisions, customer cancellations, active location shares and dispatch run membership. See [status-history.md](status-history.md) for the full contract and reusable browser adapter.
+
+OpenStreetMap Orders adds manager-only settings, filtered aggregate geography and explicit address enrichment routes under `/manager/plugins/openstreetmap/`. Geographic datasets and enrichment require the existing Reports entitlement. See [the plugin API contract](openstreetmap.md#manager-api). No anonymous customer coordinates or driver GPS endpoints are added.

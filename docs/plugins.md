@@ -221,3 +221,5 @@ themselves for checkout. The separate private Stripe plugin implements sandbox
 cancellation. Core includes no Stripe code.
 
 Reporting control context: `admin:report-controls` now receives a `getToken()` callback alongside `root` and `refresh`. Report UI modules must use this callback for authorized export/archive requests instead of assuming a host's session storage key. The reporting dataset includes host configured business details, working hours, store currency and a conditional demonstration flag. It must remain manager scoped.
+
+OpenStreetMap Orders is an optional bundled reporting plugin with two independent map layers, delivery areas and pickup branches. It is distinct from Google Maps driver navigation. Enable it through Plugins; configure verified branch coordinates and a tile source in Settings. It can reuse the host provisioned Nominatim service for explicit manager address enrichment, but does not change public address suggestion payloads. See [OpenStreetMap order overview](openstreetmap.md) for privacy, API, tile policy and installation details.

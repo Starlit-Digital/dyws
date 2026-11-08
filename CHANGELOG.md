@@ -2,6 +2,8 @@
 
 ## Unreleased · 2026-11-07
 
+- Add the optional OpenStreetMap Orders plugin with independent delivery area and pickup branch layers, scoped counts and values, private geography caching, explicit Nominatim enrichment and no driver GPS dependency.
+
 - Backport the refined reporting workspace, continuous demand colours, working hours trimming, complete order flow, top ten pie, interactive trend labels and longer calendar periods.
 - Add consolidated and section PDFs, configured business identity and UTC reference footers, private automatic archives and a searchable full window PDF viewer.
 - Move counting definitions, chart rationale and limitations into the report footer. Preserve manager and Reports entitlement checks and generic merchant configuration.

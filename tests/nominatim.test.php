@@ -21,12 +21,15 @@ try{
  $result=$lookup->search(['query'=>'Edmonton','customer'=>'must not forward']);check($calls===['Edmonton'],'Only address query forwarded');check(count($result['results'])===1&&$result['results'][0]['region']==='AB'&&$result['results'][0]['line1']==='123 Example Street','Normalized Canadian results');
  $partial=new AddressLookup($config,fn()=>[['display_name'=>'Partial postal','address'=>['country_code'=>'ca','postcode'=>'T5A']]]);check($partial->search(['query'=>'Edmonton'])['results'][0]['postalCode']==='','Incomplete OSM postal codes cannot invalidate checkout');
  $street=new AddressLookup($config,fn()=>[['display_name'=>'Example Street','address'=>['country_code'=>'ca','road'=>'Example Street','postcode'=>'T5A 1A1']]]);check($street->search(['query'=>'Example Street'])['results'][0]['postalCode']==='','Street results cannot fill a house postal code');
+ $geo=new AddressLookup($config,fn()=>[['lat'=>'53.23456','lon'=>'-113.54321','address'=>['country_code'=>'ca']]]);check($geo->geocodeForMap('123 Example Street, Edmonton')===['latitude'=>53.23456,'longitude'=>-113.54321],'Trusted map geocoding returns validated coordinates');
+ $invalidGeo=new AddressLookup($config,fn()=>[['lat'=>'999','lon'=>'0','address'=>['country_code'=>'ca']]]);check($invalidGeo->geocodeForMap('Example Street, Edmonton')===null,'Invalid coordinates are not fabricated');
  $disabled=$lookup->save(['enabled'=>false,'revision'=>$saved['revision']]);check($disabled['configured']&&!$disabled['enabled'],'Disable preserves credentials');denied(fn()=>$lookup->save(['enabled'=>true,'revision'=>$saved['revision']]),409);denied(fn()=>$lookup->search(['query'=>'Edmonton']),503);
  check(!(new AddressLookup(array_replace($config,['tenant'=>'beta'])))->summary()['configured'],'Tenant isolation');
  $lookup->save(['enabled'=>true,'revision'=>$disabled['revision']]);
  $failure=new AddressLookup($config,fn()=>throw new RuntimeException('secret'));denied(fn()=>$failure->search(['query'=>'Edmonton']),503);
  $demo=new AddressLookup(array_replace($config,['demo_lockdown'=>true]),fn()=>throw new RuntimeException('Demo must not access network'));
  check($demo->search(['query'=>'Any arbitrary address'])['results'][0]['line1']==='123 Example Avenue NW','Demo never calls service');denied(fn()=>$demo->save(['enabled'=>false,'revision'=>'demo']),403);
+ denied(fn()=>$demo->geocodeForMap('Example Street, Edmonton'),503);
  $plugins=new Plugins($config);$state=$plugins->summary();$state=$plugins->save(['id'=>'nominatim','active'=>true,'revision'=>$state['revision']]);check($plugins->match('POST','/plugins/nominatim/search')['rateLimit']===['nominatim-search',40,60],'Search rate limited');check($plugins->match('GET','/manager/plugins/nominatim/settings')['access']==='manager','Manager authentication');
  $plugins->save(['id'=>'nominatim','active'=>false,'revision'=>$state['revision']]);check($plugins->match('POST','/plugins/nominatim/search')===null,'Deactivation removes route');check($lookup->summary()['configured'],'Deactivation keeps credentials');
  echo "Nominatim: $checks checks passed.\n";

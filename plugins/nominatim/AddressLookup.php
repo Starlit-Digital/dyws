@@ -74,6 +74,16 @@ final class AddressLookup {
   }
   return ['results'=>$results,'demo'=>false];
  }
+ /** Manager analytics only. Search's public address response deliberately stays coordinate free. */
+ public function geocodeForMap(string $query):?array {
+  if($this->demo())throw new ApiError('Demo geocoding never sends addresses.',503);
+  $query=trim($query);if(!preg_match('//u',$query)||preg_match('/[\x00-\x1f\x7f]/u',$query)||mb_strlen($query)<4||mb_strlen($query)>240)throw new ApiError('Use a complete address and city.');
+  $s=$this->read();if(!$s['enabled']||$s['endpoint']===''||$s['password']==='')throw new ApiError('Configure your own Nominatim service first.',503);
+  try{$rows=$this->transport?($this->transport)($s,$query):$this->fetch($s,$query);}catch(\Throwable){throw new ApiError('Address geocoding is temporarily unavailable.',503);}
+  if(!is_array($rows)||!array_is_list($rows))throw new ApiError('Address geocoding returned an invalid result.',503);
+  foreach(array_slice($rows,0,5) as $row){if(!is_array($row)||($row['address']['country_code']??'')!=='ca')continue;$lat=$row['lat']??null;$lon=$row['lon']??null;if(is_numeric($lat)&&is_numeric($lon)&&is_finite((float)$lat)&&is_finite((float)$lon)&&abs((float)$lat)<=90&&abs((float)$lon)<=180)return ['latitude'=>(float)$lat,'longitude'=>(float)$lon];}
+  return null;
+ }
  private function fetch(array $s,string $q):array {
   if(!function_exists('curl_init'))throw new \RuntimeException();
   $url=$s['endpoint'].'?'.http_build_query(['q'=>$q,'format'=>'jsonv2','addressdetails'=>1,'countrycodes'=>'ca','limit'=>5,'accept-language'=>'en']);
