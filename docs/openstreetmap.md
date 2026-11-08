@@ -47,3 +47,9 @@ For a local fictional preview, run `php tests/fixtures/openstreetmap-preview.php
 References: [Leaflet stable API](https://leafletjs.com/reference-1.9.4.html), [OSMF tile policy](https://operations.osmfoundation.org/policies/tiles/), [OSM attribution guidelines](https://osmfoundation.org/wiki/Licence/Attribution_Guidelines).
 
 The map keeps date controls and layer switches visible. Currency, current status, branch filtering and the less frequent address enrichment action sit under Filters. The view is read only until a manager explicitly saves settings or starts address enrichment.
+
+## Persistent address cache
+
+`AddressCache` provides one normalization and write path for geocoder results and trusted imports. Keys use the existing tenant secret, fulfillment layer, case normalization and collapsed whitespace. Cached successful and unmatched results persist in SQLite across requests and service restarts. Page loads never perform lookups. Existing atomic address leases prevent duplicate concurrent requests; unsuccessful transport requests remain retryable. Trusted imports can preload public address points without contacting a geocoder. Delivery coordinates retain the same approximate precision. No reverse geocoding runs when markers are viewed.
+
+Cache verification covers imported coordinates, normalized key reuse, a newly constructed service using existing rows, positive and negative hits making zero geocoder calls, and coordinate bounds.

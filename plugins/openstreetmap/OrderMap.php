@@ -2,8 +2,10 @@
 declare(strict_types=1);
 namespace dyws\Plugins\OpenStreetMap;
 use dyws\{Store,ApiError,Catalog,Entitlements};
+require_once __DIR__.'/AddressCache.php';
 final class OrderMap {
- public function __construct(private Store $store,private array $config,private mixed $geocoder=null){$store->db->exec(file_get_contents(__DIR__.'/schema.sql'));}
+ private AddressCache $addressCache;
+ public function __construct(private Store $store,private array $config,private mixed $geocoder=null){$this->addressCache=new AddressCache($store,$config);}
  private function scope(array $query):array {
   $zone=(new \dyws\Settings($this->config))->read()['timeZone'];$tz=new \DateTimeZone($zone);$today=new \DateTimeImmutable('today',$tz);$from=$query['from']??$today->modify('-29 days')->format('Y-m-d');$to=$query['to']??$today->format('Y-m-d');
   $parse=static function($v)use($tz){if(!is_string($v)||!preg_match('/^\d{4}-\d{2}-\d{2}$/D',$v))throw new ApiError('Choose valid map dates.');$d=\DateTimeImmutable::createFromFormat('!Y-m-d',$v,$tz);if(!$d||$d->format('Y-m-d')!==$v)throw new ApiError('Choose valid map dates.');return $d;};$start=$parse($from);$end=$parse($to);if($end<$start||(int)$start->diff($end)->format('%a')>365)throw new ApiError('Choose up to 366 days.');
@@ -15,7 +17,7 @@ final class OrderMap {
   $business=json_decode($row['order_location_json'],true)?:[];
   if($row['fulfillment']==='pickup')$address=$business['address']??'';
   else{$a=json_decode($row['address_json'],true)?:[];$address=implode(', ',array_filter(array_intersect_key($a,array_flip(['line1','city','region','postalCode','country'])),fn($v)=>is_string($v)&&$v!==''));if($address==='')$address=$row['address'];}
-  $address=mb_substr(trim(preg_replace('/\s+/u',' ',(string)$address)??''),0,240);$hash=hash_hmac('sha256',$row['fulfillment'].'|'.mb_strtolower($address),$this->config['tracking_secret']);
+  $address=mb_substr(trim(preg_replace('/\s+/u',' ',(string)$address)??''),0,240);$hash=$this->addressCache->key($address,$row['fulfillment']);
   return ['address'=>$address,'hash'=>$hash,'locationId'=>(string)($business['id']??''),'name'=>(string)($business['name']??'Business')];
  }
  private function snapshot(array $query):array {
@@ -51,8 +53,7 @@ final class OrderMap {
    try{
    $point=is_callable($this->geocoder)?($this->geocoder)($meta['address']):(new \dyws\Plugins\Nominatim\AddressLookup($this->config))->geocodeForMap($meta['address']);
    if($point!==null&&(!isset($point['latitude'],$point['longitude'])||!is_numeric($point['latitude'])||!is_numeric($point['longitude'])||!is_finite((float)$point['latitude'])||!is_finite((float)$point['longitude'])||abs((float)$point['latitude'])>90||abs((float)$point['longitude'])>180))throw new ApiError('The address service returned invalid coordinates.',503);
-   $precision=$row['fulfillment']==='delivery'?2:5;$lat=$point===null?null:round((float)$point['latitude'],$precision);$lon=$point===null?null:round((float)$point['longitude'],$precision);
-   $this->store->execute('INSERT INTO osm_address_geography VALUES(?,?,?,?,?,?) ON CONFLICT(tenant,address_hash) DO UPDATE SET latitude=excluded.latitude,longitude=excluded.longitude,status=excluded.status,updated_at=excluded.updated_at',[$this->store->tenant,$meta['hash'],$lat,$lon,$point===null?'unmatched':'located',time()]);return ['processed'=>1,'located'=>$point!==null?1:0,'unmatched'=>$point===null?1:0];}finally{$this->store->execute('DELETE FROM osm_geocode_leases WHERE tenant=? AND address_hash=? AND token=?',[$this->store->tenant,$meta['hash'],$lease]);}
+   $this->addressCache->remember($meta['address'],$row['fulfillment'],$point);return ['processed'=>1,'located'=>$point!==null?1:0,'unmatched'=>$point===null?1:0];}finally{$this->store->execute('DELETE FROM osm_geocode_leases WHERE tenant=? AND address_hash=? AND token=?',[$this->store->tenant,$meta['hash'],$lease]);}
   }
   return ['processed'=>0,'located'=>0,'unmatched'=>0];
  }
