@@ -33,6 +33,12 @@ with tempfile.TemporaryDirectory(prefix='dyws-osm-api-') as temp:
   order=request('/orders',{'idempotencyKey':'osm-fictional-order-key-0001','customer':{'name':'Private Map Customer','phone':'7805550100'},'lines':[{'id':'breakfast0','variant':'','quantity':1}],'fulfillment':'pickup','demoAcknowledged':True},status=201)
   today=datetime.datetime.now(datetime.timezone.utc).date();query='&'+urllib.parse.urlencode({'from':str(today-datetime.timedelta(days=1)),'to':str(today+datetime.timedelta(days=1))})
   data=request(base+'/dataset',token=admin,query=query);check(data['mappedOrders']==1 and data['groups'][0]['layer']=='pickup');encoded=json.dumps(data);check('Private Map Customer' not in encoded and '7805550100' not in encoded and order['id'] not in encoded)
+  export_body={'query':data['scope'],'snapshotId':data['snapshotId'],'layers':['pickup'],'heatmap':False,'image':'data:image/jpeg;base64,'+base64.b64encode((root/'tests/fixtures/order-map-raster.jpg').read_bytes()).decode(),'view':{'bounds':[53.4,-113.6,53.6,-113.4],'zoom':12}}
+  request(base+'/export',export_body,status=401);request(base+'/export',export_body,token=driver,status=403)
+  pdf=request(base+'/export',export_body,token=admin);check(base64.b64decode(pdf['content']).startswith(b'%PDF-'))
+  archived=request('/manager/plugins/order-reporting/archive',token=admin,query='&target=order-map');check(archived['total']==1 and archived['items'][0]['settings']['mapView']['layers']==['pickup'])
+  original=request('/manager/plugins/order-reporting/archive/download',{'id':pdf['archiveId']},token=admin);check(original['content']==pdf['content'])
+  request(base+'/export',{**export_body,'snapshotId':'0'*64},token=admin,status=409);request(base+'/export',{**export_body,'layers':[[]]},token=admin,status=422)
   request(base+'/dataset',token=admin,query='&from[]=bad',status=422);request(base+'/dataset',token=admin,query='&status=invalid',status=422);request(base+'/geocode',{'query':{}},status=401);request(base+'/geocode',{'query':{}},token=driver,status=403);request(base+'/geocode',{'query':{}},token=admin,status=503);request(base+'/geocode',{'query':'invalid'},token=admin,status=422)
   bad={**saved,'tileUrl':'https://example.test/no-placeholders.png'};request(base+'/settings',bad,token=admin,status=422)
   config['pricing_tier']='free';(work/'config.json').write_text(json.dumps(config));denied=request(base+'/dataset',token=admin,status=403);check(denied['code']=='pro_required');config['pricing_tier']='pro';(work/'config.json').write_text(json.dumps(config))

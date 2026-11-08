@@ -23,5 +23,5 @@ export function createHeatmap(L,map,doc){
   for(let i=0;i<values.length;i++){const t=Math.min(1,values[i]/peak);if(t<.003)continue;const rgb=heatColor(t);image.data.set(rgb,i*4);image.data[i*4+3]=Math.round(230*Math.min(1,t*4));}context.putImageData(image,0,0);
  };
  const schedule=()=>{if(!frame)frame=doc.defaultView.requestAnimationFrame(draw);};map.on('moveend zoomend resize',schedule);
- return {show(next,active){points=next.filter(p=>p.layer==='delivery'&&p.orders>0);enabled=active;peak=densityPeak(points);schedule();},destroy(){disposed=true;doc.defaultView.cancelAnimationFrame(frame);map.off('moveend zoomend resize',schedule);legend.remove();pane.remove();}};
+ return {flush(){doc.defaultView.cancelAnimationFrame(frame);frame=0;draw();},show(next,active){points=next.filter(p=>p.layer==='delivery'&&p.orders>0);enabled=active;peak=densityPeak(points);schedule();},destroy(){disposed=true;doc.defaultView.cancelAnimationFrame(frame);map.off('moveend zoomend resize',schedule);legend.remove();pane.remove();}};
 }

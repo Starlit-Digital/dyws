@@ -1,6 +1,6 @@
 import {escapeHTML as esc} from '../../dyws/api.js';
 
-const targets=[['','All reports'],['overview','Overview'],['report','Custom report'],['at-a-glance','Operational summary'],['all-items','All items'],['daily','Daily data'],['payments','Payment breakdown'],['hours','Order times'],['payment-trend','Payment trend'],['orders-by-day','Orders by day'],['demand','Demand'],['top-items','Popular items'],['order-flow','Order flow'],['locations','Locations'],['fulfillment','Fulfillment times']];
+const targets=[['','All reports'],['overview','Overview'],['order-map','Order map'],['report','Custom report'],['at-a-glance','Operational summary'],['all-items','All items'],['daily','Daily data'],['payments','Payment breakdown'],['hours','Order times'],['payment-trend','Payment trend'],['orders-by-day','Orders by day'],['demand','Demand'],['top-items','Popular items'],['order-flow','Order flow'],['locations','Locations'],['fulfillment','Fulfillment times']];
 const title=row=>targets.find(([value])=>value===row.target)?.[1]||row.target;
 export function archiveGroups(rows){
  const groups=new Map();

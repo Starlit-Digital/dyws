@@ -2,6 +2,8 @@
 
 ## Unreleased · 2026-11-07
 
+- Add current-view map PDF exports with selected layers and filters, shared business identity and automatic searchable PDF archiving.
+
 - Add the optional OpenStreetMap Orders plugin with independent delivery area and pickup branch layers, scoped counts and values, private geography caching, explicit Nominatim enrichment and no driver GPS dependency.
 
 - Backport the refined reporting workspace, continuous demand colours, working hours trimming, complete order flow, top ten pie, interactive trend labels and longer calendar periods.

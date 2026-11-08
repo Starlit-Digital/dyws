@@ -16,6 +16,7 @@ final class PdfArchive {
   if(!is_dir($this->directory)&&!mkdir($this->directory,0700,true)&&!is_dir($this->directory))throw new ApiError('PDF archive is unavailable.',503);
   $id=bin2hex(random_bytes(16));$path=$this->directory.'/'.$id.'.pdf';$temp=tempnam($this->directory,'.pending-');
   $snapshot=['rendererVersion'=>2,'target'=>$target,'sections'=>$sections,'range'=>$data['range'],'previousRange'=>$data['previousRange'],'currency'=>$data['currency'],'fulfillment'=>$data['fulfillment'],'timeZone'=>$data['timeZone'],'workingHours'=>$data['workingHours']??null,'businessInfo'=>$data['businessInfo']??[],'identity'=>$file['identity']];
+  if(isset($data['mapView']))$snapshot['mapView']=$data['mapView'];
   try {
    if($temp===false||file_put_contents($temp,$file['content'],LOCK_EX)!==strlen($file['content'])||!chmod($temp,0600)||!rename($temp,$path))throw new \RuntimeException('Archive write failed');
    $this->store->execute('INSERT INTO report_pdf_archive VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)',[$this->store->tenant,$id,$file['identity']['reference'],$file['identity']['generatedAt'],$file['name'],$target,$data['range']['from'],$data['range']['to'],$data['currency'],$data['fulfillment'],json_encode($snapshot,JSON_THROW_ON_ERROR),hash('sha256',$file['content']),strlen($file['content'])]);
