@@ -28,7 +28,7 @@ export async function createOrderMap(canvas,settings,{loadLeaflet=()=>import('./
    for(const point of points){const coordinates=[point.latitude,point.longitude];bounds.extend(coordinates);const circle=L.circleMarker(coordinates,{radius:heatEnabled&&point.layer==='delivery'?7:orderRadius(point.orders),color:'#fff',weight:heatEnabled?1:2,fillColor:point.layer==='delivery'?'#b52e37':'#1c6546',fillOpacity:heatEnabled&&point.layer==='delivery'?.2:.95});circle.bindPopup(popup(point),{maxWidth:300,minWidth:230});circle.on('click',()=>onSelect(point));circle.addTo(groups);markers.set(point.id,circle);if(points.length<=100&&!(heatEnabled&&point.layer==='delivery'))circle.bindTooltip(String(point.orders),{permanent:true,direction:'center',className:'dyws-osm-count'});else circle.bindTooltip(`${point.name}: ${point.orders} orders`);}
    lastBounds=bounds;if(bounds.isValid()&&(fit||first)){map.fitBounds(bounds,{padding:[38,38],maxZoom:13,animate:false});first=false;}
   },
-  async capture(){return captureOrderMap({map,canvas,settings,points:lastPoints,heatmap:heatEnabled,heat,document:doc});},
+  async capture(options={}){const points=options.layers?lastPoints.filter(point=>options.layers.includes(point.layer)):lastPoints;return captureOrderMap({map,canvas,settings,points,heatmap:options.heatmap??heatEnabled,heat,document:doc});},
   async leaveFullscreen(){if(expanded)fallback(false);if(doc.fullscreenElement===fullscreenTarget)await doc.exitFullscreen();},
   focus(point){map.setView([point.latitude,point.longitude],Math.min(settings.maxZoom,14),{animate:false});markers.get(point.id)?.openPopup();onSelect(point);},
   fit(points){this.show(points,{fit:true});},

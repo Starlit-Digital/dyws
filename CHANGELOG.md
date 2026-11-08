@@ -142,3 +142,5 @@ Use directory routes such as `/admin/`, `/orders/`, `/driver/` and `/tracking/`,
 ### Preview limits
 
 This is a demonstration release, not a production delivery service. Stripe is sandbox only, the hosted diner uses HTTPS polling and a simulated origin, and Google Maps requires configuration. Native mobile applications, reliable background GPS, marketplace payouts and managed production operations are not included. The optional WebSocket relay must be deployed separately.
+
+Map PDFs now include separate selected layer pages. Consolidated report overviews can include the same maps, with per page filters saved in the private archive.
