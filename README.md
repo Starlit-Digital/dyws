@@ -13,7 +13,7 @@ Free includes the catalog, cart, pickup, delivery, booking, manager dashboard an
 
 Customers can order products or services for pickup or delivery, or book an appointment directly on a business website. Businesses choose the Catalog, Pickup, Delivery and Appointment Booking plugins they need. Starlit Diner is the fictional restaurant example; the catalog supports general products and services sold in whole units.
 
-DYWS belongs in Starlit Digital's **Business Related**. [Starlit SiteCraft](https://sltd.ca/pricing/) uses its ordering, fulfillment and appointment capabilities when a client website needs them, alongside the shared template library, Starlit assets and accessibility preferences. A static template or contact form alone is not a DYWS integration. See [the product direction](docs/product-notes.md).
+DYWS belongs in Starlight Digital's **Business Related**. [Starlit SiteCraft](https://sltd.ca/pricing/) uses its ordering, fulfillment and appointment capabilities when a client website needs them, alongside the shared template library, Starlit assets and accessibility preferences. A static template or contact form alone is not a DYWS integration. See [the product direction](docs/product-notes.md).
 
 This is a development preview. Orders and delivery workflows work against persistent storage, but the included payment ledger is a demonstration. DYWS supports payment plugins; Stripe is available through a separately installed plugin and is not included in the public framework or install kit. Native mobile apps and production dispatch operations are not shipped. The repository contains the complete public framework source; deployment credentials and business records stay outside Git.
 

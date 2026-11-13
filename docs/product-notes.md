@@ -22,7 +22,7 @@ DYWS is listed under Business Related on sltd.ca, including the homepage, Projec
 
 Starlit SiteCraft is the public website service. The workflow selects a Starlit template, applies Starlit assets and accessibility preferences, adds appropriate DYWS capabilities, customizes the site, verifies it and deploys it. Use DYWS where ordering, fulfillment, delivery or its plugin capabilities are needed. A static design or email contact form does not by itself integrate DYWS.
 
-Create an appropriately named private Starlit Digital repository for each distinct client site. Reuse that site's repository for additional pages and preserve existing remotes and edits. Keep the reusable platform here and client branding in the owning site. The [SiteCraft landing page](https://sltd.ca/sitecraft/) omits pricing and invites contact for an initial meeting.
+Create an appropriately named private Starlight Digital repository for each distinct client site. Reuse that site's repository for additional pages and preserve existing remotes and edits. Keep the reusable platform here and client branding in the owning site. The [SiteCraft landing page](https://sltd.ca/sitecraft/) omits pricing and invites contact for an initial meeting.
 
 The reusable workflow lives in `~/.codex/skills/starlit-sitecraft/SKILL.md`. Durable website and workflow decisions live in `sltd.ca/docs/AI_NOTES_WEBSITE.txt` under the shared repository base. Missing contact details, deployment configuration and incomplete integrations must remain explicit.
 
